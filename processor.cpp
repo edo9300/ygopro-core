@@ -497,7 +497,8 @@ int32 field::process() {
 			        || (attacker->fieldid_r != core.pre_field[0])
 			        || (attacker->current.location != LOCATION_MZONE)
 			        || !attacker->is_capable_attack()
-			        || !attacker->is_affect_by_effect(core.reason_effect)) {
+			        || !attacker->is_affect_by_effect(core.reason_effect)
+					|| attacker->is_affected_by_effect(EFFECT_ALWAYS_ATTACK)) {
 				returns.ivalue[0] = 0;
 				pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 				core.units.pop_front();
@@ -2444,7 +2445,7 @@ int32 field::process_idle_command(uint16 step) {
 		nil_event.event_code = EVENT_FREE_CHAIN;
 		core.to_bp = TRUE;
 		core.to_ep = TRUE;
-		if((!(core.duel_options & DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP))
+		if((!(core.duel_options & DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1 && !(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP))
 			core.to_bp = FALSE;
 		if(infos.phase == PHASE_MAIN1) {
 			for(uint32 i = 0; i < 5; ++i) {
@@ -3063,7 +3064,7 @@ int32 field::process_battle_command(uint16 step) {
 		bool atk_disabled = false;
 		uint32 acon = core.units.begin()->arg2 >> 16;
 		uint32 afid = core.units.begin()->arg2 & 0xffff;
-		if(core.attacker->is_affected_by_effect(EFFECT_ATTACK_DISABLED)) {
+		if(core.attacker->is_affected_by_effect(EFFECT_ATTACK_DISABLED) && !core.attacker->is_affected_by_effect(EFFECT_ALWAYS_ATTACK)) {
 			core.attacker->reset(EFFECT_ATTACK_DISABLED, RESET_CODE);
 			atk_disabled = true;
 			pduel->write_buffer8(MSG_ATTACK_DISABLED);
@@ -4983,28 +4984,38 @@ int32 field::adjust_step(uint16 step) {
 	case 1: {
 		//win check(deck=0 or lp=0)
 		uint32 winp = 5, rea = 1;
-		if(player[0].lp <= 0 && player[1].lp > 0) {
+		if (player[0].lp <= 0 && player[1].lp > 0 && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP)) {
 			winp = 1;
 			rea = 1;
 		}
-		if(core.overdraw[0] && !core.overdraw[1]) {
+		if (core.overdraw[0] && !core.overdraw[1] && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK)) {
 			winp = 1;
 			rea = 2;
 		}
-		if(player[1].lp <= 0 && player[0].lp > 0) {
+		if (player[1].lp <= 0 && player[0].lp > 0 && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP)) {
 			winp = 0;
 			rea = 1;
 		}
-		if(core.overdraw[1] && !core.overdraw[0]) {
+		if (core.overdraw[1] && !core.overdraw[0] && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK)) {
 			winp = 0;
 			rea = 2;
 		}
-		if(player[1].lp <= 0 && player[0].lp <= 0) {
-			winp = PLAYER_NONE;
+		if (player[1].lp <= 0 && player[0].lp <= 0 && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))) {
+			if (is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP))
+				winp = 0;
+			else if (is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))
+				winp = 1;
+			else
+				winp = PLAYER_NONE;
 			rea = 1;
 		}
-		if(core.overdraw[1] && core.overdraw[0]) {
-			winp = PLAYER_NONE;
+		if (core.overdraw[1] && core.overdraw[0] && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))) {
+			if (is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK))
+				winp = 0;
+			else if (is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))
+				winp = 1;
+			else
+				winp = PLAYER_NONE;
 			rea = 2;
 		}
 		if(winp != 5) {
@@ -5250,7 +5261,7 @@ int32 field::adjust_step(uint16 step) {
 		card* attacker = core.attacker;
 		if(!attacker)
 			return FALSE;
-		if(attacker->is_affected_by_effect(EFFECT_CANNOT_ATTACK))
+		if(attacker->is_affected_by_effect(EFFECT_CANNOT_ATTACK) && !attacker->is_affected_by_effect(EFFECT_ALWAYS_ATTACK))
 			attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		if(core.attack_rollback)
 			return FALSE;

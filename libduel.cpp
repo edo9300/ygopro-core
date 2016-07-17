@@ -162,20 +162,29 @@ int32 scriptlib::duel_remove(lua_State *L) {
 	card* pcard = 0;
 	group* pgroup = 0;
 	duel* pduel = 0;
-	if(check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
-		pcard = *(card**) lua_touserdata(L, 1);
+	if (check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
+		pcard = *(card**)lua_touserdata(L, 1);
 		pduel = pcard->pduel;
-	} else if(check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
-		pgroup = *(group**) lua_touserdata(L, 1);
+	}
+	else if (check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
+		pgroup = *(group**)lua_touserdata(L, 1);
 		pduel = pgroup->pduel;
-	} else
+	}
+	else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
 	uint32 pos = lua_tointeger(L, 2);
 	uint32 reason = lua_tointeger(L, 3);
-	if(pcard)
-		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, pos);
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 3) {
+		playerid = lua_tointeger(L, 4);
+		if (lua_isnil(L, 4) || (playerid != 0 && playerid != 1)) {
+			playerid = PLAYER_NONE;
+		}
+	}
+	if (pcard)
+		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_REMOVED, 0, pos);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, pos);
+		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_REMOVED, 0, pos);
 	pduel->game_field->core.subunits.begin()->type = PROCESSOR_SENDTO_S;
 	return lua_yield(L, 0);
 }
@@ -185,19 +194,28 @@ int32 scriptlib::duel_sendto_grave(lua_State *L) {
 	card* pcard = 0;
 	group* pgroup = 0;
 	duel* pduel = 0;
-	if(check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
-		pcard = *(card**) lua_touserdata(L, 1);
+	if (check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
+		pcard = *(card**)lua_touserdata(L, 1);
 		pduel = pcard->pduel;
-	} else if(check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
-		pgroup = *(group**) lua_touserdata(L, 1);
+	}
+	else if (check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
+		pgroup = *(group**)lua_touserdata(L, 1);
 		pduel = pgroup->pduel;
-	} else
+	}
+	else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
 	uint32 reason = lua_tointeger(L, 2);
-	if(pcard)
-		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 2) {
+		playerid = lua_tointeger(L, 3);
+		if (lua_isnil(L, 3) || (playerid != 0 && playerid != 1)) {
+			playerid = PLAYER_NONE;
+		}
+	}
+	if (pcard)
+		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
 	pduel->game_field->core.subunits.begin()->type = PROCESSOR_SENDTO_S;
 	return lua_yield(L, 0);
 }
@@ -908,10 +926,26 @@ int32 scriptlib::duel_win(lua_State *L) {
 	check_param_count(L, 2);
 	uint32 playerid = lua_tointeger(L, 1);
 	uint32 reason = lua_tointeger(L, 2);
-	if(playerid != 0 && playerid != 1 && playerid != 2)
+	if (playerid != 0 && playerid != 1 && playerid != 2)
 		return 0;
 	duel* pduel = interpreter::get_duel_info(L);
-	if(pduel->game_field->core.win_player == 5) {
+	if (playerid == 0) {
+		if (pduel->game_field->is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_EFFECT))
+			return 0;
+	}
+	else if (playerid == 1) {
+		if (pduel->game_field->is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_EFFECT))
+			return 0;
+	}
+	else {
+		if (pduel->game_field->is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_EFFECT) && pduel->game_field->is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_EFFECT))
+			return 0;
+		else if (pduel->game_field->is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_EFFECT))
+			playerid = 0;
+		else if (pduel->game_field->is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_EFFECT))
+			playerid = 1;
+	}
+	if (pduel->game_field->core.win_player == 5) {
 		pduel->game_field->core.win_player = playerid;
 		pduel->game_field->core.win_reason = reason;
 	}

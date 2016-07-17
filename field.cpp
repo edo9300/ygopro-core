@@ -1209,16 +1209,16 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 	uint8 p = target->current.controler;
 	card* pcard;
 	uint32 rcount = 0;
-	for(int i = 0; i < 5; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		pcard = player[p].list_mzone[i];
-		if(pcard && pcard->is_releasable_by_summon(p, target)) {
-			if(mg && !mg->has_card(pcard))
+		if (pcard && pcard->is_releasable_by_summon(p, target)) {
+			if (mg && !mg->has_card(pcard))
 				continue;
-			if(release_list)
+			if (release_list)
 				release_list->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+			if (pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
 				pcard->operation_param = 3;
-			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->operation_param = 2;
 			else
 				pcard->operation_param = 1;
@@ -1226,35 +1226,36 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 		}
 	}
 	uint32 ex_sum_max = 0;
-	for(int i = 0; i < 5; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		pcard = player[1 - p].list_mzone[i];
-		if(!(pcard && pcard->is_releasable_by_summon(p, target)))
+		if (!(pcard && pcard->is_releasable_by_summon(p, target)))
 			continue;
-		if(mg && !mg->has_card(pcard))
+		if (mg && !mg->has_card(pcard))
 			continue;
-		if(ex || pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
-			if(ex_list)
+		if (ex || pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
+			if (ex_list)
 				ex_list->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+			if (pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
 				pcard->operation_param = 3;
-			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->operation_param = 2;
 			else
 				pcard->operation_param = 1;
 			rcount += pcard->operation_param;
-		} else {
+		}
+		else {
 			effect* peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
-			if(!peffect || (peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->reset_count & 0xf00) == 0))
+			if (!peffect || (peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->reset_count & 0xf00) == 0))
 				continue;
-			if(ex_list_sum)
+			if (ex_list_sum)
 				ex_list_sum->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+			if (pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
 				pcard->operation_param = 3;
-			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->operation_param = 2;
 			else
 				pcard->operation_param = 1;
-			if(ex_sum_max < pcard->operation_param)
+			if (ex_sum_max < pcard->operation_param)
 				ex_sum_max = pcard->operation_param;
 		}
 	}

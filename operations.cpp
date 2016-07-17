@@ -264,7 +264,7 @@ void field::send_to(card_set* targets, effect* reason_effect, uint32 reason, uin
 		// send to hand from deck  & playerid not given => send to the hand of controler
 		if(p == PLAYER_NONE && (destination & LOCATION_HAND) && (pcard->current.location & LOCATION_DECK) && pcard->current.controler == reason_player)
 			p = reason_player;
-		if(destination & (LOCATION_GRAVE + LOCATION_REMOVED) || p == PLAYER_NONE)
+		if(p == PLAYER_NONE)
 			p = pcard->owner;
 		if(destination != LOCATION_REMOVED)
 			pos = POS_FACEUP;
@@ -475,7 +475,7 @@ int32 field::damage(uint16 step, effect* reason_effect, uint32 reason, uint8 rea
 		pduel->write_buffer32(amount);
 		raise_event(reason_card, EVENT_DAMAGE, reason_effect, reason, reason_player, playerid, amount);
 		if(reason == REASON_BATTLE && reason_card) {
-			if((player[playerid].lp <= 0) && (core.attack_target == 0) && reason_card->is_affected_by_effect(EFFECT_MATCH_KILL)) {
+			if ((player[playerid].lp <= 0) && (core.attack_target == 0) && reason_card->is_affected_by_effect(EFFECT_MATCH_KILL) && !is_player_affected_by_effect(playerid, EFFECT_CANNOT_LOSE_LP)) {
 				pduel->write_buffer8(MSG_MATCH_KILL);
 				pduel->write_buffer32(reason_card->data.code);
 			}
