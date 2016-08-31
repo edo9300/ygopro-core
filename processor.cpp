@@ -14,7 +14,7 @@
 #include "ocgapi.h"
 #include <iterator>
 
-void field::add_process(uint16 type, uint16 step, effect* peffect, group* target, ptr arg1, ptr arg2) {
+void field::add_process(uint16 type, uint16 step, effect* peffect, group* target, ptr arg1, ptr arg2, ptr arg3, ptr arg4, void* ptr1, void* ptr2) {
 	processor_unit new_unit;
 	new_unit.type = type;
 	new_unit.step = step;
@@ -22,6 +22,10 @@ void field::add_process(uint16 type, uint16 step, effect* peffect, group* target
 	new_unit.ptarget = target;
 	new_unit.arg1 = arg1;
 	new_unit.arg2 = arg2;
+	new_unit.arg3 = arg3;
+	new_unit.arg4 = arg4;
+	new_unit.ptr1 = ptr1;
+	new_unit.ptr2 = ptr2;
 	core.subunits.push_back(new_unit);
 }
 int32 field::process() {
@@ -122,7 +126,7 @@ int32 field::process() {
 	}
 	case PROCESSOR_SELECT_DISFIELD:
 	case PROCESSOR_SELECT_PLACE: {
-		if (select_place(it->step, it->arg1 & 0xffff, it->arg2, (it->arg1 >> 16) & 0xffff)) {
+		if (select_place(it->step, it->arg1, it->arg2, it->arg3)) {
 			core.units.pop_front();
 			return pduel->bufferlen;
 		} else {
@@ -306,21 +310,21 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_DESTROY_STEP: {
-		if(destroy(it->step, it->ptarget, (card*)it->arg1, it->arg2))
+		if(destroy(it->step, it->ptarget, (card*)it->ptr1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_RELEASE_STEP: {
-		if (release(it->step, it->ptarget, (card*)it->arg1))
+		if (release(it->step, it->ptarget, (card*)it->ptr1))
 			core.units.pop_front();
 		else
 			it->step++;
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_SENDTO_STEP: {
-		if (send_to(it->step, it->ptarget, (card*)it->arg1))
+		if (send_to(it->step, it->ptarget, (card*)it->ptr1))
 			core.units.pop_front();
 		else
 			it->step++;
@@ -341,7 +345,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_OPERATION_REPLACE: {
-		if (operation_replace(it->step, it->peffect, it->ptarget, it->arg1, it->arg2))
+		if (operation_replace(it->step, it->peffect, it->ptarget, (card*)it->ptr1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
@@ -390,7 +394,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_SPSUMMON_STEP: {
-		if (special_summon_step(it->step, it->ptarget, (card*)(it->arg2)))
+		if (special_summon_step(it->step, it->ptarget, (card*)(it->ptr1)))
 			core.units.pop_front();
 		else
 			it->step++;
@@ -441,7 +445,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_EQUIP: {
-		if (equip(it->step, it->arg2 & 0xffff, (card*)it->arg1, (card*)it->ptarget, (it->arg2 >> 16) & 0xff, (it->arg2 >> 24) & 0xff))
+		if (equip(it->step, it->arg2 & 0xffff, (card*)it->ptr1, (card*)it->ptarget, (it->arg2 >> 16) & 0xff, (it->arg2 >> 24) & 0xff))
 			core.units.pop_front();
 		else
 			it->step++;
@@ -455,7 +459,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_SWAP_CONTROL: {
-		if (swap_control(it->step, it->peffect, (it->arg2 >> 28) & 0xf, (card*)it->ptarget, (card*)it->arg1, (it->arg2 >> 8) & 0x3ff, it->arg2 & 0xff)) {
+		if (swap_control(it->step, it->peffect, it->arg1, (card*)it->ptarget, (card*)it->ptr1, it->arg2, it->arg3)) {
 			core.units.pop_front();
 		} else
 			it->step++;
@@ -483,7 +487,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVE_COUNTER: {
-		if (remove_counter(it->step, (ptr)it->peffect, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
+		if (remove_counter(it->step, it->arg3, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
 		} else
@@ -664,8 +668,6 @@ int32 field::process() {
 		}
 		return pduel->bufferlen;
 	}
-	case PROCESSOR_SELECT_PLACE_S:
-		break;
 	case PROCESSOR_SELECT_POSITION_S: {
 		if(it->step == 0) {
 			add_process(PROCESSOR_SELECT_POSITION, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
@@ -766,14 +768,14 @@ int32 field::process() {
 				return pduel->bufferlen;
 			}
 			core.sub_solving_event.push_back(e);
-			pduel->lua->add_param(it->arg2, PARAM_TYPE_CARD);
+			pduel->lua->add_param(it->ptr1, PARAM_TYPE_CARD);
 			pduel->lua->add_param(it->arg1 >> 16, PARAM_TYPE_INT);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, it->peffect, 0, it->arg1 & 0xffff, 0);
 			it->step++;
 		} else {
 			group* pgroup = pduel->new_group(core.fusion_materials);
-			if(it->arg2)
-				pgroup->container.insert((card*)it->arg2);
+			if(it->ptr1)
+				pgroup->container.insert((card*)it->ptr1);
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}
@@ -810,7 +812,7 @@ int32 field::process() {
 	}
 	case PROCESSOR_SELECT_DISFIELD_S: {
 		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_DISFIELD, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
+			add_process(PROCESSOR_SELECT_DISFIELD, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3);
 			it->step++;
 		} else {
 			int32 playerid = it->arg1 & 0xffff;
@@ -841,7 +843,7 @@ int32 field::process() {
 	}
 	case PROCESSOR_SPSUMMON_STEP_S: {
 		if(it->step == 0) {
-			add_process(PROCESSOR_SPSUMMON_STEP, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
+			add_process(PROCESSOR_SPSUMMON_STEP, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4, it->ptr1);
 			it->step++;
 		} else {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
@@ -930,7 +932,7 @@ int32 field::process() {
 	}
 	case PROCESSOR_EQUIP_S: {
 		if(it->step == 0) {
-			add_process(PROCESSOR_EQUIP, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
+			add_process(PROCESSOR_EQUIP, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4, it->ptr1);
 			it->step++;
 		} else {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
@@ -950,7 +952,7 @@ int32 field::process() {
 	}
 	case PROCESSOR_SWAP_CONTROL_S: {
 		if(it->step == 0) {
-			add_process(PROCESSOR_SWAP_CONTROL, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
+			add_process(PROCESSOR_SWAP_CONTROL, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4, it->ptr1);
 			it->step++;
 		} else {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
@@ -963,7 +965,7 @@ int32 field::process() {
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(it->arg1);
-			if(((ptr)it->ptarget) & REASON_DISCARD)
+			if(it->arg3 & REASON_DISCARD)
 				pduel->write_buffer32(501);
 			else
 				pduel->write_buffer32(504);
@@ -1039,7 +1041,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVEOL_S: {
-		if(remove_overlay_card(it->step, (ptr)(it->peffect), (card*)(it->ptarget), it->arg1 >> 16,
+		if(remove_overlay_card(it->step, it->arg3, (card*)(it->ptarget), it->arg1 >> 16,
 		                       (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
@@ -3448,7 +3450,7 @@ int32 field::process_battle_command(uint16 step) {
 		if(core.battle_destroy_rep.size())
 			destroy(&core.battle_destroy_rep, 0, REASON_EFFECT | REASON_REPLACE, PLAYER_NONE);
 		if(core.desrep_chain.size())
-			add_process(PROCESSOR_OPERATION_REPLACE, 15, 0, 0, 0, 0);
+			add_process(PROCESSOR_OPERATION_REPLACE, 15, NULL, NULL, 0, 0);
 		adjust_all();
 		return FALSE;
 	}
@@ -4551,10 +4553,10 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			}
 		}
 		if(cait->replace_op) {
-			core.units.begin()->peffect = (effect*)(size_t)cait->triggering_effect->operation;
+			core.units.begin()->arg4 = cait->triggering_effect->operation;
 			cait->triggering_effect->operation = cait->replace_op;
 		} else
-			core.units.begin()->peffect = 0;
+			core.units.begin()->arg4 = 0;
 		if(cait->triggering_effect->operation) {
 			core.sub_solving_event.push_back(cait->evt);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, cait->triggering_effect, 0, cait->triggering_player, 0);
@@ -4563,15 +4565,15 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	}
 	case 3: {
 		effect* peffect = cait->triggering_effect;
-		if(core.units.begin()->peffect) {
-			peffect->operation = (ptr)core.units.begin()->peffect;
+		if(core.units.begin()->arg4) {
+			peffect->operation = core.units.begin()->arg4;
 		}
 		core.special_summoning.clear();
 		core.equiping_cards.clear();
 		return FALSE;
 	}
 	case 4: {
-		if(core.units.begin()->peffect == 0) {
+		if(core.units.begin()->arg4 == 0) {
 			if(cait->opinfos.count(0x200)) {
 				if(core.spsummon_state_count_tmp[cait->triggering_player] == core.spsummon_state_count[cait->triggering_player])
 					set_spsummon_counter(cait->triggering_player);
@@ -4788,13 +4790,13 @@ int32 field::refresh_location_info(uint16 step) {
 	case 0: {
 		effect_set eset;
 		uint32 value;
-		int32 p;
+		uint32 p;
 		core.units.begin()->arg2 = player[0].disabled_location | (player[1].disabled_location << 16);
 		player[0].disabled_location = 0;
 		player[1].disabled_location = 0;
 		core.disfield_effects.clear();
-		core.extraz_effects.clear();
-		core.extraz_effects_e.clear();
+		core.extram_effects.clear();
+		core.extras_effects.clear();
 		filter_field_effect(EFFECT_DISABLE_FIELD, &eset);
 		for (int32 i = 0; i < eset.size(); ++i) {
 			value = eset[i]->get_value();
@@ -4810,10 +4812,8 @@ int32 field::refresh_location_info(uint16 step) {
 			p = eset[i]->get_handler_player();
 			value = eset[i]->get_value();
 			player[p].disabled_location |= (value >> 16) & 0x1f;
-			if(field_used_count[(value >> 16) & 0x1f] == 0)
-				core.extraz_effects_e.add_item(eset[i]);
-			else if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
-				core.extraz_effects.add_item(eset[i]);
+			if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
+				core.extram_effects.add_item(eset[i]);
 		}
 		eset.clear();
 		filter_field_effect(EFFECT_USE_EXTRA_SZONE, &eset);
@@ -4821,10 +4821,8 @@ int32 field::refresh_location_info(uint16 step) {
 			p = eset[i]->get_handler_player();
 			value = eset[i]->get_value();
 			player[p].disabled_location |= (value >> 8) & 0x1f00;
-			if(field_used_count[(value >> 16) & 0x1f] == 0)
-				core.extraz_effects_e.add_item(eset[i]);
-			else if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
-				core.extraz_effects.add_item(eset[i]);
+			if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
+				core.extras_effects.add_item(eset[i]);
 		}
 		return FALSE;
 	}
@@ -4862,106 +4860,82 @@ int32 field::refresh_location_info(uint16 step) {
 		return FALSE;
 	}
 	case 3: {
-		if(core.extraz_effects.count == 0) {
+		// If the blocking number is not reached, we should block more slots.
+		if(core.extram_effects.count == 0) {
 			core.units.begin()->step = 4;
 			return FALSE;
 		}
-		effect* peffect = core.extraz_effects[0];
+		effect* peffect = core.extram_effects[0];
 		core.units.begin()->peffect = peffect;
-		core.extraz_effects.remove_item(0);
-		int32 p = peffect->get_handler_player();
-		int32 loc = (peffect->code == EFFECT_USE_EXTRA_MZONE) ? LOCATION_MZONE : LOCATION_SZONE;
-		if((loc == LOCATION_MZONE && ((player[p].disabled_location & 0x1f) == 0x1f))
-		        || (loc == LOCATION_SZONE && ((player[p].disabled_location & 0x1f00) == 0x1f00))) {
-			core.units.begin()->step = 2;
+		core.extram_effects.remove_item(0);
+		uint32 p = peffect->get_handler_player();
+		uint32 mzone_flag = (player[p].disabled_location | player[p].used_location) & 0x1f;
+		if(mzone_flag == 0x1f) {
+			core.units.begin()->step = 4;
 			return FALSE;
 		}
 		int32 val = peffect->get_value();
-		int32 count1 = (val & 0xffff) - field_used_count[(val >> 16) & 0x1f];
-		uint32 flag = 0;
-		int32 count2 = get_useable_count(p, loc, PLAYER_NONE, 0, &flag);
-		if(count1 > count2)
-			count1 = count2;
-		if(count1 == 0) {
-			core.units.begin()->step = 4;
-			return FALSE;
-		}
-		core.units.begin()->arg1 = count1;
-		if(loc == LOCATION_SZONE)
-			flag = ((flag << 8) & 0xff00) | 0xffff00ff;
-		else
-			flag = (flag & 0xff) | 0xffffff00;
-		flag |= 0xe0e0e0e0;
-		add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, p + (count1 << 16), flag);
+		int32 dis_count = (val & 0xffff) - field_used_count[(val >> 16) & 0x1f];
+		int32 empty_count = 5 - field_used_count[mzone_flag];
+		uint32 flag = mzone_flag | 0xffffff00;
+		if(dis_count > empty_count)
+			dis_count = empty_count;
+		core.units.begin()->arg1 = dis_count;
+		add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, p, flag, dis_count);
 		return FALSE;
 	}
 	case 4: {
-		uint32 count1 = core.units.begin()->arg1;
-		uint32 selflag = 0;
-		uint8 s, pt = 0;
-		for(uint32 i = 0; i < count1; ++i) {
+		uint32 dis_count = core.units.begin()->arg1;
+		uint32 mzone_flag = 0;
+		uint8 s = 0, pt = 0;
+		for(uint32 i = 0; i < dis_count; ++i) {
 			s = returns.bvalue[pt + 2];
-			selflag |= 1 << s;
+			mzone_flag |= 0x1u << s;
 			pt += 3;
 		}
 		effect* peffect = core.units.begin()->peffect;
-		if(peffect->code == EFFECT_USE_EXTRA_MZONE)
-			player[peffect->get_handler_player()].disabled_location |= selflag;
-		else
-			player[peffect->get_handler_player()].disabled_location |= selflag << 8;
-		peffect->value = ((int32)peffect->value) | (selflag << 16);
+		player[peffect->get_handler_player()].disabled_location |= mzone_flag;
+		peffect->value = (int32)(peffect->value | (mzone_flag << 16));
 		core.units.begin()->step = 2;
 		return FALSE;
 	}
 	case 5: {
-		if(core.extraz_effects_e.count == 0) {
+		// EFFECT_USE_EXTRA_SZONE version
+		if(core.extras_effects.count == 0) {
 			core.units.begin()->step = 6;
 			return FALSE;
 		}
-		effect* peffect = core.extraz_effects_e[0];
+		effect* peffect = core.extras_effects[0];
 		core.units.begin()->peffect = peffect;
-		core.extraz_effects_e.remove_item(0);
-		int32 p = peffect->get_handler_player();
-		int32 loc = (peffect->code == EFFECT_USE_EXTRA_MZONE) ? LOCATION_MZONE : LOCATION_SZONE;
-		if(((loc == LOCATION_MZONE) && ((player[p].disabled_location & 0x1f) == 0x1f))
-		        || ((loc == LOCATION_SZONE) && ((player[p].disabled_location & 0x1f00) == 0x1f00))) {
-			core.units.begin()->step = 4;
+		core.extras_effects.remove_item(0);
+		uint32 p = peffect->get_handler_player();
+		uint32 szone_flag = ((player[p].disabled_location | player[p].used_location) & 0x1f00) >> 8;
+		if(szone_flag == 0x1f) {
+			core.units.begin()->step = 6;
 			return FALSE;
 		}
 		int32 val = peffect->get_value();
-		int32 count1 = (val & 0xffff) - field_used_count[(val >> 16) & 0x1f];
-		uint32 flag = 0;
-		int32 count2 = get_useable_count(p, loc, PLAYER_NONE, 0, &flag);
-		if(count1 > count2)
-			count1 = count2;
-		if(count1 == 0) {
-			core.units.begin()->step = 6;
-			return FALSE;
-		}
-		core.units.begin()->arg1 = count1;
-		if(loc == LOCATION_SZONE)
-			flag = ((flag << 8) & 0xff00) | 0xffff00ff;
-		else
-			flag = (flag & 0xff) | 0xffffff00;
-		flag |= 0xe0e0e0e0;
-		add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, p + (count1 << 16), flag);
+		uint32 dis_count = (val & 0xffff) - field_used_count[(val >> 16) & 0x1f];
+		uint32 empty_count = 5 - field_used_count[szone_flag];
+		uint32 flag = (szone_flag << 8) | 0xffff00ff;
+		if(dis_count > empty_count)
+			dis_count = empty_count;
+		core.units.begin()->arg1 = dis_count;
+		add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, p, flag, dis_count);
 		return FALSE;
 	}
 	case 6: {
-		uint32 count1 = core.units.begin()->arg1;
-		uint32 selflag = 0;
-		uint8 s, pt = 0;
-		for(uint32 i = 0; i < count1; ++i) {
+		uint32 dis_count = core.units.begin()->arg1;
+		uint32 szone_flag = 0;
+		uint8 s = 0, pt = 0;
+		for(uint32 i = 0; i < dis_count; ++i) {
 			s = returns.bvalue[pt + 2];
-			selflag |= 1 << s;
+			szone_flag |= 0x1u << s;
 			pt += 3;
 		}
 		effect* peffect = core.units.begin()->peffect;
-		if(peffect->code == EFFECT_USE_EXTRA_MZONE)
-			player[peffect->get_handler_player()].disabled_location |= selflag;
-		else
-			player[peffect->get_handler_player()].disabled_location |= selflag << 8;
-		peffect->value = ((int32)peffect->value) | (selflag << 16);
+		player[peffect->get_handler_player()].disabled_location |= szone_flag << 8;
+		peffect->value = (int32)(peffect->value | (szone_flag << 16));
 		core.units.begin()->step = 4;
 		return FALSE;
 	}
