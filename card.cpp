@@ -1063,7 +1063,15 @@ void card::unequip() {
 int32 card::get_union_count() {
 	int32 count = 0;
 	for(auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
-		if(((*cit)->data.type & TYPE_UNION) && (*cit)->is_status(STATUS_UNION))
+		if(((*cit)->data.type & TYPE_UNION) && (*cit)->is_affected_by_effect(EFFECT_UNION_STATUS))
+			count++;
+	}
+	return count;
+}
+int32 card::get_old_union_count() {
+	int32 count = 0;
+	for(auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
+		if(((*cit)->data.type & TYPE_UNION) && (*cit)->is_affected_by_effect(EFFECT_OLDUNION_STATUS))
 			count++;
 	}
 	return count;
@@ -1279,9 +1287,6 @@ int32 card::add_effect(effect* peffect) {
 	}
 	indexer.insert(std::make_pair(peffect, eit));
 	peffect->handler = this;
-	if((peffect->type & 0x7e0)
-		|| (pduel->game_field->core.reason_effect && (pduel->game_field->core.reason_effect->status & EFFECT_STATUS_ACTIVATED)))
-		peffect->status |= EFFECT_STATUS_ACTIVATED;
 	if (peffect->in_range(current.location, current.sequence) && (peffect->type & EFFECT_TYPE_FIELD))
 		pduel->game_field->add_effect(peffect);
 	if (current.controler != PLAYER_NONE && check_target) {
@@ -1495,7 +1500,6 @@ void card::reset(uint32 id, uint32 reset_type) {
 			auto pr = field_effect.equal_range(EFFECT_DISABLE_FIELD);
 			for(; pr.first != pr.second; ++pr.first)
 				pr.first->second->value = 0;
-			set_status(STATUS_UNION, FALSE);
 		}
 		if(id & 0xd7e0000) {
 			counters.clear();

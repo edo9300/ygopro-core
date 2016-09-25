@@ -307,12 +307,13 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 		for(uint32 i = 0; i < core.select_chains.size(); ++i) {
 			effect* peffect = core.select_chains[i].triggering_effect;
 			card* pcard = peffect->handler;
-			if(!(peffect->type & EFFECT_TYPE_ACTIONS))
-				pcard = peffect->owner;
 			if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
-				pduel->write_buffer32(1000000000 + pcard->data.code);
+				pduel->write_buffer8(EDESC_OPERATION);
+			else if(!(peffect->type & EFFECT_TYPE_ACTIONS))
+				pduel->write_buffer8(EDESC_RESET);
 			else
-				pduel->write_buffer32(pcard->data.code);
+				pduel->write_buffer8(0);
+			pduel->write_buffer32(pcard->data.code);
 			pduel->write_buffer32(pcard->get_info_location());
 			pduel->write_buffer32(peffect->description);
 		}
@@ -768,9 +769,17 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 }
 int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
 	if(step == 0) {
-		pduel->write_buffer8(MSG_ANNOUNCE_CARD);
-		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(ttype);
+		if(core.select_options.size() == 0) {
+			pduel->write_buffer8(MSG_ANNOUNCE_CARD);
+			pduel->write_buffer8(playerid);
+			pduel->write_buffer32(ttype);
+		} else {
+			pduel->write_buffer8(MSG_ANNOUNCE_CARD_FILTER);
+			pduel->write_buffer8(playerid);
+			pduel->write_buffer8(core.select_options.size());
+			for(uint32 i = 0; i < core.select_options.size(); ++i)
+				pduel->write_buffer32(core.select_options[i]);
+		}
 		return FALSE;
 	} else {
 		pduel->write_buffer8(MSG_HINT);

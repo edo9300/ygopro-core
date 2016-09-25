@@ -423,6 +423,7 @@ public:
 	int32 is_player_can_remove(uint8 playerid, card* pcard);
 	int32 is_chain_negatable(uint8 chaincount, uint8 naga_check = FALSE);
 	int32 is_chain_disablable(uint8 chaincount, uint8 naga_check = FALSE);
+	int32 is_chain_disabled(uint8 chaincount);
 	int32 check_chain_target(uint8 chaincount, card* pcard);
 	int32 is_able_to_enter_bp();
 
@@ -738,6 +739,23 @@ public:
 //
 #define PHINT_DESC_ADD			6
 #define PHINT_DESC_REMOVE		7
+//
+#define EDESC_OPERATION			1
+#define EDESC_RESET				2
+//
+#define OPCODE_ADD				0x40000000
+#define OPCODE_SUB				0x40000001
+#define OPCODE_MUL				0x40000002
+#define OPCODE_DIV				0x40000003
+#define OPCODE_AND				0x40000004
+#define OPCODE_OR				0x40000005
+#define OPCODE_NEG				0x40000006
+#define OPCODE_NOT				0x40000007
+#define OPCODE_ISCODE			0x40000100
+#define OPCODE_ISSETCARD		0x40000101
+#define OPCODE_ISTYPE			0x40000102
+#define OPCODE_ISRACE			0x40000103
+#define OPCODE_ISATTRIBUTE		0x40000104
 //Messages
 #define MSG_RETRY				1
 #define MSG_HINT				2
@@ -820,6 +838,7 @@ public:
 #define MSG_ANNOUNCE_ATTRIB		141
 #define MSG_ANNOUNCE_CARD		142
 #define MSG_ANNOUNCE_NUMBER		143
+#define MSG_ANNOUNCE_CARD_FILTER	144
 #define MSG_CARD_HINT			160
 #define MSG_TAG_SWAP			161
 #define MSG_RELOAD_FIELD		162	// Debug.ReloadFieldEnd()

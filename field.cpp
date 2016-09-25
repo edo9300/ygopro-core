@@ -723,9 +723,6 @@ void field::add_effect(effect* peffect, uint8 owner_player) {
 		peffect->effect_owner = owner_player;
 		peffect->id = infos.field_id++;
 	}
-	if((peffect->type & 0x7e0)
-		|| (core.reason_effect && (core.reason_effect->status & EFFECT_STATUS_ACTIVATED)))
-		peffect->status |= EFFECT_STATUS_ACTIVATED;
 	peffect->card_type = peffect->owner->data.type;
 	effect_container::iterator it;
 	if (!(peffect->type & EFFECT_TYPE_ACTIONS)) {
@@ -1005,7 +1002,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		if(location & LOCATION_SZONE) {
 			for(uint32 i = 0; i < 8; ++i) {
 				pcard = player[self].list_szone[i];
-				if(pcard && pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs)
+				if(pcard && !pcard->is_status(STATUS_ACTIVATE_DISABLED) && pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs)
 				        && (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = pcard;
@@ -1720,7 +1717,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 	pcard->operation_param = 0;
 	for(uint32 i = 0; i < 5; ++i) {
 		card* atarget = player[1 - p].list_mzone[i];
-		if(atarget){
+		if(atarget) {
 			if(atarget->is_affected_by_effect(EFFECT_MUST_BE_ATTACKED, pcard))
 				must_be_attack.push_back(atarget);
 			if(atarget->is_affected_by_effect(EFFECT_ONLY_BE_ATTACKED))
@@ -1728,7 +1725,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 		}
 	}
 	pcard->filter_effect(EFFECT_RISE_TO_FULL_HEIGHT, &eset);
-	if(eset.size()){
+	if(eset.size()) {
 		atype = 1;
 		std::set<uint32> idset;
 		for(int32 i = 0; i < eset.size(); ++i)
@@ -1738,21 +1735,19 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 		else
 			return atype;
 	}
-	else if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER)){
+	else if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER)) {
 		atype = 2;
 		if(only_be_attack.size() == 1)
 			pv = &only_be_attack;
 		else
 			return atype;
-	}
-	else if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER)){
+	} else if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER)) {
 		atype = 3;
 		if(must_be_attack.size())
 			pv = &must_be_attack;
 		else
 			return atype;
-	}
-	else{
+	} else {
 		atype = 4;
 		pv = &player[1 - p].list_mzone;
 	}
@@ -1762,18 +1757,18 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 	effect_set exts1, exts2;
 	bool dir = true;
 	pcard->filter_effect(EFFECT_EXTRA_ATTACK, &exts1);
-	for(int32 i = 0; i < exts1.size(); ++i){
+	for(int32 i = 0; i < exts1.size(); ++i) {
 		tmp = exts1[i]->get_value(pcard);
 		if(tmp > ct1)
 			ct1 = tmp;
 	}
 	pcard->filter_effect(EFFECT_EXTRA_ATTACK_MONSTER, &exts2);
-	for(int32 i = 0; i < exts2.size(); ++i){
+	for(int32 i = 0; i < exts2.size(); ++i) {
 		tmp = exts2[i]->get_value(pcard);
 		if(tmp > ct2)
 			ct2 = tmp;
 	}
-	if(pcard != core.attacker){
+	if(pcard != core.attacker) {
 		if(pcard->announce_count < ct1 + 1)
 			dir = true;
 		else if(chain_attack && !core.chain_attack_target)
@@ -1781,7 +1776,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 		else if(ct2 && pcard->announce_count < ct2 + 1
 				&& pcard->announced_cards.find(0) == pcard->announced_cards.end() && pcard->battled_cards.find(0) == pcard->battled_cards.end())
 			dir = false;
-		else{
+		else {
 			// effects with target limit
 			if((peffect = pcard->is_affected_by_effect(EFFECT_ATTACK_ALL))
 					&& pcard->announced_cards.find(0) == pcard->announced_cards.end() && pcard->battled_cards.find(0) == pcard->battled_cards.end()
@@ -1815,8 +1810,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 			}
 			return atype;
 		}
-	}
-	else {
+	} else {
 		if(pcard->announce_count <= ct1 + 1)
 			dir = true;
 		else if(chain_attack && !core.chain_attack_target)
@@ -1824,7 +1818,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 		else if(ct2 && pcard->announce_count <= ct2 + 1
 				&& pcard->announced_cards.find(0) == pcard->announced_cards.end() && pcard->battled_cards.find(0) == pcard->battled_cards.end())
 			dir = false;
-		else{
+		else {
 			// effects with target limit
 			if((peffect = pcard->is_affected_by_effect(EFFECT_ATTACK_ALL)) && pcard->attack_all_target) { 
 				for(auto cit = pv->begin(); cit != pv->end(); ++cit) {
@@ -1897,7 +1891,7 @@ bool field::confirm_attack_target() {
 	// find the universal set
 	for(uint32 i = 0; i < 5; ++i) {
 		card* atarget = player[1 - p].list_mzone[i];
-		if(atarget){
+		if(atarget) {
 			if(atarget->is_affected_by_effect(EFFECT_MUST_BE_ATTACKED, pcard))
 				must_be_attack.push_back(atarget);
 			if(atarget->is_affected_by_effect(EFFECT_ONLY_BE_ATTACKED))
@@ -1905,7 +1899,7 @@ bool field::confirm_attack_target() {
 		}
 	}
 	pcard->filter_effect(EFFECT_RISE_TO_FULL_HEIGHT, &eset);
-	if(eset.size()){
+	if(eset.size()) {
 		atype = 1;
 		std::set<uint32> idset;
 		for(int32 i = 0; i < eset.size(); ++i)
@@ -1914,22 +1908,19 @@ bool field::confirm_attack_target() {
 			pv = &only_be_attack;
 		else
 			return false;
-	}
-	else if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER)){
+	} else if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER)) {
 		atype = 2;
 		if(only_be_attack.size() == 1)
 			pv = &only_be_attack;
 		else
 			return false;
-	}
-	else if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER)){
+	} else if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER)) {
 		atype = 3;
 		if(must_be_attack.size())
 			pv = &must_be_attack;
 		else
 			return false;
-	}
-	else{
+	} else {
 		atype = 4;
 		pv = &player[1 - p].list_mzone;
 	}
@@ -1939,13 +1930,13 @@ bool field::confirm_attack_target() {
 	effect_set exts1, exts2;
 	bool dir = true;
 	pcard->filter_effect(EFFECT_EXTRA_ATTACK, &exts1);
-	for(int32 i = 0; i < exts1.size(); ++i){
+	for(int32 i = 0; i < exts1.size(); ++i) {
 		tmp = exts1[i]->get_value(pcard);
 		if(tmp > ct1)
 			ct1 = tmp;
 	}
 	pcard->filter_effect(EFFECT_EXTRA_ATTACK_MONSTER, &exts2);
-	for(int32 i = 0; i < exts2.size(); ++i){
+	for(int32 i = 0; i < exts2.size(); ++i) {
 		tmp = exts2[i]->get_value(pcard);
 		if(tmp > ct2)
 			ct2 = tmp;
@@ -1957,7 +1948,7 @@ bool field::confirm_attack_target() {
 	else if(ct2 && pcard->announce_count <= ct2 + 1
 			&& pcard->announced_cards.find(0) == pcard->announced_cards.end() && pcard->battled_cards.find(0) == pcard->battled_cards.end())
 		dir = false;
-	else{
+	else {
 		// effects with target limit
 		if((peffect = pcard->is_affected_by_effect(EFFECT_ATTACK_ALL)) && pcard->attack_all_target && core.attack_target) { 
 			// valid target
@@ -2588,6 +2579,27 @@ int32 field::is_chain_disablable(uint8 chaincount, uint8 naga_check) {
 		}
 	}
 	return TRUE;
+}
+int32 field::is_chain_disabled(uint8 chaincount) {
+	if(chaincount < 0 || chaincount > core.current_chain.size())
+		return FALSE;
+	chain* pchain;
+	if(chaincount == 0)
+		pchain = &core.current_chain.back();
+	else
+		pchain = &core.current_chain[chaincount - 1];
+	if(pchain->flag & CHAIN_DISABLE_EFFECT)
+		return TRUE;
+	card* pcard = pchain->triggering_effect->handler;
+	effect_set eset;
+	pcard->filter_effect(EFFECT_DISABLE_CHAIN, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		if(eset[i]->get_value() == pchain->chain_id) {
+			eset[i]->reset_flag |= RESET_CHAIN;
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 int32 field::check_chain_target(uint8 chaincount, card * pcard) {
 	if(chaincount < 0 || chaincount > core.current_chain.size())
