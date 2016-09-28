@@ -410,6 +410,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CANNOT_LOSE_EFFECT		351
 #define EFFECT_BP_FIRST_TURN			352
 #define EFFECT_ALWAYS_ATTACK			353
+#define EFFECT_ALLOW_NEGATIVE			354
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001

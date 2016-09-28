@@ -809,7 +809,7 @@ uint32 card::get_level() {
 		temp.level = level + up + upc;
 	}
 	level += up + upc;
-	if(level < 1 && (get_type() & TYPE_MONSTER))
+	if(level < 1 && (get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_ALLOW_NEGATIVE))
 		level = 1;
 	temp.level = 0xffffffff;
 	return level;
@@ -851,7 +851,7 @@ uint32 card::get_rank() {
 		temp.level = rank + up + upc;
 	}
 	rank += up + upc;
-	if(rank < 1 && (get_type() & TYPE_MONSTER))
+	if(rank < 1 && (get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_ALLOW_NEGATIVE))
 		rank = 1;
 	temp.level = 0xffffffff;
 	return rank;
