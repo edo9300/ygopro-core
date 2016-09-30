@@ -1262,7 +1262,7 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
 				pcard->release_param = 3;
 			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
-				pcard->release_param = 2
+				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
 			rcount += pcard->release_param;
@@ -1277,7 +1277,7 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 			continue;
 		if (ex || pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
 			if (ex_list)
-				ex_list->insert(pcard
+				ex_list->insert(pcard);
 			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
 				pcard->release_param = 3;
 			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
