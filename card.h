@@ -111,6 +111,12 @@ public:
 	uint32 summon_info;
 	uint32 status;
 	uint32 operation_param;
+	uint32 release_param;
+	uint32 sum_param;
+	uint32 position_param;
+	uint32 spsummon_param;
+	uint32 to_field_param;
+	uint8 direct_attackable;
 	uint8 announce_count;
 	uint8 attacked_count;
 	uint8 attack_all_target;

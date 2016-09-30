@@ -145,7 +145,7 @@ void field::reload_field_info() {
 		pduel->write_buffer32(peffect->description);
 	}
 }
-// Debug.AddCard() will call this function directly
+// The core of moving cards, and Debug.AddCard() will call this function directly.
 // check Fusion/S/X monster redirection by the rule, set fieldid_r
 void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence) {
 	if (pcard->current.location != 0)
@@ -270,8 +270,13 @@ void field::remove_card(card* pcard) {
 	pcard->current.location = 0;
 	pcard->current.sequence = 0;
 }
+// moving cards:
+// 1. draw()
+// 2. discard_deck()
+// 3. swap_control()
+// 4. control_adjust()
+// 5. move_card()
 // check Fusion/S/X monster redirection by the rule
-// it will call remove_card(), add_card()
 void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence) {
 	if (!is_location_useable(playerid, location, sequence))
 		return;
@@ -1182,7 +1187,7 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 		        && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 			if(release_list)
 				release_list->insert(pcard);
-			pcard->operation_param = 1;
+			pcard->release_param = 1;
 			rcount++;
 		}
 	}
@@ -1193,7 +1198,7 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 			        && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 				if(release_list)
 					release_list->insert(pcard);
-				pcard->operation_param = 1;
+				pcard->release_param = 1;
 				rcount++;
 			}
 		}
@@ -1204,7 +1209,7 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 		        && pcard->is_releasable_by_nonsummon(playerid) && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 			if(ex_list)
 				ex_list->insert(pcard);
-			pcard->operation_param = 1;
+			pcard->release_param = 1;
 			rcount++;
 		}
 	}
@@ -1254,13 +1259,13 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 				continue;
 			if (release_list)
 				release_list->insert(pcard);
-			if (pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
-				pcard->operation_param = 3;
-			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
-				pcard->operation_param = 2;
+			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+				pcard->release_param = 3;
+			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+				pcard->release_param = 2
 			else
-				pcard->operation_param = 1;
-			rcount += pcard->operation_param;
+				pcard->release_param = 1;
+			rcount += pcard->release_param;
 		}
 	}
 	uint32 ex_sum_max = 0;
@@ -1272,29 +1277,28 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 			continue;
 		if (ex || pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
 			if (ex_list)
-				ex_list->insert(pcard);
-			if (pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
-				pcard->operation_param = 3;
-			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
-				pcard->operation_param = 2;
+				ex_list->insert(pcard
+			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+				pcard->release_param = 3;
+			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+				pcard->release_param = 2;
 			else
-				pcard->operation_param = 1;
-			rcount += pcard->operation_param;
-		}
-		else {
+				pcard->release_param = 1;
+			rcount += pcard->release_param;
+		} else {
 			effect* peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
 			if (!peffect || (peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->reset_count & 0xf00) == 0))
 				continue;
 			if (ex_list_sum)
 				ex_list_sum->insert(pcard);
-			if (pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
-				pcard->operation_param = 3;
-			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
-				pcard->operation_param = 2;
+			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+				pcard->release_param = 3;
+			else if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+				pcard->release_param = 2;
 			else
-				pcard->operation_param = 1;
-			if (ex_sum_max < pcard->operation_param)
-				ex_sum_max = pcard->operation_param;
+				pcard->release_param = 1;
+			if(ex_sum_max < pcard->release_param)
+				ex_sum_max = pcard->release_param;
 		}
 	}
 	return rcount + ex_sum_max;
@@ -1714,7 +1718,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 	card_vector only_be_attack;
 	effect_set eset;
 	// find the universal set pv
-	pcard->operation_param = 0;
+	pcard->direct_attackable = 0;
 	for(uint32 i = 0; i < 5; ++i) {
 		card* atarget = player[1 - p].list_mzone[i];
 		if(atarget) {
@@ -1874,7 +1878,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 	}
 	if((mcount == 0 || pcard->is_affected_by_effect(EFFECT_DIRECT_ATTACK) || core.attack_player)
 			&& !pcard->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK) && dir)
-		pcard->operation_param = 1;
+		pcard->direct_attackable = 1;
 	return atype;
 }
 // return: core.attack_target is valid or not
@@ -2054,7 +2058,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 			card_vector nsyn;
 			int32 mcount = 1;
 			nsyn.push_back(tuner);
-			tuner->operation_param = tuner->get_synchro_level(pcard);
+			tuner->sum_param = tuner->get_synchro_level(pcard);
 			if(smat) {
 				if(pcheck)
 					pcheck->get_value(smat);
@@ -2065,7 +2069,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 				min--;
 				max--;
 				nsyn.push_back(smat);
-				smat->operation_param = smat->get_synchro_level(pcard);
+				smat->sum_param = smat->get_synchro_level(pcard);
 				mcount++;
 				if(min == 0) {
 					if(check_with_sum_limit_m(nsyn, lv, 0, 0, 0, 2)) {
@@ -2089,7 +2093,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 						if(!pduel->lua->check_matching(pm, findex2, 0))
 							continue;
 						nsyn.push_back(pm);
-						pm->operation_param = pm->get_synchro_level(pcard);
+						pm->sum_param = pm->get_synchro_level(pcard);
 					}
 				}
 			} else {
@@ -2102,7 +2106,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 							if(!pduel->lua->check_matching(pm, findex2, 0))
 								continue;
 							nsyn.push_back(pm);
-							pm->operation_param = pm->get_synchro_level(pcard);
+							pm->sum_param = pm->get_synchro_level(pcard);
 						}
 					}
 				}
@@ -2172,8 +2176,8 @@ int32 field::check_with_sum_limit(const card_vector& mats, int32 acc, int32 inde
 	if(count > max)
 		return FALSE;
 	while(index < (int32)mats.size()) {
-		int32 op1 = mats[index]->operation_param & 0xffff;
-		int32 op2 = (mats[index]->operation_param >> 16) & 0xffff;
+		int32 op1 = mats[index]->sum_param & 0xffff;
+		int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
 		if((op1 == acc || op2 == acc) && count >= min)
 			return TRUE;
 		index++;
@@ -2191,8 +2195,8 @@ int32 field::check_with_sum_limit_m(const card_vector& mats, int32 acc, int32 in
 		return check_with_sum_limit(mats, acc, index, 1, min, max);
 	if(index >= (int32)mats.size())
 		return FALSE;
-	int32 op1 = mats[index]->operation_param & 0xffff;
-	int32 op2 = (mats[index]->operation_param >> 16) & 0xffff;
+	int32 op1 = mats[index]->sum_param & 0xffff;
+	int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
 	if(acc >= op1 && check_with_sum_limit_m(mats, acc - op1, index + 1, min, max, must_count))
 		return TRUE;
 	if(op2 && acc >= op2 && check_with_sum_limit_m(mats, acc - op2, index + 1, min, max, must_count))
@@ -2201,8 +2205,8 @@ int32 field::check_with_sum_limit_m(const card_vector& mats, int32 acc, int32 in
 }
 int32 field::check_with_sum_greater_limit(const card_vector& mats, int32 acc, int32 index, int32 opmin) {
 	while(index < (int32)mats.size()) {
-		int32 op1 = mats[index]->operation_param & 0xffff;
-		int32 op2 = (mats[index]->operation_param >> 16) & 0xffff;
+		int32 op1 = mats[index]->sum_param & 0xffff;
+		int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
 		if((acc <= op1 && acc + opmin > op1) || (op2 && acc <= op2 && acc + opmin > op2))
 			return TRUE;
 		index++;
@@ -2220,8 +2224,8 @@ int32 field::check_with_sum_greater_limit_m(const card_vector& mats, int32 acc, 
 		return check_with_sum_greater_limit(mats, acc, index, opmin);
 	if(index >= (int32)mats.size())
 		return FALSE;
-	int32 op1 = mats[index]->operation_param & 0xffff;
-	int32 op2 = (mats[index]->operation_param >> 16) & 0xffff;
+	int32 op1 = mats[index]->sum_param & 0xffff;
+	int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
 	if(check_with_sum_greater_limit_m(mats, acc - op1, index + 1, std::min(opmin, op1), must_count))
 		return TRUE;
 	if(op2 && check_with_sum_greater_limit_m(mats, acc - op2, index + 1, std::min(opmin, op2), must_count))

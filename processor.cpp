@@ -161,7 +161,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_SELECT_COUNTER: {
-		if (select_counter(it->step, it->arg1, (it->arg2) & 0xffff, (it->arg2 >> 16) & 0xffff)) {
+		if (select_counter(it->step, it->arg1, it->arg2, it->arg3, it->arg4 >> 8, it->arg4 & 0xff)) {
 			core.units.pop_front();
 			return pduel->bufferlen;
 		} else {
@@ -487,7 +487,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVE_COUNTER: {
-		if (remove_counter(it->step, it->arg3, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
+		if (remove_counter(it->step, it->arg4, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2, it->arg3)) {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
 		} else
@@ -2824,7 +2824,7 @@ int32 field::process_battle_command(uint16 step) {
 					chain_attack = TRUE;
 				core.select_cards.clear();
 				get_attack_target(pcard, &core.select_cards, chain_attack);
-				if(core.select_cards.size() == 0 && pcard->operation_param == 0)
+				if(core.select_cards.size() == 0 && pcard->direct_attackable == 0)
 					continue;
 				core.attackable_cards.push_back(pcard);
 				if(pcard->is_affected_by_effect(EFFECT_FIRST_ATTACK))
@@ -2934,12 +2934,12 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 4: {
-		// confirm attack_target(replay start point)
+		// select attack target(replay start point)
 		core.attack_player = FALSE;
 		core.select_cards.clear();
 		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
 		// direct attack
-		if(core.attacker->operation_param) {
+		if(core.attacker->direct_attackable) {
 			if(core.select_cards.size() == 0) {
 				returns.ivalue[0] = -2;
 				core.units.begin()->step = 5;
@@ -3135,7 +3135,7 @@ int32 field::process_battle_command(uint16 step) {
 			return FALSE;
 		}
 		// attack canceled
-		if(!core.select_cards.size() && !core.attacker->operation_param) {
+		if(!core.select_cards.size() && !core.attacker->direct_attackable) {
 			core.chain_attack = FALSE;
 			core.units.begin()->step = -1;
 			reset_phase(PHASE_DAMAGE);
@@ -3164,7 +3164,7 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 20: {
-		//infos.phase = PHASE_DAMAGE;
+		// start of PHASE_DAMAGE;
 		pduel->write_buffer8(MSG_DAMAGE_STEP_START);
 		raise_single_event(core.attacker, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		if(core.attack_target)
@@ -3236,7 +3236,7 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 24: {
-		//infos.phase = PHASE_DAMAGE_CAL;
+		// PHASE_DAMAGE_CAL;
 		calculate_battle_damage(0, 0, 0);
 		raise_single_event(core.attacker, 0, EVENT_PRE_DAMAGE_CALCULATE, 0, 0, 0, 0, 0);
 		if(core.attack_target)
@@ -3451,12 +3451,8 @@ int32 field::process_battle_command(uint16 step) {
 			group* ng = pduel->new_group();
 			ng->container.swap(des);
 			ng->is_readonly = TRUE;
-			std::unordered_map<card*, uint32>* card_op_params = new std::unordered_map<card*, uint32>;
-			for(auto cit = ng->container.begin(); cit != ng->container.end(); ++cit)
-				card_op_params->insert(std::make_pair(*cit, (*cit)->operation_param));
 			add_process(PROCESSOR_DESTROY, 10, 0, ng, REASON_BATTLE, PLAYER_NONE);
 			core.units.begin()->ptarget = ng;
-			core.units.begin()->ptr1 = card_op_params;
 		}
 		return FALSE;
 	}
@@ -3505,15 +3501,11 @@ int32 field::process_battle_command(uint16 step) {
 	case 32: {
 		group* des = core.units.begin()->ptarget;
 		if(des) {
-			auto card_op_params = (std::unordered_map<card*, uint32>*)core.units.begin()->ptr1;
 			for(auto cit = des->container.begin(); cit != des->container.end();) {
 				auto rm = cit++;
-				(*rm)->operation_param = card_op_params->find((*rm))->second;
 				if((*rm)->current.location != LOCATION_MZONE || ((*rm)->fieldid_r != core.pre_field[0] && (*rm)->fieldid_r != core.pre_field[1]))
 					des->container.erase(rm);
 			}
-			delete card_op_params;
-			core.units.begin()->ptr1 = 0;
 			add_process(PROCESSOR_DESTROY, 3, 0, des, REASON_BATTLE, PLAYER_NONE);
 		}
 		adjust_all();
@@ -5104,7 +5096,6 @@ int32 field::adjust_step(uint16 step) {
 				ref = pcard->refresh_control_status();
 				if(cur != ref && pcard->is_capable_change_control()) {
 					core.control_adjust_set[p].insert(pcard);
-					pcard->operation_param = ref;
 				}
 			}
 		}
@@ -5168,7 +5159,7 @@ int32 field::adjust_step(uint16 step) {
 					pos = eset.get_last()->get_value();
 					if((pos & 0xff) != pcard->current.position) {
 						pos_adjust.insert(pcard);
-						pcard->operation_param = pos;
+						pcard->position_param = pos;
 						if(pcard->is_status(STATUS_JUST_POS))
 							pcard->set_status(STATUS_CONTINUOUS_POS, TRUE);
 						else
