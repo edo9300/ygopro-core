@@ -1715,6 +1715,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 	card_vector* pv = NULL;
 	int32 atype = 0;
 	card_vector must_be_attack;
+	card_vector attack_tg;
 	card_vector only_be_attack;
 	effect_set eset;
 	// find the universal set pv
@@ -1753,7 +1754,21 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 			return atype;
 	} else {
 		atype = 4;
-		pv = &player[1 - p].list_mzone;
+		for (uint32 i = 0; i < 5; ++i) {
+			card* atarget = player[1 - p].list_mzone[i];
+			if (atarget != core.attacker) {
+					attack_tg.push_back(atarget);
+			}
+		}
+		if (is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) || core.change_self) {
+			for (uint32 i = 0; i < 5; ++i) {
+				card* atarget = player[p].list_mzone[i];
+				if (atarget != core.attacker) {
+					attack_tg.push_back(atarget);
+				}
+			}
+		}
+		pv = &attack_tg;
 	}
 	// extra count
 	int32 ct1 = 0, ct2 = 0;
@@ -1889,6 +1904,7 @@ bool field::confirm_attack_target() {
 	card_vector* pv = NULL;
 	int32 atype = 0;
 	card_vector must_be_attack;
+	card_vector attack_tg;
 	card_vector only_be_attack;
 	effect_set eset;
 	
@@ -1926,7 +1942,21 @@ bool field::confirm_attack_target() {
 			return false;
 	} else {
 		atype = 4;
-		pv = &player[1 - p].list_mzone;
+		for (uint32 i = 0; i < 5; ++i) {
+			card* atarget = player[1 - p].list_mzone[i];
+			if (atarget != core.attacker) {
+				attack_tg.push_back(atarget);
+			}
+		}
+		if (is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) || core.change_self) {
+			for (uint32 i = 0; i < 5; ++i) {
+				card* atarget = player[p].list_mzone[i];
+				if (atarget != core.attacker) {
+					attack_tg.push_back(atarget);
+				}
+			}
+		}
+		pv = &attack_tg;
 	}
 	// extra count
 	int32 ct1 = 0, ct2 = 0;

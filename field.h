@@ -269,6 +269,7 @@ struct processor {
 	uint32 chain_attacker_id;
 	card* chain_attack_target;
 	uint8 attack_player;
+	uint8 change_self;
 	uint8 selfdes_disabled;
 	uint8 overdraw[2];
 	int32 check_level;

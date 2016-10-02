@@ -1249,6 +1249,8 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
+	if (target && (target->current.controler == attacker->current.controler))
+		pduel->game_field->core.change_self = TRUE;
 	field::card_vector cv;
 	pduel->game_field->get_attack_target(attacker, &cv, pduel->game_field->core.chain_attack);
 	auto turnp=pduel->game_field->infos.turn_player;
@@ -1264,8 +1266,13 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 		}
 		pduel->game_field->attack_all_target_check();
 		if(target) {
-			pduel->game_field->raise_single_event(target, 0, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, 1 - turnp, 0);
-			pduel->game_field->raise_event(target, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, 1 - turnp, 0);
+			if (pduel->game_field->core.change_self) {
+				pduel->game_field->raise_single_event(target, 0, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, turnp, 0);
+				pduel->game_field->raise_event(target, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, turnp, 0);
+			}else{
+				pduel->game_field->raise_single_event(target, 0, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, 1 - turnp, 0);
+				pduel->game_field->raise_event(target, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, 1 - turnp, 0);
+			}
 			pduel->game_field->process_single_event();
 			pduel->game_field->process_instant_event();
 		} else
