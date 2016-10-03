@@ -2772,6 +2772,7 @@ int32 field::process_battle_command(uint16 step) {
 			core.chain_attacker_id = 0;
 			core.chain_attack_target = 0;
 		}
+		core.change_self = FALSE;
 		core.attack_player = FALSE;
 		core.attacker = 0;
 		core.attack_target = 0;
@@ -2938,6 +2939,14 @@ int32 field::process_battle_command(uint16 step) {
 		core.attack_player = FALSE;
 		core.select_cards.clear();
 		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
+		// only self targets aviable
+		if (core.select_cards.size() && core.attacker->direct_attackable) {
+			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 31);
+			return FALSE;
+			returns.ivalue[0] = -2;
+			core.units.begin()->step = 5;
+			return FALSE;
+		}
 		// direct attack
 		if(core.attacker->direct_attackable) {
 			if(core.select_cards.size() == 0) {
