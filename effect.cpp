@@ -198,7 +198,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(handler->equiping_target)
 					return FALSE;
 				if(handler->get_status(STATUS_SET_TURN)) {
-					if((handler->data.type & TYPE_SPELL) && (handler->data.type & TYPE_QUICKPLAY))
+					if((handler->data.type & TYPE_SPELL) && ((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK)))
 						return FALSE;
 				}
 			}
@@ -208,7 +208,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(handler->data.type & TYPE_TRAP)
 					ecode = EFFECT_TRAP_ACT_IN_HAND;
 				else if((handler->data.type & TYPE_SPELL) && pduel->game_field->infos.turn_player != playerid) {
-					if(handler->data.type & TYPE_QUICKPLAY)
+					if((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK))
 						ecode = EFFECT_QP_ACT_IN_NTPHAND;
 					else
 						return FALSE;
@@ -639,7 +639,7 @@ int32 effect::get_speed() {
 		if(handler->data.type & TYPE_MONSTER)
 			return 0;
 		else if(handler->data.type & TYPE_SPELL) {
-			if(handler->data.type & TYPE_QUICKPLAY)
+			if((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK))
 				return 2;
 			return 1;
 		} else {

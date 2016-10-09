@@ -780,10 +780,10 @@ int32 card::get_defense() {
 // 2. cards with current type TYPE_MONSTER
 // 3. cards with EFFECT_PRE_MONSTER
 uint32 card::get_level() {
-	if((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL) 
-	        || (!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER)))
+	if ((data.type & TYPE_XYZ && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S))) || (status & STATUS_NO_LEVEL)
+		|| (!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		return 0;
-	if(assume_type == ASSUME_LEVEL)
+	if (assume_type == ASSUME_LEVEL)
 		return assume_value;
 	if (temp.level != 0xffffffff)
 		return temp.level;
@@ -791,21 +791,34 @@ uint32 card::get_level() {
 	int32 level = data.level;
 	temp.level = level;
 	int32 up = 0, upc = 0;
-	filter_effect(EFFECT_UPDATE_LEVEL, &effects, FALSE);
-	filter_effect(EFFECT_CHANGE_LEVEL, &effects, FALSE);
-	filter_effect(EFFECT_CHANGE_LEVEL_FINAL, &effects);
+	if (is_affected_by_effect(EFFECT_RANK_LEVEL_S)|| is_affected_by_effect(EFFECT_LEVEL_RANK_S)) {
+		filter_effect(EFFECT_UPDATE_RANK, &effects, FALSE);
+		filter_effect(EFFECT_UPDATE_LEVEL, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_LEVEL, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects);
+		filter_effect(EFFECT_CHANGE_LEVEL_FINAL, &effects);
+	}
+	else {
+		filter_effect(EFFECT_UPDATE_LEVEL, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_LEVEL, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_LEVEL_FINAL, &effects);
+	}
 	for (int32 i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
+		case EFFECT_UPDATE_RANK:
 		case EFFECT_UPDATE_LEVEL:
 			if ((effects[i]->type & EFFECT_TYPE_SINGLE) && !effects[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 				up += effects[i]->get_value(this);
 			else
 				upc += effects[i]->get_value(this);
 			break;
+		case EFFECT_CHANGE_RANK:
 		case EFFECT_CHANGE_LEVEL:
-			level = effects[i]->get_value(this);
+			level  = effects[i]->get_value(this);
 			up = 0;
 			break;
+		case EFFECT_CHANGE_RANK_FINAL:
 		case EFFECT_CHANGE_LEVEL_FINAL:
 			level = effects[i]->get_value(this);
 			up = 0;
@@ -821,7 +834,7 @@ uint32 card::get_level() {
 	return level;
 }
 uint32 card::get_rank() {
-	if(!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL))
+	if((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S)))
 		return 0;
 	if(assume_type == ASSUME_RANK)
 		return assume_value;
@@ -833,22 +846,35 @@ uint32 card::get_rank() {
 	int32 rank = data.level;
 	temp.level = rank;
 	int32 up = 0, upc = 0;
-	filter_effect(EFFECT_UPDATE_RANK, &effects, FALSE);
-	filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
-	filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects);
+	if (is_affected_by_effect(EFFECT_RANK_LEVEL_S) || is_affected_by_effect(EFFECT_LEVEL_RANK_S)) {
+		filter_effect(EFFECT_UPDATE_RANK, &effects, FALSE);
+		filter_effect(EFFECT_UPDATE_LEVEL, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_LEVEL, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects);
+		filter_effect(EFFECT_CHANGE_LEVEL_FINAL, &effects);
+	}
+	else {
+		filter_effect(EFFECT_UPDATE_RANK, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects);
+	}
 	for (int32 i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
 		case EFFECT_UPDATE_RANK:
+		case EFFECT_UPDATE_LEVEL:
 			if ((effects[i]->type & EFFECT_TYPE_SINGLE) && !effects[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 				up += effects[i]->get_value(this);
 			else
 				upc += effects[i]->get_value(this);
 			break;
 		case EFFECT_CHANGE_RANK:
+		case EFFECT_CHANGE_LEVEL:
 			rank = effects[i]->get_value(this);
 			up = 0;
 			break;
 		case EFFECT_CHANGE_RANK_FINAL:
+		case EFFECT_CHANGE_LEVEL_FINAL:
 			rank = effects[i]->get_value(this);
 			up = 0;
 			upc = 0;
@@ -863,7 +889,7 @@ uint32 card::get_rank() {
 	return rank;
 }
 uint32 card::get_synchro_level(card* pcard) {
-	if((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL))
+	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return 0;
 	uint32 lev;
 	effect_set eset;
@@ -875,7 +901,7 @@ uint32 card::get_synchro_level(card* pcard) {
 	return lev;
 }
 uint32 card::get_ritual_level(card* pcard) {
-	if((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL))
+	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return 0;
 	uint32 lev;
 	effect_set eset;

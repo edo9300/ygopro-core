@@ -414,6 +414,11 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_ALWAYS_ATTACK			353
 #define EFFECT_ALLOW_NEGATIVE			354
 #define EFFECT_SELF_ATTACK				355
+#define EFFECT_BECOME_QUICK				356
+#define EFFECT_LEVEL_RANK				357
+#define EFFECT_RANK_LEVEL				358
+#define EFFECT_LEVEL_RANK_S				359
+#define EFFECT_RANK_LEVEL_S				360
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001
