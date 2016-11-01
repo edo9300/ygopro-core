@@ -3448,6 +3448,16 @@ int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
+int32 scriptlib::duel_tag_swap(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 1);
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 playerid = lua_tointeger(L, 1);
+	if (playerid != 0 && playerid != 1 && (pduel->game_field->core.duel_options & DUEL_TAG_MODE))//needed check for 1vs2 and other duel modes with multiple players
+		return 0;
+	pduel->game_field->tag_swap(playerid);
+	return 0;
+}
 int32 scriptlib::duel_swap_deck_and_grave(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 1);

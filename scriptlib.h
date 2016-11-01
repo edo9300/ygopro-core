@@ -504,6 +504,7 @@ public:
 	
 	//specific card functions
 	static int32 duel_venom_swamp_check(lua_State *L);
+	static int32 duel_tag_swap(lua_State *L);
 	static int32 duel_swap_deck_and_grave(lua_State *L);
 	static int32 duel_majestic_copy(lua_State *L);
 	
