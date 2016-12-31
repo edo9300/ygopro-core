@@ -24,10 +24,12 @@ public:
 	static int32 card_get_fusion_code(lua_State *L);
 	static int32 card_is_fusion_code(lua_State *L);
 	static int32 card_is_set_card(lua_State *L);
+	static int32 card_is_origin_set_card(lua_State *L);
 	static int32 card_is_pre_set_card(lua_State *L);
 	static int32 card_is_fusion_set_card(lua_State *L);
 	static int32 card_get_type(lua_State *L);
 	static int32 card_get_origin_type(lua_State *L);
+	static int32 card_get_fusion_type(lua_State *L);
 	static int32 card_get_level(lua_State *L);
 	static int32 card_get_rank(lua_State *L);
 	static int32 card_get_synchro_level(lua_State *L);
@@ -82,6 +84,7 @@ public:
 	static int32 card_get_fieldidr(lua_State *L);
 	static int32 card_is_code(lua_State *L);
 	static int32 card_is_type(lua_State *L);
+	static int32 card_is_fusion_type(lua_State *L);
 	static int32 card_is_race(lua_State *L);
 	static int32 card_is_attribute(lua_State *L);
 	static int32 card_is_fusion_attribute(lua_State *L);
@@ -150,6 +153,7 @@ public:
 	static int32 card_is_disabled(lua_State *L);
 	static int32 card_is_destructable(lua_State *L);
 	static int32 card_is_summonable(lua_State *L);
+	static int32 card_is_fusion_summonable_card(lua_State* L);
 	static int32 card_is_msetable(lua_State *L);
 	static int32 card_is_ssetable(lua_State *L);
 	static int32 card_is_special_summonable(lua_State *L);
@@ -425,6 +429,7 @@ public:
 	static int32 duel_select_release_group_ex(lua_State *L);
 	static int32 duel_get_tribute_group(lua_State *L);
 	static int32 duel_get_tribute_count(lua_State *L);
+	static int32 duel_check_tribute(lua_State *L);
 	static int32 duel_select_tribute(lua_State *L);
 	static int32 duel_get_target_count(lua_State *L);
 	static int32 duel_is_existing_target(lua_State *L);
@@ -438,6 +443,7 @@ public:
 	static int32 duel_check_tuner_material(lua_State *L);
 	static int32 duel_get_ritual_material(lua_State *L);
 	static int32 duel_release_ritual_material(lua_State *L);
+	static int32 duel_get_fusion_material(lua_State *L);
 	static int32 duel_set_must_select_cards(lua_State *L);
 	static int32 duel_set_target_card(lua_State *L);
 	static int32 duel_clear_target_card(lua_State *L);

@@ -166,9 +166,11 @@ public:
 	uint32 get_code();
 	uint32 get_another_code();
 	int32 is_set_card(uint32 set_code);
+	int32 is_origin_set_card(uint32 set_code);
 	int32 is_pre_set_card(uint32 set_code);
 	int32 is_fusion_set_card(uint32 set_code);
 	uint32 get_type();
+	uint32 get_fusion_type();
 	int32 get_base_attack();
 	int32 get_attack();
 	int32 get_base_defense();
@@ -246,8 +248,9 @@ public:
 	int32 check_fusion_substitute(card* fcard);
 	
 	int32 is_equipable(card* pcard);
-	int32 is_summonable();
-	int32 is_summonable(effect* peffect);
+	int32 is_summonable_card();
+	int32 is_fusion_summonable_card(uint32 summon_type);
+	int32 is_spsummonable(effect* peffect);
 	int32 is_summonable(effect* peffect, uint8 min_tribute);
 	int32 is_can_be_summoned(uint8 playerid, uint8 ingore_count, effect* peffect, uint8 min_tribute);
 	int32 get_summon_tribute_count();
@@ -283,7 +286,7 @@ public:
 	int32 is_control_can_be_changed();
 	int32 is_capable_be_battle_target(card* pcard);
 	int32 is_capable_be_effect_target(effect* peffect, uint8 playerid);
-	int32 is_can_be_fusion_material(card* fcard, uint8 ignore_mon = FALSE);
+	int32 is_can_be_fusion_material(card* fcard);
 	int32 is_can_be_synchro_material(card* scard, card* tuner = 0);
 	int32 is_can_be_ritual_material(card* scard);
 	int32 is_can_be_xyz_material(card* scard);

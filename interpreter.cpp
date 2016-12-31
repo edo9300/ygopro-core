@@ -22,10 +22,12 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetFusionCode", scriptlib::card_get_fusion_code },
 	{ "IsFusionCode", scriptlib::card_is_fusion_code },
 	{ "IsSetCard", scriptlib::card_is_set_card },
+	{ "IsOriginalSetCard", scriptlib::card_is_origin_set_card },
 	{ "IsPreviousSetCard", scriptlib::card_is_pre_set_card },
 	{ "IsFusionSetCard", scriptlib::card_is_fusion_set_card },
 	{ "GetType", scriptlib::card_get_type },
 	{ "GetOriginalType", scriptlib::card_get_origin_type },
+	{ "GetFusionType", scriptlib::card_get_fusion_type },
 	{ "GetLevel", scriptlib::card_get_level },
 	{ "GetRank", scriptlib::card_get_rank },
 	{ "GetSynchroLevel", scriptlib::card_get_synchro_level },
@@ -80,6 +82,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetRealFieldID", scriptlib::card_get_fieldidr },
 	{ "IsCode", scriptlib::card_is_code },
 	{ "IsType", scriptlib::card_is_type },
+	{ "IsFusionType", scriptlib::card_is_fusion_type },
 	{ "IsRace", scriptlib::card_is_race },
 	{ "IsAttribute", scriptlib::card_is_attribute },
 	{ "IsFusionAttribute", scriptlib::card_is_fusion_attribute },
@@ -148,6 +151,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "IsDisabled", scriptlib::card_is_disabled },
 	{ "IsDestructable", scriptlib::card_is_destructable },
 	{ "IsSummonableCard", scriptlib::card_is_summonable },
+	{ "IsFusionSummonableCard", scriptlib::card_is_fusion_summonable_card },
 	{ "IsSpecialSummonable", scriptlib::card_is_special_summonable },
 	{ "IsSynchroSummonable", scriptlib::card_is_synchro_summonable },
 	{ "IsXyzSummonable", scriptlib::card_is_xyz_summonable },
@@ -427,6 +431,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SelectReleaseGroupEx", scriptlib::duel_select_release_group_ex },
 	{ "GetTributeGroup", scriptlib::duel_get_tribute_group },
 	{ "GetTributeCount", scriptlib::duel_get_tribute_count },
+	{ "CheckTribute", scriptlib::duel_check_tribute },
 	{ "SelectTribute", scriptlib::duel_select_tribute },
 	{ "GetTargetCount", scriptlib::duel_get_target_count },
 	{ "IsExistingTarget", scriptlib::duel_is_existing_target },
@@ -440,6 +445,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "CheckTunerMaterial", scriptlib::duel_check_tuner_material },
 	{ "GetRitualMaterial", scriptlib::duel_get_ritual_material },
 	{ "ReleaseRitualMaterial", scriptlib::duel_release_ritual_material },
+	{ "GetFusionMaterial", scriptlib::duel_get_fusion_material },
 	{ "SetSelectedCard", scriptlib::duel_set_must_select_cards },
 	{ "SetTargetCard", scriptlib::duel_set_target_card },
 	{ "ClearTargetCard", scriptlib::duel_clear_target_card },
@@ -677,9 +683,9 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_pushvalue(current_state, -2);
 		lua_rawset(current_state, -3);
 		//load extra scripts
-		sprintf(script_name, "./script/c%d.lua", code);
+		sprintf(script_name, "./expansions/script/c%d.lua", code);
 		if (!load_script(script_name)) {
-			sprintf(script_name, "./expansions/script/c%d.lua", code);
+			sprintf(script_name, "./script/c%d.lua", code);
 	 		if (!load_script(script_name)) {
 	 			return OPERATION_FAIL;
  			}
