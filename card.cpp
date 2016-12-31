@@ -3003,7 +3003,7 @@ int32 card::is_can_be_fusion_material(card* fcard, uint8 ignore_mon) {
 	return TRUE;
 }
 int32 card::is_can_be_synchro_material(card* scard, card* tuner) {
-	if(data.type & TYPE_XYZ)
+	if(data.type & TYPE_XYZ && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return FALSE;
 	if(!(get_type() & TYPE_MONSTER))
 		return FALSE;
