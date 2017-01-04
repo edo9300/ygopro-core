@@ -1773,7 +1773,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 					attack_tg.push_back(atarget);
 			}
 		}
-		if((is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) || core.change_self) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !&attack_tg)) {
+		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !&attack_tg)) {
 			for (uint32 i = 0; i < 5; ++i) {
 				card* atarget = player[p].list_mzone[i];
 				if (atarget != core.attacker) {
@@ -1962,7 +1962,7 @@ bool field::confirm_attack_target() {
 				attack_tg.push_back(atarget);
 			}
 		}
-		if((is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) || core.change_self) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !&attack_tg)) {
+		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !&attack_tg)) {
 			for (uint32 i = 0; i < 5; ++i) {
 				card* atarget = player[p].list_mzone[i];
 				if (atarget != core.attacker) {

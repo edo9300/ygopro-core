@@ -2802,7 +2802,6 @@ int32 field::process_battle_command(uint16 step) {
 			core.chain_attacker_id = 0;
 			core.chain_attack_target = 0;
 		}
-		core.change_self = FALSE;
 		core.attack_player = FALSE;
 		core.attacker = 0;
 		core.attack_target = 0;

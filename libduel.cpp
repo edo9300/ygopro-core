@@ -1255,6 +1255,7 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 	check_param_count(L, 1);
 	duel* pduel;
 	card* target;
+	int32 ignore = FALSE;
 	if(lua_isnil(L, 1)) {
 		pduel = interpreter::get_duel_info(L);
 		target = 0;
@@ -1263,17 +1264,17 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 		target = *(card**)lua_touserdata(L, 1);
 		pduel = target->pduel;
 	}
+	if(lua_gettop(L) >= 2)
+		ignore = lua_toboolean(L, 2);
 	card* attacker = pduel->game_field->core.attacker;
 	if(!attacker || !attacker->is_capable_attack() || attacker->is_status(STATUS_ATTACK_CANCELED)) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
-	if (target && (target->current.controler == attacker->current.controler))
-		pduel->game_field->core.change_self = TRUE;
 	field::card_vector cv;
 	pduel->game_field->get_attack_target(attacker, &cv, pduel->game_field->core.chain_attack);
 	auto turnp=pduel->game_field->infos.turn_player;
-	if(target && std::find(cv.begin(), cv.end(), target) != cv.end()
+	if((target && std::find(cv.begin(), cv.end(), target) != cv.end() || ignore)
 			|| !target && !attacker->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK)) {
 		pduel->game_field->core.attack_target = target;
 		pduel->game_field->core.attack_rollback = FALSE;
@@ -1285,7 +1286,7 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 		}
 		pduel->game_field->attack_all_target_check();
 		if(target) {
-			if (pduel->game_field->core.change_self) {
+			if(target->current.controler != turnp) {
 				pduel->game_field->raise_single_event(target, 0, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, turnp, 0);
 				pduel->game_field->raise_event(target, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, turnp, 0);
 			}else{
