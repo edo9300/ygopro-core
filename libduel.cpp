@@ -1885,6 +1885,33 @@ int32 scriptlib::duel_select_matching_cards(lua_State *L) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD_S, 0, 0, 0, playerid, min + (max << 16));
 	return lua_yield(L, 0);
 }
+int32 scriptlib::duel_select_matching_cards_c(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 8);
+	if(!lua_isnil(L, 2))
+		check_param(L, PARAM_TYPE_FUNCTION, 2);
+	card* pexception = 0;
+	uint32 extraargs = 0;
+	if(!lua_isnil(L, 8)) {
+		check_param(L, PARAM_TYPE_CARD, 8);
+		pexception = *(card**) lua_touserdata(L, 8);
+	}
+	extraargs = lua_gettop(L) - 8;
+	uint32 playerid = lua_tointeger(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	duel* pduel = interpreter::get_duel_info(L);
+	uint32 self = lua_tointeger(L, 3);
+	uint32 location1 = lua_tointeger(L, 4);
+	uint32 location2 = lua_tointeger(L, 5);
+	uint32 min = lua_tointeger(L, 6);
+	uint32 max = lua_tointeger(L, 7);
+	group* pgroup = pduel->new_group();
+	pduel->game_field->filter_matching_card(2, (uint8)self, location1, location2, pgroup, pexception, extraargs);
+	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
+	pduel->game_field->add_process(PROCESSOR_SELECT_CARD_S, 0, 0, 0, playerid + true << 16, min + (max << 16));
+	return lua_yield(L, 0);
+}
 /**
 * \brief Duel.GetReleaseGroup
 * \param playerid

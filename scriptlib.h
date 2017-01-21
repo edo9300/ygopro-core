@@ -296,7 +296,9 @@ public:
 	static int32 group_filter(lua_State *L);
 	static int32 group_filter_count(lua_State *L);
 	static int32 group_filter_select(lua_State *L);
+	static int32 group_filter_select_c(lua_State *L);
 	static int32 group_select(lua_State *L);
+	static int32 group_select_c(lua_State *L);
 	static int32 group_random_select(lua_State *L);
 	static int32 group_is_exists(lua_State *L);
 	static int32 group_check_with_sum_equal(lua_State *L);
@@ -421,6 +423,7 @@ public:
 	static int32 duel_get_first_matching_card(lua_State *L);
 	static int32 duel_is_existing_matching_card(lua_State *L);
 	static int32 duel_select_matching_cards(lua_State *L);
+	static int32 duel_select_matching_cards_c(lua_State *L);
 	static int32 duel_get_release_group(lua_State *L);
 	static int32 duel_get_release_group_count(lua_State *L);
 	static int32 duel_check_release_group(lua_State *L);
