@@ -1477,15 +1477,55 @@ void field::adjust_disable_check_list() {
 		}
 	} while(effects.disable_check_list.size());
 }
-// adjust check_unique_onfield(), EFFECT_SELF_DESTROY, EFFECT_SELF_TOGRAVE
+// adjust SetUniqueOnField(), EFFECT_SELF_DESTROY, EFFECT_SELF_TOGRAVE
 void field::adjust_self_destroy_set() {
-	if(core.selfdes_disabled || !core.self_destroy_set.empty() || !core.self_tograve_set.empty())
+	if(core.selfdes_disabled || !core.unique_destroy_set.empty() || !core.self_destroy_set.empty() || !core.self_tograve_set.empty())
 		return;
+	core.unique_destroy_set.clear();
 	card_set cset;
+	int32 p = infos.turn_player;
+	for(int32 p1 = 0; p1 < 2; ++p1) {
+		for(auto iter = core.unique_cards[p].begin(); iter != core.unique_cards[p].end(); ++iter) {
+			card* ucard = *iter;
+			if(ucard->is_position(POS_FACEUP) && ucard->get_status(STATUS_EFFECT_ENABLED)
+					&& !ucard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN)) {
+				ucard->get_unique_target(&cset, p);
+				if(cset.size() == 0)
+					ucard->unique_fieldid = 0;
+				else if(cset.size() == 1) {
+					auto cit = cset.begin();
+					ucard->unique_fieldid = (*cit)->fieldid;
+				} else {
+					card* mcard = 0;
+					for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+						card* pcard = *cit;
+						if(ucard->unique_fieldid == pcard->fieldid) {
+							mcard = pcard;
+							break;
+						}
+						if(!mcard || pcard->fieldid < mcard->fieldid)
+							mcard = pcard;
+					}
+					ucard->unique_fieldid = mcard->fieldid;
+					cset.erase(mcard);
+					for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+						card* pcard = *cit;
+						core.unique_destroy_set.insert(pcard);
+						pcard->temp.reason_effect = pcard->current.reason_effect;
+						pcard->temp.reason_player = pcard->current.reason_player;
+						pcard->current.reason_effect = ucard->unique_effect;
+						pcard->current.reason_player = ucard->current.controler;
+					}
+				}
+			}
+		}
+		p = 1 - p;
+	}
+	cset.clear();
 	for(uint8 p = 0; p < 2; ++p) {
 		for(uint8 i = 0; i < 5; ++i) {
 			card* pcard = player[p].list_mzone[i];
-			if(pcard && pcard->is_position(POS_FACEUP))
+			if(pcard && pcard->is_position(POS_FACEUP) && !pcard->is_status(STATUS_BATTLE_DESTROYED))
 				cset.insert(pcard);
 		}
 		for(uint8 i = 0; i < 8; ++i) {
@@ -1496,11 +1536,10 @@ void field::adjust_self_destroy_set() {
 	}
 	core.self_destroy_set.clear();
 	core.self_tograve_set.clear();
-	effect* peffect;
 	for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
 		card* pcard = *cit;
-		if((peffect = check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
-		        || (peffect = pcard->is_affected_by_effect(EFFECT_SELF_DESTROY)) && !pcard->is_status(STATUS_BATTLE_DESTROYED)) {
+		effect* peffect = pcard->is_affected_by_effect(EFFECT_SELF_DESTROY);
+		if(peffect) {
 			core.self_destroy_set.insert(pcard);
 			pcard->temp.reason_effect = pcard->current.reason_effect;
 			pcard->temp.reason_player = pcard->current.reason_player;
@@ -1511,7 +1550,8 @@ void field::adjust_self_destroy_set() {
 	if(core.global_flag & GLOBALFLAG_SELF_TOGRAVE) {
 		for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
 			card* pcard = *cit;
-			if(peffect = pcard->is_affected_by_effect(EFFECT_SELF_TOGRAVE)) {
+			effect* peffect = pcard->is_affected_by_effect(EFFECT_SELF_TOGRAVE);
+			if(peffect) {
 				core.self_tograve_set.insert(pcard);
 				pcard->temp.reason_effect = pcard->current.reason_effect;
 				pcard->temp.reason_player = pcard->current.reason_player;
@@ -1520,7 +1560,7 @@ void field::adjust_self_destroy_set() {
 			}
 		}
 	}
-	if(!core.self_destroy_set.empty() || !core.self_tograve_set.empty())
+	if(!core.unique_destroy_set.empty() || !core.self_destroy_set.empty() || !core.self_tograve_set.empty())
 		add_process(PROCESSOR_SELF_DESTROY, 0, 0, 0, 0, 0);
 }
 void field::add_unique_card(card* pcard) {
@@ -1529,7 +1569,7 @@ void field::add_unique_card(card* pcard) {
 		core.unique_cards[con].insert(pcard);
 	if(pcard->unique_pos[1])
 		core.unique_cards[1 - con].insert(pcard);
-	pcard->unique_uid = infos.copy_id++;
+	pcard->unique_fieldid = 0;
 }
 
 void field::remove_unique_card(card* pcard) {
@@ -1543,16 +1583,21 @@ void field::remove_unique_card(card* pcard) {
 }
 // return: pcard->unique_effect or 0
 effect* field::check_unique_onfield(card* pcard, uint8 controler, uint8 location) {
-	if(!pcard->unique_code)
-		return 0;
 	for(auto iter = core.unique_cards[controler].begin(); iter != core.unique_cards[controler].end(); ++iter) {
 		card* ucard = *iter;
 		if((ucard != pcard) && ucard->is_position(POS_FACEUP) && ucard->get_status(STATUS_EFFECT_ENABLED)
-			&& (ucard->unique_code == pcard->unique_code) && (ucard->unique_location & location)
-			&& (!(pcard->current.location & ucard->unique_location) || pcard->is_position(POS_FACEDOWN)
-				|| ((!pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN) || !ucard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN)) && ucard->unique_uid < pcard->unique_uid)))
-			return pcard->unique_effect;
+			&& !ucard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN)
+			&& ucard->unique_fieldid && ucard->check_unique_code(pcard) && (ucard->unique_location & location))
+			return ucard->unique_effect;
 	}
+	if(!pcard->unique_code || !(pcard->unique_location & location) || pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN))
+		return 0;
+	card_set cset;
+	pcard->get_unique_target(&cset, controler);
+	if(pcard->check_unique_code(pcard))
+		cset.insert(pcard);
+	if(cset.size() >= 2)
+		return pcard->unique_effect;
 	return 0;
 }
 

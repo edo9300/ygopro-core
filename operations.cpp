@@ -1182,24 +1182,12 @@ int32 field::control_adjust(uint16 step) {
 int32 field::self_destroy(uint16 step) {
 	switch(step) {
 	case 0: {
-		if(core.self_destroy_set.empty()) {
-			core.units.begin()->step = 1;
-			return FALSE;
-		}
-		card_set cset;
-		for (auto cit = core.self_destroy_set.begin(); cit != core.self_destroy_set.end();) {
-			auto rm = cit++;
-			card* pcard = *rm;
-			if(pcard->current.reason_effect->code == EFFECT_UNIQUE_CHECK) {
-				cset.insert(pcard);
-				core.self_destroy_set.erase(rm);
-			}
-		}
-		if(!cset.empty())
-			destroy(&cset, 0, REASON_RULE, 5);
+		if(!core.unique_destroy_set.empty())
+			destroy(&core.unique_destroy_set, 0, REASON_RULE, 5);
 		return FALSE;
 	}
 	case 1: {
+		core.unique_destroy_set.clear();
 		core.operated_set.clear();
 		if(!core.self_destroy_set.empty())
 			destroy(&core.self_destroy_set, 0, REASON_EFFECT, 5);
@@ -1235,6 +1223,7 @@ int32 field::equip(uint16 step, uint8 equip_player, card * equip_card, card * ta
 		if(equip_card == target || target->current.location != LOCATION_MZONE)
 			return TRUE;
 		if(equip_card->equiping_target) {
+			equip_card->cancel_card_target(equip_card->equiping_target);
 			equip_card->unequip();
 			equip_card->enable_field_effect(false);
 			return FALSE;
