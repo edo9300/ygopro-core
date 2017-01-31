@@ -502,7 +502,7 @@ int32 field::process() {
 			        || (attacker->current.location != LOCATION_MZONE)
 			        || !attacker->is_capable_attack()
 			        || !attacker->is_affect_by_effect(core.reason_effect)
-					|| attacker->is_affected_by_effect(EFFECT_UNSTOPABLE_ATTACK)) {
+					|| attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)) {
 				returns.ivalue[0] = 0;
 				pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 				core.units.pop_front();
@@ -3127,7 +3127,7 @@ int32 field::process_battle_command(uint16 step) {
 		bool atk_disabled = false;
 		uint32 acon = core.units.begin()->arg2 >> 16;
 		uint32 afid = core.units.begin()->arg2 & 0xffff;
-		if(core.attacker->is_affected_by_effect(EFFECT_ATTACK_DISABLED) && !core.attacker->is_affected_by_effect(EFFECT_UNSTOPABLE_ATTACK)) {
+		if(core.attacker->is_affected_by_effect(EFFECT_ATTACK_DISABLED) && !core.attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)) {
 			core.attacker->reset(EFFECT_ATTACK_DISABLED, RESET_CODE);
 			atk_disabled = true;
 			pduel->write_buffer8(MSG_ATTACK_DISABLED);
@@ -5311,7 +5311,7 @@ int32 field::adjust_step(uint16 step) {
 		card* attacker = core.attacker;
 		if(!attacker)
 			return FALSE;
-		if(attacker->is_affected_by_effect(EFFECT_CANNOT_ATTACK) && !attacker->is_affected_by_effect(EFFECT_UNSTOPABLE_ATTACK))
+		if(attacker->is_affected_by_effect(EFFECT_CANNOT_ATTACK) && !attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK))
 			attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		if(core.attack_rollback)
 			return FALSE;

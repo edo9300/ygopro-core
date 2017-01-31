@@ -419,7 +419,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CANNOT_LOSE_LP			401
 #define EFFECT_CANNOT_LOSE_EFFECT		402
 #define EFFECT_BP_FIRST_TURN			403
-#define EFFECT_ALWAYS_ATTACK			404
+#define EFFECT_UNSTOPPABLE_ATTACK		404
 #define EFFECT_ALLOW_NEGATIVE			405
 #define EFFECT_SELF_ATTACK				406
 #define EFFECT_BECOME_QUICK				407
