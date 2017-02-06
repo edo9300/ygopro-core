@@ -300,6 +300,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "FilterSelect", scriptlib::group_filter_select },
 	{ "FilterSelectC", scriptlib::group_filter_select_c },
 	{ "Select", scriptlib::group_select },
+	{ "SelectUnselect", scriptlib::group_select_unselect },
 	{ "SelectC", scriptlib::group_select_c },
 	{ "RandomSelect", scriptlib::group_random_select },
 	{ "IsExists", scriptlib::group_is_exists },

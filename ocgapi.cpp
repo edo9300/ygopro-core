@@ -18,7 +18,7 @@
 script_reader sreader = default_script_reader;
 card_reader creader = default_card_reader;
 message_handler mhandler = default_message_handler;
-byte buffer[0x10000];
+byte buffer[0x1000000];
 std::set<duel*> duel_set;
 
 extern "C" DECL_DLLEXPORT void set_script_reader(script_reader f) {
@@ -46,7 +46,7 @@ byte* default_script_reader(const char* script_name, int* slen) {
 		return 0;
 	fseek(fp, 0, SEEK_END);
 	uint32 len = ftell(fp);
-	if (len > 0x10000) {
+	if (len > 0x1000000) {
 		fclose(fp);
 		return 0;
 	}

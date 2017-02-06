@@ -298,6 +298,7 @@ public:
 	static int32 group_filter_select(lua_State *L);
 	static int32 group_filter_select_c(lua_State *L);
 	static int32 group_select(lua_State *L);
+	static int32 group_select_unselect(lua_State *L);
 	static int32 group_select_c(lua_State *L);
 	static int32 group_random_select(lua_State *L);
 	static int32 group_is_exists(lua_State *L);
