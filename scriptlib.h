@@ -16,7 +16,7 @@ public:
 	static int32 check_param(lua_State* L, int32 param_type, int32 index, BOOL retfalse = FALSE);
 	static int32 check_param_count(lua_State* L, int32 count);
 	static int32 check_action_permission(lua_State* L);
-	
+
 	//card lib
 	static int32 card_get_code(lua_State *L);
 	static int32 card_get_origin_code(lua_State *L);
@@ -229,7 +229,7 @@ public:
 	static int32 card_reset_negate_effect(lua_State *L);
 	static int32 card_assume_prop(lua_State *L);
 	static int32 card_set_spsummon_once(lua_State *L);
-	
+
 	//Effect functions
 	static int32 effect_new(lua_State *L);
 	static int32 effect_newex(lua_State *L);
@@ -366,7 +366,7 @@ public:
 	static int32 duel_check_timing(lua_State *L);
 	static int32 duel_get_environment(lua_State *L);
 	static int32 duel_is_environment(lua_State *L);
-	
+
 	static int32 duel_win(lua_State *L);
 	static int32 duel_draw(lua_State *L);
 	static int32 duel_damage(lua_State *L);
@@ -415,7 +415,7 @@ public:
 	static int32 duel_chain_attack(lua_State *L);
 	static int32 duel_readjust(lua_State *L);
 	static int32 duel_adjust_instantly(lua_State *L);
-	
+
 	static int32 duel_get_field_group(lua_State *L);
 	static int32 duel_get_field_group_count(lua_State *L);
 	static int32 duel_get_decktop_group(lua_State *L);
@@ -463,7 +463,7 @@ public:
 	static int32 duel_get_overlay_count(lua_State *L);
 	static int32 duel_check_remove_overlay_card(lua_State *L);
 	static int32 duel_remove_overlay_card(lua_State *L);
-	
+
 	static int32 duel_hint(lua_State *L);
 	static int32 duel_hint_selection(lua_State *L);
 	static int32 duel_select_effect_yesno(lua_State *L);
@@ -512,13 +512,15 @@ public:
 	static int32 duel_get_custom_activity_count(lua_State *L);
 	static int32 duel_is_able_to_enter_bp(lua_State *L);
 	static int32 duel_get_battled_count(lua_State *L);
-	
+	static int32 duel_get_tossed_coin_count(lua_State *L);
+	static int32 duel_get_tossed_dice_count(lua_State *L);
+
 	//specific card functions
 	static int32 duel_venom_swamp_check(lua_State *L);
 	static int32 duel_tag_swap(lua_State *L);
 	static int32 duel_swap_deck_and_grave(lua_State *L);
 	static int32 duel_majestic_copy(lua_State *L);
-	
+
 	//preload
 	static int32 debug_message(lua_State *L);
 	static int32 debug_add_card(lua_State *L);
