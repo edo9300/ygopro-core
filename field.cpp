@@ -1270,9 +1270,11 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 		if(pcard && pcard->is_releasable_by_summon(p, target)) {
 			if(mg && !mg->has_card(pcard))
 				continue;
-			if (release_list)
+			if(release_list)
 				release_list->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+				pcard->release_param = 3;
+			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
@@ -1287,9 +1289,11 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 		if (mg && !mg->has_card(pcard))
 			continue;
 		if (ex || pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
-			if (ex_list)
+			if(ex_list)
 				ex_list->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+				pcard->release_param = 3;
+			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
@@ -1300,7 +1304,9 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 				continue;
 			if (ex_list_sum)
 				ex_list_sum->insert(pcard);
-			if(pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
+			if(pcard->is_affected_by_effect(EFFECT_TRIPLE_TRIBUTE, target))
+				pcard->release_param = 3;
+			else if (pcard->is_affected_by_effect(EFFECT_DOUBLE_TRIBUTE, target))
 				pcard->release_param = 2;
 			else
 				pcard->release_param = 1;
