@@ -2549,6 +2549,8 @@ int32 field::is_player_can_spsummon(effect * peffect, uint32 sumtype, uint8 sump
 		if (pduel->lua->check_condition(eset[i]->target, 7))
 			return FALSE;
 		sumpos &= ~eset[i]->get_value();
+		if(sumpos == 0)
+			return FALSE;
 	}
 	if(!check_spsummon_once(pcard, playerid))
 		return FALSE;
