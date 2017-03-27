@@ -175,6 +175,13 @@ int32 scriptlib::card_get_rank(lua_State *L) {
 	lua_pushinteger(L, pcard->get_rank());
 	return 1;
 }
+int32 scriptlib::card_get_link(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	lua_pushinteger(L, pcard->get_link());
+	return 1;
+}
 int32 scriptlib::card_get_synchro_level(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 2);
@@ -247,6 +254,40 @@ int32 scriptlib::card_get_origin_rscale(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	lua_pushinteger(L, pcard->data.rscale);
+	return 1;
+}
+int32 scriptlib::card_is_link_marker(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 dir = lua_tointeger(L, 2);
+	lua_pushboolean(L, pcard->is_link_marker(dir));
+	return 1;
+}
+int32 scriptlib::card_get_linked_group(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	card::card_set cset;
+	pcard->get_linked_cards(&cset);
+	group* pgroup = pcard->pduel->new_group(cset);
+	interpreter::group2value(L, pgroup);
+	return 1;
+}
+int32 scriptlib::card_get_linked_group_count(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	card::card_set cset;
+	pcard->get_linked_cards(&cset);
+	lua_pushinteger(L, cset.size());
+	return 1;
+}
+int32 scriptlib::card_get_linked_zone(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	lua_pushinteger(L, pcard->get_linked_zone());
 	return 1;
 }
 int32 scriptlib::card_get_attribute(lua_State *L) {
@@ -1134,7 +1175,7 @@ int32 scriptlib::card_set_flag_effect_label(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 code = (lua_tounsigned(L, 2) & 0xfffffff) | 0x10000000;
-	int lab = lua_tointeger(L, 3);
+	int32 lab = lua_tointeger(L, 3);
 	auto eit = pcard->single_effect.find(code);
 	if(eit == pcard->single_effect.end())
 		lua_pushboolean(L, FALSE);
@@ -1477,11 +1518,14 @@ int32 scriptlib::card_is_can_be_special_summoned(lua_State *L) {
 	uint32 nolimit = lua_toboolean(L, 6);
 	uint32 sumpos = POS_FACEUP;
 	uint32 toplayer = sumplayer;
-	if(lua_gettop(L) > 6)
+	uint32 zone = 0xff;
+	if(lua_gettop(L) >= 7)
 		sumpos = lua_tointeger(L, 7);
-	if(lua_gettop(L) > 7)
+	if(lua_gettop(L) >= 8)
 		toplayer = lua_tointeger(L, 8);
-	if(pcard->is_can_be_special_summoned(peffect, sumtype, sumpos, sumplayer, toplayer, nocheck, nolimit))
+	if(lua_gettop(L) >= 9)
+		zone = lua_tointeger(L, 9);
+	if(pcard->is_can_be_special_summoned(peffect, sumtype, sumpos, sumplayer, toplayer, nocheck, nolimit, zone))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -1835,7 +1879,7 @@ int32 scriptlib::card_is_attack_below(lua_State *L) {
 	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
 		lua_pushboolean(L, 0);
 	else {
-		int _atk = pcard->get_attack();
+		int32 _atk = pcard->get_attack();
 		lua_pushboolean(L, _atk >= 0 && _atk <= atk);
 	}
 	return 1;
@@ -1848,7 +1892,7 @@ int32 scriptlib::card_is_attack_above(lua_State *L) {
 	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
 		lua_pushboolean(L, 0);
 	else {
-		int _atk = pcard->get_attack();
+		int32 _atk = pcard->get_attack();
 		lua_pushboolean(L, _atk >= atk);
 	}
 	return 1;
@@ -1861,7 +1905,7 @@ int32 scriptlib::card_is_defense_below(lua_State *L) {
 	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
 		lua_pushboolean(L, 0);
 	else {
-		int _def = pcard->get_defense();
+		int32 _def = pcard->get_defense();
 		lua_pushboolean(L, _def >= 0 && _def <= def);
 	}
 	return 1;
@@ -1874,7 +1918,7 @@ int32 scriptlib::card_is_defense_above(lua_State *L) {
 	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
 		lua_pushboolean(L, 0);
 	else {
-		int _def = pcard->get_defense();
+		int32 _def = pcard->get_defense();
 		lua_pushboolean(L, _def >= def);
 	}
 	return 1;

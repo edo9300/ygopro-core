@@ -32,6 +32,7 @@ public:
 	static int32 card_get_fusion_type(lua_State *L);
 	static int32 card_get_level(lua_State *L);
 	static int32 card_get_rank(lua_State *L);
+	static int32 card_get_link(lua_State *L);
 	static int32 card_get_synchro_level(lua_State *L);
 	static int32 card_get_ritual_level(lua_State *L);
 	static int32 card_get_origin_level(lua_State *L);
@@ -41,6 +42,10 @@ public:
 	static int32 card_get_origin_lscale(lua_State *L);
 	static int32 card_get_rscale(lua_State *L);
 	static int32 card_get_origin_rscale(lua_State *L);
+	static int32 card_is_link_marker(lua_State *L);
+	static int32 card_get_linked_group(lua_State *L);
+	static int32 card_get_linked_group_count(lua_State *L);
+	static int32 card_get_linked_zone(lua_State *L);
 	static int32 card_get_attribute(lua_State *L);
 	static int32 card_get_origin_attribute(lua_State *L);
 	static int32 card_get_fusion_attribute(lua_State *L);
@@ -512,8 +517,6 @@ public:
 	static int32 duel_get_custom_activity_count(lua_State *L);
 	static int32 duel_is_able_to_enter_bp(lua_State *L);
 	static int32 duel_get_battled_count(lua_State *L);
-	static int32 duel_get_tossed_coin_count(lua_State *L);
-	static int32 duel_get_tossed_dice_count(lua_State *L);
 
 	//specific card functions
 	static int32 duel_venom_swamp_check(lua_State *L);
