@@ -829,7 +829,7 @@ int32 card::get_defense() {
 // 2. cards with current type TYPE_MONSTER or
 // 3. cards with EFFECT_PRE_MONSTER
 uint32 card::get_level() {
-	if((data.type & (TYPE_XYZ | TYPE_LINK)) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S))) || (status & STATUS_NO_LEVEL)
+	if((data.type & (TYPE_XYZ | TYPE_LINK)) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)) || (status & STATUS_NO_LEVEL)
 	        || (!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		return 0;
 	if (assume_type == ASSUME_LEVEL)
