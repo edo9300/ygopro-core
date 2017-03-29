@@ -4874,8 +4874,8 @@ void field::refresh_location_info_instant() {
 	filter_field_effect(EFFECT_DISABLE_FIELD, &eset);
 	for (int32 i = 0; i < eset.size(); ++i) {
 		value = eset[i]->get_value();
-		player[0].disabled_location |= value & 0x1f1f;
-		player[1].disabled_location |= (value >> 16) & 0x1f1f;
+		player[0].disabled_location |= value & 0x1f7f;
+		player[1].disabled_location |= (value >> 16) & 0x1f7f;
 	}
 	eset.clear();
 	filter_field_effect(EFFECT_USE_EXTRA_MZONE, &eset);
@@ -4891,6 +4891,8 @@ void field::refresh_location_info_instant() {
 		value = eset[i]->get_value();
 		player[p].disabled_location |= (value >> 8) & 0x1f00;
 	}
+	player[0].disabled_location |= (((player[1].disabled_location >> 5) & 1) << 6) | (((player[1].disabled_location >> 6) & 1) << 5);
+	player[1].disabled_location |= (((player[0].disabled_location >> 5) & 1) << 6) | (((player[0].disabled_location >> 6) & 1) << 5);
 	uint32 dis2 = player[0].disabled_location | (player[1].disabled_location << 16);
 	if(dis1 != dis2) {
 		pduel->write_buffer8(MSG_FIELD_DISABLED);
@@ -4919,8 +4921,8 @@ int32 field::refresh_location_info(uint16 step) {
 		for (int32 i = 0; i < eset.size(); ++i) {
 			value = eset[i]->get_value();
 			if(value) {
-				player[0].disabled_location |= value & 0x1f1f;
-				player[1].disabled_location |= (value >> 16) & 0x1f1f;
+				player[0].disabled_location |= value & 0x1f7f;
+				player[1].disabled_location |= (value >> 16) & 0x1f7f;
 			} else
 				core.disfield_effects.add_item(eset[i]);
 		}
@@ -4962,17 +4964,17 @@ int32 field::refresh_location_info(uint16 step) {
 		return FALSE;
 	}
 	case 2: {
-		returns.ivalue[0] &= 0x1f1f1f1f;
+		returns.ivalue[0] &= 0x1f7f1f7f;
 		if(returns.ivalue[0] == 0)
 			returns.ivalue[0] = 0x80;
 		if(core.units.begin()->peffect->get_handler_player() == 0) {
 			core.units.begin()->peffect->value = returns.ivalue[0];
-			player[0].disabled_location |= returns.ivalue[0] & 0x1f1f;
-			player[1].disabled_location |= (returns.ivalue[0] >> 16) & 0x1f1f;
+			player[0].disabled_location |= returns.ivalue[0] & 0x1f7f;
+			player[1].disabled_location |= (returns.ivalue[0] >> 16) & 0x1f7f;
 		} else {
 			core.units.begin()->peffect->value = ((returns.ivalue[0] << 16) | (returns.ivalue[0] >> 16));
-			player[1].disabled_location |= returns.ivalue[0] & 0x1f1f;
-			player[0].disabled_location |= (returns.ivalue[0] >> 16) & 0x1f1f;
+			player[1].disabled_location |= returns.ivalue[0] & 0x1f7f;
+			player[0].disabled_location |= (returns.ivalue[0] >> 16) & 0x1f7f;
 		}
 		core.units.begin()->step = 0;
 		return FALSE;
@@ -5058,6 +5060,8 @@ int32 field::refresh_location_info(uint16 step) {
 		return FALSE;
 	}
 	case 7: {
+		player[0].disabled_location |= (((player[1].disabled_location >> 5) & 1) << 6) | (((player[1].disabled_location >> 6) & 1) << 5);
+		player[1].disabled_location |= (((player[0].disabled_location >> 5) & 1) << 6) | (((player[0].disabled_location >> 6) & 1) << 5);
 		uint32 dis = player[0].disabled_location | (player[1].disabled_location << 16);
 		if(dis != (uint32)core.units.begin()->arg2) {
 			pduel->write_buffer8(MSG_FIELD_DISABLED);
