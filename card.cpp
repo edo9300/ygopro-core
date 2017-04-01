@@ -829,8 +829,9 @@ int32 card::get_defense() {
 // 2. cards with current type TYPE_MONSTER or
 // 3. cards with EFFECT_PRE_MONSTER
 uint32 card::get_level() {
-	if((data.type & (TYPE_XYZ | TYPE_LINK)) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)) || (status & STATUS_NO_LEVEL)
-	        || (!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER)))
+	if(((data.type & TYPE_XYZ) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || s_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+		|| (data.type & TYPE_LINK) || (status & STATUS_NO_LEVEL)
+		|| (!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		return 0;
 	if (assume_type == ASSUME_LEVEL)
 		return assume_value;
@@ -883,7 +884,8 @@ uint32 card::get_level() {
 	return level;
 }
 uint32 card::get_rank() {
-	if((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S)))
+	if(((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S))) 
+	|| (data.type & TYPE_LINK))
 		return 0;
 	if(assume_type == ASSUME_RANK)
 		return assume_value;
@@ -943,7 +945,8 @@ uint32 card::get_link() {
 	return data.level;
 }
 uint32 card::get_synchro_level(card* pcard) {
-	if((data.type & (TYPE_XYZ | TYPE_LINK)) || (status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	|| (data.type & TYPE_LINK))
 		return 0;
 	uint32 lev;
 	effect_set eset;
@@ -955,7 +958,8 @@ uint32 card::get_synchro_level(card* pcard) {
 	return lev;
 }
 uint32 card::get_ritual_level(card* pcard) {
-	if((data.type & (TYPE_XYZ | TYPE_LINK)) || (status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	|| (data.type & TYPE_LINK))
 		return 0;
 	uint32 lev;
 	effect_set eset;
