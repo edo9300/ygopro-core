@@ -2891,24 +2891,75 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	uint32 location2 = lua_tointeger(L, 4);
 	uint32 filter = lua_tointeger(L, 5);
 	duel* pduel = interpreter::get_duel_info(L);
+	uint32 all_field = FALSE;
+	if(lua_gettop(L) > 5)
+		all_field = lua_toboolean(L, 6);
 	uint32 ct1 = 0, ct2 = 0, ct3 = 0, ct4 = 0, plist = 0, flag = 0xffffffff;
 	if(location1 & LOCATION_MZONE) {
 		ct1 = pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, PLAYER_NONE, 0, 0xff, &plist);
+		if (all_field) {
+			if (!pduel->game_field->is_location_useable(playerid, LOCATION_MZONE, 5))
+				plist |= 0x20;
+			else
+				ct1++;
+			if (!pduel->game_field->is_location_useable(playerid, LOCATION_MZONE, 6))
+				plist |= 0x40;
+			else
+				ct1++;
+		}
 		flag = (flag & 0xffffff00) | plist;
 	}
 	if(location1 & LOCATION_SZONE) {
 		ct2 = pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, PLAYER_NONE, 0, 0xff, &plist);
+		if (all_field) {
+			if (!pduel->game_field->is_location_useable(playerid, LOCATION_SZONE, 5))
+				plist |= 0x20;
+			else
+				ct2++;
+			if (!pduel->game_field->is_location_useable(playerid, LOCATION_SZONE, 6))
+				plist |= 0x40;
+			else
+				ct2++;
+			if (!pduel->game_field->is_location_useable(playerid, LOCATION_SZONE, 7))
+				plist |= 0x80;
+			else
+				ct2++;
+		}
 		flag = (flag & 0xffff00ff) | (plist << 8);
 	}
 	if(location2 & LOCATION_MZONE) {
 		ct3 = pduel->game_field->get_useable_count(1 - playerid, LOCATION_MZONE, PLAYER_NONE, 0, 0xff, &plist);
+		if (all_field) {
+			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_MZONE, 5))
+				plist |= 0x20;
+			else
+				ct3++;
+			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_MZONE, 6))
+				plist |= 0x40;
+			else
+				ct3++;
+		}
 		flag = (flag & 0xff00ffff) | (plist << 16);
 	}
 	if(location2 & LOCATION_SZONE) {
 		ct4 = pduel->game_field->get_useable_count(1 - playerid, LOCATION_SZONE, PLAYER_NONE, 0, 0xff, &plist);
+		if (all_field) {
+			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_SZONE, 5))
+				plist |= 0x20;
+			else
+				ct4++;
+			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_SZONE, 6))
+				plist |= 0x40;
+			else
+				ct4++;
+			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_SZONE, 7))
+				plist |= 0x80;
+			else
+				ct4++;
+		}
 		flag = (flag & 0xffffff) | (plist << 24);
 	}
-	flag |= filter | 0xe0e0e0e0;
+	flag |= filter | ((all_field) ? 0x800080 : 0xe0e0e0e0);
 	if(count > ct1 + ct2 + ct3 + ct4)
 		count = ct1 + ct2 + ct3 + ct4;
 	if(count == 0)
