@@ -375,7 +375,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_SPSUMMON: {
-		if (special_summon(it->step, it->peffect, it->arg1, it->ptarget))
+		if (special_summon(it->step, it->peffect, it->arg1, it->ptarget, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
@@ -4865,12 +4865,6 @@ void field::refresh_location_info_instant() {
 	uint32 dis1 = player[0].disabled_location | (player[1].disabled_location << 16);
 	player[0].disabled_location = 0;
 	player[1].disabled_location = 0;
-	if(core.duel_rule >= 4) {
-		uint32 loc = player[0].used_location;
-		player[0].disabled_location = ((loc & 0x100) << 6) | ((loc & 0x1000) << 3) | ((loc >> 6) & 0x100) | ((loc >> 3) & 0x1000);
-		loc = player[1].used_location;
-		player[1].disabled_location = ((loc & 0x100) << 6) | ((loc & 0x1000) << 3) | ((loc >> 6) & 0x100) | ((loc >> 3) & 0x1000);
-	}
 	filter_field_effect(EFFECT_DISABLE_FIELD, &eset);
 	for (int32 i = 0; i < eset.size(); ++i) {
 		value = eset[i]->get_value();
@@ -4908,12 +4902,6 @@ int32 field::refresh_location_info(uint16 step) {
 		core.units.begin()->arg2 = player[0].disabled_location | (player[1].disabled_location << 16);
 		player[0].disabled_location = 0;
 		player[1].disabled_location = 0;
-		if(core.duel_rule >= 4) {
-			uint32 loc = player[0].used_location;
-			player[0].disabled_location = ((loc & 0x100) << 6) | ((loc & 0x1000) << 3) | ((loc >> 6) & 0x100) | ((loc >> 3) & 0x1000);
-			loc = player[1].used_location;
-			player[1].disabled_location = ((loc & 0x100) << 6) | ((loc & 0x1000) << 3) | ((loc >> 6) & 0x100) | ((loc >> 3) & 0x1000);
-		}
 		core.disfield_effects.clear();
 		core.extram_effects.clear();
 		core.extras_effects.clear();
@@ -5257,7 +5245,7 @@ int32 field::adjust_step(uint16 step) {
 		for(uint8 p = 0; p < 2; ++p) {
 			for(auto cit = player[tp].list_mzone.begin(); cit != player[tp].list_mzone.end(); ++cit) {
 				card* pcard = *cit;
-				if(!pcard || pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))
+				if(!pcard || (pcard->data.type & TYPE_LINK) || pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))
 					continue;
 				eset.clear();
 				pcard->filter_effect(EFFECT_SET_POSITION, &eset);
