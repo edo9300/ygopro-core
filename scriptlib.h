@@ -134,6 +134,7 @@ public:
 	static int32 card_check_activate_effect(lua_State *L);
 	static int32 card_register_effect(lua_State *L);
 	static int32 card_is_has_effect(lua_State *L);
+	static int32 card_is_card_affected_by_effect(lua_State *L);
 	static int32 card_reset_effect(lua_State *L);
 	static int32 card_get_effect_count(lua_State *L);
 	static int32 card_register_flag_effect(lua_State *L);

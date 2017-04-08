@@ -132,6 +132,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "CheckActivateEffect", scriptlib::card_check_activate_effect },
 	{ "RegisterEffect", scriptlib::card_register_effect },
 	{ "IsHasEffect", scriptlib::card_is_has_effect },
+	{ "IsAffectedByEffect", scriptlib::card_is_card_affected_by_effect },
 	{ "ResetEffect", scriptlib::card_reset_effect },
 	{ "GetEffectCount", scriptlib::card_get_effect_count },
 	{ "RegisterFlagEffect", scriptlib::card_register_flag_effect },
