@@ -2393,6 +2393,11 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card * target, ui
 		}
 		if(positions == 0)
 			positions = POS_FACEUP_ATTACK;
+		effect_set eset;
+		filter_player_effect(sumplayer, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
+		for (int32 i = 0; i < eset.size(); ++i) {
+			positions &= ~eset[i]->get_value();
+		}
 		target->enable_field_effect(false);
 		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions);
 		target->current.reason = REASON_SPSUMMON;
@@ -2572,7 +2577,13 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card * target, ui
 		pcard->summon_player = sumplayer;
 		pcard->summon_info = (peffect->get_value(pcard) & 0xff00ffff) | SUMMON_TYPE_SPECIAL | ((uint32)pcard->current.location << 16);
 		check_card_counter(pcard, 3, sumplayer);
-		move_to_field(pcard, sumplayer, sumplayer, LOCATION_MZONE, POS_FACEUP);
+		effect_set eset;
+		uint8 positions = POS_FACEUP;
+		filter_player_effect(sumplayer, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
+		for (int32 i = 0; i < eset.size(); ++i) {
+			positions &= ~eset[i]->get_value();
+		}
+		move_to_field(pcard, sumplayer, sumplayer, LOCATION_MZONE, positions);
 		return FALSE;
 	}
 	case 24: {
