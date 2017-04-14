@@ -4032,7 +4032,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 	}
 	case 1: {
 		uint32 seq = returns.bvalue[2];
-		if(!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL))
+		if(!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP))
 			seq = 5;
 		if(ret != 1) {
 			if(location != target->current.location) {
