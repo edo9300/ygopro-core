@@ -1410,8 +1410,8 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			core.select_chains.push_back(newchain);
 			cn_count++;
 		}
-		for(auto eit = effects.pheff.begin(); eit != effects.pheff.end(); ++eit) {
-			peffect = *eit;
+		for(auto eit = effects.pheff.begin(); eit != effects.pheff.end();) {
+			peffect = *eit++;
 			if(peffect->code != EFFECT_SET_CONTROL)
 				continue;
 			if(peffect->get_owner_player() != check_player)
@@ -1424,6 +1424,14 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 				continue;
 			if((peffect->reset_count & 0xff) != 1)
 				continue;
+			card* phandler = peffect->get_handler();
+			if(peffect->get_owner_player() != phandler->current.controler) {
+				if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
+					remove_effect(peffect);
+				else
+					phandler->remove_effect(peffect);
+				continue;
+			}
 			newchain.triggering_effect = peffect;
 			core.select_chains.push_back(newchain);
 			cn_count++;
@@ -1550,9 +1558,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
 			newchain.evt = nil_event;
-			newchain.triggering_controler = phandler->current.controler;
-			newchain.triggering_location = phandler->current.location;
-			newchain.triggering_sequence = phandler->current.sequence;
+			newchain.set_triggering_place(phandler);
 			newchain.triggering_player = check_player;
 			core.new_chains.push_back(newchain);
 			phandler->set_status(STATUS_CHAINING, TRUE);
@@ -1673,9 +1679,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			card* phandler = peffect->get_handler();
 			if(!peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER | EFFECT_FLAG_BOTH_SIDE) && phandler->is_has_relation(*clit)) {
 				clit->triggering_player = phandler->current.controler;
-				clit->triggering_controler = phandler->current.controler;
-				clit->triggering_location = phandler->current.location;
-				clit->triggering_sequence = phandler->current.sequence;
+				clit->set_triggering_place(phandler);
 			}
 			uint8 tp = clit->triggering_player;
 			bool act = true;
@@ -1752,9 +1756,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 				if(!phandler->is_has_relation(*clit))
 					phandler->create_relation(*clit);
 				clit->triggering_player = phandler->current.controler;
-				clit->triggering_controler = phandler->current.controler;
-				clit->triggering_location = phandler->current.location;
-				clit->triggering_sequence = phandler->current.sequence;
+				clit->set_triggering_place(phandler);
 			}
 			if(clit->triggering_player == infos.turn_player)
 				core.tpchain.push_back(*clit);
@@ -1795,7 +1797,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 				core.new_ochain_h.push_back(*clit);
 				act = false;
 			} else if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) || !(peffect->type & EFFECT_TYPE_FIELD)
-		            || peffect->in_range(clit->triggering_location, clit->triggering_sequence)) {
+		            || peffect->in_range(*clit)) {
 				if(peffect->is_flag(EFFECT_FLAG_CHAIN_UNIQUE)) {
 					if(tp == infos.turn_player) {
 						for(auto tpit = core.tpchain.begin(); tpit != core.tpchain.end(); ++tpit) {
@@ -1855,7 +1857,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 				if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) && clit->triggering_location == LOCATION_HAND && (peffect->range & LOCATION_HAND)) {
 					continue;
 				} else if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) || !(peffect->type & EFFECT_TYPE_FIELD)
-			            || peffect->in_range(clit->triggering_location, clit->triggering_sequence)) {
+			            || peffect->in_range(*clit)) {
 					if(peffect->is_flag(EFFECT_FLAG_CHAIN_UNIQUE)) {
 						if(tp == infos.turn_player) {
 							for(auto tpit = core.tpchain.begin(); tpit != core.tpchain.end(); ++tpit) {
@@ -1939,10 +1941,8 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 					newchain.flag = 0;
 					newchain.chain_id = infos.field_id++;
 					newchain.evt = e;
-					newchain.triggering_controler = phandler->current.controler;
 					newchain.triggering_effect = peffect;
-					newchain.triggering_location = phandler->current.location;
-					newchain.triggering_sequence = phandler->current.sequence;
+					newchain.set_triggering_place(phandler);
 					newchain.triggering_player = infos.turn_player;
 					core.select_chains.push_back(newchain);
 				}
@@ -2090,10 +2090,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = *evit;
-						newchain.triggering_controler = phandler->current.controler;
 						newchain.triggering_effect = peffect;
-						newchain.triggering_location = phandler->current.location;
-						newchain.triggering_sequence = phandler->current.sequence;
+						newchain.set_triggering_place(phandler);
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
 					}
@@ -2108,10 +2106,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = *evit;
-						newchain.triggering_controler = phandler->current.controler;
 						newchain.triggering_effect = peffect;
-						newchain.triggering_location = phandler->current.location;
-						newchain.triggering_sequence = phandler->current.sequence;
+						newchain.set_triggering_place(phandler);
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
 						core.delayed_quick_tmp.erase(std::make_pair(peffect, *evit));
@@ -2161,10 +2157,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = *eit;
-						newchain.triggering_controler = phandler->current.controler;
 						newchain.triggering_effect = peffect;
-						newchain.triggering_location = phandler->current.location;
-						newchain.triggering_sequence = phandler->current.sequence;
+						newchain.set_triggering_place(phandler);
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
 					}
@@ -2181,10 +2175,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 					newchain.flag = 0;
 					newchain.chain_id = infos.field_id++;
 					newchain.evt = evt;
-					newchain.triggering_controler = phandler->current.controler;
 					newchain.triggering_effect = peffect;
-					newchain.triggering_location = phandler->current.location;
-					newchain.triggering_sequence = phandler->current.sequence;
+					newchain.set_triggering_place(phandler);
 					newchain.triggering_player = priority;
 					core.select_chains.push_back(newchain);
 				}
@@ -2202,10 +2194,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = nil_event;
-						newchain.triggering_controler = phandler->current.controler;
 						newchain.triggering_effect = peffect;
-						newchain.triggering_location = phandler->current.location;
-						newchain.triggering_sequence = phandler->current.sequence;
+						newchain.set_triggering_place(phandler);
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
 						if(check_hint_timing(peffect))
@@ -2222,10 +2212,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = nil_event;
-						newchain.triggering_controler = phandler->current.controler;
 						newchain.triggering_effect = peffect;
-						newchain.triggering_location = phandler->current.location;
-						newchain.triggering_sequence = phandler->current.sequence;
+						newchain.set_triggering_place(phandler);
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
 						if(check_hint_timing(peffect))
@@ -2328,9 +2316,7 @@ int32 field::process_instant_event() {
 			newchain.chain_id = infos.field_id++;
 			newchain.evt = *elit;
 			newchain.triggering_effect = peffect;
-			newchain.triggering_controler = phandler->current.controler;
-			newchain.triggering_location = phandler->current.location;
-			newchain.triggering_sequence = phandler->current.sequence;
+			newchain.set_triggering_place(phandler);
 			if(peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER) && (elit->event_player == 0 || elit->event_player == 1))
 				newchain.triggering_player = elit->event_player;
 			else newchain.triggering_player = phandler->current.controler;
@@ -2349,9 +2335,7 @@ int32 field::process_instant_event() {
 			newchain.chain_id = infos.field_id++;
 			newchain.evt = *elit;
 			newchain.triggering_effect = peffect;
-			newchain.triggering_controler = phandler->current.controler;
-			newchain.triggering_location = phandler->current.location;
-			newchain.triggering_sequence = phandler->current.sequence;
+			newchain.set_triggering_place(phandler);
 			if(peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER) && (elit->event_player == 0 || elit->event_player == 1))
 				newchain.triggering_player = elit->event_player;
 			else newchain.triggering_player = phandler->current.controler;
@@ -2373,9 +2357,7 @@ int32 field::process_instant_event() {
 				newchain.chain_id = infos.field_id++;
 				newchain.evt = *elit;
 				newchain.triggering_effect = peffect;
-				newchain.triggering_controler = phandler->current.controler;
-				newchain.triggering_location = phandler->current.location;
-				newchain.triggering_sequence = phandler->current.sequence;
+				newchain.set_triggering_place(phandler);
 				if(peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER) && (elit->event_player == 0 || elit->event_player == 1))
 					newchain.triggering_player = elit->event_player;
 				else newchain.triggering_player = phandler->current.controler;
@@ -2480,9 +2462,7 @@ int32 field::process_single_event(effect* peffect, const tevent& e, effect_vecto
 		newchain.chain_id = infos.field_id++;
 		newchain.evt = e;
 		newchain.triggering_effect = peffect;
-		newchain.triggering_controler = phandler->current.controler;
-		newchain.triggering_location = phandler->current.location;
-		newchain.triggering_sequence = phandler->current.sequence;
+		newchain.set_triggering_place(phandler);
 		if(peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER) && (e.event_player == 0 || e.event_player == 1))
 			newchain.triggering_player = e.event_player;
 		else {
@@ -2665,9 +2645,7 @@ int32 field::process_idle_command(uint16 step) {
 			newchain.evt.reason = 0;
 			newchain.evt.reason_effect = 0;
 			newchain.evt.reason_player = PLAYER_NONE;
-			newchain.triggering_controler = phandler->current.controler;
-			newchain.triggering_location = phandler->current.location;
-			newchain.triggering_sequence = phandler->current.sequence;
+			newchain.set_triggering_place(phandler);
 			newchain.triggering_player = infos.turn_player;
 			core.new_chains.push_back(newchain);
 			phandler->set_status(STATUS_CHAINING, TRUE);
@@ -2930,9 +2908,7 @@ int32 field::process_battle_command(uint16 step) {
 			newchain.evt.reason = 0;
 			newchain.evt.reason_effect = 0;
 			newchain.evt.reason_player = PLAYER_NONE;
-			newchain.triggering_controler = phandler->current.controler;
-			newchain.triggering_location = phandler->current.location;
-			newchain.triggering_sequence = phandler->current.sequence;
+			newchain.set_triggering_place(phandler);
 			newchain.triggering_player = infos.turn_player;
 			core.new_chains.push_back(newchain);
 			phandler->set_status(STATUS_CHAINING, TRUE);
@@ -4325,15 +4301,13 @@ int32 field::add_chain(uint16 step) {
 		effect* peffect = clit.triggering_effect;
 		card* phandler = peffect->get_handler();
 		if(peffect->type & EFFECT_TYPE_ACTIVATE) {
-			clit.triggering_controler = phandler->current.controler;
-			clit.triggering_location = phandler->current.location;
-			clit.triggering_sequence = phandler->current.sequence;
+			clit.set_triggering_place(phandler);
 		}
 		pduel->write_buffer8(MSG_CHAINING);
 		pduel->write_buffer32(phandler->data.code);
 		pduel->write_buffer32(phandler->get_info_location());
 		pduel->write_buffer8(clit.triggering_controler);
-		pduel->write_buffer8(clit.triggering_location);
+		pduel->write_buffer8((uint8)clit.triggering_location);
 		pduel->write_buffer8(clit.triggering_sequence);
 		pduel->write_buffer32(peffect->description);
 		pduel->write_buffer8(core.current_chain.size() + 1);
@@ -4841,7 +4815,7 @@ int32 field::break_effect() {
 		effect* peffect = rm->triggering_effect;
 		if (!peffect->is_flag(EFFECT_FLAG_DELAY)) {
 			if (peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
-			        || !(peffect->type & EFFECT_TYPE_FIELD) || peffect->in_range(rm->triggering_location, rm->triggering_sequence)) {
+			        || !(peffect->type & EFFECT_TYPE_FIELD) || peffect->in_range(*rm)) {
 				pduel->write_buffer8(MSG_MISSED_EFFECT);
 				pduel->write_buffer32(peffect->get_handler()->get_info_location());
 				pduel->write_buffer32(peffect->get_handler()->data.code);

@@ -49,7 +49,7 @@ struct chain {
 	uint8 chain_count;
 	uint8 triggering_player;
 	uint8 triggering_controler;
-	uint8 triggering_location;
+	uint16 triggering_location;
 	uint8 triggering_sequence;
 	effect* triggering_effect;
 	group* target_cards;
@@ -62,6 +62,7 @@ struct chain {
 	opmap opinfos;
 	uint32 flag;
 	static bool chain_operation_sort(const chain& c1, const chain& c2);
+	void set_triggering_place(card* pcard);
 };
 
 struct player_info {
@@ -343,11 +344,17 @@ public:
 	card* get_field_card(uint32 playerid, uint32 location, uint32 sequence);
 	int32 is_location_useable(uint32 playerid, uint32 location, uint32 sequence);
 	int32 get_useable_count(card* pcard, uint8 playerid, uint8 location, uint8 uplayer, uint32 reason, uint32 zone = 0xff, uint32* list = 0);
+	int32 get_spsummonable_count(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone = 0xff, uint32* list = 0);
 	int32 get_useable_count(uint8 playerid, uint8 location, uint8 uplayer, uint32 reason, uint32 zone = 0xff, uint32* list = 0);
+	int32 get_tofield_count(uint8 playerid, uint8 location, uint8 uplayer, uint32 zone = 0xff, uint32* list = 0);
 	int32 get_useable_count_fromex(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone = 0xff, uint32* list = 0);
+	int32 get_spsummonable_count_fromex(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone = 0xff, uint32* list = 0);
+	int32 get_mzone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
+	int32 get_szone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
 	uint32 get_linked_zone(int32 playerid);
 	int32 check_extra_link(int32 playerid);
 	int32 check_extra_link(int32 playerid, card* pcard, int32 sequence);
+	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid);
 	void shuffle(uint8 playerid, uint8 location);
 	void reset_sequence(uint8 playerid, uint8 location);
 	void swap_deck_and_grave(uint8 playerid);
@@ -406,6 +413,7 @@ public:
 	void attack_all_target_check();
 	int32 check_synchro_material(card* pcard, int32 findex1, int32 findex2, int32 min, int32 max, card* smat, group* mg);
 	int32 check_tuner_material(card* pcard, card* tuner, int32 findex1, int32 findex2, int32 min, int32 max, card* smat, group* mg);
+	int32 check_other_synchro_material(const card_vector& nsyn, int32 lv, int32 min, int32 max, int32 mcount);
 	int32 check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 toplayer);
 	static int32 check_with_sum_limit(const card_vector& mats, int32 acc, int32 index, int32 count, int32 min, int32 max);
 	static int32 check_with_sum_limit_m(const card_vector& mats, int32 acc, int32 index, int32 min, int32 max, int32 must_count);
