@@ -33,6 +33,7 @@ struct card_data {
 	int32 defense;
 	uint32 lscale;
 	uint32 rscale;
+	uint32 link_marker;
 };
 
 struct card_state {
@@ -42,6 +43,7 @@ struct card_state {
 	uint32 type;
 	uint32 level;
 	uint32 rank;
+	uint32 link;
 	uint32 lscale;
 	uint32 rscale;
 	uint32 attribute;
@@ -55,9 +57,11 @@ struct card_state {
 	uint8 sequence;
 	uint8 position;
 	uint32 reason;
+	bool pzone;
 	card* reason_card;
 	uint8 reason_player;
 	effect* reason_effect;
+	bool is_location(int32 loc) const;
 };
 
 struct query_cache {
@@ -66,6 +70,7 @@ struct query_cache {
 	uint32 type;
 	uint32 level;
 	uint32 rank;
+	uint32 link;
 	uint32 attribute;
 	uint32 race;
 	int32 attack;
@@ -77,6 +82,7 @@ struct query_cache {
 	int32 is_disabled;
 	uint32 lscale;
 	uint32 rscale;
+	uint32 link_marker;
 };
 
 class card {
@@ -126,15 +132,16 @@ public:
 	uint16 turnid;
 	uint16 turn_counter;
 	uint8 unique_pos[2];
-	uint16 unique_uid;
+	uint32 unique_fieldid;
 	uint32 unique_code;
 	uint32 unique_location;
+	int32 unique_function;
+	effect* unique_effect;
 	uint32 spsummon_code;
 	uint16 spsummon_counter[2];
 	uint16 spsummon_counter_rst[2];
 	uint8 assume_type;
 	uint32 assume_value;
-	effect* unique_effect;
 	card* equiping_target;
 	card* pre_equip_target;
 	card* overlay_target;
@@ -177,6 +184,7 @@ public:
 	int32 get_defense();
 	uint32 get_level();
 	uint32 get_rank();
+	uint32 get_link();
 	uint32 get_synchro_level(card* pcard);
 	uint32 get_ritual_level(card* pcard);
 	uint32 check_xyz_level(card* pcard, uint32 lv);
@@ -185,6 +193,11 @@ public:
 	uint32 get_race();
 	uint32 get_lscale();
 	uint32 get_rscale();
+	uint32 get_link_marker();
+	int32 is_link_marker(uint32 dir);
+	uint32 get_linked_zone();
+	void get_linked_cards(card_set* cset);
+	uint32 get_mutual_linked_zone();
 	int32 is_position(int32 pos);
 	void set_status(uint32 status, int32 enabled);
 	int32 get_status(uint32 status);
@@ -230,7 +243,7 @@ public:
 	void set_material(card_set* materials);
 	void add_card_target(card* pcard);
 	void cancel_card_target(card* pcard);
-	
+
 	void filter_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
 	void filter_single_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
 	void filter_single_continuous_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
@@ -246,8 +259,9 @@ public:
 	int32 fusion_check(group* fusion_m, card* cg, uint32 chkf);
 	void fusion_select(uint8 playerid, group* fusion_m, card* cg, uint32 chkf);
 	int32 check_fusion_substitute(card* fcard);
-	
-	int32 is_equipable(card* pcard);
+
+	int32 check_unique_code(card* pcard);
+	void get_unique_target(card_set* cset, int32 controler);
 	int32 is_summonable_card();
 	int32 is_fusion_summonable_card(uint32 summon_type);
 	int32 is_spsummonable(effect* peffect);
@@ -257,7 +271,7 @@ public:
 	int32 get_set_tribute_count();
 	int32 is_can_be_flip_summoned(uint8 playerid);
 	int32 is_special_summonable(uint8 playerid, uint32 summon_type);
-	int32 is_can_be_special_summoned(effect* reason_effect, uint32 sumtype, uint8 sumpos, uint8 sumplayer, uint8 toplayer, uint8 nocheck, uint8 nolimit);
+	int32 is_can_be_special_summoned(effect* reason_effect, uint32 sumtype, uint8 sumpos, uint8 sumplayer, uint8 toplayer, uint8 nocheck, uint8 nolimit, uint32 zone);
 	int32 is_setable_mzone(uint8 playerid, uint8 ignore_count, effect* peffect, uint8 min_tribute);
 	int32 is_setable_szone(uint8 playerid, uint8 ignore_fd = 0);
 	int32 is_affect_by_effect(effect* peffect);
@@ -340,6 +354,8 @@ public:
 #define TYPE_TOON			0x400000	//
 #define TYPE_XYZ			0x800000	//
 #define TYPE_PENDULUM		0x1000000	//
+#define TYPE_SPSUMMON		0x2000000	//
+#define TYPE_LINK			0x4000000	//
 
 //Attributes
 #define ATTRIBUTE_EARTH		0x01		//
@@ -373,7 +389,8 @@ public:
 #define RACE_PSYCHO			0x100000	//
 #define RACE_DEVINE			0x200000	//
 #define RACE_CREATORGOD		0x400000	//
-#define RACE_PHANTOMDRAGON		0x800000	//
+#define RACE_WYRM			0x800000	//
+#define RACE_CYBERS			0x1000000	//
 //Reason
 #define REASON_DESTROY		0x1		//
 #define REASON_RELEASE		0x2		//
@@ -400,17 +417,20 @@ public:
 #define REASON_REPLACE		0x1000000	//
 #define REASON_DRAW			0x2000000	//
 #define REASON_REDIRECT		0x4000000	//
+//#define REASON_REVEAL			0x8000000	//
+#define REASON_LINK			0x10000000	//
 //Summon Type
-#define SUMMON_TYPE_NORMAL	0x10000000
-#define SUMMON_TYPE_ADVANCE	0x11000000
-#define SUMMON_TYPE_DUAL	0x12000000
-#define SUMMON_TYPE_FLIP	0x20000000
-#define SUMMON_TYPE_SPECIAL	0x40000000
-#define SUMMON_TYPE_FUSION	0x43000000
-#define SUMMON_TYPE_RITUAL	0x45000000
-#define SUMMON_TYPE_SYNCHRO	0x46000000
-#define SUMMON_TYPE_XYZ		0x49000000
+#define SUMMON_TYPE_NORMAL		0x10000000
+#define SUMMON_TYPE_ADVANCE		0x11000000
+#define SUMMON_TYPE_DUAL		0x12000000
+#define SUMMON_TYPE_FLIP		0x20000000
+#define SUMMON_TYPE_SPECIAL		0x40000000
+#define SUMMON_TYPE_FUSION		0x43000000
+#define SUMMON_TYPE_RITUAL		0x45000000
+#define SUMMON_TYPE_SYNCHRO		0x46000000
+#define SUMMON_TYPE_XYZ			0x49000000
 #define SUMMON_TYPE_PENDULUM	0x4a000000
+#define SUMMON_TYPE_LINK		0x4c000000
 //Status
 #define STATUS_DISABLED				0x0001	//
 #define STATUS_TO_ENABLE			0x0002	//
@@ -470,6 +490,7 @@ public:
 #define QUERY_IS_PUBLIC		0x100000
 #define QUERY_LSCALE		0x200000
 #define QUERY_RSCALE		0x400000
+#define QUERY_LINK			0x800000
 
 #define ASSUME_CODE			1
 #define ASSUME_TYPE			2
@@ -479,4 +500,14 @@ public:
 #define ASSUME_RACE			6
 #define ASSUME_ATTACK		7
 #define ASSUME_DEFENSE		8
+
+#define LINK_MARKER_BOTTOM_LEFT		0001
+#define LINK_MARKER_BOTTOM			0002
+#define LINK_MARKER_BOTTOM_RIGHT	0004
+#define LINK_MARKER_LEFT			0010
+#define LINK_MARKER_RIGHT			0040
+#define LINK_MARKER_TOP_LEFT		0100
+#define LINK_MARKER_TOP				0200
+#define LINK_MARKER_TOP_RIGHT		0400
+
 #endif /* CARD_H_ */

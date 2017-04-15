@@ -20,6 +20,16 @@ int32 field::field_used_count[32] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3
 bool chain::chain_operation_sort(const chain& c1, const chain& c2) {
 	return c1.triggering_effect->id < c2.triggering_effect->id;
 }
+void chain::set_triggering_place(card* pcard) {
+	triggering_controler = pcard->current.controler;
+	if(pcard->current.is_location(LOCATION_FZONE))
+		triggering_location = LOCATION_SZONE | LOCATION_FZONE;
+	else if(pcard->current.is_location(LOCATION_PZONE))
+		triggering_location = LOCATION_SZONE | LOCATION_PZONE;
+	else
+		triggering_location = pcard->current.location;
+	triggering_sequence = pcard->current.sequence;
+}
 bool tevent::operator< (const tevent& v) const {
 	return memcmp(this, &v, sizeof(tevent)) < 0;
 }
@@ -34,7 +44,7 @@ field::field(duel* pduel) {
 	infos.card_id = 1;
 	infos.phase = 0;
 	infos.turn_player = 0;
-	for (int i = 0; i < 2; ++i) {
+	for (int32 i = 0; i < 2; ++i) {
 		cost[i].count = 0;
 		cost[i].amount = 0;
 		core.hint_timing[i] = 0;
@@ -45,23 +55,19 @@ field::field(duel* pduel) {
 		player[i].used_location = 0;
 		player[i].extra_p_count = 0;
 		player[i].tag_extra_p_count = 0;
-		player[i].list_mzone.reserve(5);
-		player[i].list_szone.reserve(8);
+		player[i].list_mzone.resize(7, 0);
+		player[i].list_szone.resize(8, 0);
 		player[i].list_main.reserve(45);
 		player[i].list_hand.reserve(10);
 		player[i].list_grave.reserve(30);
 		player[i].list_remove.reserve(30);
 		player[i].list_extra.reserve(15);
-		for(int j = 0; j < 5; ++j)
-			player[i].list_mzone.push_back(0);
-		for(int j = 0; j < 8; ++j)
-			player[i].list_szone.push_back(0);
 		core.shuffle_deck_check[i] = FALSE;
 		core.shuffle_hand_check[i] = FALSE;
 	}
 	core.pre_field[0] = 0;
 	core.pre_field[1] = 0;
-	for (int i = 0; i < 5; ++i)
+	for (int32 i = 0; i < 7; ++i)
 		core.opp_mzone[i] = 0;
 	core.summoning_card = 0;
 	core.summon_depth = 0;
@@ -87,6 +93,7 @@ field::field(duel* pduel) {
 	core.limit_xyz_maxc = 0;
 	core.last_control_changed_id = 0;
 	core.duel_options = 0;
+	core.duel_rule = 0;
 	core.attacker = 0;
 	core.attack_target = 0;
 	core.attack_rollback = FALSE;
@@ -108,11 +115,10 @@ field::~field() {
 }
 void field::reload_field_info() {
 	pduel->write_buffer8(MSG_RELOAD_FIELD);
-	card* pcard;
-	for(int playerid = 0; playerid < 2; ++playerid) {
+	for(int32 playerid = 0; playerid < 2; ++playerid) {
 		pduel->write_buffer32(player[playerid].lp);
-		for(uint32 i = 0; i < 5; ++i) {
-			pcard = player[playerid].list_mzone[i];
+		for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
+			card* pcard = *cit;
 			if(pcard) {
 				pduel->write_buffer8(1);
 				pduel->write_buffer8(pcard->current.position);
@@ -121,8 +127,8 @@ void field::reload_field_info() {
 				pduel->write_buffer8(0);
 			}
 		}
-		for(uint32 i = 0; i < 8; ++i) {
-			pcard = player[playerid].list_szone[i];
+		for(auto cit = player[playerid].list_szone.begin(); cit != player[playerid].list_szone.end(); ++cit) {
+			card* pcard = *cit;
 			if(pcard) {
 				pduel->write_buffer8(1);
 				pduel->write_buffer8(pcard->current.position);
@@ -143,19 +149,19 @@ void field::reload_field_info() {
 		pduel->write_buffer32(peffect->get_handler()->data.code);
 		pduel->write_buffer32(peffect->get_handler()->get_info_location());
 		pduel->write_buffer8(chit->triggering_controler);
-		pduel->write_buffer8(chit->triggering_location);
+		pduel->write_buffer8((uint8)chit->triggering_location);
 		pduel->write_buffer8(chit->triggering_sequence);
 		pduel->write_buffer32(peffect->description);
 	}
 }
 // The core of moving cards, and Debug.AddCard() will call this function directly.
 // check Fusion/S/X monster redirection by the rule, set fieldid_r
-void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence) {
+void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence, uint8 pzone) {
 	if (pcard->current.location != 0)
 		return;
 	if (!is_location_useable(playerid, location, sequence))
 		return;
-	if((pcard->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ)) && (location & (LOCATION_HAND | LOCATION_DECK))) {
+	if((pcard->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && (location & (LOCATION_HAND | LOCATION_DECK))) {
 		location = LOCATION_EXTRA;
 		pcard->operation_param = (pcard->operation_param & 0x00ffffff) | (POS_FACEDOWN_DEFENSE << 24);
 	}
@@ -215,6 +221,10 @@ void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence
 		break;
 	}
 	}
+	if(pzone)
+		pcard->current.pzone = true;
+	else
+		pcard->current.pzone = false;
 	pcard->apply_field_effect();
 	pcard->fieldid = infos.field_id++;
 	pcard->fieldid_r = pcard->fieldid;
@@ -269,6 +279,7 @@ void field::remove_card(card* pcard) {
 	pcard->previous.location = pcard->current.location;
 	pcard->previous.sequence = pcard->current.sequence;
 	pcard->previous.position = pcard->current.position;
+	pcard->previous.pzone = pcard->current.pzone;
 	pcard->current.controler = PLAYER_NONE;
 	pcard->current.location = 0;
 	pcard->current.sequence = 0;
@@ -280,12 +291,12 @@ void field::remove_card(card* pcard) {
 // 4. control_adjust()
 // 5. move_card()
 // check Fusion/S/X monster redirection by the rule
-void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence) {
+void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence, uint8 pzone) {
 	if (!is_location_useable(playerid, location, sequence))
 		return;
 	uint8 preplayer = pcard->current.controler;
 	uint8 presequence = pcard->current.sequence;
-	if((pcard->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ)) && (location & (LOCATION_HAND | LOCATION_DECK))) {
+	if((pcard->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && (location & (LOCATION_HAND | LOCATION_DECK))) {
 		location = LOCATION_EXTRA;
 		pcard->operation_param = (pcard->operation_param & 0x00ffffff) | (POS_FACEDOWN_DEFENSE << 24);
 	}
@@ -317,9 +328,13 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 			} else if(location & LOCATION_ONFIELD) {
 				if (playerid == preplayer && sequence == presequence)
 					return;
-				if((location == LOCATION_MZONE && (sequence < 0 || sequence > 4 || player[playerid].list_mzone[sequence]))
-				        || (location == LOCATION_SZONE && (sequence < 0 || sequence > 7 || player[playerid].list_szone[sequence])))
-					return;
+				if(location == LOCATION_MZONE) {
+					if(sequence >= player[playerid].list_mzone.size() || player[playerid].list_mzone[sequence])
+						return;
+				} else {
+					if(sequence >= player[playerid].list_szone.size() || player[playerid].list_szone[sequence])
+						return;
+				}
 				if(preplayer == playerid) {
 					pduel->write_buffer8(MSG_MOVE);
 					pduel->write_buffer32(pcard->data.code);
@@ -329,6 +344,7 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 				pcard->previous.location = pcard->current.location;
 				pcard->previous.sequence = pcard->current.sequence;
 				pcard->previous.position = pcard->current.position;
+				pcard->previous.pzone = pcard->current.pzone;
 				if (location == LOCATION_MZONE) {
 					player[preplayer].list_mzone[presequence] = 0;
 					player[preplayer].used_location &= ~(1 << presequence);
@@ -399,7 +415,7 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 			remove_card(pcard);
 		}
 	}
-	add_card(playerid, pcard, location, sequence);
+	add_card(playerid, pcard, location, sequence, pzone);
 }
 // add EFFECT_SET_CONTROL
 void field::set_control(card* pcard, uint8 playerid, uint16 reset_phase, uint8 reset_count) {
@@ -426,19 +442,37 @@ void field::set_control(card* pcard, uint8 playerid, uint16 reset_phase, uint8 r
 	pcard->current.controler = playerid;
 }
 
-card* field::get_field_card(uint8 playerid, uint8 location, uint8 sequence) {
+card* field::get_field_card(uint32 playerid, uint32 location, uint32 sequence) {
 	switch(location) {
 	case LOCATION_MZONE: {
-		if(sequence < 5)
+		if(sequence < player[playerid].list_mzone.size())
 			return player[playerid].list_mzone[sequence];
 		else
 			return 0;
 		break;
 	}
 	case LOCATION_SZONE: {
-		if(sequence < 8)
+		if(sequence < player[playerid].list_szone.size())
 			return player[playerid].list_szone[sequence];
 		else
+			return 0;
+		break;
+	}
+	case LOCATION_FZONE: {
+		if(sequence == 0)
+			return player[playerid].list_szone[5];
+		else
+			return 0;
+		break;
+	}
+	case LOCATION_PZONE: {
+		if(sequence == 0) {
+			card* pcard = player[playerid].list_szone[core.duel_rule >= 4 ? 0 : 6];
+			return pcard && pcard->current.pzone ? pcard : 0;
+		} else if(sequence == 1) {
+			card* pcard = player[playerid].list_szone[core.duel_rule >= 4 ? 4 : 7];
+			return pcard && pcard->current.pzone ? pcard : 0;
+		} else
 			return 0;
 		break;
 	}
@@ -481,53 +515,255 @@ card* field::get_field_card(uint8 playerid, uint8 location, uint8 sequence) {
 	return 0;
 }
 // return: the given slot in LOCATION_MZONE or all LOCATION_SZONE is available or not
-int32 field::is_location_useable(uint8 playerid, uint8 location, uint8 sequence) {
-	if (location != LOCATION_MZONE && location != LOCATION_SZONE)
-		return TRUE;
-	int32 flag = player[playerid].disabled_location | player[playerid].used_location;
-	if (location == LOCATION_MZONE && flag & (0x1u << sequence))
-		return FALSE;
-	if (location == LOCATION_SZONE && flag & (0x100u << sequence))
-		return FALSE;
+int32 field::is_location_useable(uint32 playerid, uint32 location, uint32 sequence) {
+	uint32 flag = player[playerid].disabled_location | player[playerid].used_location;
+	if (location == LOCATION_MZONE) {
+		if(flag & (0x1u << sequence))
+			return FALSE;
+		if(sequence >= 5) {
+			uint32 oppo = player[1 - playerid].disabled_location | player[1 - playerid].used_location;
+			if(oppo & (0x1u << (11 - sequence)))
+				return FALSE;
+		}
+	} else if (location == LOCATION_SZONE) {
+		if(flag & (0x100u << sequence))
+			return FALSE;
+	} else if (location == LOCATION_FZONE) {
+		if(flag & (0x100u << (5 + sequence)))
+			return FALSE;
+	} else if (location == LOCATION_PZONE) {
+		if(core.duel_rule >= 4) {
+			if(flag & (0x100u << (sequence * 4)))
+				return FALSE;
+		} else {
+			if(flag & (0x100u << (6 + sequence)))
+				return FALSE;
+		}
+	}
 	return TRUE;
 }
 // uplayer: request player, PLAYER_NONE means ignoring EFFECT_MAX_MZONE, EFFECT_MAX_SZONE
 // list: store local flag in list
-// return: usable count of LOCATION_MZONE or real LOCATION_SZONE of plaerid requested by uplayer (may be negative)
-int32 field::get_useable_count(uint8 playerid, uint8 location, uint8 uplayer, uint32 reason, uint32* list) {
+// return: usable count of LOCATION_MZONE or real LOCATION_SZONE of playerid requested by uplayer (may be negative)
+int32 field::get_useable_count(card* pcard, uint8 playerid, uint8 location, uint8 uplayer, uint32 reason, uint32 zone, uint32* list) {
+	if(core.duel_rule >= 4 && location == LOCATION_MZONE && pcard->current.location == LOCATION_EXTRA)
+		return get_useable_count_fromex(pcard, playerid, uplayer, zone, list);
+	else
+		return get_useable_count(playerid, location, uplayer, reason, zone, list);
+}
+int32 field::get_spsummonable_count(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone, uint32* list) {
+	if(core.duel_rule >= 4 && pcard->current.location == LOCATION_EXTRA)
+		return get_spsummonable_count_fromex(pcard, playerid, uplayer, zone, list);
+	else
+		return get_tofield_count(playerid, LOCATION_MZONE, uplayer, zone, list);
+}
+int32 field::get_useable_count(uint8 playerid, uint8 location, uint8 uplayer, uint32 reason, uint32 zone, uint32* list) {
+	int32 count = get_tofield_count(playerid, location, uplayer, zone, list);
+	int32 limit;
+	if(location == LOCATION_MZONE)
+		limit = get_mzone_limit(playerid, uplayer, LOCATION_REASON_TOFIELD);
+	else
+		limit = get_szone_limit(playerid, uplayer, LOCATION_REASON_TOFIELD);
+	if(count > limit)
+		count = limit;
+	return count;
+}
+int32 field::get_tofield_count(uint8 playerid, uint8 location, uint8 uplayer, uint32 zone, uint32* list) {
 	if (location != LOCATION_MZONE && location != LOCATION_SZONE)
 		return 0;
 	uint32 flag = player[playerid].disabled_location | player[playerid].used_location;
-	uint32 used_flag = player[playerid].used_location;
-	effect_set eset;
-	if (location == LOCATION_MZONE) {
-		flag = (flag & 0x1f);
-		used_flag = (used_flag & 0x1f);
-		if(uplayer < 2)
-			filter_player_effect(playerid, EFFECT_MAX_MZONE, &eset);
-	} else {
-		flag = (flag & 0x1f00) >> 8;
-		used_flag = (used_flag & 0x1f00) >> 8;
-		if(uplayer < 2)
-			filter_player_effect(playerid, EFFECT_MAX_SZONE, &eset);
-	}
+	if (location == LOCATION_MZONE)
+		flag = (flag | ~zone) & 0x1f;
+	else
+		flag = (flag >> 8) & 0x1f;
+	int32 count = 5 - field_used_count[flag];
+	if(location == LOCATION_MZONE)
+		flag |= (1u << 5) | (1u << 6);
 	if(list)
 		*list = flag;
-	if(eset.size()) {
-		int32 max = 5;
-		for (int32 i = 0; i < eset.size(); ++i) {
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(reason, PARAM_TYPE_INT);
-			int32 v = eset[i]->get_value(3);
-			if (max > v)
-				max = v;
+	return count;
+}
+int32 field::get_useable_count_fromex(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone, uint32* list) {
+	int32 count = get_spsummonable_count_fromex(pcard, playerid, uplayer, zone, list);
+	int32 limit = get_mzone_limit(playerid, uplayer, LOCATION_REASON_TOFIELD);
+	if(count > limit)
+		count = limit;
+	return count;
+}
+int32 field::get_spsummonable_count_fromex(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone, uint32* list) {
+	uint32 flag = player[playerid].disabled_location | player[playerid].used_location;
+	uint32 linked_zone = get_linked_zone(playerid);
+	flag = (flag | ~zone | ~linked_zone) & 0x1f;
+	int32 count = 6 - field_used_count[flag];
+	if(player[playerid].list_mzone[5] && is_location_useable(playerid, LOCATION_MZONE, 6)
+		&& (zone & (1u << 6)) && pcard && check_extra_link(playerid, pcard, 6)) {
+		flag |= 1u << 5;
+	} else if(player[playerid].list_mzone[6] && is_location_useable(playerid, LOCATION_MZONE, 5)
+		&& (zone & (1u << 5)) && pcard && check_extra_link(playerid, pcard, 5)) {
+		flag |= 1u << 6;
+	} else if(player[playerid].list_mzone[5] || player[playerid].list_mzone[6] || !(zone & ((1u << 5) | (1u << 6)))) {
+		flag |= (1u << 5) | (1u << 6);
+		count--;
+	} else if(player[1 - playerid].list_mzone[5] || !is_location_useable(playerid, LOCATION_MZONE, 6) || !(zone & (1u << 6)))
+		flag |= 1u << 6;
+	else if(player[1 - playerid].list_mzone[6] || !is_location_useable(playerid, LOCATION_MZONE, 5) || !(zone & (1u << 5)))
+		flag |= 1u << 5;
+	if(list)
+		*list = flag;
+	return count;
+}
+int32 field::get_mzone_limit(uint8 playerid, uint8 uplayer, uint32 reason) {
+	uint32 used_flag = player[playerid].used_location;
+	used_flag = used_flag & 0x1f;
+	int32 max = 5;
+	int32 used_count = field_used_count[used_flag];
+	if(core.duel_rule >= 4) {
+		max = 7;
+		if(player[playerid].list_mzone[5])
+			used_count++;
+		if(player[playerid].list_mzone[6])
+			used_count++;
+	}
+	effect_set eset;
+	if(uplayer < 2)
+		filter_player_effect(playerid, EFFECT_MAX_MZONE, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
+		pduel->lua->add_param(reason, PARAM_TYPE_INT);
+		int32 v = eset[i]->get_value(3);
+		if(max > v)
+			max = v;
+	}
+	int32 limit = max - used_count;
+	return limit;
+}
+int32 field::get_szone_limit(uint8 playerid, uint8 uplayer, uint32 reason) {
+	uint32 used_flag = player[playerid].used_location;
+	used_flag = (used_flag >> 8) & 0x1f;
+	effect_set eset;
+	if(uplayer < 2)
+		filter_player_effect(playerid, EFFECT_MAX_SZONE, &eset);
+	int32 max = 5;
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
+		pduel->lua->add_param(reason, PARAM_TYPE_INT);
+		int32 v = eset[i]->get_value(3);
+		if(max > v)
+			max = v;
+	}
+	int32 limit = max - field_used_count[used_flag];
+	return limit;
+}
+uint32 field::get_linked_zone(int32 playerid) {
+	uint32 zones = 0;
+	for(uint32 i = 1; i < 5; ++i) {
+		card* pcard = player[playerid].list_mzone[i];
+		if(pcard && pcard->is_link_marker(LINK_MARKER_LEFT))
+			zones |= 1u << (i - 1);
+	}
+	for(uint32 i = 0; i < 4; ++i) {
+		card* pcard = player[playerid].list_mzone[i];
+		if(pcard && pcard->is_link_marker(LINK_MARKER_RIGHT))
+			zones |= 1u << (i + 1);
+	}
+	if((player[playerid].list_mzone[0] && player[playerid].list_mzone[0]->is_link_marker(LINK_MARKER_TOP_RIGHT))
+		|| (player[playerid].list_mzone[1] && player[playerid].list_mzone[1]->is_link_marker(LINK_MARKER_TOP))
+		|| (player[playerid].list_mzone[2] && player[playerid].list_mzone[2]->is_link_marker(LINK_MARKER_TOP_LEFT)))
+		zones |= 1u << 5;
+	if((player[playerid].list_mzone[2] && player[playerid].list_mzone[2]->is_link_marker(LINK_MARKER_TOP_RIGHT))
+		|| (player[playerid].list_mzone[3] && player[playerid].list_mzone[3]->is_link_marker(LINK_MARKER_TOP))
+		|| (player[playerid].list_mzone[4] && player[playerid].list_mzone[4]->is_link_marker(LINK_MARKER_TOP_LEFT)))
+		zones |= 1u << 6;
+	for(uint32 i = 0; i < 2; ++i) {
+		card* pcard = player[playerid].list_mzone[i + 5];
+		if(pcard) {
+			if(pcard->is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+				zones |= 1u << (i * 2);
+			if(pcard->is_link_marker(LINK_MARKER_BOTTOM))
+				zones |= 1u << (i * 2 + 1);
+			if(pcard->is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+				zones |= 1u << (i * 2 + 2);
 		}
-		int32 block = 5 - field_used_count[flag];
-		int32 limit = max - field_used_count[used_flag];
-		return block < limit ? block : limit;
-	} else {
-		return 5 - field_used_count[flag];
+	}
+	for(uint32 i = 0; i < 2; ++i) {
+		card* pcard = player[1 - playerid].list_mzone[i + 5];
+		if(pcard) {
+			if(pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
+				zones |= 1u << (4 - i * 2);
+			if(pcard->is_link_marker(LINK_MARKER_TOP))
+				zones |= 1u << (3 - i * 2);
+			if(pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
+				zones |= 1u << (2 - i * 2);
+		}
+	}
+	return zones;
+}
+int32 field::check_extra_link(int32 playerid) {
+	if(!player[playerid].list_mzone[5] || !player[playerid].list_mzone[6])
+		return FALSE;
+	card* pcard = player[playerid].list_mzone[5];
+	uint32 checked = 1u << 5;
+	uint32 linked_zone = pcard->get_mutual_linked_zone();
+	while(true) {
+		if((linked_zone >> 6) & 1)
+			return TRUE;
+		int32 checking = (int32)(linked_zone & ~checked);
+		if(!checking)
+			return FALSE;
+		int32 rightmost = checking & (-checking);
+		checked |= (uint32)rightmost;
+		if(rightmost < 0x10000) {
+			for(int32 i = 0; i < 7; ++i) {
+				if(rightmost & 1) {
+					pcard = player[playerid].list_mzone[i];
+					linked_zone |= pcard->get_mutual_linked_zone();
+					break;
+				}
+				rightmost >>= 1;
+			}
+		} else {
+			rightmost >>= 16;
+			for(int32 i = 0; i < 7; ++i) {
+				if(rightmost & 1) {
+					pcard = player[1 - playerid].list_mzone[i];
+					uint32 zone = pcard->get_mutual_linked_zone();
+					linked_zone |= (zone << 16) | (zone >> 16);
+					break;
+				}
+				rightmost >>= 1;
+			}
+		}
+	}
+	return FALSE;
+}
+int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
+	if(player[playerid].list_mzone[sequence])
+		return FALSE;
+	uint8 cur_controler = pcard->current.controler;
+	uint8 cur_location = pcard->current.location;
+	uint8 cur_sequence = pcard->current.sequence;
+	player[playerid].list_mzone[sequence] = pcard;
+	pcard->current.controler = playerid;
+	pcard->current.location = LOCATION_MZONE;
+	pcard->current.sequence = sequence;
+	int32 ret = check_extra_link(playerid);
+	player[playerid].list_mzone[sequence] = 0;
+	pcard->current.controler = cur_controler;
+	pcard->current.location = cur_location;
+	pcard->current.sequence = cur_sequence;
+	return ret;
+}
+void field::get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid) {
+	uint32 icheck = 0x1;
+	for(auto it = player[playerid].list_mzone.begin(); it != player[playerid].list_mzone.end(); ++it) {
+		if(zone & icheck) {
+			card* pcard = *it;
+			if(pcard)
+				cset->insert(pcard);
+		}
+		icheck <<= 1;
 	}
 }
 void field::shuffle(uint8 playerid, uint8 location) {
@@ -626,7 +862,7 @@ void field::swap_deck_and_grave(uint8 playerid) {
 	player[playerid].list_grave.swap(player[playerid].list_main);
 	card_vector ex;
 	for(auto clit = player[playerid].list_main.begin(); clit != player[playerid].list_main.end(); ) {
-		if((*clit)->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ)) {
+		if((*clit)->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) {
 			ex.push_back(*clit);
 			clit = player[playerid].list_main.erase(clit);
 		} else
@@ -670,7 +906,7 @@ void field::reverse_deck(uint8 playerid) {
 	int32 count = player[playerid].list_main.size();
 	if(count == 0)
 		return;
-	for(int i = 0; i < count / 2; ++i) {
+	for(int32 i = 0; i < count / 2; ++i) {
 		card* tmp = player[playerid].list_main[i];
 		tmp->current.sequence = count - 1 - i;
 		player[playerid].list_main[count - 1 - i]->current.sequence = i;
@@ -920,15 +1156,15 @@ void field::filter_affected_cards(effect* peffect, card_set* cset) {
 	uint16 range = peffect->s_range;
 	for(uint32 p = 0; p < 2; ++p) {
 		if (range & LOCATION_MZONE) {
-			for (int i = 0; i < 5; ++i) {
-				card* pcard = player[self].list_mzone[i];
+			for (auto it = player[self].list_mzone.begin(); it != player[self].list_mzone.end(); ++it) {
+				card* pcard = *it;
 				if (pcard && peffect->is_target(pcard))
 					cset->insert(pcard);
 			}
 		}
 		if (range & LOCATION_SZONE) {
-			for (int i = 0; i < 8; ++i) {
-				card* pcard = player[self].list_szone[i];
+			for (auto it = player[self].list_szone.begin(); it != player[self].list_szone.end(); ++it) {
+				card* pcard = *it;
 				if (pcard && peffect->is_target(pcard))
 					cset->insert(pcard);
 			}
@@ -982,7 +1218,7 @@ void field::filter_player_effect(uint8 playerid, uint32 code, effect_set* eset, 
 	if(sort)
 		eset->sort();
 }
-int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, uint32 location2, group* pgroup, card* pexception, uint32 extraargs, card** pret, int32 fcount, int32 is_target) {
+int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, uint32 location2, group* pgroup, card* pexception, group* pexgroup, uint32 extraargs, card** pret, int32 fcount, int32 is_target) {
 	if(self != 0 && self != 1)
 		return FALSE;
 	card* pcard;
@@ -990,10 +1226,11 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 	uint32 location = location1;
 	for(uint32 p = 0; p < 2; ++p) {
 		if(location & LOCATION_MZONE) {
-			for(uint32 i = 0; i < 5; ++i) {
-				pcard = player[self].list_mzone[i];
+			for(auto cit = player[self].list_mzone.begin(); cit != player[self].list_mzone.end(); ++cit) {
+				pcard = *cit;
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP)
-						&& pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs) 
+						&& pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
+						&& pduel->lua->check_matching(pcard, findex, extraargs)
 						&& (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = pcard;
@@ -1009,9 +1246,49 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			}
 		}
 		if(location & LOCATION_SZONE) {
-			for(uint32 i = 0; i < 8; ++i) {
-				pcard = player[self].list_szone[i];
-				if(pcard && !pcard->is_status(STATUS_ACTIVATE_DISABLED) && pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs)
+			for(auto cit = player[self].list_szone.begin(); cit != player[self].list_szone.end(); ++cit) {
+				pcard = *cit;
+				if(pcard && !pcard->is_status(STATUS_ACTIVATE_DISABLED)
+				        && pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
+				        && pduel->lua->check_matching(pcard, findex, extraargs)
+				        && (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
+					if(pret) {
+						*pret = pcard;
+						return TRUE;
+					}
+					count ++;
+					if(fcount && count >= fcount)
+						return TRUE;
+					if(pgroup) {
+						pgroup->container.insert(pcard);
+					}
+				}
+			}
+		}
+		if(location & LOCATION_FZONE) {
+			pcard = player[self].list_szone[5];
+			if(pcard && !pcard->is_status(STATUS_ACTIVATE_DISABLED)
+			        && pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
+			        && pduel->lua->check_matching(pcard, findex, extraargs)
+			        && (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
+				if(pret) {
+					*pret = pcard;
+					return TRUE;
+				}
+				count ++;
+				if(fcount && count >= fcount)
+					return TRUE;
+				if(pgroup) {
+					pgroup->container.insert(pcard);
+				}
+			}
+		}
+		if(location & LOCATION_PZONE) {
+			for(int32 i = 0; i < 2; ++i) {
+				pcard = player[self].list_szone[core.duel_rule >= 4 ? i * 4 : i + 6];
+				if(pcard && pcard->current.pzone && !pcard->is_status(STATUS_ACTIVATE_DISABLED)
+				        && pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
+				        && pduel->lua->check_matching(pcard, findex, extraargs)
 				        && (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = pcard;
@@ -1028,7 +1305,8 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		}
 		if(location & LOCATION_DECK) {
 			for(auto cit = player[self].list_main.rbegin(); cit != player[self].list_main.rend(); ++cit) {
-				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
+				if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
+				        && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = *cit;
@@ -1045,7 +1323,8 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		}
 		if(location & LOCATION_EXTRA) {
 			for(auto cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit) {
-				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
+				if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
+				        && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = *cit;
@@ -1062,7 +1341,8 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		}
 		if(location & LOCATION_HAND) {
 			for(auto cit = player[self].list_hand.begin(); cit != player[self].list_hand.end(); ++cit) {
-				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
+				if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
+				        && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = *cit;
@@ -1079,7 +1359,8 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		}
 		if(location & LOCATION_GRAVE) {
 			for(auto cit = player[self].list_grave.rbegin(); cit != player[self].list_grave.rend(); ++cit) {
-				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
+				if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
+				        && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = *cit;
@@ -1096,7 +1377,8 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		}
 		if(location & LOCATION_REMOVED) {
 			for(auto cit = player[self].list_remove.rbegin(); cit != player[self].list_remove.rend(); ++cit) {
-				if(*cit != pexception && pduel->lua->check_matching(*cit, findex, extraargs)
+				if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
+				        && pduel->lua->check_matching(*cit, findex, extraargs)
 				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
 					if(pret) {
 						*pret = *cit;
@@ -1125,8 +1407,8 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 	card* pcard;
 	for(uint32 p = 0; p < 2; ++p) {
 		if(location & LOCATION_MZONE) {
-			for(int i = 0; i < 5; ++i) {
-				pcard = player[self].list_mzone[i];
+			for(auto cit = player[self].list_mzone.begin(); cit != player[self].list_mzone.end(); ++cit) {
+				pcard = *cit;
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)) {
 					if(pgroup)
 						pgroup->container.insert(pcard);
@@ -1135,9 +1417,27 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 			}
 		}
 		if(location & LOCATION_SZONE) {
-			for(int i = 0; i < 8; ++i) {
-				pcard = player[self].list_szone[i];
+			for(auto cit = player[self].list_szone.begin(); cit != player[self].list_szone.end(); ++cit) {
+				pcard = *cit;
 				if(pcard) {
+					if(pgroup)
+						pgroup->container.insert(pcard);
+					count++;
+				}
+			}
+		}
+		if(location & LOCATION_FZONE) {
+			pcard = player[self].list_szone[5];
+			if(pcard) {
+				if(pgroup)
+					pgroup->container.insert(pcard);
+				count++;
+			}
+		}
+		if(location & LOCATION_PZONE) {
+			for(int32 i = 0; i < 2; ++i) {
+				pcard = player[self].list_szone[core.duel_rule >= 4 ? i * 4 : i + 6];
+				if(pcard && pcard->current.pzone) {
 					if(pgroup)
 						pgroup->container.insert(pcard);
 					count++;
@@ -1183,12 +1483,11 @@ effect* field::is_player_affected_by_effect(uint8 playerid, uint32 code) {
 	}
 	return 0;
 }
-int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exp) {
-	card* pcard;
+int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg) {
 	uint32 rcount = 0;
-	for(uint32 i = 0; i < 5; ++i) {
-		pcard = player[playerid].list_mzone[i];
-		if(pcard && pcard != exp && pcard->is_releasable_by_nonsummon(playerid)
+	for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
+		if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && pcard->is_releasable_by_nonsummon(playerid)
 		        && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 			if(release_list)
 				release_list->insert(pcard);
@@ -1197,9 +1496,9 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 		}
 	}
 	if(use_hand) {
-		for(uint32 i = 0; i < player[playerid].list_hand.size(); ++i) {
-			pcard = player[playerid].list_hand[i];
-			if(pcard && pcard != exp && pcard->is_releasable_by_nonsummon(playerid)
+		for(auto cit = player[playerid].list_hand.begin(); cit != player[playerid].list_hand.end(); ++cit) {
+			card* pcard = *cit;
+			if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && pcard->is_releasable_by_nonsummon(playerid)
 			        && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 				if(release_list)
 					release_list->insert(pcard);
@@ -1208,9 +1507,9 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 			}
 		}
 	}
-	for(uint32 i = 0; i < 5; ++i) {
-		pcard = player[1 - playerid].list_mzone[i];
-		if(pcard && pcard != exp && (pcard->is_position(POS_FACEUP) || !use_con) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
+	for(auto cit = player[1 - playerid].list_mzone.begin(); cit != player[1 - playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
+		if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && (pcard->is_position(POS_FACEUP) || !use_con) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
 		        && pcard->is_releasable_by_nonsummon(playerid) && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 			if(ex_list)
 				ex_list->insert(pcard);
@@ -1220,11 +1519,10 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 	}
 	return rcount;
 }
-int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exp) {
-	card* pcard;
-	for(uint32 i = 0; i < 5; ++i) {
-		pcard = player[playerid].list_mzone[i];
-		if(pcard && pcard != exp && pcard->is_releasable_by_nonsummon(playerid)
+int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg) {
+	for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
+		if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && pcard->is_releasable_by_nonsummon(playerid)
 		        && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 			count--;
 			if(count == 0)
@@ -1232,9 +1530,9 @@ int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int3
 		}
 	}
 	if(use_hand) {
-		for(uint32 i = 0; i < player[playerid].list_hand.size(); ++i) {
-			pcard = player[playerid].list_hand[i];
-			if(pcard && pcard != exp && pcard->is_releasable_by_nonsummon(playerid)
+		for(auto cit = player[playerid].list_hand.begin(); cit != player[playerid].list_hand.end(); ++cit) {
+			card* pcard = *cit;
+			if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && pcard->is_releasable_by_nonsummon(playerid)
 			        && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 				count--;
 				if(count == 0)
@@ -1242,9 +1540,9 @@ int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int3
 			}
 		}
 	}
-	for(uint32 i = 0; i < 5; ++i) {
-		pcard = player[1 - playerid].list_mzone[i];
-		if(pcard && pcard != exp && (!use_con || pcard->is_position(POS_FACEUP)) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
+	for(auto cit = player[1 - playerid].list_mzone.begin(); cit != player[1 - playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
+		if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && (!use_con || pcard->is_position(POS_FACEUP)) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
 		        && pcard->is_releasable_by_nonsummon(playerid) && (!use_con || pduel->lua->check_matching(pcard, fun, exarg))) {
 			count--;
 			if(count == 0)
@@ -1257,8 +1555,8 @@ int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int3
 int32 field::get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_sum, group* mg, uint32 ex) {
 	uint8 p = target->current.controler;
 	uint32 rcount = 0;
-	for(int i = 0; i < 5; ++i) {
-		card* pcard = player[p].list_mzone[i];
+	for(auto cit = player[p].list_mzone.begin(); cit != player[p].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
 		if(pcard && pcard->is_releasable_by_summon(p, target)) {
 			if(mg && !mg->has_card(pcard))
 				continue;
@@ -1272,8 +1570,8 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 		}
 	}
 	uint32 ex_sum_max = 0;
-	for(int i = 0; i < 5; ++i) {
-		card* pcard = player[1 - p].list_mzone[i];
+	for(auto cit = player[1 - p].list_mzone.begin(); cit != player[1 - p].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
 		if(!pcard || !pcard->is_releasable_by_summon(p, target))
 			continue;
 		if(mg && !mg->has_card(pcard))
@@ -1322,14 +1620,14 @@ int32 field::get_draw_count(uint8 playerid) {
 	return count;
 }
 void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* material) {
-	for(int i = 0; i < 5; ++i) {
-		card* pcard = player[playerid].list_mzone[i];
+	for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
 		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(peffect)
 		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
 			material->insert(pcard);
 	}
-	for(int i = 0; i < 5; ++i) {
-		card* pcard = player[1 - playerid].list_mzone[i];
+	for(auto cit = player[1 - playerid].list_mzone.begin(); cit != player[1 - playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
 		if(pcard && pcard->get_level() && pcard->is_affect_by_effect(peffect)
 		        && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
 		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
@@ -1343,13 +1641,13 @@ void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* mater
 			material->insert(*cit);
 }
 void field::get_fusion_material(uint8 playerid, card_set* material) {
-	for(int i = 0; i < 5; ++i) {
-		card* pcard = player[playerid].list_mzone[i];
+	for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
+		card* pcard = *cit;
 		if(pcard)
 			material->insert(pcard);
 	}
-	for(int i = 0; i < 8; ++i) {
-		card* pcard = player[playerid].list_szone[i];
+	for(auto cit = player[playerid].list_szone.begin(); cit != player[playerid].list_szone.end(); ++cit) {
+		card* pcard = *cit;
 		if(pcard && pcard->is_affected_by_effect(EFFECT_EXTRA_FUSION_MATERIAL))
 			material->insert(pcard);
 	}
@@ -1380,14 +1678,14 @@ void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, g
 		}
 	} else {
 		int32 playerid = scard->current.controler;
-		for(int i = 0; i < 5; ++i) {
-			card* pcard = player[playerid].list_mzone[i];
+		for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
+			card* pcard = *cit;
 			if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_xyz_material(scard) && (xyz_level = pcard->check_xyz_level(scard, lv))
 					&& (findex == 0 || pduel->lua->check_matching(pcard, findex, 0)))
 				core.xmaterial_lst.insert(std::make_pair((xyz_level >> 12) & 0xf, pcard));
 		}
-		for(int i = 0; i < 5; ++i) {
-			card* pcard = player[1 - playerid].list_mzone[i];
+		for(auto cit = player[1 - playerid].list_mzone.begin(); cit != player[1 - playerid].list_mzone.end(); ++cit) {
+			card* pcard = *cit;
 			if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_xyz_material(scard) && (xyz_level = pcard->check_xyz_level(scard, lv))
 			        && pcard->is_affected_by_effect(EFFECT_XYZ_MATERIAL) && (findex == 0 || pduel->lua->check_matching(pcard, findex, 0)))
 				core.xmaterial_lst.insert(std::make_pair((xyz_level >> 12) & 0xf, pcard));
@@ -1402,11 +1700,10 @@ void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, g
 }
 void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset) {
 	uint8 c = s;
-	card* pcard;
-	for(int p = 0; p < 2; ++p) {
+	for(int32 p = 0; p < 2; ++p) {
 		if(c) {
-			for(int i = 0; i < 5; ++i) {
-				pcard = player[self].list_mzone[i];
+			for(auto cit = player[self].list_mzone.begin(); cit != player[self].list_mzone.end(); ++cit) {
+				card* pcard = *cit;
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP) && pcard->xyz_materials.size())
 					pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
 			}
@@ -1418,10 +1715,10 @@ void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset) {
 int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o) {
 	uint8 c = s;
 	uint32 count = 0;
-	for(int p = 0; p < 2; ++p) {
+	for(int32 p = 0; p < 2; ++p) {
 		if(c) {
-			for(int i = 0; i < 5; ++i) {
-				card* pcard = player[self].list_mzone[i];
+			for(auto cit = player[self].list_mzone.begin(); cit != player[self].list_mzone.end(); ++cit) {
+				card* pcard = *cit;
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 					count += pcard->xyz_materials.size();
 			}
@@ -1477,30 +1774,69 @@ void field::adjust_disable_check_list() {
 		}
 	} while(effects.disable_check_list.size());
 }
-// adjust check_unique_onfield(), EFFECT_SELF_DESTROY, EFFECT_SELF_TOGRAVE
+// adjust SetUniqueOnField(), EFFECT_SELF_DESTROY, EFFECT_SELF_TOGRAVE
 void field::adjust_self_destroy_set() {
-	if(core.selfdes_disabled || !core.self_destroy_set.empty() || !core.self_tograve_set.empty())
+	if(core.selfdes_disabled || !core.unique_destroy_set.empty() || !core.self_destroy_set.empty() || !core.self_tograve_set.empty())
 		return;
+	core.unique_destroy_set.clear();
 	card_set cset;
+	int32 p = infos.turn_player;
+	for(int32 p1 = 0; p1 < 2; ++p1) {
+		for(auto iter = core.unique_cards[p].begin(); iter != core.unique_cards[p].end(); ++iter) {
+			card* ucard = *iter;
+			if(ucard->is_position(POS_FACEUP) && ucard->get_status(STATUS_EFFECT_ENABLED)
+					&& !ucard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN)) {
+				ucard->get_unique_target(&cset, p);
+				if(cset.size() == 0)
+					ucard->unique_fieldid = 0;
+				else if(cset.size() == 1) {
+					auto cit = cset.begin();
+					ucard->unique_fieldid = (*cit)->fieldid;
+				} else {
+					card* mcard = 0;
+					for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+						card* pcard = *cit;
+						if(ucard->unique_fieldid == pcard->fieldid) {
+							mcard = pcard;
+							break;
+						}
+						if(!mcard || pcard->fieldid < mcard->fieldid)
+							mcard = pcard;
+					}
+					ucard->unique_fieldid = mcard->fieldid;
+					cset.erase(mcard);
+					for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+						card* pcard = *cit;
+						core.unique_destroy_set.insert(pcard);
+						pcard->temp.reason_effect = pcard->current.reason_effect;
+						pcard->temp.reason_player = pcard->current.reason_player;
+						pcard->current.reason_effect = ucard->unique_effect;
+						pcard->current.reason_player = ucard->current.controler;
+					}
+				}
+			}
+		}
+		p = 1 - p;
+	}
+	cset.clear();
 	for(uint8 p = 0; p < 2; ++p) {
-		for(uint8 i = 0; i < 5; ++i) {
-			card* pcard = player[p].list_mzone[i];
-			if(pcard && pcard->is_position(POS_FACEUP))
+		for(auto cit = player[p].list_mzone.begin(); cit != player[p].list_mzone.end(); ++cit) {
+			card* pcard = *cit;
+			if(pcard && pcard->is_position(POS_FACEUP) && !pcard->is_status(STATUS_BATTLE_DESTROYED))
 				cset.insert(pcard);
 		}
-		for(uint8 i = 0; i < 8; ++i) {
-			card* pcard = player[p].list_szone[i];
+		for(auto cit = player[p].list_szone.begin(); cit != player[p].list_szone.end(); ++cit) {
+			card* pcard = *cit;
 			if(pcard && pcard->is_position(POS_FACEUP))
 				cset.insert(pcard);
 		}
 	}
 	core.self_destroy_set.clear();
 	core.self_tograve_set.clear();
-	effect* peffect;
 	for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
 		card* pcard = *cit;
-		if((peffect = check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
-		        || (peffect = pcard->is_affected_by_effect(EFFECT_SELF_DESTROY)) && !pcard->is_status(STATUS_BATTLE_DESTROYED)) {
+		effect* peffect = pcard->is_affected_by_effect(EFFECT_SELF_DESTROY);
+		if(peffect) {
 			core.self_destroy_set.insert(pcard);
 			pcard->temp.reason_effect = pcard->current.reason_effect;
 			pcard->temp.reason_player = pcard->current.reason_player;
@@ -1511,7 +1847,8 @@ void field::adjust_self_destroy_set() {
 	if(core.global_flag & GLOBALFLAG_SELF_TOGRAVE) {
 		for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
 			card* pcard = *cit;
-			if(peffect = pcard->is_affected_by_effect(EFFECT_SELF_TOGRAVE)) {
+			effect* peffect = pcard->is_affected_by_effect(EFFECT_SELF_TOGRAVE);
+			if(peffect) {
 				core.self_tograve_set.insert(pcard);
 				pcard->temp.reason_effect = pcard->current.reason_effect;
 				pcard->temp.reason_player = pcard->current.reason_player;
@@ -1520,7 +1857,7 @@ void field::adjust_self_destroy_set() {
 			}
 		}
 	}
-	if(!core.self_destroy_set.empty() || !core.self_tograve_set.empty())
+	if(!core.unique_destroy_set.empty() || !core.self_destroy_set.empty() || !core.self_tograve_set.empty())
 		add_process(PROCESSOR_SELF_DESTROY, 0, 0, 0, 0, 0);
 }
 void field::add_unique_card(card* pcard) {
@@ -1529,7 +1866,7 @@ void field::add_unique_card(card* pcard) {
 		core.unique_cards[con].insert(pcard);
 	if(pcard->unique_pos[1])
 		core.unique_cards[1 - con].insert(pcard);
-	pcard->unique_uid = infos.copy_id++;
+	pcard->unique_fieldid = 0;
 }
 
 void field::remove_unique_card(card* pcard) {
@@ -1543,16 +1880,21 @@ void field::remove_unique_card(card* pcard) {
 }
 // return: pcard->unique_effect or 0
 effect* field::check_unique_onfield(card* pcard, uint8 controler, uint8 location) {
-	if(!pcard->unique_code)
-		return 0;
 	for(auto iter = core.unique_cards[controler].begin(); iter != core.unique_cards[controler].end(); ++iter) {
 		card* ucard = *iter;
 		if((ucard != pcard) && ucard->is_position(POS_FACEUP) && ucard->get_status(STATUS_EFFECT_ENABLED)
-			&& (ucard->unique_code == pcard->unique_code) && (ucard->unique_location & location)
-			&& (!(pcard->current.location & ucard->unique_location) || pcard->is_position(POS_FACEDOWN)
-				|| ((!pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN) || !ucard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN)) && ucard->unique_uid < pcard->unique_uid)))
-			return pcard->unique_effect;
+			&& !ucard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN)
+			&& ucard->unique_fieldid && ucard->check_unique_code(pcard) && (ucard->unique_location & location))
+			return ucard->unique_effect;
 	}
+	if(!pcard->unique_code || !(pcard->unique_location & location) || pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN))
+		return 0;
+	card_set cset;
+	pcard->get_unique_target(&cset, controler);
+	if(pcard->check_unique_code(pcard))
+		cset.insert(pcard);
+	if(cset.size() >= 2)
+		return pcard->unique_effect;
 	return 0;
 }
 
@@ -1698,15 +2040,17 @@ void field::restore_lp_cost() {
 uint32 field::get_field_counter(uint8 self, uint8 s, uint8 o, uint16 countertype) {
 	uint8 c = s;
 	uint32 count = 0;
-	for(int p = 0; p < 2; ++p) {
+	for(int32 p = 0; p < 2; ++p) {
 		if(c) {
-			for(int i = 0; i < 5; ++i) {
-				if(player[self].list_mzone[i])
-					count += player[self].list_mzone[i]->get_counter(countertype);
+			for(auto cit = player[self].list_mzone.begin(); cit != player[self].list_mzone.end(); ++cit) {
+				card* pcard = *cit;
+				if(pcard)
+					count += pcard->get_counter(countertype);
 			}
-			for(int i = 0; i < 8; ++i) {
-				if(player[self].list_szone[i])
-					count += player[self].list_szone[i]->get_counter(countertype);
+			for(auto cit = player[self].list_szone.begin(); cit != player[self].list_szone.end(); ++cit) {
+				card* pcard = *cit;
+				if(pcard)
+					count += pcard->get_counter(countertype);
 			}
 		}
 		self = 1 - self;
@@ -1733,8 +2077,8 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 	effect_set eset;
 	// find the universal set pv
 	pcard->direct_attackable = 0;
-	for(uint32 i = 0; i < 5; ++i) {
-		card* atarget = player[1 - p].list_mzone[i];
+	for(auto cit = player[1 - p].list_mzone.begin(); cit != player[1 - p].list_mzone.end(); ++cit) {
+		card* atarget = *cit;
 		if(atarget) {
 			if(atarget->is_affected_by_effect(EFFECT_MUST_BE_ATTACKED, pcard))
 				must_be_attack.push_back(atarget);
@@ -1907,8 +2251,8 @@ bool field::confirm_attack_target() {
 	effect_set eset;
 	
 	// find the universal set
-	for(uint32 i = 0; i < 5; ++i) {
-		card* atarget = player[1 - p].list_mzone[i];
+	for(auto cit = player[1 - p].list_mzone.begin(); cit != player[1 - p].list_mzone.end(); ++cit) {
+		card* atarget = *cit;
 		if(atarget) {
 			if(atarget->is_affected_by_effect(EFFECT_MUST_BE_ATTACKED, pcard))
 				must_be_attack.push_back(atarget);
@@ -2034,8 +2378,8 @@ int32 field::check_synchro_material(card* pcard, int32 findex1, int32 findex2, i
 		}
 	} else {
 		for(uint8 p = 0; p < 2; ++p) {
-			for(int32 i = 0; i < 5; ++i) {
-				tuner = player[p].list_mzone[i];
+			for(auto cit = player[p].list_mzone.begin(); cit != player[p].list_mzone.end(); ++cit) {
+				tuner = *cit;
 				if(check_tuner_material(pcard, tuner, findex1, findex2, min, max, smat, mg))
 					return TRUE;
 			}
@@ -2044,146 +2388,231 @@ int32 field::check_synchro_material(card* pcard, int32 findex1, int32 findex2, i
 	return FALSE;
 }
 int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32 findex2, int32 min, int32 max, card* smat, group* mg) {
-	if(tuner && tuner->is_position(POS_FACEUP) && (tuner->get_type() & TYPE_TUNER) && tuner->is_can_be_synchro_material(pcard)) {
-		effect* pcheck = tuner->is_affected_by_effect(EFFECT_SYNCHRO_CHECK);
-		if(pcheck)
-			pcheck->get_value(tuner);
-		if((mg && !mg->has_card(tuner)) || !pduel->lua->check_matching(tuner, findex1, 0)) {
+	if(!tuner || !tuner->is_position(POS_FACEUP) || !(tuner->get_type() & TYPE_TUNER) || !tuner->is_can_be_synchro_material(pcard))
+		return FALSE;
+	effect* pcheck = tuner->is_affected_by_effect(EFFECT_SYNCHRO_CHECK);
+	if(pcheck)
+		pcheck->get_value(tuner);
+	if((mg && !mg->has_card(tuner)) || !pduel->lua->check_matching(tuner, findex1, 0)) {
+		pduel->restore_assumes();
+		return FALSE;
+	}
+	effect* pcustom = tuner->is_affected_by_effect(EFFECT_SYNCHRO_MATERIAL_CUSTOM, pcard);
+	if(pcustom) {
+		if(!pcustom->target) {
 			pduel->restore_assumes();
 			return FALSE;
 		}
-		effect* pcustom = tuner->is_affected_by_effect(EFFECT_SYNCHRO_MATERIAL_CUSTOM, pcard);
-		if(pcustom) {
-			if(!pcustom->target) {
+		pduel->lua->add_param(pcustom, PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(findex2, PARAM_TYPE_INDEX);
+		pduel->lua->add_param(min, PARAM_TYPE_INT);
+		pduel->lua->add_param(max, PARAM_TYPE_INT);
+		if(pduel->lua->check_condition(pcustom->target, 5)) {
+			pduel->restore_assumes();
+			return TRUE;
+		}
+		pduel->restore_assumes();
+		return FALSE;
+	}
+	int32 playerid = pcard->current.controler;
+	int32 ct = get_spsummonable_count(pcard, playerid, playerid);
+	card_set linked_cards;
+	if(ct <= 0) {
+		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		get_cards_in_zone(&linked_cards, linked_zone, playerid);
+		if(linked_cards.find(tuner) != linked_cards.end())
+			ct++;
+	}
+	int32 location = LOCATION_MZONE;
+	effect* ptuner = tuner->is_affected_by_effect(EFFECT_TUNER_MATERIAL_LIMIT);
+	if(ptuner) {
+		if(ptuner->value)
+			location = ptuner->value;
+		if(ptuner->s_range && ptuner->s_range > min)
+			min = ptuner->s_range;
+		if(ptuner->o_range && ptuner->o_range < max)
+			max = ptuner->o_range;
+		if(min > max) {
+			pduel->restore_assumes();
+			return FALSE;
+		}
+	}
+	int32 mzone_limit = get_mzone_limit(playerid, playerid, LOCATION_REASON_TOFIELD);
+	if(mzone_limit < 0) {
+		if(location == LOCATION_HAND) {
+			pduel->restore_assumes();
+			return FALSE;
+		}
+		int32 ft = -mzone_limit;
+		if(ft > min)
+			min = ft;
+		if(min > max) {
+			pduel->restore_assumes();
+			return FALSE;
+		}
+	}
+	int32 lv = pcard->get_level();
+	card_vector nsyn;
+	int32 mcount = 1;
+	nsyn.push_back(tuner);
+	tuner->sum_param = tuner->get_synchro_level(pcard);
+	if(smat) {
+		if(pcheck)
+			pcheck->get_value(smat);
+		if(!smat->is_position(POS_FACEUP) || !smat->is_can_be_synchro_material(pcard, tuner) || !pduel->lua->check_matching(smat, findex2, 0)) {
+			pduel->restore_assumes();
+			return FALSE;
+		}
+		if(ptuner && ptuner->target) {
+			pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);
+			pduel->lua->add_param(smat, PARAM_TYPE_CARD);
+			if(!pduel->lua->get_function_value(ptuner->target, 2)) {
 				pduel->restore_assumes();
 				return FALSE;
 			}
-			pduel->lua->add_param(pcustom, PARAM_TYPE_EFFECT);
-			pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-			pduel->lua->add_param(findex2, PARAM_TYPE_INDEX);
-			pduel->lua->add_param(min, PARAM_TYPE_INT);
-			pduel->lua->add_param(max, PARAM_TYPE_INT);
-			if(pduel->lua->check_condition(pcustom->target, 5)) {
+		}
+		min--;
+		max--;
+		nsyn.push_back(smat);
+		smat->sum_param = smat->get_synchro_level(pcard);
+		mcount++;
+		if(ct <= 0) {
+			if(linked_cards.find(smat) != linked_cards.end())
+				ct++;
+		}
+		if(min == 0) {
+			if(ct > 0 && check_with_sum_limit_m(nsyn, lv, 0, 0, 0, 2)) {
 				pduel->restore_assumes();
 				return TRUE;
 			}
-		} else {
-			int32 lv = pcard->get_level();
-			card_vector nsyn;
-			int32 mcount = 1;
-			nsyn.push_back(tuner);
-			tuner->sum_param = tuner->get_synchro_level(pcard);
-			if(smat) {
-				if(pcheck)
-					pcheck->get_value(smat);
-				if(!smat->is_position(POS_FACEUP) || !smat->is_can_be_synchro_material(pcard, tuner) || !pduel->lua->check_matching(smat, findex2, 0)) {
-					pduel->restore_assumes();
-					return FALSE;
-				}
-				min--;
-				max--;
-				nsyn.push_back(smat);
-				smat->sum_param = smat->get_synchro_level(pcard);
-				mcount++;
-				if(min == 0) {
-					if(check_with_sum_limit_m(nsyn, lv, 0, 0, 0, 2)) {
-						pduel->restore_assumes();
-						return TRUE;
-					}
-					if(max == 0) {
-						pduel->restore_assumes();
-						return FALSE;
-					}
-				}
-			}
-			if(mg) {
-				for(auto cit = mg->container.begin(); cit != mg->container.end(); ++cit) {
-					card* pm = *cit;
-					if(pm != tuner && pm != smat && pm->is_can_be_synchro_material(pcard, tuner)) {
-						if(pcheck)
-							pcheck->get_value(pm);
-						if(pm->current.location == LOCATION_MZONE && !pm->is_position(POS_FACEUP))
-							continue;
-						if(!pduel->lua->check_matching(pm, findex2, 0))
-							continue;
-						nsyn.push_back(pm);
-						pm->sum_param = pm->get_synchro_level(pcard);
-					}
-				}
-			} else {
-				for(uint8 p = 0; p < 2; ++p) {
-					for(int32 i = 0; i < 5; ++i) {
-						card* pm = player[p].list_mzone[i];
-						if(pm && pm != tuner && pm != smat && pm->is_position(POS_FACEUP) && pm->is_can_be_synchro_material(pcard, tuner)) {
-							if(pcheck)
-								pcheck->get_value(pm);
-							if(!pduel->lua->check_matching(pm, findex2, 0))
-								continue;
-							nsyn.push_back(pm);
-							pm->sum_param = pm->get_synchro_level(pcard);
-						}
-					}
-				}
-			}
-			if(!(core.global_flag & GLOBALFLAG_SCRAP_CHIMERA)) {
-				if(check_with_sum_limit_m(nsyn, lv, 0, min, max, mcount)) {
-					pduel->restore_assumes();
-					return TRUE;
-				}
-			} else {
-				effect* pscrap = 0;
-				for(auto cit = nsyn.begin(); cit != nsyn.end(); ++cit) {
-					pscrap = (*cit)->is_affected_by_effect(EFFECT_SCRAP_CHIMERA);
-					if(pscrap)
-						break;
-				}
-				if(pscrap) {
-					card_vector nsyn_filtered;
-					for(auto cit = nsyn.begin(); cit != nsyn.end(); ++cit) {
-						if(!pscrap->get_value(*cit))
-							nsyn_filtered.push_back(*cit);
-					}
-					if(nsyn_filtered.size() == nsyn.size()) {
-						if(check_with_sum_limit_m(nsyn, lv, 0, min, max, mcount)) {
-							pduel->restore_assumes();
-							return TRUE;
-						}
-					} else {
-						bool mfiltered = true;
-						for(int32 i = 0; i < mcount; ++i) {
-							if(pscrap->get_value(nsyn[i]))
-								mfiltered = false;
-						}
-						if(mfiltered && check_with_sum_limit_m(nsyn_filtered, lv, 0, min, max, mcount)) {
-							pduel->restore_assumes();
-							return TRUE;
-						}
-						for(int32 i = 0; i < mcount; ++i) {
-							if(nsyn[i]->is_affected_by_effect(EFFECT_SCRAP_CHIMERA)) {
-								pduel->restore_assumes();
-								return FALSE;
-							}
-						}
-						card_vector nsyn_removed;
-						for(auto cit = nsyn.begin(); cit != nsyn.end(); ++cit) {
-							if(!(*cit)->is_affected_by_effect(EFFECT_SCRAP_CHIMERA))
-								nsyn_removed.push_back(*cit);
-						}
-						if(check_with_sum_limit_m(nsyn_removed, lv, 0, min, max, mcount)) {
-							pduel->restore_assumes();
-							return TRUE;
-						}
-					}
-				} else {
-					if(check_with_sum_limit_m(nsyn, lv, 0, min, max, mcount)) {
-						pduel->restore_assumes();
-						return TRUE;
-					}
-				}
+			if(max == 0) {
+				pduel->restore_assumes();
+				return FALSE;
 			}
 		}
 	}
+	if(mg) {
+		for(auto cit = mg->container.begin(); cit != mg->container.end(); ++cit) {
+			card* pm = *cit;
+			if(pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, tuner))
+				continue;
+			if(ptuner && ptuner->target) {
+				pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);
+				pduel->lua->add_param(pm, PARAM_TYPE_CARD);
+				if(!pduel->lua->get_function_value(ptuner->target, 2))
+					continue;
+			}
+			if(pcheck)
+				pcheck->get_value(pm);
+			if(pm->current.location == LOCATION_MZONE && !pm->is_position(POS_FACEUP))
+				continue;
+			if(!pduel->lua->check_matching(pm, findex2, 0))
+				continue;
+			nsyn.push_back(pm);
+			pm->sum_param = pm->get_synchro_level(pcard);
+		}
+	} else {
+		card_vector cv;
+		if(location & LOCATION_MZONE) {
+			cv.insert(cv.end(), player[0].list_mzone.begin(), player[0].list_mzone.end());
+			cv.insert(cv.end(), player[1].list_mzone.begin(), player[1].list_mzone.end());
+		}
+		if(location & LOCATION_HAND)
+			cv.insert(cv.end(), player[playerid].list_hand.begin(), player[playerid].list_hand.end());
+		for(auto cit = cv.begin(); cit != cv.end(); ++cit) {
+			card* pm = *cit;
+			if(!pm || pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, tuner))
+				continue;
+			if(ptuner && ptuner->target) {
+				pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);
+				pduel->lua->add_param(pm, PARAM_TYPE_CARD);
+				if(!pduel->lua->get_function_value(ptuner->target, 2))
+					continue;
+			}
+			if(pcheck)
+				pcheck->get_value(pm);
+			if(pm->current.location == LOCATION_MZONE && !pm->is_position(POS_FACEUP))
+				continue;
+			if(!pduel->lua->check_matching(pm, findex2, 0))
+				continue;
+			nsyn.push_back(pm);
+			pm->sum_param = pm->get_synchro_level(pcard);
+		}
+	}
+	if(ct > 0) {
+		int32 ret = check_other_synchro_material(nsyn, lv, min, max, mcount);
+		pduel->restore_assumes();
+		return ret;
+	}
+	auto start = nsyn.begin() + mcount;
+	for(auto cit = start; cit != nsyn.end(); ++cit) {
+		card* pm = *cit;
+		if(linked_cards.find(pm) == linked_cards.end())
+			continue;
+		if(start != cit)
+			std::iter_swap(start, cit);
+		if(check_other_synchro_material(nsyn, lv, min - 1, max - 1, mcount + 1)) {
+			pduel->restore_assumes();
+			return TRUE;
+		}
+		if(start != cit)
+			std::iter_swap(start, cit);
+	}
 	pduel->restore_assumes();
+	return FALSE;
+}
+int32 field::check_other_synchro_material(const card_vector& nsyn, int32 lv, int32 min, int32 max, int32 mcount) {
+	if(!(core.global_flag & GLOBALFLAG_SCRAP_CHIMERA)) {
+		if(check_with_sum_limit_m(nsyn, lv, 0, min, max, mcount)) {
+			return TRUE;
+		}
+		return FALSE;
+	}
+	effect* pscrap = 0;
+	for(auto cit = nsyn.begin(); cit != nsyn.end(); ++cit) {
+		pscrap = (*cit)->is_affected_by_effect(EFFECT_SCRAP_CHIMERA);
+		if(pscrap)
+			break;
+	}
+	if(!pscrap) {
+		if(check_with_sum_limit_m(nsyn, lv, 0, min, max, mcount)) {
+			return TRUE;
+		}
+		return FALSE;
+	}
+	card_vector nsyn_filtered;
+	for(auto cit = nsyn.begin(); cit != nsyn.end(); ++cit) {
+		if(!pscrap->get_value(*cit))
+			nsyn_filtered.push_back(*cit);
+	}
+	if(nsyn_filtered.size() == nsyn.size()) {
+		if(check_with_sum_limit_m(nsyn, lv, 0, min, max, mcount)) {
+			return TRUE;
+		}
+	} else {
+		bool mfiltered = true;
+		for(int32 i = 0; i < mcount; ++i) {
+			if(pscrap->get_value(nsyn[i]))
+				mfiltered = false;
+		}
+		if(mfiltered && check_with_sum_limit_m(nsyn_filtered, lv, 0, min, max, mcount)) {
+			return TRUE;
+		}
+		for(int32 i = 0; i < mcount; ++i) {
+			if(nsyn[i]->is_affected_by_effect(EFFECT_SCRAP_CHIMERA)) {
+				return FALSE;
+			}
+		}
+		card_vector nsyn_removed;
+		for(auto cit = nsyn.begin(); cit != nsyn.end(); ++cit) {
+			if(!(*cit)->is_affected_by_effect(EFFECT_SCRAP_CHIMERA))
+				nsyn_removed.push_back(*cit);
+		}
+		if(check_with_sum_limit_m(nsyn_removed, lv, 0, min, max, mcount)) {
+			return TRUE;
+		}
+	}
 	return FALSE;
 }
 int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 toplayer) {
@@ -2420,10 +2849,14 @@ int32 field::is_player_can_spsummon(uint8 playerid) {
 	}
 	return is_player_can_spsummon_count(playerid, 1);
 }
-int32 field::is_player_can_spsummon(effect * peffect, uint32 sumtype, uint8 sumpos, uint8 playerid, uint8 toplayer, card * pcard) {
+int32 field::is_player_can_spsummon(effect* peffect, uint32 sumtype, uint8 sumpos, uint8 playerid, uint8 toplayer, card* pcard) {
 	if(pcard->is_affected_by_effect(EFFECT_CANNOT_SPECIAL_SUMMON))
 		return FALSE;
 	if(pcard->is_status(STATUS_FORBIDDEN))
+		return FALSE;
+	if(pcard->data.type & TYPE_LINK)
+		sumpos &= POS_FACEUP_ATTACK;
+	if(sumpos == 0)
 		return FALSE;
 	sumtype |= SUMMON_TYPE_SPECIAL;
 	save_lp_cost();

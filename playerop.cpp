@@ -336,10 +336,10 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 			flag = ~flag;
 			int32 filter;
 			int32 pzone = 0;
-			if(flag & 0x1f) {
+			if(flag & 0x7f) {
 				returns.bvalue[0] = 1;
 				returns.bvalue[1] = LOCATION_MZONE;
-				filter = flag & 0x1f;
+				filter = flag & 0x7f;
 			} else if(flag & 0x1f00) {
 				returns.bvalue[0] = 1;
 				returns.bvalue[1] = LOCATION_SZONE;
@@ -349,10 +349,10 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 				returns.bvalue[1] = LOCATION_SZONE;
 				filter = (flag >> 14) & 0x3;
 				pzone = 1;
-			} else if(flag & 0x1f0000) {
+			} else if(flag & 0x7f0000) {
 				returns.bvalue[0] = 0;
 				returns.bvalue[1] = LOCATION_MZONE;
-				filter = (flag >> 16) & 0x1f;
+				filter = (flag >> 16) & 0x7f;
 			} else if(flag & 0x1f000000) {
 				returns.bvalue[0] = 0;
 				returns.bvalue[1] = LOCATION_SZONE;
@@ -364,7 +364,9 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 				pzone = 1;
 			}
 			if(!pzone) {
-				if(filter & 0x4) returns.bvalue[2] = 2;
+				if(filter & 0x40) returns.bvalue[2] = 6;
+				else if(filter & 0x20) returns.bvalue[2] = 5;
+				else if(filter & 0x4) returns.bvalue[2] = 2;
 				else if(filter & 0x2) returns.bvalue[2] = 1;
 				else if(filter & 0x8) returns.bvalue[2] = 3;
 				else if(filter & 0x1) returns.bvalue[2] = 0;
@@ -390,8 +392,8 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 			p = returns.bvalue[pt];
 			l = returns.bvalue[pt + 1];
 			s = returns.bvalue[pt + 2];
-			if((p != 0 && p != 1) 
-					|| ((l != LOCATION_MZONE) && (l != LOCATION_SZONE)) 
+			if((p != 0 && p != 1)
+					|| ((l != LOCATION_MZONE) && (l != LOCATION_SZONE))
 					|| ((0x1u << s) & (flag >> (((p == playerid) ? 0 : 16) + ((l == LOCATION_MZONE) ? 0 : 8))))) {
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
@@ -500,22 +502,21 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 	if(step == 0) {
 		if(count == 0)
 			return TRUE;
-		card* pcard;
 		uint8 avail = s;
 		uint8 fp = playerid;
 		uint32 total = 0;
 		core.select_cards.clear();
 		for(int p = 0; p < 2; ++p) {
 			if(avail) {
-				for(int j = 0; j < 5; ++j) {
-					pcard = player[fp].list_mzone[j];
+				for(auto cit = player[fp].list_mzone.begin(); cit != player[fp].list_mzone.end(); ++cit) {
+					card* pcard = *cit;
 					if(pcard && pcard->get_counter(countertype)) {
 						core.select_cards.push_back(pcard);
 						total += pcard->get_counter(countertype);
 					}
 				}
-				for(int j = 0; j < 8; ++j) {
-					pcard = player[fp].list_szone[j];
+				for(auto cit = player[fp].list_szone.begin(); cit != player[fp].list_szone.end(); ++cit) {
+					card* pcard = *cit;
 					if(pcard && pcard->get_counter(countertype)) {
 						core.select_cards.push_back(pcard);
 						total += pcard->get_counter(countertype);
@@ -536,7 +537,7 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 		pduel->write_buffer8(core.select_cards.size());
 		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
-			pcard = core.select_cards[i];
+			card* pcard = core.select_cards[i];
 			pduel->write_buffer32(pcard->data.code);
 			pduel->write_buffer8(pcard->current.controler);
 			pduel->write_buffer8(pcard->current.location);
@@ -715,7 +716,7 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 int32 field::announce_race(int16 step, uint8 playerid, int32 count, int32 available) {
 	if(step == 0) {
 		int32 scount = 0;
-		for(int32 ft = 0x1; ft != 0x1000000; ft <<= 1) {
+		for(int32 ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(ft & available)
 				scount++;
 		}
@@ -731,7 +732,7 @@ int32 field::announce_race(int16 step, uint8 playerid, int32 count, int32 availa
 	} else {
 		int32 rc = returns.ivalue[0];
 		int32 sel = 0;
-		for(int32 ft = 0x1; ft != 0x1000000; ft <<= 1) {
+		for(int32 ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(!(ft & rc)) continue;
 			if(!(ft & available)) {
 				pduel->write_buffer8(MSG_RETRY);

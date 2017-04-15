@@ -89,7 +89,8 @@ public:
 	uint8 get_owner_player();
 	card* get_handler() const;
 	uint8 get_handler_player();
-	int32 in_range(int32 loc, int32 seq);
+	int32 in_range(card* pcard);
+	int32 in_range(const chain& ch);
 	bool is_flag(effect_flag flag) const {
 		return !!(this->flag[0] & flag);
 	}
@@ -414,6 +415,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 //#define EFFECT_REMOVE_FUSION_ATTRIBUTE	350
 #define EFFECT_CHANGE_FUSION_ATTRIBUTE	351
 #define EFFECT_EXTRA_FUSION_MATERIAL	352
+#define EFFECT_TUNER_MATERIAL_LIMIT		353
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001
