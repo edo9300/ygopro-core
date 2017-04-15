@@ -190,11 +190,11 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 			// additional check for each location
 			if(handler->current.location == LOCATION_HAND) {
 				if(handler->data.type & TYPE_MONSTER) {
-					if(!(handler->data.type & TYPE_PENDULUM))
-						return FALSE;
-					if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
-							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
-						return FALSE;
+					if((handler->data.type & TYPE_PENDULUM)) {
+						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
+								&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
+							return FALSE;
+					}
 				} else if(!(handler->data.type & TYPE_FIELD)
 						&& pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
 					return FALSE;
