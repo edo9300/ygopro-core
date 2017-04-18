@@ -233,6 +233,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "ResetNegateEffect", scriptlib::card_reset_negate_effect },
 	{ "AssumeProperty", scriptlib::card_assume_prop },
 	{ "SetSPSummonOnce", scriptlib::card_set_spsummon_once },
+	{ "CheckMZoneFromEx", scriptlib::card_check_mzone_from_ex },
 	{ NULL, NULL }
 };
 
