@@ -3808,3 +3808,15 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 	}
 	return 0;
 }
+int32 scriptlib::duel_get_random_number(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 min = 0;
+	int32 max = 1;
+	if (lua_gettop(L) > 1) {
+		min = lua_tointeger(L, 1);
+		max = lua_tointeger(L, 2);
+	} else
+		max = lua_tointeger(L, 1);
+	lua_pushinteger(L, pduel->get_next_integer(min, max));
+	return 1;
+}

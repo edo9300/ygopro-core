@@ -531,6 +531,7 @@ public:
 	static int32 duel_tag_swap(lua_State *L);
 	static int32 duel_swap_deck_and_grave(lua_State *L);
 	static int32 duel_majestic_copy(lua_State *L);
+	static int32 duel_get_random_number(lua_State *L);
 
 	//preload
 	static int32 debug_message(lua_State *L);
