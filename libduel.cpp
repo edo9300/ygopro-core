@@ -691,7 +691,7 @@ int32 scriptlib::duel_swap_sequence(lua_State *L) {
 	uint8 location = pcard1->current.location;
 	duel* pduel = pcard1->pduel;
 	if(pcard2->current.controler == player
-		&& location == LOCATION_MZONE && pcard2->current.location == location
+		&& (location == LOCATION_MZONE || location == LOCATION_SZONE) && pcard2->current.location == location
 		&& pcard1->is_affect_by_effect(pduel->game_field->core.reason_effect)
 		&& pcard2->is_affect_by_effect(pduel->game_field->core.reason_effect)) {
 		uint8 s1 = pcard1->current.sequence, s2 = pcard2->current.sequence;
