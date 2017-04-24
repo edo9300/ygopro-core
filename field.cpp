@@ -699,6 +699,16 @@ uint32 field::get_linked_zone(int32 playerid) {
 				zones |= 1u << (2 - i * 2);
 		}
 	}
+	effect_set eset;
+	uint32 value;
+	filter_field_effect(EFFECT_BECOME_LINKED_ZONE, &eset);
+	for (int32 i = 0; i < eset.size(); ++i) {
+		value = eset[i]->get_value();
+		if (value) {
+			zones |= (value >> (16 * playerid)) & 0x7f;
+		}
+	}
+	eset.clear();
 	return zones;
 }
 int32 field::check_extra_link(int32 playerid) {

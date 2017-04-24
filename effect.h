@@ -372,6 +372,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_USE_EXTRA_SZONE			262
 #define EFFECT_MAX_MZONE				263
 #define EFFECT_MAX_SZONE				264
+#define EFFECT_BECOME_LINKED_ZONE		265
 #define EFFECT_HAND_LIMIT				270
 #define EFFECT_DRAW_COUNT				271
 #define EFFECT_SPIRIT_DONOT_RETURN		280
