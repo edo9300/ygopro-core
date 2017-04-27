@@ -2824,7 +2824,7 @@ int32 scriptlib::duel_overlay(lua_State *L) {
 		target->xyz_overlay(&cset);
 	} else
 		target->xyz_overlay(&pgroup->container);
-	if(target->current.location == LOCATION_MZONE)
+	if(target->current.location & LOCATION_ONFIELD)
 		target->pduel->game_field->adjust_all();
 	return lua_yield(L, 0);
 }
