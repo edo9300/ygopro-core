@@ -2421,20 +2421,26 @@ void card::filter_spsummon_procedure_g(uint8 playerid, effect_set* peset) {
 	}
 }
 // return: an effect with code which affects this or 0
-effect* card::is_affected_by_effect(int32 code) {
-	effect* peffect;
+effect* card::is_affected_by_effect(int32 code, bool ret) {
+	effect* peffect = 0;
 	auto rg = single_effect.equal_range(code);
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
-			return peffect;
+			if(ret)
+				pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+			else
+				return peffect;
 	}
 	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
 		rg = (*cit)->equip_effect.equal_range(code);
 		for (; rg.first != rg.second; ++rg.first) {
 			peffect = rg.first->second;
 			if (peffect->is_available() && is_affect_by_effect(peffect))
-				return peffect;
+				if (ret)
+					pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+				else
+					return peffect;
 		}
 	}
 	for (auto cit = xyz_materials.begin(); cit != xyz_materials.end(); ++cit) {
@@ -2444,7 +2450,10 @@ effect* card::is_affected_by_effect(int32 code) {
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if (peffect->is_available() && is_affect_by_effect(peffect))
-				return peffect;
+				if (ret)
+					pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+				else
+					return peffect;
 		}
 	}
 	rg = pduel->game_field->effects.aura_effect.equal_range(code);
@@ -2452,8 +2461,13 @@ effect* card::is_affected_by_effect(int32 code) {
 		peffect = rg.first->second;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
 			&& peffect->is_available() && is_affect_by_effect(peffect))
-			return peffect;
+			if (ret)
+				pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+			else
+				return peffect;
 	}
+	if(peffect == 0 && ret)
+		pduel->lua->add_param((void*)0, PARAM_TYPE_EFFECT);
 	return 0;
 }
 effect* card::is_affected_by_effect(int32 code, card* target) {

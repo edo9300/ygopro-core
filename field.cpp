@@ -1490,13 +1490,19 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 	}
 	return count;
 }
-effect* field::is_player_affected_by_effect(uint8 playerid, uint32 code) {
+effect* field::is_player_affected_by_effect(uint8 playerid, uint32 code, bool ret) {
+	effect* peffect = 0;
 	auto rg = effects.aura_effect.equal_range(code);
 	for (; rg.first != rg.second; ++rg.first) {
-		effect* peffect = rg.first->second;
+		peffect = rg.first->second;
 		if (peffect->is_target_player(playerid) && peffect->is_available())
-			return peffect;
+			if(ret)
+				pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+			else
+				return peffect;
 	}
+	if(peffect == 0 && ret)
+		pduel->lua->add_param((void*)0, PARAM_TYPE_EFFECT);
 	return 0;
 }
 int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg) {

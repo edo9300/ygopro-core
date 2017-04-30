@@ -3230,9 +3230,8 @@ int32 scriptlib::duel_is_player_affected_by_effect(lua_State *L) {
 		return 1;
 	}
 	int32 code = lua_tointeger(L, 2);
-	effect* peffect = pduel->game_field->is_player_affected_by_effect(playerid, code);
-	interpreter::effect2value(L, peffect);
-	return 1;
+	pduel->game_field->is_player_affected_by_effect(playerid, code, true);
+	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_is_player_can_draw(lua_State * L) {
 	check_param_count(L, 1);
