@@ -134,7 +134,7 @@ public:
 	static int32 card_check_activate_effect(lua_State *L);
 	static int32 card_register_effect(lua_State *L);
 	static int32 card_is_has_effect(lua_State *L);
-	static int32 card_is_card_affected_by_effect(lua_State *L);
+	static int32 card_get_card_effect(lua_State *L);
 	static int32 card_reset_effect(lua_State *L);
 	static int32 card_get_effect_count(lua_State *L);
 	static int32 card_register_flag_effect(lua_State *L);
@@ -502,6 +502,7 @@ public:
 	static int32 duel_is_duel_type(lua_State *L);
 	static int32 duel_get_master_rule(lua_State *L);
 	static int32 duel_is_player_affected_by_effect(lua_State *L);
+	static int32 duel_get_player_effect(lua_State *L);
 	static int32 duel_is_player_can_draw(lua_State *L);
 	static int32 duel_is_player_can_discard_deck(lua_State *L);
 	static int32 duel_is_player_can_discard_deck_as_cost(lua_State *L);

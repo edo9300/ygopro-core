@@ -1499,6 +1499,18 @@ effect* field::is_player_affected_by_effect(uint8 playerid, uint32 code) {
 	}
 	return 0;
 }
+int32 field::get_player_effect(uint8 playerid, uint32 code) {
+	int32 i = 0;
+	auto rg = effects.aura_effect.equal_range(code);
+	for (; rg.first != rg.second; ++rg.first) {
+		effect* peffect = rg.first->second;
+		if (peffect->is_target_player(playerid) && peffect->is_available()) {
+			interpreter::effect2value(pduel->lua->lua_state, peffect);
+			i++;
+		}
+	}
+	return i;
+}
 int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg) {
 	uint32 rcount = 0;
 	for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {

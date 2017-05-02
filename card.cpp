@@ -2492,6 +2492,50 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	}
 	return 0;
 }
+int32 card::get_card_effect(int32 code) {
+	effect* peffect;
+	int32 i = 0;
+	auto rg = single_effect.equal_range(code);
+	for (; rg.first != rg.second; ++rg.first) {
+		peffect = rg.first->second;
+		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))) {
+			interpreter::effect2value(pduel->lua->lua_state, peffect);
+			i++;
+		}
+	}
+	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
+		rg = (*cit)->equip_effect.equal_range(code);
+		for (; rg.first != rg.second; ++rg.first) {
+			peffect = rg.first->second;
+			if (peffect->is_available() && is_affect_by_effect(peffect)) {
+				interpreter::effect2value(pduel->lua->lua_state, peffect);
+				i++;
+			}
+		}
+	}
+	for (auto cit = xyz_materials.begin(); cit != xyz_materials.end(); ++cit) {
+		rg = (*cit)->xmaterial_effect.equal_range(code);
+		for (; rg.first != rg.second; ++rg.first) {
+			peffect = rg.first->second;
+			if (peffect->type & EFFECT_TYPE_FIELD)
+				continue;
+			if (peffect->is_available() && is_affect_by_effect(peffect)) {
+				interpreter::effect2value(pduel->lua->lua_state, peffect);
+				i++;
+			}
+		}
+	}
+	rg = pduel->game_field->effects.aura_effect.equal_range(code);
+	for (; rg.first != rg.second; ++rg.first) {
+		peffect = rg.first->second;
+		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
+			&& peffect->is_available() && is_affect_by_effect(peffect)) {
+			interpreter::effect2value(pduel->lua->lua_state, peffect);
+			i++;
+		}
+	}
+	return i;
+}
 effect* card::check_control_effect() {
 	effect* ret_effect = 0;
 	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
