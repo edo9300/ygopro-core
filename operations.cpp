@@ -303,7 +303,7 @@ void field::send_to(card* target, effect* reason_effect, uint32 reason, uint32 r
 	tset.insert(target);
 	send_to(&tset, reason_effect, reason, reason_player, playerid, destination, sequence, position);
 }
-void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone) {
+void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 seq) {
 	if(!(destination & (LOCATION_MZONE + LOCATION_SZONE + LOCATION_PZONE)) || !positions || (destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE)))
 		return;
 	if(destination == target->current.location && playerid == target->current.controler)
@@ -314,7 +314,7 @@ void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uin
 		pzone = true;
 	}
 	target->to_field_param = (move_player << 24) + (playerid << 16) + (destination << 8) + positions;
-	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable, ret + (is_equip << 8), zone + (pzone << 8));
+	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable, ret + (is_equip << 8), zone + (pzone << 8) + (seq << 16));
 }
 void field::change_position(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 au, uint32 ad, uint32 du, uint32 dd, uint32 flag, uint32 enable) {
 	group* ng = pduel->new_group(*targets);
@@ -3946,7 +3946,7 @@ int32 field::discard_deck(uint16 step, uint8 playerid, uint8 count, uint32 reaso
 // move a card from anywhere to field, including sp_summon, Duel.MoveToField(), Duel.ReturnToField()
 // ret: 0 = default, 1 = return after temporarily banished, 2 = trap_monster return to LOCATION_SZONE
 // call move_card() in step 2
-int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 pzone) {
+int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 pzone, uint32 seq2) {
 	uint32 move_player = (target->to_field_param >> 24) & 0xff;
 	uint32 playerid = (target->to_field_param >> 16) & 0xff;
 	uint32 location = (target->to_field_param >> 8) & 0xff;
@@ -3956,7 +3956,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		returns.ivalue[0] = FALSE;
 		if((ret == 1) && (!(target->current.reason & REASON_TEMPORARY) || (target->current.reason_effect->owner != core.reason_effect->owner)))
 			return TRUE;
-		if(!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP)) {
+		if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP)) || seq2==5)) {
 			card* pcard = get_field_card(playerid, LOCATION_SZONE, 5);
 			if(pcard) {
 				if(core.duel_rule >= 3)
@@ -3965,7 +3965,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 					destroy(pcard, 0, REASON_RULE, pcard->current.controler);
 				adjust_all();
 			}
-		} else if(location == LOCATION_SZONE && pzone) {
+		} else if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_PENDULUM)) || pzone)) {
 			uint32 flag = 0;
 			if(is_location_useable(playerid, LOCATION_PZONE, 0))
 				flag |= 0x1u << (core.duel_rule >= 4 ? 8 : 14);
@@ -3992,16 +3992,30 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			}
 			if(ct <= 0)
 				return TRUE;
+			if (seq2 < 7 && !pduel->game_field->is_location_useable(playerid, location, seq2))
+				return TRUE;
 			if(move_player == playerid) {
-				if(location == LOCATION_SZONE)
-					flag = ((flag & 0xff) << 8) | 0xffff00ff;
+				if (location == LOCATION_SZONE)
+					if (seq2 < 5)
+						flag = ~((1u << seq2) << 8);
+					else
+						flag = ((flag & 0xff) << 8) | 0xffff00ff;
 				else
-					flag = (flag & 0xff) | 0xffffff00;
+					if(seq2 < 7)
+						flag = ~((1u << seq2));
+					else
+						flag = (flag & 0xff) | 0xffffff00;
 			} else {
 				if(location == LOCATION_SZONE)
-					flag = ((flag & 0xff) << 24) | 0xffffff;
+					if (seq2 < 5)
+						flag = ~((1u << seq2) << 24);
+					else
+						flag = ((flag & 0xff) << 24) | 0xffffff;
 				else
-					flag = ((flag & 0xff) << 16) | 0xff00ffff;
+					if (seq2 < 7)
+						flag = ~((1u << seq2) << 16);
+					else
+						flag = ((flag & 0xff) << 16) | 0xff00ffff;
 			}
 			flag |= 0xe080e080;
 			pduel->write_buffer8(MSG_HINT);
@@ -4014,7 +4028,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 	}
 	case 1: {
 		uint32 seq = returns.bvalue[2];
-		if(!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP))
+		if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL | TYPE_TRAP)) || seq2 == 5))
 			seq = 5;
 		if(ret != 1) {
 			if(location != target->current.location) {
@@ -4077,6 +4091,8 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		if(target->overlay_target)
 			target->overlay_target->xyz_remove(target);
 		// call move_card()
+		if (!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM))
+			pzone = TRUE;
 		move_card(playerid, target, location, target->temp.sequence, pzone);
 		target->current.position = returns.ivalue[0];
 		if((target->previous.location & LOCATION_ONFIELD) && (location & LOCATION_ONFIELD))

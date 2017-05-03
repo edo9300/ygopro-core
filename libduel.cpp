@@ -644,10 +644,13 @@ int32 scriptlib::duel_move_to_field(lua_State *L) {
 	uint32 destination = lua_tointeger(L, 4);
 	uint32 positions = lua_tointeger(L, 5);
 	uint32 enable = lua_toboolean(L, 6);
+	uint32 seq = 9;
+	if (lua_gettop(L) >= 7)
+		seq = lua_tointeger(L, 7);
 	duel* pduel = pcard->pduel;
 	pcard->enable_field_effect(false);
 	pduel->game_field->adjust_instant();
-	pduel->game_field->move_to_field(pcard, move_player, playerid, destination, positions, enable);
+	pduel->game_field->move_to_field(pcard, move_player, playerid, destination, positions, enable, 0, 0, 0xff, seq);
 	pduel->game_field->core.subunits.back().type = PROCESSOR_MOVETOFIELD_S;
 	return lua_yield(L, 0);
 }
