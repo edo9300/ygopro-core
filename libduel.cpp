@@ -2970,8 +2970,9 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	uint32 count = lua_tointeger(L, 2);
 	uint32 location1 = lua_tointeger(L, 3);
 	uint32 location2 = lua_tointeger(L, 4);
-	uint32 filter = lua_tointeger(L, 5);
 	duel* pduel = interpreter::get_duel_info(L);
+	uint32 filter = (pduel->game_field->core.duel_rule > 3) ? 0xC080C080 : 0x80E080E0;
+	filter |= lua_tointeger(L, 5);
 	uint32 all_field = FALSE;
 	if(lua_gettop(L) > 5)
 		all_field = lua_toboolean(L, 6);
@@ -2979,6 +2980,7 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	if(location1 & LOCATION_MZONE) {
 		ct1 = pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, PLAYER_NONE, 0, 0xff, &plist);
 		if (all_field) {
+			plist = plist & ~0x60;
 			if (!pduel->game_field->is_location_useable(playerid, LOCATION_MZONE, 5))
 				plist |= 0x20;
 			else
@@ -3011,6 +3013,7 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	if(location2 & LOCATION_MZONE) {
 		ct3 = pduel->game_field->get_useable_count(1 - playerid, LOCATION_MZONE, PLAYER_NONE, 0, 0xff, &plist);
 		if (all_field) {
+			plist = plist & ~0x60;
 			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_MZONE, 5))
 				plist |= 0x20;
 			else
