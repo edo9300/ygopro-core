@@ -799,19 +799,34 @@ int32 field::process() {
 	}
 	case PROCESSOR_SELECT_FUSION: {
 		if(it->step == 0) {
+			effect_set eset;
+			card* pcard = (card*)it->ptr2;
+			pcard->fusion_filter_valid(it->ptarget, (card*)it->ptr1, (it->arg1>>16) & 0xff, &eset);
+			core.select_effects.clear();
+			core.select_options.clear();
+			for (int32 i = 0; i < eset.size(); ++i) {
+				core.select_effects.push_back(eset[i]);
+				core.select_options.push_back(eset[i]->description);
+			}
+			if (core.select_options.size() == 1)
+				returns.ivalue[0] = 0;
+			else
+				add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, it->arg1, 0);
+			it->step++;
+		} else if(it->step==1){
 			tevent e;
 			e.event_cards = it->ptarget;
-			e.reason_effect = it->peffect;
+			e.reason_effect = core.select_effects[returns.ivalue[0]];
 			e.reason_player = it->arg1;
 			core.fusion_materials.clear();
-			if(!it->peffect) {
+			if(!core.select_effects[returns.ivalue[0]]) {
 				core.units.pop_front();
 				return pduel->bufferlen;
 			}
 			core.sub_solving_event.push_back(e);
 			pduel->lua->add_param(it->ptr1, PARAM_TYPE_CARD);
 			pduel->lua->add_param(it->arg1 >> 16, PARAM_TYPE_INT);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, it->peffect, 0, it->arg1 & 0xffff, 0);
+			add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.select_effects[returns.ivalue[0]], 0, it->arg1 & 0xffff, 0);
 			it->step++;
 		} else {
 			group* pgroup = pduel->new_group(core.fusion_materials);

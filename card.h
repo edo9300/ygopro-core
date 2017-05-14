@@ -258,7 +258,7 @@ public:
 	int32 get_card_effect(int32 code);
 	effect* check_control_effect();
 	int32 fusion_check(group* fusion_m, card* cg, uint32 chkf);
-	void fusion_select(uint8 playerid, group* fusion_m, card* cg, uint32 chkf);
+	void fusion_filter_valid(group* fusion_m, card* cg, uint32 chkf, effect_set* eset);
 	int32 check_fusion_substitute(card* fcard);
 
 	int32 check_unique_code(card* pcard);
