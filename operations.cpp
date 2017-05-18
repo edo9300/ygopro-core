@@ -2549,7 +2549,8 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card * target, ui
 	}
 	case 23: {
 		effect* peffect = core.units.begin()->peffect;
-		card* pcard = *core.units.begin()->ptarget->it;
+		group* pgroup = core.units.begin()->ptarget;
+		card* pcard = *pgroup->it;
 		pcard->enable_field_effect(false);
 		pcard->current.reason = REASON_SPSUMMON;
 		pcard->current.reason_effect = peffect;
@@ -2563,7 +2564,26 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card * target, ui
 		for (int32 i = 0; i < eset.size(); ++i) {
 			positions &= ~eset[i]->get_value();
 		}
-		move_to_field(pcard, sumplayer, sumplayer, LOCATION_MZONE, positions);
+		uint32 zone = 0xff;
+		if(core.duel_rule >= 4) {
+			uint32 flag1, flag2;
+			int32 ct1 = pduel->game_field->get_tofield_count(sumplayer, LOCATION_MZONE, zone, &flag1);
+			int32 ct2 = pduel->game_field->get_spsummonable_count_fromex(pcard, sumplayer, zone, &flag2);
+			for(auto it = pgroup->it; it != pgroup->container.end(); ++it) {
+				if((*it)->current.location != LOCATION_EXTRA)
+					ct1--;
+				else
+					ct2--;
+			}
+			if(pcard->current.location != LOCATION_EXTRA) {
+				if(ct2 == 0)
+					zone = ~flag1 & flag2;
+			} else {
+				if(ct1 == 0)
+					zone = flag1 & ~flag2;
+			}
+		}
+		move_to_field(pcard, sumplayer, sumplayer, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		return FALSE;
 	}
 	case 24: {
