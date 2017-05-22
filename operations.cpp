@@ -4013,12 +4013,14 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 				if (zone & 0x40 && pduel->game_field->is_location_useable(playerid, location, 6))
 					flag = flag & ~(1u << 6); ct++;
 			}
+			if (location == LOCATION_SZONE)
+				flag = flag | ~zone;
 			if((ret == 1) && (ct <= 0 || target->is_status(STATUS_FORBIDDEN) || check_unique_onfield(target, playerid, location))) {
 				core.units.begin()->step = 3;
 				send_to(target, core.reason_effect, REASON_RULE, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, 0);
 				return FALSE;
 			}
-			if (ct <= 0)
+			if (ct <= 0 || ~flag==0)
 				return TRUE;
 			if (move_player == playerid) {
 				if (location == LOCATION_SZONE)
