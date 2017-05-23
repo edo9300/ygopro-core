@@ -644,7 +644,7 @@ int32 scriptlib::duel_move_to_field(lua_State *L) {
 	uint32 destination = lua_tointeger(L, 4);
 	uint32 positions = lua_tointeger(L, 5);
 	uint32 enable = lua_toboolean(L, 6);
-	uint32 zone = 0;
+	uint32 zone = 0xff;
 	if (lua_gettop(L) >= 7)
 		zone = lua_tointeger(L, 7);
 	duel* pduel = pcard->pduel;
