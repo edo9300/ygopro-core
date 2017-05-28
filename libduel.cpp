@@ -3853,3 +3853,8 @@ int32 scriptlib::duel_get_random_number(lua_State *L) {
 	lua_pushinteger(L, pduel->get_next_integer(min, max));
 	return 1;
 }
+int32 scriptlib::duel_assume_reset(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->restore_assumes();
+	return 1;
+}

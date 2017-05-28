@@ -532,6 +532,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SwapDeckAndGrave", scriptlib::duel_swap_deck_and_grave },
 	{ "MajesticCopy", scriptlib::duel_majestic_copy },
 	{ "GetRandomNumber", scriptlib::duel_get_random_number },
+	{ "AssumeReset", scriptlib::duel_assume_reset },
 	{ NULL, NULL }
 };
 
