@@ -2376,8 +2376,7 @@ int32 scriptlib::duel_select_fusion_material(lua_State *L) {
 		chkf = lua_tointeger(L, 5);
 	card* pcard = *(card**) lua_touserdata(L, 2);
 	group* pgroup = *(group**) lua_touserdata(L, 3);
-	duel* pduel = pcard->pduel;
-	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, 0, (group*)pgroup, playerid + (chkf << 16), 0, 0, 0, cg, (card*)pcard);
+	pcard->fusion_select(playerid, pgroup, cg, chkf);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_set_fusion_material(lua_State *L) {
