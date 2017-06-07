@@ -2626,31 +2626,49 @@ effect* card::check_control_effect() {
 	return ret_effect;
 }
 int32 card::fusion_check(group* fusion_m, card* cg, uint32 chkf) {
-	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
-	if(ecit == single_effect.end())
-		return FALSE;
-	effect* peffect = ecit->second;
-	if(!peffect->condition)
-		return FALSE;
-	pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
-	pduel->lua->add_param(fusion_m, PARAM_TYPE_GROUP);
-	pduel->lua->add_param(cg, PARAM_TYPE_CARD);
-	pduel->lua->add_param(chkf, PARAM_TYPE_INT);
-	effect* oreason = pduel->game_field->core.reason_effect;
-	uint8 op = pduel->game_field->core.reason_player;
-	pduel->game_field->core.reason_effect = peffect;
-	pduel->game_field->core.reason_player = peffect->get_handler_player();
-	int32 res = pduel->lua->check_condition(peffect->condition, 4);
-	pduel->game_field->core.reason_effect = oreason;
-	pduel->game_field->core.reason_player = op;
-	return res;
-}
-void card::fusion_select(uint8 playerid, group* fusion_m, card* cg, uint32 chkf) {
 	effect* peffect = 0;
 	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
-	if(ecit != single_effect.end())
+	for (; ecit != single_effect.end(); ++ecit) {
 		peffect = ecit->second;
-	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, peffect, fusion_m, playerid + (chkf << 16), 0, 0, 0, cg);
+		if (!peffect->condition)
+			continue;
+		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(fusion_m, PARAM_TYPE_GROUP);
+		pduel->lua->add_param(cg, PARAM_TYPE_CARD);
+		pduel->lua->add_param(chkf, PARAM_TYPE_INT);
+		effect* oreason = pduel->game_field->core.reason_effect;
+		uint8 op = pduel->game_field->core.reason_player;
+		pduel->game_field->core.reason_effect = peffect;
+		pduel->game_field->core.reason_player = peffect->get_handler_player();
+		int32 res = pduel->lua->check_condition(peffect->condition, 4);
+		pduel->game_field->core.reason_effect = oreason;
+		pduel->game_field->core.reason_player = op;
+		if(res)
+			return TRUE;
+	}
+	return FALSE;
+}
+void card::fusion_filter_valid(group* fusion_m, card* cg, uint32 chkf, effect_set* eset) {
+	effect* peffect = 0;
+	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
+	for (; ecit != single_effect.end(); ++ecit) {
+		peffect = ecit->second;
+		if (!peffect->condition)
+			continue;
+		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(fusion_m, PARAM_TYPE_GROUP);
+		pduel->lua->add_param(cg, PARAM_TYPE_CARD);
+		pduel->lua->add_param(chkf, PARAM_TYPE_INT);
+		effect* oreason = pduel->game_field->core.reason_effect;
+		uint8 op = pduel->game_field->core.reason_player;
+		pduel->game_field->core.reason_effect = peffect;
+		pduel->game_field->core.reason_player = peffect->get_handler_player();
+		int32 res = pduel->lua->check_condition(peffect->condition, 4);
+		pduel->game_field->core.reason_effect = oreason;
+		pduel->game_field->core.reason_player = op;
+		if (res)
+			eset->add_item(peffect);
+	}
 }
 int32 card::check_fusion_substitute(card* fcard) {
 	effect_set eset;
