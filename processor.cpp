@@ -801,9 +801,13 @@ int32 field::process() {
 		if(it->step == 0) {
 			effect_set eset;
 			card* pcard = (card*)it->ptr2;
-			pcard->fusion_filter_valid(it->ptarget, (card*)it->ptr1, (it->arg1>>16) & 0xff, &eset);
+			pcard->fusion_filter_valid(it->ptarget, (card*)it->ptr1, it->arg1>>16, &eset);
 			core.select_effects.clear();
 			core.select_options.clear();
+			if(eset.size() < 1) {
+				core.units.pop_front();
+				return pduel->bufferlen;
+			}
 			for (int32 i = 0; i < eset.size(); ++i) {
 				core.select_effects.push_back(eset[i]);
 				core.select_options.push_back(eset[i]->description);
