@@ -48,6 +48,7 @@ public:
 	static int32 card_get_linked_group_count(lua_State *L);
 	static int32 card_get_linked_zone(lua_State *L);
 	static int32 card_get_free_linked_zone(lua_State *L);
+	static int32 card_is_link_state(lua_State *L);
 	static int32 card_get_attribute(lua_State *L);
 	static int32 card_get_origin_attribute(lua_State *L);
 	static int32 card_get_fusion_attribute(lua_State *L);
@@ -97,6 +98,7 @@ public:
 	static int32 card_is_attribute(lua_State *L);
 	static int32 card_is_fusion_attribute(lua_State *L);
 	static int32 card_is_reason(lua_State *L);
+	static int32 card_is_summon_type(lua_State *L);
 	static int32 card_is_status(lua_State *L);
 	static int32 card_is_not_tuner(lua_State *L);
 	static int32 card_set_status(lua_State *L);
@@ -414,6 +416,8 @@ public:
 	static int32 duel_get_location_count(lua_State *L);
 	static int32 duel_get_location_count_fromex(lua_State *L);
 	static int32 duel_get_usable_mzone_count(lua_State *L);
+	static int32 duel_get_linked_group(lua_State *L);
+	static int32 duel_get_linked_group_count(lua_State *L);
 	static int32 duel_get_linked_zone(lua_State *L);
 	static int32 duel_get_field_card(lua_State *L);
 	static int32 duel_check_location(lua_State *L);

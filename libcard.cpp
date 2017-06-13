@@ -304,6 +304,13 @@ int32 scriptlib::card_get_free_linked_zone(lua_State *L) {
 	lua_pushinteger(L, pcard->get_free_linked_zone());
 	return 1;
 }
+int32 scriptlib::card_is_link_state(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	lua_pushboolean(L, pcard->is_link_state());
+	return 1;
+}
 int32 scriptlib::card_get_attribute(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -712,6 +719,17 @@ int32 scriptlib::card_is_reason(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 treason = lua_tointeger(L, 2);
 	if(pcard->current.reason & treason)
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
+int32 scriptlib::card_is_summon_type(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	uint32 ttype = lua_tointeger(L, 2);
+	if(((pcard->summon_info & 0xff00ffff) & ttype) == ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
