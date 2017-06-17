@@ -3295,14 +3295,16 @@ int32 scriptlib::duel_is_player_affected_by_effect(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::duel_get_player_effect(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 1);
 	duel* pduel = interpreter::get_duel_info(L);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushnil(L);
 		return 1;
 	}
-	int32 code = lua_tointeger(L, 2);
+	uint32 code = 0;
+	if (lua_gettop(L) >= 2)
+		code = lua_tointeger(L, 2);
 	int32 count = pduel->game_field->get_player_effect(playerid, code);
 	if (count==0) {
 		lua_pushnil(L);

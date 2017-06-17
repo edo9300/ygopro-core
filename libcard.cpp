@@ -1146,10 +1146,12 @@ int32 scriptlib::card_is_has_effect(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_get_card_effect(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**)lua_touserdata(L, 1);
-	uint32 code = lua_tointeger(L, 2);
+	uint32 code = 0;
+	if (lua_gettop(L) >= 2)
+		code = lua_tointeger(L, 2);
 	int32 count = pcard->get_card_effect(code);
 	if (count == 0) {
 		lua_pushnil(L);

@@ -1513,10 +1513,9 @@ effect* field::is_player_affected_by_effect(uint8 playerid, uint32 code) {
 }
 int32 field::get_player_effect(uint8 playerid, uint32 code) {
 	int32 i = 0;
-	auto rg = effects.aura_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		effect* peffect = rg.first->second;
-		if (peffect->is_target_player(playerid) && peffect->is_available()) {
+	for (auto rg = effects.aura_effect.begin(); rg != effects.aura_effect.end(); ++rg) {
+		effect* peffect = rg->second;
+		if (peffect->is_target_player(playerid) && peffect->is_available() && (code == 0 || peffect->code == code)) {
 			interpreter::effect2value(pduel->lua->current_state, peffect);
 			i++;
 		}
