@@ -430,6 +430,12 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_RANK_LEVEL				409
 #define EFFECT_LEVEL_RANK_S				410
 #define EFFECT_RANK_LEVEL_S				411
+#define EFFECT_UPDATE_LINK              420
+#define EFFECT_CHANGE_LINK              421 
+#define EFFECT_CHANGE_LINK_FINAL        422
+#define EFFECT_ADD_LINKMARKER           423
+#define EFFECT_REMOVE_LINKMARKER        424
+#define EFFECT_CHANGE_LINKMARKER        425
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001
