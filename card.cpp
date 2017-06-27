@@ -1188,7 +1188,7 @@ uint32 card::get_link_marker() {
 	filter_effect(EFFECT_REMOVE_LINKMARKER, &effects);
 	filter_effect(EFFECT_CHANGE_LINKMARKER, &effects2);
 	for (int32 i = 0; i < effects.size(); ++i) {
-		if (effects[i]->code == EFFECT_ADD_LMARKER)
+		if (effects[i]->code == EFFECT_ADD_LINKMARKER)
 			link_marker |= effects[i]->get_value(this);
 		else
 			link_marker &= ~(effects[i]->get_value(this));
