@@ -3245,6 +3245,16 @@ int32 field::check_chain_target(uint8 chaincount, card * pcard) {
 	pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 	return pduel->lua->check_condition(peffect->target, 10);
 }
+chain* field::get_chain(uint32 chaincount) {
+	if(chaincount == 0 && core.continuous_chain.size() && (core.reason_effect->type & EFFECT_TYPE_CONTINUOUS))
+		return &core.continuous_chain.back();
+	if(chaincount == 0 || chaincount > core.current_chain.size()) {
+		chaincount = core.current_chain.size();
+		if(chaincount == 0)
+			return 0;
+	}
+	return &core.current_chain[chaincount - 1];
+}
 int32 field::is_able_to_enter_bp() {
 	return ((core.duel_options & DUEL_ATTACK_FIRST_TURN) || infos.turn_id != 1 || is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))
 	        && infos.phase < PHASE_BATTLE_START
