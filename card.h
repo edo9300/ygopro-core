@@ -127,6 +127,7 @@ public:
 	uint8 announce_count;
 	uint8 attacked_count;
 	uint8 attack_all_target;
+	uint8 attack_controler;
 	uint16 cardid;
 	uint32 fieldid;
 	uint32 fieldid_r;
@@ -203,11 +204,15 @@ public:
 	uint32 get_free_linked_zone();
 	void get_linked_cards(card_set* cset);
 	uint32 get_mutual_linked_zone();
+	void get_mutual_linked_cards(card_set * cset);
 	int32 is_link_state();
 	int32 is_position(int32 pos);
 	void set_status(uint32 status, int32 enabled);
 	int32 get_status(uint32 status);
 	int32 is_status(uint32 status);
+	uint32 get_column_zone(int32 loc1, int32 left, int32 right);
+	void get_column_cards(card_set* cset, int32 left, int32 right);
+	int32 is_all_column();
 
 	void equip(card *target, uint32 send_msg = TRUE);
 	void unequip();

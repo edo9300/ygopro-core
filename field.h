@@ -155,6 +155,12 @@ struct processor {
 	typedef std::list<processor_unit> processor_list;
 	typedef std::set<card*, card_sort> card_set;
 	typedef std::set<std::pair<effect*, tevent> > delayed_effect_collection;
+	struct chain_limit_t {
+		chain_limit_t(int32 f, int32 p): function(f), player(p) {}
+		int32 function;
+		int32 player;
+	};
+	typedef std::vector<chain_limit_t> chain_limit_list;
 
 	processor_list units;
 	processor_list subunits;
@@ -234,10 +240,8 @@ struct processor {
 	uint32 global_flag;
 	uint16 pre_field[2];
 	uint16 opp_mzone[7];
-	int32 chain_limit;
-	uint8 chain_limp;
-	int32 chain_limit_p;
-	uint8 chain_limp_p;
+	chain_limit_list chain_limit;
+	chain_limit_list chain_limit_p;
 	uint8 chain_solving;
 	uint8 conti_solving;
 	uint8 win_player;
@@ -355,7 +359,7 @@ public:
 	void get_linked_cards(uint8 self, uint8 s, uint8 o, card_set* cset);
 	int32 check_extra_link(int32 playerid);
 	int32 check_extra_link(int32 playerid, card* pcard, int32 sequence);
-	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid);
+	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location);
 	void shuffle(uint8 playerid, uint8 location);
 	void reset_sequence(uint8 playerid, uint8 location);
 	void swap_deck_and_grave(uint8 playerid);
@@ -517,6 +521,7 @@ public:
 	void move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint32 enable = FALSE, uint32 ret = 0, uint32 is_equip = FALSE, uint32 zone = 0xff, uint32 rule = FALSE);
 	void change_position(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 au, uint32 ad, uint32 du, uint32 dd, uint32 flag, uint32 enable = FALSE);
 	void change_position(card* target, effect* reason_effect, uint32 reason_player, uint32 npos, uint32 flag, uint32 enable = FALSE);
+	void operation_replace(int32 type, int32 step, group* targets);
 
 	int32 remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 countertype, uint16 count);
 	int32 remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max);
@@ -545,7 +550,7 @@ public:
 	int32 discard_deck(uint16 step, uint8 playerid, uint8 count, uint32 reason);
 	int32 move_to_field(uint16 step, card* target, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 pzone = false, uint32 rule = false);
 	int32 change_position(uint16 step, group* targets, effect* reason_effect, uint8 reason_player, uint32 enable);
-	int32 operation_replace(uint16 step, effect* replace_effect, group* targets, card* arg, ptr replace_type);
+	int32 operation_replace(uint16 step, effect* replace_effect, group* targets, card* target, int32 is_destroy);
 	int32 activate_effect(uint16 step, effect* peffect);
 	int32 select_synchro_material(int16 step, uint8 playerid, card* pcard, int32 min, int32 max, card* smat, group* mg);
 	int32 select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* pcard, int32 min, int32 max);
@@ -557,7 +562,7 @@ public:
 
 	int32 select_battle_command(uint16 step, uint8 playerid);
 	int32 select_idle_command(uint16 step, uint8 playerid);
-	int32 select_effect_yes_no(uint16 step, uint8 playerid, card* pcard);
+	int32 select_effect_yes_no(uint16 step, uint8 playerid, uint32 description, card* pcard);
 	int32 select_yes_no(uint16 step, uint8 playerid, uint32 description);
 	int32 select_option(uint16 step, uint8 playerid);
 	int32 select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max);
