@@ -105,6 +105,24 @@ public:
 	public:
 		void addcard(card* pcard);
 	};
+	struct sendto_param_t {
+		void set(uint8 p, uint8 pos, uint8 loc, uint8 seq = 0) {
+			playerid = p;
+			position = pos;
+			location = loc;
+			sequence = seq;
+		}
+		void clear() {
+			playerid = 0;
+			position = 0;
+			location = 0;
+			sequence = 0;
+		}
+		uint8 playerid;
+		uint8 position;
+		uint8 location;
+		uint8 sequence;
+	};
 	int32 scrtype;
 	int32 ref_handle;
 	duel* pduel;
@@ -117,7 +135,7 @@ public:
 	uint8 summon_player;
 	uint32 summon_info;
 	uint32 status;
-	uint32 operation_param;
+	sendto_param_t sendto_param;
 	uint32 release_param;
 	uint32 sum_param;
 	uint32 position_param;
@@ -311,6 +329,7 @@ public:
 	int32 is_capable_attack();
 	int32 is_capable_attack_announce(uint8 playerid);
 	int32 is_capable_change_position(uint8 playerid);
+	int32 is_capable_change_position_by_effect(uint8 playerid);
 	int32 is_capable_turn_set(uint8 playerid);
 	int32 is_capable_change_control();
 	int32 is_control_can_be_changed(int32 ignore_mzone, uint32 zone);
@@ -469,7 +488,7 @@ public:
 #define STATUS_SUMMON_DISABLED		0x20000	//
 #define STATUS_ACTIVATE_DISABLED	0x40000	//
 #define STATUS_EFFECT_REPLACED		0x80000
-#define STATUS_UNION				0x100000
+#define STATUS_FUTURE_FUSION		0x100000
 #define STATUS_ATTACK_CANCELED		0x200000
 #define STATUS_INITIALIZING			0x400000
 #define STATUS_ACTIVATED			0x800000
