@@ -1511,40 +1511,36 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 		zones |= (1u << 1) | (1u << (16 + 3));
 	if(s == 6)
 		zones |= (1u << 3) | (1u << (16 + 1));
-	for (int32 i = 1; i <= left; ++i) {
+	for(int32 i = 1; i <= left; ++i) {
 		int32 seq = s - i;
-		if(seq >= 0) {
-			if(seq <= 4) {
-				zones |= 1u << seq | 1u << (16 + (4 - seq));
-				if(loc1 & LOCATION_MZONE) {
-					if(seq == 1)
-						zones |= (1u << 5) | (1u << (16 + 6));
-					if(seq == 3)
-						zones |= (1u << 6) | (1u << (16 + 5));
-				}
+		if(s == 5)
+			seq = 1 - i;
+		if(s == 6)
+			seq = 3 - i;
+		if(seq >= 0 && seq <= 4) {
+			zones |= 1u << seq | 1u << (16 + (4 - seq));
+			if(loc1 & LOCATION_MZONE) {
+				if(seq == 1)
+					zones |= (1u << 5) | (1u << (16 + 6));
+				if(seq == 3)
+					zones |= (1u << 6) | (1u << (16 + 5));
 			}
-			if(seq == 5)
-				zones |= (1u << 1) | (1u << (16 + 3));
-			if(seq == 6)
-				zones |= (1u << 3) | (1u << (16 + 1));
 		}
 	}
-	for (int32 i = 1; i <= right; ++i) {
+	for(int32 i = 1; i <= right; ++i) {
 		int32 seq = s + i;
-		if(seq <= 6) {
-			if(seq <= 4) {
-				zones |= 1u << seq | 1u << (16 + (4 - seq));
-				if(loc1 & LOCATION_MZONE) {
-					if(seq == 1)
-						zones |= (1u << 5) | (1u << (16 + 6));
-					if(seq == 3)
-						zones |= (1u << 6) | (1u << (16 + 5));
-				}
+		if(s == 5)
+			seq = 1 + i;
+		if(s == 6)
+			seq = 3 + i;
+		if(seq >= 0 && seq <= 4) {
+			zones |= 1u << seq | 1u << (16 + (4 - seq));
+			if(loc1 & LOCATION_MZONE) {
+				if(seq == 1)
+					zones |= (1u << 5) | (1u << (16 + 6));
+				if(seq == 3)
+					zones |= (1u << 6) | (1u << (16 + 5));
 			}
-			if(seq == 5)
-				zones |= (1u << 1) | (1u << (16 + 3));
-			if(seq == 6)
-				zones |= (1u << 3) | (1u << (16 + 1));
 		}
 	}
 	return zones;
@@ -2948,7 +2944,7 @@ int32 card::check_unique_code(card* pcard) {
 		return TRUE;
 	return FALSE;
 }
-void card::get_unique_target(card_set* cset, int32 controler) {
+void card::get_unique_target(card_set* cset, int32 controler, card* icard) {
 	cset->clear();
 	for(int32 p = 0; p < 2; ++p) {
 		if(!unique_pos[p])
@@ -2957,7 +2953,7 @@ void card::get_unique_target(card_set* cset, int32 controler) {
 		if(unique_location & LOCATION_MZONE) {
 			for(auto cit = player.list_mzone.begin(); cit != player.list_mzone.end(); ++cit) {
 				card* pcard = *cit;
-				if(pcard && pcard->is_position(POS_FACEUP) && !pcard->is_status(STATUS_BATTLE_DESTROYED)
+				if(pcard && (pcard != icard) && pcard->is_position(POS_FACEUP) && !pcard->is_status(STATUS_BATTLE_DESTROYED)
 					&& check_unique_code(pcard))
 					cset->insert(pcard);
 			}
@@ -2965,7 +2961,7 @@ void card::get_unique_target(card_set* cset, int32 controler) {
 		if(unique_location & LOCATION_SZONE) {
 			for(auto cit = player.list_szone.begin(); cit != player.list_szone.end(); ++cit) {
 				card* pcard = *cit;
-				if(pcard && pcard->is_position(POS_FACEUP) && check_unique_code(pcard))
+				if(pcard && (pcard != icard) && pcard->is_position(POS_FACEUP) && check_unique_code(pcard))
 					cset->insert(pcard);
 			}
 		}
