@@ -29,6 +29,7 @@ void chain::set_triggering_place(card* pcard) {
 	else
 		triggering_location = pcard->current.location;
 	triggering_sequence = pcard->current.sequence;
+	triggering_position = pcard->current.position;
 }
 bool tevent::operator< (const tevent& v) const {
 	return memcmp(this, &v, sizeof(tevent)) < 0;
@@ -1594,12 +1595,12 @@ int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int3
 	return FALSE;
 }
 // return: the max release count of mg or all monsters on field
-int32 field::get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_sum, group* mg, uint32 ex) {
+int32 field::get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_sum, group* mg, uint32 ex, uint32 releasable) {
 	uint8 p = target->current.controler;
 	uint32 rcount = 0;
 	for(auto cit = player[p].list_mzone.begin(); cit != player[p].list_mzone.end(); ++cit) {
 		card* pcard = *cit;
-		if(pcard && pcard->is_releasable_by_summon(p, target)) {
+		if(pcard && ((releasable >> pcard->current.sequence) & 1) && pcard->is_releasable_by_summon(p, target)) {
 			if(mg && !mg->has_card(pcard))
 				continue;
 			if(release_list)
@@ -1616,7 +1617,7 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 	uint32 ex_sum_max = 0;
 	for(auto cit = player[1 - p].list_mzone.begin(); cit != player[1 - p].list_mzone.end(); ++cit) {
 		card* pcard = *cit;
-		if(!pcard || !pcard->is_releasable_by_summon(p, target))
+		if(!pcard || !((releasable >> (pcard->current.sequence + 16)) & 1) || !pcard->is_releasable_by_summon(p, target))
 			continue;
 		if (mg && !mg->has_card(pcard))
 			continue;
@@ -2697,12 +2698,12 @@ int32 field::check_other_synchro_material(const card_vector& nsyn, int32 lv, int
 	}
 	return FALSE;
 }
-int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 toplayer, uint32 zone) {
+int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 toplayer, uint32 zone, uint32 releasable) {
 	int32 ex = FALSE;
 	if(toplayer == 1 - pcard->current.controler)
 		ex = TRUE;
 	card_set release_list, ex_list;
-	int32 m = get_summon_release_list(pcard, &release_list, &ex_list, 0, mg, ex);
+	int32 m = get_summon_release_list(pcard, &release_list, &ex_list, 0, mg, ex, releasable);
 	if(max > m)
 		max = m;
 	if(min > max)

@@ -24,6 +24,7 @@ effect::effect(duel* pd) {
 	effect_owner = PLAYER_NONE;
 	card_type = 0;
 	active_type = 0;
+	active_location = 0;
 	active_handler = 0;
 	id = 0;
 	code = 0;
@@ -42,7 +43,6 @@ effect::effect(duel* pd) {
 	label_object = 0;
 	hint_timing[0] = 0;
 	hint_timing[1] = 0;
-	field_ref = 0;
 	status = 0;
 	condition = 0;
 	cost = 0;
@@ -627,6 +627,35 @@ int32 effect::get_value(effect* peffect, uint32 extraargs) {
 		return (int32)value;
 	}
 }
+void effect::get_value(uint32 extraargs, std::vector<int32>* result) {
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->get_function_value(value, 1 + extraargs, result);
+	} else {
+		pduel->lua->params.clear();
+		result->push_back((int32)value);
+	}
+}
+void effect::get_value(card* pcard, uint32 extraargs, std::vector<int32>* result) {
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD, TRUE);
+		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->get_function_value(value, 2 + extraargs, result);
+	} else {
+		pduel->lua->params.clear();
+		result->push_back((int32)value);
+	}
+}
+void effect::get_value(effect* peffect, uint32 extraargs, std::vector<int32>* result) {
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->get_function_value(value, 2 + extraargs, result);
+	} else {
+		pduel->lua->params.clear();
+		result->push_back((int32)value);
+	}
+}
 int32 effect::check_value_condition(uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
@@ -688,4 +717,9 @@ int32 effect::in_range(const chain& ch) {
 	if(type & EFFECT_TYPE_XMATERIAL)
 		return handler->overlay_target ? TRUE : FALSE;
 	return range & ch.triggering_location;
+}
+void effect::set_activate_location() {
+	card* phandler = get_handler();
+	active_location = phandler->current.location;
+	//active_sequence = phandler->current.sequence;
 }
