@@ -2905,7 +2905,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(first_attack.size())
 				core.attackable_cards = first_attack;
 		}
-		core.to_m2 = TRUE;
+		core.to_m2 = (core.duel_options & SPEED_DUEL) ? FALSE : TRUE;
 		core.to_ep = TRUE;
 		if(must_attack.size() || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_M2))
 			core.to_m2 = FALSE;
@@ -4195,6 +4195,11 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			}
 			return FALSE;
 		}
+		if(core.duel_options & SPEED_DUEL) {
+			core.units.begin()->step = 14;
+			adjust_all();
+			return FALSE;
+		}
 		core.skip_m2 = FALSE;
 		if(returns.ivalue[0] == 3) { // End Phase
 			core.skip_m2 = TRUE;
@@ -4924,6 +4929,10 @@ int32 field::refresh_location_info(uint16 step) {
 		effect_set eset;
 		uint32 value;
 		uint32 p;
+		if (core.duel_options & SPEED_DUEL) {
+			player[0].used_location |= 0x1111;
+			player[1].used_location |= 0x1111;
+		}
 		core.units.begin()->arg2 = player[0].disabled_location | (player[1].disabled_location << 16);
 		player[0].disabled_location = 0;
 		player[1].disabled_location = 0;
