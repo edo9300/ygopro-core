@@ -2877,7 +2877,7 @@ int32 card::fusion_check(group* fusion_m, card* cg, uint32 chkf) {
 	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	for (; ecit != single_effect.end(); ++ecit) {
 		peffect = ecit->second;
-		if (!peffect->condition)
+		if (!peffect->condition || peffect->code != EFFECT_FUSION_MATERIAL)
 			continue;
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(fusion_m, PARAM_TYPE_GROUP);
@@ -2900,7 +2900,7 @@ void card::fusion_filter_valid(group* fusion_m, card* cg, uint32 chkf, effect_se
 	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	for (; ecit != single_effect.end(); ++ecit) {
 		peffect = ecit->second;
-		if (!peffect->condition)
+		if (!peffect->condition || peffect->code != EFFECT_FUSION_MATERIAL)
 			continue;
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(fusion_m, PARAM_TYPE_GROUP);
