@@ -857,7 +857,7 @@ int32 scriptlib::card_is_not_tuner(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 type = pcard->get_type();
+	uint32 type = pcard->get_synchro_type();
 	if(!(type & TYPE_TUNER) || pcard->is_affected_by_effect(EFFECT_NONTUNER))
 		lua_pushboolean(L, 1);
 	else
@@ -1755,7 +1755,10 @@ int32 scriptlib::card_is_able_to_remove(lua_State *L) {
 	uint32 p = pcard->pduel->game_field->core.reason_player;
 	if(lua_gettop(L) >= 2)
 		p = lua_tointeger(L, 2);
-	if(pcard->is_removeable(p))
+	uint32 pos = POS_FACEUP;
+	if(lua_gettop(L) >= 3)
+		pos = lua_tointeger(L, 3);
+	if(pcard->is_removeable(p, pos))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -1822,7 +1825,10 @@ int32 scriptlib::card_is_able_to_remove_as_cost(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 p = pcard->pduel->game_field->core.reason_player;
-	if(pcard->is_removeable_as_cost(p))
+	uint32 pos = POS_FACEUP;
+	if (lua_gettop(L) >= 2)
+		pos = lua_tointeger(L, 2);
+	if(pcard->is_removeable_as_cost(p, pos))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -2203,6 +2209,7 @@ int32 scriptlib::card_enable_counter_permit(lua_State *L) {
 		prange = LOCATION_MZONE;
 	else
 		prange = LOCATION_SZONE | LOCATION_FZONE;
+	prange |= LOCATION_GRAVE + LOCATION_REMOVED + LOCATION_EXTRA + LOCATION_OVERLAY + LOCATION_HAND + LOCATION_DECK;
 	effect* peffect = pcard->pduel->new_effect();
 	peffect->owner = pcard;
 	peffect->type = EFFECT_TYPE_SINGLE;
@@ -2248,7 +2255,10 @@ int32 scriptlib::card_is_can_add_counter(lua_State *L) {
 	uint8 singly = FALSE;
 	if(lua_gettop(L) > 3)
 		singly = lua_toboolean(L, 4);
-	lua_pushboolean(L, pcard->is_can_add_counter(pcard->pduel->game_field->core.reason_player, countertype, count, singly));
+	uint8 temp = FALSE;
+	if(lua_gettop(L) > 4)
+		temp = lua_toboolean(L, 5);
+	lua_pushboolean(L, pcard->is_can_add_counter(pcard->pduel->game_field->core.reason_player, countertype, count, singly, temp));
 	return 1;
 }
 int32 scriptlib::card_is_can_remove_counter(lua_State *L) {
