@@ -1093,15 +1093,34 @@ uint32 card::get_attribute() {
 	return attribute;
 }
 uint32 card::get_fusion_attribute(uint8 playerid) {
+	//if (temp.fusattribute != 0xffffffff)
+	//	return temp.fusattribute;
 	effect_set effects;
+	effect_set effects2;
 	filter_effect(EFFECT_CHANGE_FUSION_ATTRIBUTE, &effects);
-	if(!effects.size())
+	filter_effect(EFFECT_ADD_FUSION_ATTRIBUTE, &effects2, FALSE);
+	filter_effect(EFFECT_REMOVE_FUSION_ATTRIBUTE, &effects2);
+	if(!effects.size() && !effects2.size())
 		return get_attribute();
 	uint32 attribute = 0;
+	//temp.fusattribute = data.attribute;
 	for(int32 i = 0; i < effects.size(); ++i) {
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		attribute = effects[i]->get_value(this, 1);
+	//	temp.fusattribute = attribute;
 	}
+	for (int32 i = 0; i < effects2.size(); ++i) {
+		if (effects[i]->code == EFFECT_FUSION_ATTRIBUTE){
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			attribute |= effects[i]->get_value(this, 1);
+		}
+		else{
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			attribute &= ~(effects[i]->get_value(this, 1));
+		}
+	//	temp.fusattribute = attribute;
+	}
+	//temp.fusattribute = 0xffffffff;
 	return attribute;
 }
 // see get_level()
