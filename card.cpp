@@ -403,52 +403,63 @@ int32 card::is_fusion_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
-uint32 card::get_type() {
+uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_TYPE)
 		return assume_value;
 	if(!(current.location & (LOCATION_ONFIELD | LOCATION_HAND | LOCATION_GRAVE)))
 		return data.type;
-	if(current.is_location(LOCATION_PZONE))
+	if(current.is_location(LOCATION_PZONE) && !sumtype)
 		return TYPE_PENDULUM + TYPE_SPELL;
 	if (temp.type != 0xffffffff)
 		return temp.type;
 	effect_set effects;
 	int32 type = data.type;
+	int32 alttype = 0;
 	temp.type = data.type;
 	filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_TYPE, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_TYPE, &effects);
 	for (int32 i = 0; i < effects.size(); ++i) {
-		if (effects[i]->code == EFFECT_ADD_TYPE)
-			type |= effects[i]->get_value(this);
-		else if (effects[i]->code == EFFECT_REMOVE_TYPE)
-			type &= ~(effects[i]->get_value(this));
-		else
-			type = effects[i]->get_value(this);
-		temp.type = type;
+		if (effects[i]->operation && !sumtype)
+			continue;
+		if (effects[i]->operation) {
+			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+				continue;
+			if (effects[i]->code == EFFECT_ADD_TYPE)
+				alttype |= effects[i]->get_value(this);
+			else if (effects[i]->code == EFFECT_REMOVE_TYPE)
+				alttype &= ~(effects[i]->get_value(this));
+			else
+				alttype = effects[i]->get_value(this);
+		} else {
+			if (effects[i]->code == EFFECT_ADD_TYPE)
+				type |= effects[i]->get_value(this);
+			else if (effects[i]->code == EFFECT_REMOVE_TYPE)
+				type &= ~(effects[i]->get_value(this));
+			else
+				type = effects[i]->get_value(this);
+			temp.type = type;
+		}
 	}
+	if(alttype)
+		type = alttype;
 	temp.type = 0xffffffff;
 	return type;
 }
-uint32 card::get_fusion_type() {
-	if(current.location == LOCATION_SZONE && (data.type & TYPE_MONSTER))
-		return data.type;
-	return get_type();
+uint32 card::get_fusion_type(card* scard, int32 playerid) {
+	return get_type(scard, SUMMON_TYPE_FUSION, playerid);
 }
-uint32 card::get_synchro_type() {
-	if(current.location == LOCATION_SZONE && (data.type & TYPE_MONSTER))
-		return data.type;
-	return get_type();
+uint32 card::get_synchro_type(card* scard, int32 playerid) {
+	return get_type(scard, SUMMON_TYPE_SYNCHRO, playerid);
 }
-uint32 card::get_xyz_type() {
-	if(current.location == LOCATION_SZONE && (data.type & TYPE_MONSTER))
-		return data.type;
-	return get_type();
+uint32 card::get_xyz_type(card* scard, int32 playerid) {
+	return get_type(scard, SUMMON_TYPE_XYZ, playerid);
 }
-uint32 card::get_link_type() {
-	if(current.location == LOCATION_SZONE && (data.type & TYPE_MONSTER))
-		return data.type;
-	return get_type();
+uint32 card::get_link_type(card* scard, int32 playerid) {
+	return get_type(scard, SUMMON_TYPE_LINK, playerid);
 }
 // Atk and def are sepcial cases since text atk/def ? are involved.
 // Asuumption: we can only change the atk/def of cards in LOCATION_MZONE.
@@ -3733,10 +3744,10 @@ int32 card::is_can_be_fusion_material(card* fcard) {
 	}
 	return TRUE;
 }
-int32 card::is_can_be_synchro_material(card* scard, card* tuner) {
+int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner) {
 	if(data.type & (TYPE_XYZ | TYPE_LINK) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return FALSE;
-	if(!(get_synchro_type() & TYPE_MONSTER))
+	if(!(get_synchro_type(scard, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(scard && current.location == LOCATION_MZONE && current.controler != scard->current.controler && !is_affected_by_effect(EFFECT_SYNCHRO_MATERIAL))
 		return FALSE;
@@ -3767,10 +3778,10 @@ int32 card::is_can_be_ritual_material(card* scard) {
 	}
 	return TRUE;
 }
-int32 card::is_can_be_xyz_material(card* scard) {
+int32 card::is_can_be_xyz_material(card* scard, uint8 playerid) {
 	if(data.type & TYPE_TOKEN)
 		return FALSE;
-	if(!(get_xyz_type() & TYPE_MONSTER))
+	if(!(get_xyz_type(scard, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
@@ -3781,8 +3792,8 @@ int32 card::is_can_be_xyz_material(card* scard) {
 			return FALSE;
 	return TRUE;
 }
-int32 card::is_can_be_link_material(card* scard) {
-	if(!(get_link_type() & TYPE_MONSTER))
+int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
+	if(!(get_link_type(scard, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;

@@ -155,31 +155,43 @@ int32 scriptlib::card_get_origin_type(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_get_fusion_type(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_fusion_type());
+	card* scard = *(card**)lua_touserdata(L, 2);
+	uint32 playerid = lua_tointeger(L, 3);
+	lua_pushinteger(L, pcard->get_fusion_type(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_synchro_type(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_synchro_type());
+	check_param(L, PARAM_TYPE_CARD, 2);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	card* scard = *(card**)lua_touserdata(L, 2);
+	uint32 playerid = lua_tointeger(L, 3);
+	lua_pushinteger(L, pcard->get_synchro_type(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_xyz_type(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_xyz_type());
+	card* scard = *(card**)lua_touserdata(L, 2);
+	uint32 playerid = lua_tointeger(L, 3);
+	lua_pushinteger(L, pcard->get_xyz_type(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_link_type(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_link_type());
+	check_param(L, PARAM_TYPE_CARD, 2);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	card* scard = *(card**)lua_touserdata(L, 2);
+	uint32 playerid = lua_tointeger(L, 3);
+	lua_pushinteger(L, pcard->get_link_type(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_level(lua_State *L) {
@@ -732,44 +744,56 @@ int32 scriptlib::card_is_type(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_is_fusion_type(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 3);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 ttype = lua_tointeger(L, 2);
-	if(pcard->get_fusion_type() & ttype)
+	card* scard = *(card**)lua_touserdata(L, 3);
+	uint32 playerid = lua_tointeger(L, 4);
+	if(pcard->get_fusion_type(scard, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
 	return 1;
 }
 int32 scriptlib::card_is_synchro_type(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 3);
+	card* pcard = *(card**)lua_touserdata(L, 1);
 	uint32 ttype = lua_tointeger(L, 2);
-	if(pcard->get_synchro_type() & ttype)
+	card* scard = *(card**)lua_touserdata(L, 3);
+	uint32 playerid = lua_tointeger(L, 4);
+	if (pcard->get_synchro_type(scard, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
 	return 1;
 }
 int32 scriptlib::card_is_xyz_type(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 3);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 ttype = lua_tointeger(L, 2);
-	if(pcard->get_xyz_type() & ttype)
+	card* scard = *(card**)lua_touserdata(L, 3);
+	uint32 playerid = lua_tointeger(L, 4);
+	if(pcard->get_xyz_type(scard, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
 	return 1;
 }
 int32 scriptlib::card_is_link_type(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 3);
+	card* pcard = *(card**)lua_touserdata(L, 1);
 	uint32 ttype = lua_tointeger(L, 2);
-	if(pcard->get_link_type() & ttype)
+	card* scard = *(card**)lua_touserdata(L, 3);
+	uint32 playerid = lua_tointeger(L, 4);
+	if (pcard->get_link_type(scard, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -854,10 +878,13 @@ int32 scriptlib::card_is_status(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_is_not_tuner(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 type = pcard->get_synchro_type();
+	card* scard = *(card**)lua_touserdata(L, 2);
+	int32 playerid = lua_tointeger(L, 3);
+	uint32 type = pcard->get_synchro_type(scard, playerid);
 	if(!(type & TYPE_TUNER) || pcard->is_affected_by_effect(EFFECT_NONTUNER))
 		lua_pushboolean(L, 1);
 	else
@@ -2290,6 +2317,7 @@ int32 scriptlib::card_is_can_be_synchro_material(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
 	card* tuner = 0;
+	uint8 playerid = PLAYER_NONE;
 	if(lua_gettop(L) >= 2) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
@@ -2298,7 +2326,10 @@ int32 scriptlib::card_is_can_be_synchro_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 3);
 		tuner = *(card**) lua_touserdata(L, 3);
 	}
-	lua_pushboolean(L, pcard->is_can_be_synchro_material(scard, tuner));
+	if(lua_gettop(L) >= 4) {
+		playerid = lua_tointeger(L, 4);
+	}
+	lua_pushboolean(L, pcard->is_can_be_synchro_material(scard, playerid, tuner));
 	return 1;
 }
 int32 scriptlib::card_is_can_be_ritual_material(lua_State *L) {
@@ -2314,27 +2345,35 @@ int32 scriptlib::card_is_can_be_ritual_material(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_is_can_be_xyz_material(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
-	if(lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
+	if(lua_gettop(L) >= 2) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	lua_pushboolean(L, pcard->is_can_be_xyz_material(scard));
+	uint32 playerid = PLAYER_NONE;
+	if(lua_gettop(L) >= 3) {
+		playerid = lua_tointeger(L, 3);
+	}
+	lua_pushboolean(L, pcard->is_can_be_xyz_material(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_is_can_be_link_material(lua_State *L) {
-	check_param_count(L, 2);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
-	if(lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
+	if(lua_gettop(L) >= 2) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	lua_pushboolean(L, pcard->is_can_be_link_material(scard));
+	uint32 playerid = PLAYER_NONE;
+	if(lua_gettop(L) >= 3) {
+		playerid = lua_tointeger(L, 3);
+	}
+	lua_pushboolean(L, pcard->is_can_be_link_material(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_check_fusion_material(lua_State *L) {

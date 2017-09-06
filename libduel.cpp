@@ -2770,7 +2770,7 @@ int32 scriptlib::duel_select_xyz_material(lua_State *L) {
 		mg = *(group**) lua_touserdata(L, 7);
 	}
 	duel* pduel = scard->pduel;
-	pduel->game_field->get_xyz_material(scard, findex, lv, maxc, mg);
+	pduel->game_field->get_xyz_material(scard, findex, lv, maxc, mg, scard->current.controler);
 	scard->pduel->game_field->add_process(PROCESSOR_SELECT_XMATERIAL, 0, 0, (group*)scard, playerid + (lv << 16), minc + (maxc << 16));
 	return lua_yield(L, 0);
 }

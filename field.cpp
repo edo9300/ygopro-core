@@ -1716,12 +1716,12 @@ void field::ritual_release(card_set* material) {
 	release(&rel, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player);
 	send_to(&rem, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, POS_FACEUP);
 }
-void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, group* mg) {
+void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, group* mg, uint32 playerid) {
 	core.xmaterial_lst.clear();
 	uint32 xyz_level;
 	if(mg) {
 		for (auto cit = mg->container.begin(); cit != mg->container.end(); ++cit) {
-			if((*cit)->is_can_be_xyz_material(scard) && (xyz_level = (*cit)->check_xyz_level(scard, lv))
+			if((*cit)->is_can_be_xyz_material(scard, playerid) && (xyz_level = (*cit)->check_xyz_level(scard, lv))
 					&& (findex == 0 || pduel->lua->check_matching(*cit, findex, 0)))
 				core.xmaterial_lst.insert(std::make_pair((xyz_level >> 12) & 0xf, *cit));
 		}
@@ -1729,13 +1729,13 @@ void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, g
 		int32 playerid = scard->current.controler;
 		for(auto cit = player[playerid].list_mzone.begin(); cit != player[playerid].list_mzone.end(); ++cit) {
 			card* pcard = *cit;
-			if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_xyz_material(scard) && (xyz_level = pcard->check_xyz_level(scard, lv))
+			if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_xyz_material(scard, playerid) && (xyz_level = pcard->check_xyz_level(scard, lv))
 					&& (findex == 0 || pduel->lua->check_matching(pcard, findex, 0)))
 				core.xmaterial_lst.insert(std::make_pair((xyz_level >> 12) & 0xf, pcard));
 		}
 		for(auto cit = player[1 - playerid].list_mzone.begin(); cit != player[1 - playerid].list_mzone.end(); ++cit) {
 			card* pcard = *cit;
-			if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_xyz_material(scard) && (xyz_level = pcard->check_xyz_level(scard, lv))
+			if(pcard && pcard->is_position(POS_FACEUP) && pcard->is_can_be_xyz_material(scard, playerid) && (xyz_level = pcard->check_xyz_level(scard, lv))
 			        && pcard->is_affected_by_effect(EFFECT_XYZ_MATERIAL) && (findex == 0 || pduel->lua->check_matching(pcard, findex, 0)))
 				core.xmaterial_lst.insert(std::make_pair((xyz_level >> 12) & 0xf, pcard));
 		}
@@ -2471,7 +2471,7 @@ int32 field::check_synchro_material(card* pcard, int32 findex1, int32 findex2, i
 	return FALSE;
 }
 int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32 findex2, int32 min, int32 max, card* smat, group* mg) {
-	if(!tuner || !tuner->is_position(POS_FACEUP) || !(tuner->get_synchro_type() & TYPE_TUNER) || !tuner->is_can_be_synchro_material(pcard))
+	if(!tuner || !tuner->is_position(POS_FACEUP) || !(tuner->get_synchro_type(pcard, pcard->current.controler) & TYPE_TUNER) || !tuner->is_can_be_synchro_material(pcard, pcard->current.controler))
 		return FALSE;
 	effect* pcheck = tuner->is_affected_by_effect(EFFECT_SYNCHRO_CHECK);
 	if(pcheck)
@@ -2543,7 +2543,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 	if(smat) {
 		if(pcheck)
 			pcheck->get_value(smat);
-		if(!smat->is_position(POS_FACEUP) || !smat->is_can_be_synchro_material(pcard, tuner) || !pduel->lua->check_matching(smat, findex2, 0)) {
+		if(!smat->is_position(POS_FACEUP) || !smat->is_can_be_synchro_material(pcard, pcard->current.controler, tuner) || !pduel->lua->check_matching(smat, findex2, 0)) {
 			pduel->restore_assumes();
 			return FALSE;
 		}
@@ -2578,7 +2578,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 	if(mg) {
 		for(auto cit = mg->container.begin(); cit != mg->container.end(); ++cit) {
 			card* pm = *cit;
-			if(pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, tuner))
+			if(pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, pcard->current.controler, tuner))
 				continue;
 			if(ptuner && ptuner->target) {
 				pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);
@@ -2605,7 +2605,7 @@ int32 field::check_tuner_material(card* pcard, card* tuner, int32 findex1, int32
 			cv.insert(cv.end(), player[playerid].list_hand.begin(), player[playerid].list_hand.end());
 		for(auto cit = cv.begin(); cit != cv.end(); ++cit) {
 			card* pm = *cit;
-			if(!pm || pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, tuner))
+			if(!pm || pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, pcard->current.controler, tuner))
 				continue;
 			if(ptuner && ptuner->target) {
 				pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);
@@ -2797,8 +2797,8 @@ int32 field::check_with_sum_greater_limit_m(const card_vector& mats, int32 acc, 
 	return FALSE;
 }
 int32 field::check_xyz_material(card* scard, int32 findex, int32 lv, int32 min, int32 max, group* mg) {
-	get_xyz_material(scard, findex, lv, max, mg);
 	int32 playerid = scard->current.controler;
+	get_xyz_material(scard, findex, lv, max, mg, playerid);
 	int32 ct = get_spsummonable_count(scard, playerid);
 	card_set linked_cards;
 	if(ct <= 0) {

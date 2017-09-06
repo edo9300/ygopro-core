@@ -4823,7 +4823,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		if(mg) {
 			for(auto cit = mg->container.begin(); cit != mg->container.end(); ++cit) {
 				card* pm = *cit;
-				if(pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, tuner))
+				if(pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, playerid, tuner))
 					continue;
 				if(ptuner && ptuner->target) {
 					pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);
@@ -4850,7 +4850,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 				cv.insert(cv.end(), player[playerid].list_hand.begin(), player[playerid].list_hand.end());
 			for(auto cit = cv.begin(); cit != cv.end(); ++cit) {
 				card* pm = *cit;
-				if(!pm || pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, tuner))
+				if(!pm || pm == tuner || pm == smat || !pm->is_can_be_synchro_material(pcard, playerid, tuner))
 					continue;
 				if(ptuner && ptuner->target) {
 					pduel->lua->add_param(ptuner, PARAM_TYPE_EFFECT);

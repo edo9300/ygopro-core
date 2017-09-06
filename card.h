@@ -196,11 +196,11 @@ public:
 	int32 is_origin_set_card(uint32 set_code);
 	int32 is_pre_set_card(uint32 set_code);
 	int32 is_fusion_set_card(uint32 set_code);
-	uint32 get_type();
-	uint32 get_fusion_type();
-	uint32 get_synchro_type();
-	uint32 get_xyz_type();
-	uint32 get_link_type();
+	uint32 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
+	uint32 get_fusion_type(card* scard, int32 playerid);
+	uint32 get_synchro_type(card* scard, int32 playerid);
+	uint32 get_xyz_type(card* scard, int32 playerid);
+	uint32 get_link_type(card* scard, int32 playerid);
 	int32 get_base_attack();
 	int32 get_attack();
 	int32 get_base_defense();
@@ -336,10 +336,10 @@ public:
 	int32 is_capable_be_battle_target(card* pcard);
 	int32 is_capable_be_effect_target(effect* peffect, uint8 playerid);
 	int32 is_can_be_fusion_material(card* fcard);
-	int32 is_can_be_synchro_material(card* scard, card* tuner = 0);
+	int32 is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner = 0);
 	int32 is_can_be_ritual_material(card* scard);
-	int32 is_can_be_xyz_material(card* scard);
-	int32 is_can_be_link_material(card* scard);
+	int32 is_can_be_xyz_material(card* scard, uint8 playerid);
+	int32 is_can_be_link_material(card* scard, uint8 playerid);
 };
 
 //Locations
