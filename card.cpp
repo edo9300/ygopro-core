@@ -449,18 +449,6 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	temp.type = 0xffffffff;
 	return type;
 }
-uint32 card::get_fusion_type(card* scard, int32 playerid) {
-	return get_type(scard, SUMMON_TYPE_FUSION, playerid);
-}
-uint32 card::get_synchro_type(card* scard, int32 playerid) {
-	return get_type(scard, SUMMON_TYPE_SYNCHRO, playerid);
-}
-uint32 card::get_xyz_type(card* scard, int32 playerid) {
-	return get_type(scard, SUMMON_TYPE_XYZ, playerid);
-}
-uint32 card::get_link_type(card* scard, int32 playerid) {
-	return get_type(scard, SUMMON_TYPE_LINK, playerid);
-}
 // Atk and def are sepcial cases since text atk/def ? are involved.
 // Asuumption: we can only change the atk/def of cards in LOCATION_MZONE.
 int32 card::get_base_attack() {
@@ -1064,7 +1052,7 @@ uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 	return 0;
 }
 // see get_level()
-uint32 card::get_attribute() {
+uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_ATTRIBUTE)
 		return assume_value;
 	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER))
@@ -1074,62 +1062,106 @@ uint32 card::get_attribute() {
 	effect_set effects;
 	effect_set effects2;
 	int32 attribute = data.attribute;
+	int32 altattribute = 0;
 	temp.attribute = data.attribute;
 	filter_effect(EFFECT_ADD_ATTRIBUTE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_ATTRIBUTE, &effects);
 	filter_effect(EFFECT_CHANGE_ATTRIBUTE, &effects2);
 	for (int32 i = 0; i < effects.size(); ++i) {
-		if (effects[i]->code == EFFECT_ADD_ATTRIBUTE)
-			attribute |= effects[i]->get_value(this);
-		else
-			attribute &= ~(effects[i]->get_value(this));
-		temp.attribute = attribute;
+		if (effects[i]->operation && !sumtype)
+			continue;
+		if (effects[i]->operation) {
+			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+				continue;
+			if (effects[i]->code == EFFECT_ADD_ATTRIBUTE)
+				altattribute |= effects[i]->get_value(this);
+			else
+				altattribute &= ~(effects[i]->get_value(this));
+		} else {
+			if (effects[i]->code == EFFECT_ADD_ATTRIBUTE)
+				attribute |= effects[i]->get_value(this);
+			else
+				attribute &= ~(effects[i]->get_value(this));
+			temp.attribute = attribute;
+		}
 	}
 	for (int32 i = 0; i < effects2.size(); ++i) {
-		attribute = effects2[i]->get_value(this);
-		temp.attribute = attribute;
+		if (effects[i]->operation && !sumtype)
+			continue;
+		if (effects[i]->operation) {
+			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+				continue;
+			altattribute = effects2[i]->get_value(this);
+		} else {
+			attribute = effects2[i]->get_value(this);
+			temp.attribute = attribute;
+		}
 	}
+	if(altattribute)
+		attribute = altattribute;
 	temp.attribute = 0xffffffff;
 	return attribute;
 }
-uint32 card::get_fusion_attribute(uint8 playerid) {
-	effect_set effects;
-	filter_effect(EFFECT_CHANGE_FUSION_ATTRIBUTE, &effects);
-	if(!effects.size())
-		return get_attribute();
-	uint32 attribute = 0;
-	for(int32 i = 0; i < effects.size(); ++i) {
-		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		attribute = effects[i]->get_value(this, 1);
-	}
-	return attribute;
-}
 // see get_level()
-uint32 card::get_race() {
+uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_RACE)
 		return assume_value;
-	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER))
+	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER) && !sumtype)
 		return 0;
 	if (temp.race != 0xffffffff)
 		return temp.race;
 	effect_set effects;
 	effect_set effects2;
 	int32 race = data.race;
+	int32 altrace = 0;
 	temp.race = data.race;
 	filter_effect(EFFECT_ADD_RACE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_RACE, &effects);
 	filter_effect(EFFECT_CHANGE_RACE, &effects2);
 	for (int32 i = 0; i < effects.size(); ++i) {
-		if (effects[i]->code == EFFECT_ADD_RACE)
-			race |= effects[i]->get_value(this);
-		else
-			race &= ~(effects[i]->get_value(this));
-		temp.race = race;
+		if (effects[i]->operation && !sumtype)
+			continue;
+		if (effects[i]->operation) {
+			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+				continue;
+			if (effects[i]->code == EFFECT_ADD_RACE)
+				altrace |= effects[i]->get_value(this);
+			else
+				altrace &= ~(effects[i]->get_value(this));
+		} else {
+			if (effects[i]->code == EFFECT_ADD_RACE)
+				race |= effects[i]->get_value(this);
+			else
+				race &= ~(effects[i]->get_value(this));
+			temp.race = race;
+		}
 	}
 	for (int32 i = 0; i < effects2.size(); ++i) {
-		race = effects2[i]->get_value(this);
-		temp.race = race;
+		if (effects[i]->operation && !sumtype)
+			continue;
+		if (effects[i]->operation) {
+			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+				continue;
+			altrace = effects2[i]->get_value(this);
+		} else {
+			race = effects2[i]->get_value(this);
+			temp.race = race;
+		}
 	}
+	if(altrace)
+		race = altrace;
 	temp.race = 0xffffffff;
 	return race;
 }
@@ -3747,7 +3779,7 @@ int32 card::is_can_be_fusion_material(card* fcard) {
 int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner) {
 	if(data.type & (TYPE_XYZ | TYPE_LINK) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return FALSE;
-	if(!(get_synchro_type(scard, playerid) & TYPE_MONSTER))
+	if(!(get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(scard && current.location == LOCATION_MZONE && current.controler != scard->current.controler && !is_affected_by_effect(EFFECT_SYNCHRO_MATERIAL))
 		return FALSE;
@@ -3781,7 +3813,7 @@ int32 card::is_can_be_ritual_material(card* scard) {
 int32 card::is_can_be_xyz_material(card* scard, uint8 playerid) {
 	if(data.type & TYPE_TOKEN)
 		return FALSE;
-	if(!(get_xyz_type(scard, playerid) & TYPE_MONSTER))
+	if(!(get_type(scard, SUMMON_TYPE_XYZ, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
@@ -3793,7 +3825,7 @@ int32 card::is_can_be_xyz_material(card* scard, uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
-	if(!(get_link_type(scard, playerid) & TYPE_MONSTER))
+	if(!(get_type(scard, SUMMON_TYPE_LINK, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;

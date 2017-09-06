@@ -197,10 +197,6 @@ public:
 	int32 is_pre_set_card(uint32 set_code);
 	int32 is_fusion_set_card(uint32 set_code);
 	uint32 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
-	uint32 get_fusion_type(card* scard, int32 playerid);
-	uint32 get_synchro_type(card* scard, int32 playerid);
-	uint32 get_xyz_type(card* scard, int32 playerid);
-	uint32 get_link_type(card* scard, int32 playerid);
 	int32 get_base_attack();
 	int32 get_attack();
 	int32 get_base_defense();
@@ -211,9 +207,8 @@ public:
 	uint32 get_synchro_level(card* pcard);
 	uint32 get_ritual_level(card* pcard);
 	uint32 check_xyz_level(card* pcard, uint32 lv);
-	uint32 get_attribute();
-	uint32 get_fusion_attribute(uint8 playerid);
-	uint32 get_race();
+	uint32 get_attribute(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
+	uint32 get_race(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
 	uint32 get_lscale();
 	uint32 get_rscale();
 	uint32 get_link_marker();

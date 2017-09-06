@@ -161,7 +161,7 @@ int32 scriptlib::card_get_fusion_type(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = *(card**)lua_touserdata(L, 2);
 	uint32 playerid = lua_tointeger(L, 3);
-	lua_pushinteger(L, pcard->get_fusion_type(scard, playerid));
+	lua_pushinteger(L, pcard->get_type(scard, SUMMON_TYPE_FUSION, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_synchro_type(lua_State *L) {
@@ -171,7 +171,7 @@ int32 scriptlib::card_get_synchro_type(lua_State *L) {
 	card* pcard = *(card**)lua_touserdata(L, 1);
 	card* scard = *(card**)lua_touserdata(L, 2);
 	uint32 playerid = lua_tointeger(L, 3);
-	lua_pushinteger(L, pcard->get_synchro_type(scard, playerid));
+	lua_pushinteger(L, pcard->get_type(scard, SUMMON_TYPE_SYNCHRO, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_xyz_type(lua_State *L) {
@@ -181,7 +181,7 @@ int32 scriptlib::card_get_xyz_type(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = *(card**)lua_touserdata(L, 2);
 	uint32 playerid = lua_tointeger(L, 3);
-	lua_pushinteger(L, pcard->get_xyz_type(scard, playerid));
+	lua_pushinteger(L, pcard->get_type(scard, SUMMON_TYPE_LINK, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_link_type(lua_State *L) {
@@ -191,7 +191,7 @@ int32 scriptlib::card_get_link_type(lua_State *L) {
 	card* pcard = *(card**)lua_touserdata(L, 1);
 	card* scard = *(card**)lua_touserdata(L, 2);
 	uint32 playerid = lua_tointeger(L, 3);
-	lua_pushinteger(L, pcard->get_link_type(scard, playerid));
+	lua_pushinteger(L, pcard->get_type(scard, SUMMON_TYPE_LINK, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_level(lua_State *L) {
@@ -405,7 +405,20 @@ int32 scriptlib::card_get_attribute(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_attribute());
+	card* scard = 0;
+	uint32 sumtype = 0;
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 1) {
+		check_param(L, PARAM_TYPE_CARD, 2);
+		scard = *(card**)lua_touserdata(L, 2);
+	}
+	if (lua_gettop(L) > 2)
+		sumtype = lua_tointeger(L, 3);
+	if (lua_gettop(L) > 3)
+		playerid = lua_tointeger(L, 4);
+	else if (sumtype == SUMMON_TYPE_FUSION)
+		playerid = pcard->pduel->game_field->core.reason_player;
+	lua_pushinteger(L, pcard->get_attribute(scard, sumtype, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_origin_attribute(lua_State *L) {
@@ -419,22 +432,37 @@ int32 scriptlib::card_get_origin_attribute(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_get_fusion_attribute(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 3);
 	card* pcard = *(card**)lua_touserdata(L, 1);
 	int32 playerid = PLAYER_NONE;
-	if(lua_gettop(L) > 1 && !lua_isnil(L, 2))
+	if(!lua_isnil(L, 2))
 		playerid = lua_tointeger(L, 2);
 	else
 		playerid = pcard->pduel->game_field->core.reason_player;
-	lua_pushinteger(L, pcard->get_fusion_attribute(playerid));
+	card* scard = *(card**)lua_touserdata(L, 3);
+	lua_pushinteger(L, pcard->get_attribute(scard, SUMMON_TYPE_FUSION, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_race(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_race());
+	card* scard = 0;
+	uint32 sumtype = 0;
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 1) {
+		check_param(L, PARAM_TYPE_CARD, 2);
+		scard = *(card**)lua_touserdata(L, 2);
+	}
+	if (lua_gettop(L) > 2)
+		sumtype = lua_tointeger(L, 3);
+	if (lua_gettop(L) > 3)
+		playerid = lua_tointeger(L, 4);
+	else if (sumtype == SUMMON_TYPE_FUSION)
+		playerid = pcard->pduel->game_field->core.reason_player;
+	lua_pushinteger(L, pcard->get_race(scard, sumtype, playerid));
 	return 1;
 }
 int32 scriptlib::card_get_origin_race(lua_State *L) {
@@ -751,7 +779,7 @@ int32 scriptlib::card_is_fusion_type(lua_State *L) {
 	uint32 ttype = lua_tointeger(L, 2);
 	card* scard = *(card**)lua_touserdata(L, 3);
 	uint32 playerid = lua_tointeger(L, 4);
-	if(pcard->get_fusion_type(scard, playerid) & ttype)
+	if(pcard->get_type(scard, SUMMON_TYPE_FUSION, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -765,7 +793,7 @@ int32 scriptlib::card_is_synchro_type(lua_State *L) {
 	uint32 ttype = lua_tointeger(L, 2);
 	card* scard = *(card**)lua_touserdata(L, 3);
 	uint32 playerid = lua_tointeger(L, 4);
-	if (pcard->get_synchro_type(scard, playerid) & ttype)
+	if (pcard->get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -779,7 +807,7 @@ int32 scriptlib::card_is_xyz_type(lua_State *L) {
 	uint32 ttype = lua_tointeger(L, 2);
 	card* scard = *(card**)lua_touserdata(L, 3);
 	uint32 playerid = lua_tointeger(L, 4);
-	if(pcard->get_xyz_type(scard, playerid) & ttype)
+	if(pcard->get_type(scard, SUMMON_TYPE_XYZ, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -793,7 +821,7 @@ int32 scriptlib::card_is_link_type(lua_State *L) {
 	uint32 ttype = lua_tointeger(L, 2);
 	card* scard = *(card**)lua_touserdata(L, 3);
 	uint32 playerid = lua_tointeger(L, 4);
-	if (pcard->get_link_type(scard, playerid) & ttype)
+	if (pcard->get_type(scard, SUMMON_TYPE_LINK, playerid) & ttype)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -804,7 +832,20 @@ int32 scriptlib::card_is_race(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 trace = lua_tointeger(L, 2);
-	if(pcard->get_race() & trace)
+	card* scard = 0;
+	uint32 sumtype = 0;
+	uint32 playerid = PLAYER_NONE;
+	if(lua_gettop(L) > 2) {
+		check_param(L, PARAM_TYPE_CARD, 3);
+		scard = *(card**)lua_touserdata(L, 3);
+	}
+	if(lua_gettop(L) > 3)
+		sumtype = lua_tointeger(L, 4);
+	if(lua_gettop(L) > 4)
+		playerid = lua_tointeger(L, 5);
+	else if(sumtype==SUMMON_TYPE_FUSION)
+		playerid = pcard->pduel->game_field->core.reason_player;
+	if(pcard->get_race(scard, sumtype, playerid) & trace)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -815,23 +856,20 @@ int32 scriptlib::card_is_attribute(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 tattrib = lua_tointeger(L, 2);
-	if(pcard->get_attribute() & tattrib)
-		lua_pushboolean(L, 1);
-	else
-		lua_pushboolean(L, 0);
-	return 1;
-}
-int32 scriptlib::card_is_fusion_attribute(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	uint32 tattrib = lua_tointeger(L, 2);
-	int32 playerid = PLAYER_NONE;
-	if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
-		playerid = lua_tointeger(L, 3);
-	else
+	card* scard = 0;
+	uint32 sumtype = 0;
+	uint32 playerid = PLAYER_NONE;
+	if(lua_gettop(L) > 2) {
+		check_param(L, PARAM_TYPE_CARD, 3);
+		scard = *(card**)lua_touserdata(L, 3);
+	}
+	if(lua_gettop(L) > 3)
+		sumtype = lua_tointeger(L, 4);
+	if(lua_gettop(L) > 4)
+		playerid = lua_tointeger(L, 5);
+	else if(sumtype==SUMMON_TYPE_FUSION)
 		playerid = pcard->pduel->game_field->core.reason_player;
-	if(pcard->get_fusion_attribute(playerid) & tattrib)
+	if(pcard->get_attribute(scard, sumtype, playerid) & tattrib)
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -884,7 +922,7 @@ int32 scriptlib::card_is_not_tuner(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = *(card**)lua_touserdata(L, 2);
 	int32 playerid = lua_tointeger(L, 3);
-	uint32 type = pcard->get_synchro_type(scard, playerid);
+	uint32 type = pcard->get_type(scard, SUMMON_TYPE_SYNCHRO, playerid);
 	if(!(type & TYPE_TUNER) || pcard->is_affected_by_effect(EFFECT_NONTUNER))
 		lua_pushboolean(L, 1);
 	else
