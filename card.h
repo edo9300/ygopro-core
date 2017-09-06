@@ -181,11 +181,7 @@ public:
 	uint32 get_origin_set_card();
 	uint32 get_pre_set_card();
 	uint32 get_fusion_set_card();
-	uint32 get_type();
-	uint32 get_fusion_type();
-	uint32 get_synchro_type();
-	uint32 get_xyz_type();
-	uint32 get_link_type();
+	uint32 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
 	int32 get_base_attack();
 	int32 get_attack();
 	int32 get_base_defense();

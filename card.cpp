@@ -478,7 +478,7 @@ uint32 card::get_fusion_set_card() {
 	}
 	return setcode;
 }
-uint32 card::get_type() {
+uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_TYPE)
 		return assume_value;
 	if(!(current.location & (LOCATION_ONFIELD | LOCATION_HAND | LOCATION_GRAVE)))
