@@ -51,6 +51,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetLinkedGroup", scriptlib::card_get_linked_group },
 	{ "GetLinkedGroupCount", scriptlib::card_get_linked_group_count },
 	{ "GetLinkedZone", scriptlib::card_get_linked_zone },
+	{ "GetFreeLinkedZone", scriptlib::card_get_free_linked_zone },
 	{ "GetMutualLinkedGroup", scriptlib::card_get_mutual_linked_group },
 	{ "GetMutualLinkedGroupCount", scriptlib::card_get_mutual_linked_group_count },
 	{ "GetMutualLinkedZone", scriptlib::card_get_mutual_linked_zone },
@@ -107,7 +108,6 @@ static const struct luaL_Reg cardlib[] = {
 	{ "IsLinkType", scriptlib::card_is_link_type },
 	{ "IsRace", scriptlib::card_is_race },
 	{ "IsAttribute", scriptlib::card_is_attribute },
-	{ "IsFusionAttribute", scriptlib::card_is_fusion_attribute },
 	{ "IsReason", scriptlib::card_is_reason },
 	{ "IsSummonType", scriptlib::card_is_summon_type },
 	{ "IsStatus", scriptlib::card_is_status },
@@ -150,6 +150,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "CheckActivateEffect", scriptlib::card_check_activate_effect },
 	{ "RegisterEffect", scriptlib::card_register_effect },
 	{ "IsHasEffect", scriptlib::card_is_has_effect },
+	{ "GetCardEffect", scriptlib::card_get_card_effect },
 	{ "ResetEffect", scriptlib::card_reset_effect },
 	{ "GetEffectCount", scriptlib::card_get_effect_count },
 	{ "RegisterFlagEffect", scriptlib::card_register_flag_effect },
@@ -212,6 +213,8 @@ static const struct luaL_Reg cardlib[] = {
 	{ "IsLevelAbove", scriptlib::card_is_level_above },
 	{ "IsRankBelow", scriptlib::card_is_rank_below },
 	{ "IsRankAbove", scriptlib::card_is_rank_above },
+	{ "IsLinkBelow", scriptlib::card_is_link_below },
+	{ "IsLinkAbove", scriptlib::card_is_link_above },
 	{ "IsAttackBelow", scriptlib::card_is_attack_below },
 	{ "IsAttackAbove", scriptlib::card_is_attack_above },
 	{ "IsDefenseBelow", scriptlib::card_is_defense_below },
@@ -325,6 +328,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "FilterCount", scriptlib::group_filter_count },
 	{ "FilterSelect", scriptlib::group_filter_select },
 	{ "Select", scriptlib::group_select },
+	{ "SelectUnselect", scriptlib::group_select_unselect },
 	{ "RandomSelect", scriptlib::group_random_select },
 	{ "IsExists", scriptlib::group_is_exists },
 	{ "CheckWithSumEqual", scriptlib::group_check_with_sum_equal },
@@ -517,7 +521,10 @@ static const struct luaL_Reg duellib[] = {
 	{ "GetDiceResult", scriptlib::duel_get_dice_result },
 	{ "SetCoinResult", scriptlib::duel_set_coin_result },
 	{ "SetDiceResult", scriptlib::duel_set_dice_result },
+	{ "IsDuelType", scriptlib::duel_is_duel_type },
+	{ "GetMasterRule", scriptlib::duel_get_master_rule },
 	{ "IsPlayerAffectedByEffect", scriptlib::duel_is_player_affected_by_effect },
+	{ "GetPlayerEffect", scriptlib::duel_get_player_effect },
 	{ "IsPlayerCanDraw", scriptlib::duel_is_player_can_draw },
 	{ "IsPlayerCanDiscardDeck", scriptlib::duel_is_player_can_discard_deck },
 	{ "IsPlayerCanDiscardDeckAsCost", scriptlib::duel_is_player_can_discard_deck_as_cost },
@@ -542,8 +549,11 @@ static const struct luaL_Reg duellib[] = {
 	{ "GetBattledCount", scriptlib::duel_get_battled_count },
 	{ "IsAbleToEnterBP", scriptlib::duel_is_able_to_enter_bp },
 	{ "VenomSwampCheck", scriptlib::duel_venom_swamp_check },
+	{ "TagSwap", scriptlib::duel_tag_swap },
 	{ "SwapDeckAndGrave", scriptlib::duel_swap_deck_and_grave },
 	{ "MajesticCopy", scriptlib::duel_majestic_copy },
+	{ "GetRandomNumber", scriptlib::duel_get_random_number },
+	{ "AssumeReset", scriptlib::duel_assume_reset },
 	{ NULL, NULL }
 };
 
@@ -798,7 +808,7 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	}
 	params.clear();
 }
-int32 interpreter::call_function(int32 f, uint32 param_count, uint32 ret_count) {
+int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 	if (!f) {
 		sprintf(pduel->strbuffer, "\"CallFunction\": attempt to call a null function.");
 		handle_message(pduel, 1);
@@ -842,7 +852,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, uint32 ret_count) 
 	}
 	return OPERATION_SUCCESS;
 }
-int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, uint32 ret_count) {
+int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count) {
 	if (param_count != params.size()) {
 		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->data.code, f);
 		handle_message(pduel, 1);
@@ -882,7 +892,7 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	}
 	return OPERATION_SUCCESS;
 }
-int32 interpreter::call_code_function(uint32 code, char* f, uint32 param_count, uint32 ret_count) {
+int32 interpreter::call_code_function(uint32 code, char* f, uint32 param_count, int32 ret_count) {
 	if (param_count != params.size()) {
 		sprintf(pduel->strbuffer, "\"CallCodeFunction\": incorrect parameter count");
 		handle_message(pduel, 1);
@@ -1042,6 +1052,36 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count) {
 		pduel->restore_assumes();
 	}
 	return OPERATION_FAIL;
+}
+int32 interpreter::get_function_value(int32 f, uint32 param_count, std::vector<int32>* result) {
+	int32 is_success = OPERATION_FAIL;
+	if(!f) {
+		params.clear();
+		return is_success;
+	}
+	int32 stack_top = lua_gettop(current_state);
+	no_action++;
+	call_depth++;
+	if (call_function(f, param_count, LUA_MULTRET)) {
+		int32 stack_newtop = lua_gettop(current_state);
+		for (int32 index = stack_top + 1; index <= stack_newtop; ++index) {
+			int32 return_value = 0;
+			if (lua_isboolean(current_state, index))
+				return_value = lua_toboolean(current_state, index);
+			else
+				return_value = lua_tointeger(current_state, index);
+			result->push_back(return_value);
+		}
+		lua_settop(current_state, stack_top);
+		is_success = OPERATION_SUCCESS;
+	}
+	no_action--;
+	call_depth--;
+	if(call_depth == 0) {
+		pduel->release_script_group();
+		pduel->restore_assumes();
+	}
+	return is_success;
 }
 int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_value, uint16 step) {
 	*yield_value = 0;
