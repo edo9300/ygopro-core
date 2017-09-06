@@ -403,7 +403,7 @@ int32 card::is_fusion_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
-uint32 card::get_set_card() {
+uint64 card::get_set_card() {
 	uint32 code = get_code();
 	uint64 setcode = 0;
 	if (code == data.code) {
@@ -431,10 +431,10 @@ uint32 card::get_set_card() {
 	}
 	return setcode;
 }
-uint32 card::get_origin_set_card() {
+uint64 card::get_origin_set_card() {
 	return data.setcode;
 }
-uint32 card::get_pre_set_card() {
+uint64 card::get_pre_set_card() {
 	uint32 code = previous.code;
 	uint64 setcode = 0;
 	if (code == data.code) {
@@ -460,7 +460,7 @@ uint32 card::get_pre_set_card() {
 	}
 	return setcode;
 }
-uint32 card::get_fusion_set_card() {
+uint64 card::get_fusion_set_card() {
 	uint64 setcode = get_set_card();
 	effect_set eset;
 	filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
