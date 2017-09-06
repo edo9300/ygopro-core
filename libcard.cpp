@@ -2117,6 +2117,30 @@ int32 scriptlib::card_is_rank_above(lua_State *L) {
 		lua_pushboolean(L, pcard->get_rank() >= rnk);
 	return 1;
 }
+int32 scriptlib::card_is_link_below(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 lnk = lua_tointeger(L, 2);
+	if(!(pcard->data.type & TYPE_LINK) || (pcard->status & STATUS_NO_LEVEL)
+	        || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
+		lua_pushboolean(L, 0);
+	else
+		lua_pushboolean(L, pcard->get_link() <= lnk);
+	return 1;
+}
+int32 scriptlib::card_is_link_above(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 lnk = lua_tointeger(L, 2);
+	if(!(pcard->data.type & TYPE_LINK) || (pcard->status & STATUS_NO_LEVEL)
+	        || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
+		lua_pushboolean(L, 0);
+	else
+		lua_pushboolean(L, pcard->get_link() >= lnk);
+	return 1;
+}
 int32 scriptlib::card_is_attack_below(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -2318,10 +2342,10 @@ int32 scriptlib::card_is_can_add_counter(lua_State *L) {
 	uint8 singly = FALSE;
 	if(lua_gettop(L) > 3)
 		singly = lua_toboolean(L, 4);
-	uint32 temploc = 0;
+	uint32 loc = 0;
 	if(lua_gettop(L) > 4)
-		temploc = lua_tointeger(L, 5);
-	lua_pushboolean(L, pcard->is_can_add_counter(pcard->pduel->game_field->core.reason_player, countertype, count, singly, temploc));
+		loc = lua_tointeger(L, 5);
+	lua_pushboolean(L, pcard->is_can_add_counter(pcard->pduel->game_field->core.reason_player, countertype, count, singly, loc));
 	return 1;
 }
 int32 scriptlib::card_is_can_remove_counter(lua_State *L) {
