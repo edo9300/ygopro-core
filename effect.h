@@ -42,17 +42,19 @@ public:
 	uint16 range;
 	uint16 s_range;
 	uint16 o_range;
+	uint8 count_limit;
+	uint8 count_limit_max;
 	uint16 reset_count;
 	uint32 reset_flag;
 	uint32 count_code;
 	uint32 category;
-	uint32 label;
 	uint32 hint_timing[2];
 	uint32 card_type;
 	uint32 active_type;
+	uint32 active_location;
 	card* active_handler;
-	uint16 field_ref;
 	uint16 status;
+	uint32 label;
 	void* label_object;
 	int32 condition;
 	int32 cost;
@@ -83,6 +85,9 @@ public:
 	int32 get_value(uint32 extraargs = 0);
 	int32 get_value(card* pcard, uint32 extraargs = 0);
 	int32 get_value(effect* peffect, uint32 extraargs = 0);
+	void get_value(uint32 extraargs, std::vector<int32>* result);
+	void get_value(card* pcard, uint32 extraargs, std::vector<int32>* result);
+	void get_value(effect* peffect, uint32 extraargs, std::vector<int32>* result);
 	int32 check_value_condition(uint32 extraargs = 0);
 	int32 get_speed();
 	card* get_owner() const;
@@ -91,6 +96,7 @@ public:
 	uint8 get_handler_player();
 	int32 in_range(card* pcard);
 	int32 in_range(const chain& ch);
+	void set_activate_location();
 	bool is_flag(effect_flag flag) const {
 		return !!(this->flag[0] & flag);
 	}
@@ -316,7 +322,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_EXTRA_RELEASE			153
 #define EFFECT_TRIBUTE_LIMIT			154
 #define EFFECT_EXTRA_RELEASE_SUM		155
-//#define EFFECT_TRIPLE_TRIBUTE			156
+#define EFFECT_TRIPLE_TRIBUTE			156
 #define EFFECT_PUBLIC					160
 #define EFFECT_COUNTER_PERMIT			0x10000
 #define EFFECT_COUNTER_LIMIT			0x20000
@@ -373,6 +379,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_USE_EXTRA_SZONE			262
 #define EFFECT_MAX_MZONE				263
 #define EFFECT_MAX_SZONE				264
+#define EFFECT_BECOME_LINKED_ZONE		265
 #define EFFECT_HAND_LIMIT				270
 #define EFFECT_DRAW_COUNT				271
 #define EFFECT_SPIRIT_DONOT_RETURN		280
@@ -417,6 +424,25 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CHANGE_FUSION_ATTRIBUTE	351
 #define EFFECT_EXTRA_FUSION_MATERIAL	352
 #define EFFECT_TUNER_MATERIAL_LIMIT		353
+
+#define EFFECT_CANNOT_LOSE_DECK			400
+#define EFFECT_CANNOT_LOSE_LP			401
+#define EFFECT_CANNOT_LOSE_EFFECT		402
+#define EFFECT_BP_FIRST_TURN			403
+#define EFFECT_UNSTOPPABLE_ATTACK		404
+#define EFFECT_ALLOW_NEGATIVE			405
+#define EFFECT_SELF_ATTACK				406
+#define EFFECT_BECOME_QUICK				407
+#define EFFECT_LEVEL_RANK				408
+#define EFFECT_RANK_LEVEL				409
+#define EFFECT_LEVEL_RANK_S				410
+#define EFFECT_RANK_LEVEL_S				411
+#define EFFECT_UPDATE_LINK              420
+#define EFFECT_CHANGE_LINK              421 
+#define EFFECT_CHANGE_LINK_FINAL        422
+#define EFFECT_ADD_LINKMARKER           423
+#define EFFECT_REMOVE_LINKMARKER        424
+#define EFFECT_CHANGE_LINKMARKER        425
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001

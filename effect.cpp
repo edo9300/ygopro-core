@@ -24,6 +24,7 @@ effect::effect(duel* pd) {
 	effect_owner = PLAYER_NONE;
 	card_type = 0;
 	active_type = 0;
+	active_location = 0;
 	active_handler = 0;
 	id = 0;
 	code = 0;
@@ -34,6 +35,8 @@ effect::effect(duel* pd) {
 	range = 0;
 	s_range = 0;
 	o_range = 0;
+	count_limit = 0;
+	count_limit_max = 0;
 	reset_count = 0;
 	reset_flag = 0;
 	count_code = 0;
@@ -42,7 +45,6 @@ effect::effect(duel* pd) {
 	label_object = 0;
 	hint_timing[0] = 0;
 	hint_timing[1] = 0;
-	field_ref = 0;
 	status = 0;
 	condition = 0;
 	cost = 0;
@@ -146,16 +148,16 @@ int32 effect::is_available() {
 		status &= ~EFFECT_STATUS_AVAILABLE;
 	return res;
 }
-// reset_count: 
-// 0x00ff: count of effect reset 
-// 0xf000: max count of activation, 0x0f00: left count of activation
+// reset_count: count of effect reset
+// count_limit: left count of activation
+// count_limit_max: max count of activation
 int32 effect::check_count_limit(uint8 playerid) {
 	if(is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
-		if((reset_count & 0xf00) == 0)
+		if(count_limit == 0)
 			return FALSE;
 		if(count_code) {
 			uint32 code = count_code & 0xfffffff;
-			uint32 count = (reset_count >> 12) & 0xf;
+			uint32 count = count_limit_max;
 			if(code == 1) {
 				if(pduel->game_field->get_effect_code((count_code & 0xf0000000) | get_handler()->fieldid, PLAYER_NONE) >= count)
 					return FALSE;
@@ -190,11 +192,11 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 			// additional check for each location
 			if(handler->current.location == LOCATION_HAND) {
 				if(handler->data.type & TYPE_MONSTER) {
-					if(!(handler->data.type & TYPE_PENDULUM))
-						return FALSE;
-					if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
-							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
-						return FALSE;
+					if((handler->data.type & TYPE_PENDULUM)) {
+						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
+								&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
+							return FALSE;
+					}
 				} else if(!(handler->data.type & TYPE_FIELD)
 						&& pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
 					return FALSE;
@@ -204,7 +206,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(handler->equiping_target)
 					return FALSE;
 				if(handler->get_status(STATUS_SET_TURN)) {
-					if((handler->data.type & TYPE_SPELL) && (handler->data.type & TYPE_QUICKPLAY))
+					if((handler->data.type & TYPE_SPELL) && ((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK)))
 						return FALSE;
 				}
 			}
@@ -214,7 +216,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(handler->data.type & TYPE_TRAP)
 					ecode = EFFECT_TRAP_ACT_IN_HAND;
 				else if((handler->data.type & TYPE_SPELL) && pduel->game_field->infos.turn_player != playerid) {
-					if(handler->data.type & TYPE_QUICKPLAY)
+					if((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK))
 						ecode = EFFECT_QP_ACT_IN_NTPHAND;
 					else
 						return FALSE;
@@ -558,7 +560,7 @@ int32 effect::reset(uint32 reset_level, uint32 reset_type) {
 		if((((reset_flag & RESET_SELF_TURN) && pid == tp) || ((reset_flag & RESET_OPPO_TURN) && pid != tp)) 
 				&& (reset_level & 0x3ff & reset_flag))
 			reset_count--;
-		if((reset_count & 0xff) == 0)
+		if(reset_count == 0)
 			return TRUE;
 		return FALSE;
 		break;
@@ -578,9 +580,9 @@ int32 effect::reset(uint32 reset_level, uint32 reset_type) {
 void effect::dec_count(uint32 playerid) {
 	if(!is_flag(EFFECT_FLAG_COUNT_LIMIT))
 		return;
-	if((reset_count & 0xf00) == 0)
+	if(count_limit == 0)
 		return;
-	reset_count -= 0x100;
+	count_limit -= 1;
 	if(count_code) {
 		uint32 code = count_code & 0xfffffff;
 		if(code == 1)
@@ -591,8 +593,7 @@ void effect::dec_count(uint32 playerid) {
 }
 void effect::recharge() {
 	if(is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
-		reset_count &= 0xf0ff;
-		reset_count |= (reset_count >> 4) & 0xf00;
+		count_limit = count_limit_max;
 	}
 }
 int32 effect::get_value(uint32 extraargs) {
@@ -627,6 +628,35 @@ int32 effect::get_value(effect* peffect, uint32 extraargs) {
 		return (int32)value;
 	}
 }
+void effect::get_value(uint32 extraargs, std::vector<int32>* result) {
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->get_function_value(value, 1 + extraargs, result);
+	} else {
+		pduel->lua->params.clear();
+		result->push_back((int32)value);
+	}
+}
+void effect::get_value(card* pcard, uint32 extraargs, std::vector<int32>* result) {
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD, TRUE);
+		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->get_function_value(value, 2 + extraargs, result);
+	} else {
+		pduel->lua->params.clear();
+		result->push_back((int32)value);
+	}
+}
+void effect::get_value(effect* peffect, uint32 extraargs, std::vector<int32>* result) {
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
+		pduel->lua->get_function_value(value, 2 + extraargs, result);
+	} else {
+		pduel->lua->params.clear();
+		result->push_back((int32)value);
+	}
+}
 int32 effect::check_value_condition(uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
@@ -648,7 +678,7 @@ int32 effect::get_speed() {
 		if(handler->data.type & TYPE_MONSTER)
 			return 0;
 		else if(handler->data.type & TYPE_SPELL) {
-			if(handler->data.type & TYPE_QUICKPLAY)
+			if((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK))
 				return 2;
 			return 1;
 		} else {
@@ -688,4 +718,9 @@ int32 effect::in_range(const chain& ch) {
 	if(type & EFFECT_TYPE_XMATERIAL)
 		return handler->overlay_target ? TRUE : FALSE;
 	return range & ch.triggering_location;
+}
+void effect::set_activate_location() {
+	card* phandler = get_handler();
+	active_location = phandler->current.location;
+	//active_sequence = phandler->current.sequence;
 }
