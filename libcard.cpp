@@ -140,7 +140,7 @@ int32 scriptlib::card_is_fusion_set_card(lua_State *L) {
 	lua_pushboolean(L, pcard->is_fusion_set_card(set_code));
 	return 1;
 }
-int64 scriptlib::card_get_set_card(lua_State *L) {
+int32 scriptlib::card_get_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -155,7 +155,7 @@ int64 scriptlib::card_get_set_card(lua_State *L) {
 	}
 	return n;
 }
-int64 scriptlib::card_get_origin_set_card(lua_State *L) {
+int32 scriptlib::card_get_origin_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -170,7 +170,7 @@ int64 scriptlib::card_get_origin_set_card(lua_State *L) {
 	}
 	return n;
 }
-int64 scriptlib::card_get_pre_set_card(lua_State *L) {
+int32 scriptlib::card_get_pre_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -185,7 +185,7 @@ int64 scriptlib::card_get_pre_set_card(lua_State *L) {
 	}
 	return n;
 }
-int64 scriptlib::card_get_fusion_set_card(lua_State *L) {
+int32 scriptlib::card_get_fusion_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
