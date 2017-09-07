@@ -196,10 +196,10 @@ public:
 	int32 is_origin_set_card(uint32 set_code);
 	int32 is_pre_set_card(uint32 set_code);
 	int32 is_fusion_set_card(uint32 set_code);
-	uint64 get_set_card();
-	uint64 get_origin_set_card();
-	uint64 get_pre_set_card();
-	uint64 get_fusion_set_card();
+	uint32 get_set_card();
+	uint32 get_origin_set_card();
+	uint32 get_pre_set_card();
+	uint32 get_fusion_set_card();
 	uint32 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
 	int32 get_base_attack();
 	int32 get_attack();

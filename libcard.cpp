@@ -144,16 +144,12 @@ int32 scriptlib::card_get_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 n = 0;
-	uint64 set_code = pcard->get_set_card();
-	while(set_code) {
-		if ((set_code & 0xfff) != 0) {
-			lua_pushinteger(L, set_code & 0xffff);
-			++n;
-		}
-		set_code = set_code >> 16;
+	int32 count = pcard->get_set_card();
+	if (count == 0) {
+		lua_pushnil(L);
+		return 1;
 	}
-	return n;
+	return count;
 }
 int32 scriptlib::card_get_origin_set_card(lua_State *L) {
 	check_param_count(L, 1);
@@ -174,31 +170,23 @@ int32 scriptlib::card_get_pre_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 n = 0;
-	uint64 set_code = pcard->get_pre_set_card();
-	while(set_code) {
-		if ((set_code & 0xfff) != 0) {
-			lua_pushinteger(L, set_code & 0xffff);
-			++n;
-		}
-		set_code = set_code >> 16;
+	int32 count = pcard->get_pre_set_card();
+	if (count == 0) {
+		lua_pushnil(L);
+		return 1;
 	}
-	return n;
+	return count;
 }
 int32 scriptlib::card_get_fusion_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 n = 0;
-	uint64 set_code = pcard->get_fusion_set_card();
-	while(set_code) {
-		if ((set_code & 0xfff) != 0) {
-			lua_pushinteger(L, set_code & 0xffff);
-			++n;
-		}
-		set_code = set_code >> 16;
+	int32 count = pcard->get_fusion_set_card();
+	if (count == 0) {
+		lua_pushnil(L);
+		return 1;
 	}
-	return n;
+	return count;
 }
 int32 scriptlib::card_get_type(lua_State *L) {
 	check_param_count(L, 1);

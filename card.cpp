@@ -403,7 +403,8 @@ int32 card::is_fusion_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
-uint64 card::get_set_card() {
+uint32 card::get_set_card() {
+	uint32 count = 0;
 	uint32 code = get_code();
 	uint64 setcode = 0;
 	if (code == data.code) {
@@ -413,28 +414,32 @@ uint64 card::get_set_card() {
 		::read_card(code, &dat);
 		setcode = dat.setcode;
 	}
+	for (; setcode > 0; count++, setcode = setcode >> 16)
+		lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
 	//add set code
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
 	for(int32 i = 0; i < eset.size(); ++i) {
 		uint32 value = eset[i]->get_value(this);
-		setcode = (setcode << 16) + value;
+		for (; value > 0; count++, value = value >> 16)
+			lua_pushinteger(pduel->lua->current_state, value & 0xffff);
 	}
 	//another code
 	uint32 code2 = get_another_code();
-	uint64 setcode2;
 	if (code2 != 0) {
 		card_data dat;
 		::read_card(code2, &dat);
-		setcode2 = dat.setcode;
-		return setcode2;
+		setcode = dat.setcode;
 	}
-	return setcode;
+	for (; setcode > 0; count++, setcode = setcode >> 16)
+		lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
+	return count;
 }
-uint64 card::get_origin_set_card() {
+uint32 card::get_origin_set_card() {
 	return data.setcode;
 }
-uint64 card::get_pre_set_card() {
+uint32 card::get_pre_set_card() {
+	uint32 count = 0;
 	uint32 code = previous.code;
 	uint64 setcode = 0;
 	if (code == data.code) {
@@ -444,39 +449,47 @@ uint64 card::get_pre_set_card() {
 		::read_card(code, &dat);
 		setcode = dat.setcode;
 	}
+	for (; setcode > 0; count++, setcode = setcode >> 16)
+		lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
 	//add set code
 	uint64 asetcode = previous.setcode;
-	if (asetcode) {
-		setcode = (setcode << 16) + asetcode;
-	}
+	for (; asetcode > 0; count++, asetcode = asetcode >> 16)
+		lua_pushinteger(pduel->lua->current_state, asetcode & 0xffff);
 	//another code
 	uint32 code2 = previous.code2;
-	uint64 setcode2;
 	if (code2 != 0) {
 		card_data dat;
 		::read_card(code2, &dat);
-		setcode2 = dat.setcode;
-		return setcode2;
+		setcode = dat.setcode;
+		return setcode;
 	}
-	return setcode;
+	for (; setcode > 0; count++, setcode = setcode >> 16)
+		lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
+	return count;
 }
-uint64 card::get_fusion_set_card() {
-	uint64 setcode = get_set_card();
+uint32 card::get_fusion_set_card() {
+	uint32 count = 0;
+	uint64 setcode = 0;
 	effect_set eset;
+	effect_set eset2;
 	filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
+	filter_effect(EFFECT_ADD_FUSION_SETCODE, &eset2);
+	if(eset.size() == 0 && eset2.size() == 0)
+		return get_set_card();
 	for(int32 i = 0; i < eset.size(); ++i) {
 		uint32 code = eset[i]->get_value(this);
 		card_data dat;
 		::read_card(code, &dat);
-		if (dat.setcode != 0) setcode = (setcode << 16) + dat.setcode;
+		setcode = dat.setcode;
+		for (; setcode > 0; count++, setcode = setcode >> 16)
+			lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
 	}
-	effect_set eset2;
-	filter_effect(EFFECT_ADD_FUSION_SETCODE, &eset2);
 	for(int32 i = 0; i < eset2.size(); ++i) {
 		uint32 setcode2 = eset2[i]->get_value(this);
-		if (setcode2 != 0) setcode = (setcode << 16) + setcode2 ;
+		for (; setcode2 > 0; count++, setcode2 = setcode2 >> 16)
+			lua_pushinteger(pduel->lua->current_state, setcode2 & 0xffff);
 	}
-	return setcode;
+	return count;
 }
 uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_TYPE)
