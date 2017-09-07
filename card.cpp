@@ -468,14 +468,10 @@ uint32 card::get_pre_set_card() {
 	return count;
 }
 uint32 card::get_fusion_set_card() {
-	uint32 count = 0;
+	uint32 count = get_set_card();
 	uint64 setcode = 0;
 	effect_set eset;
-	effect_set eset2;
 	filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
-	filter_effect(EFFECT_ADD_FUSION_SETCODE, &eset2);
-	if(eset.size() == 0 && eset2.size() == 0)
-		return get_set_card();
 	for(int32 i = 0; i < eset.size(); ++i) {
 		uint32 code = eset[i]->get_value(this);
 		card_data dat;
@@ -484,8 +480,10 @@ uint32 card::get_fusion_set_card() {
 		for (; setcode > 0; count++, setcode = setcode >> 16)
 			lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
 	}
-	for(int32 i = 0; i < eset2.size(); ++i) {
-		uint32 setcode2 = eset2[i]->get_value(this);
+	eset.clear();
+	filter_effect(EFFECT_ADD_FUSION_SETCODE, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		uint32 setcode2 = eset[i]->get_value(this);
 		for (; setcode2 > 0; count++, setcode2 = setcode2 >> 16)
 			lua_pushinteger(pduel->lua->current_state, setcode2 & 0xffff);
 	}
