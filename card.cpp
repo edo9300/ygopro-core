@@ -530,8 +530,7 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 			temp.type = type;
 		}
 	}
-	if(alttype)
-		type = alttype;
+	type |= alttype;
 	temp.type = 0xffffffff;
 	return type;
 }
@@ -1148,7 +1147,9 @@ uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 	effect_set effects;
 	effect_set effects2;
 	int32 attribute = data.attribute;
+	int32 changeatt = 0;
 	int32 altattribute = 0;
+	int32 changealtatt = 0;
 	temp.attribute = data.attribute;
 	filter_effect(EFFECT_ADD_ATTRIBUTE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_ATTRIBUTE, &effects);
@@ -1174,23 +1175,26 @@ uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 			temp.attribute = attribute;
 		}
 	}
+	attribute |= altattribute;
 	for (int32 i = 0; i < effects2.size(); ++i) {
-		if (effects[i]->operation && !sumtype)
+		if (effects2[i]->operation && !sumtype)
 			continue;
-		if (effects[i]->operation) {
+		if (effects2[i]->operation) {
 			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
 			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+			if (!pduel->lua->check_condition(effects2[i]->operation, 3))
 				continue;
-			altattribute = effects2[i]->get_value(this);
+			changealtatt = effects2[i]->get_value(this);
 		} else {
-			attribute = effects2[i]->get_value(this);
-			temp.attribute = attribute;
+			changeatt = effects2[i]->get_value(this);
+			temp.attribute = changeatt;
 		}
 	}
-	if(altattribute)
-		attribute = altattribute;
+	if(changealtatt)
+		changeatt = changealtatt;
+	if(changeatt)
+		attribute = changeatt;
 	temp.attribute = 0xffffffff;
 	return attribute;
 }
@@ -1205,7 +1209,9 @@ uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
 	effect_set effects;
 	effect_set effects2;
 	int32 race = data.race;
+	int32 changerace = 0;
 	int32 altrace = 0;
+	int32 changealtrace = 0;
 	temp.race = data.race;
 	filter_effect(EFFECT_ADD_RACE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_RACE, &effects);
@@ -1231,23 +1237,26 @@ uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
 			temp.race = race;
 		}
 	}
+	race |= altrace;
 	for (int32 i = 0; i < effects2.size(); ++i) {
-		if (effects[i]->operation && !sumtype)
+		if (effects2[i]->operation && !sumtype)
 			continue;
-		if (effects[i]->operation) {
+		if (effects2[i]->operation) {
 			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
 			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			if (!pduel->lua->check_condition(effects[i]->operation, 3))
+			if (!pduel->lua->check_condition(effects2[i]->operation, 3))
 				continue;
-			altrace = effects2[i]->get_value(this);
+			changealtrace = effects2[i]->get_value(this);
 		} else {
-			race = effects2[i]->get_value(this);
-			temp.race = race;
+			changerace = effects2[i]->get_value(this);
+			temp.race = changerace;
 		}
 	}
-	if(altrace)
-		race = altrace;
+	if(changealtrace)
+		changerace = changealtrace;
+	if(changerace)
+		race = changerace;
 	temp.race = 0xffffffff;
 	return race;
 }
