@@ -2892,6 +2892,7 @@ int32 field::process_battle_command(uint16 step) {
 			core.to_m2 = FALSE;
 		if(must_attack.size())
 			core.to_ep = FALSE;
+		core.must_attack = FALSE;
 		add_process(PROCESSOR_SELECT_BATTLECMD, 0, 0, 0, infos.turn_player, 0);
 		return FALSE;
 	}
@@ -2933,19 +2934,6 @@ int32 field::process_battle_command(uint16 step) {
 			core.attacker = attacker;
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, FALSE);
 			core.pre_field[0] = core.attacker->fieldid_r;
-			core.phase_action = TRUE;
-			core.attack_state_count[infos.turn_player]++;
-			check_card_counter(core.attacker, 5, infos.turn_player);
-			core.attacker->announce_count++;
-			effect_set eset;
-			filter_player_effect(infos.turn_player, EFFECT_ATTACK_COST, &eset, FALSE);
-			core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
-			for(int32 i = 0; i < eset.size(); ++i) {
-				if(eset[i]->operation) {
-					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, eset[i], 0, infos.turn_player, 0);
-				}
-			}
 			return FALSE;
 		} else {
 			core.units.begin()->step = 39;
@@ -3037,7 +3025,7 @@ int32 field::process_battle_command(uint16 step) {
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(infos.turn_player);
 			pduel->write_buffer32(549);
-			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + (core.units.begin()->arg1 ? 0x20000 : 0), 0x10001);
+			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + ((core.must_attack == FALSE && core.chain_attack == FALSE) ? 0x20000 : 0), 0x10001);
 		}
 		core.units.begin()->step = 5;
 		return FALSE;
@@ -3052,7 +3040,7 @@ int32 field::process_battle_command(uint16 step) {
 				pduel->write_buffer8(HINT_SELECTMSG);
 				pduel->write_buffer8(infos.turn_player);
 				pduel->write_buffer32(549);
-				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player, 0x10001);
+				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + ((core.must_attack == FALSE && core.chain_attack == FALSE) ? 0x20000 : 0), 0x10001);
 			} else {
 				core.chain_attack = FALSE;
 				core.units.begin()->step = -1;
@@ -3062,13 +3050,27 @@ int32 field::process_battle_command(uint16 step) {
 	}
 	case 6: {
 		if(returns.ivalue[0] == -1) {
-			core.chain_attack = FALSE;
+			if(core.units.begin()->arg1)
+				core.chain_attack = FALSE;
 			core.units.begin()->step = -1;
 			return FALSE;
 		} else if(returns.ivalue[0] == -2)
 			core.attack_target = 0;
 		else
 			core.attack_target = core.select_cards[returns.bvalue[1]];
+		core.phase_action = TRUE;
+		core.attack_state_count[infos.turn_player]++;
+		check_card_counter(core.attacker, 5, infos.turn_player);
+		core.attacker->announce_count++;
+		effect_set eset;
+		filter_player_effect(infos.turn_player, EFFECT_ATTACK_COST, &eset, FALSE);
+		core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
+		for (int32 i = 0; i < eset.size(); ++i) {
+			if (eset[i]->operation) {
+				core.sub_solving_event.push_back(nil_event);
+				add_process(PROCESSOR_EXECUTE_OPERATION, 0, eset[i], 0, infos.turn_player, 0);
+			}
+		}
 		if(core.attack_target)
 			core.pre_field[1] = core.attack_target->fieldid_r;
 		else
@@ -3204,6 +3206,7 @@ int32 field::process_battle_command(uint16 step) {
 			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 30);
 		else {
 			returns.ivalue[0] = TRUE;
+			core.must_attack = TRUE;
 		}
 		return FALSE;
 	}
