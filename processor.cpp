@@ -2927,10 +2927,6 @@ int32 field::process_battle_command(uint16 step) {
 		} else if(ctype == 1) {
 			core.units.begin()->step = 2;
 			card* attacker = core.attackable_cards[sel];
-			if(core.chain_attack && core.chain_attacker_id != attacker->fieldid) {
-				core.chain_attack = FALSE;
-				core.chain_attacker_id = 0;
-			}
 			core.attacker = attacker;
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, FALSE);
 			core.pre_field[0] = core.attacker->fieldid_r;
@@ -2962,11 +2958,6 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 3: {
-		if(core.attacker->current.location != LOCATION_MZONE || core.attacker->fieldid_r != core.pre_field[0]) {
-			core.chain_attack = FALSE;
-			core.units.begin()->step = -1;
-			return FALSE;
-		}
 		core.units.begin()->arg1 = FALSE;
 		return FALSE;
 	}
@@ -2974,7 +2965,7 @@ int32 field::process_battle_command(uint16 step) {
 		// select attack target(replay start point)
 		core.attack_player = FALSE;
 		core.select_cards.clear();
-		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
+		auto atype = get_attack_target(core.attacker, &core.select_cards, (core.chain_attack && core.chain_attacker_id != core.attacker->fieldid));
 		// only self targets aviable
 		if (core.select_cards.size() && core.attacker->direct_attackable) {
 			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 31);
@@ -3025,7 +3016,7 @@ int32 field::process_battle_command(uint16 step) {
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(infos.turn_player);
 			pduel->write_buffer32(549);
-			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + ((core.must_attack == FALSE && core.chain_attack == FALSE) ? 0x20000 : 0), 0x10001);
+			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + (core.must_attack == FALSE ? 0x20000 : 0), 0x10001);
 		}
 		core.units.begin()->step = 5;
 		return FALSE;
@@ -3040,7 +3031,7 @@ int32 field::process_battle_command(uint16 step) {
 				pduel->write_buffer8(HINT_SELECTMSG);
 				pduel->write_buffer8(infos.turn_player);
 				pduel->write_buffer32(549);
-				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + ((core.must_attack == FALSE && core.chain_attack == FALSE) ? 0x20000 : 0), 0x10001);
+				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + (core.must_attack == FALSE ? 0x20000 : 0), 0x10001);
 			} else {
 				core.chain_attack = FALSE;
 				core.units.begin()->step = -1;
@@ -3050,36 +3041,45 @@ int32 field::process_battle_command(uint16 step) {
 	}
 	case 6: {
 		if(returns.ivalue[0] == -1) {
-			if(core.units.begin()->arg1)
-				core.chain_attack = FALSE;
 			core.units.begin()->step = -1;
 			return FALSE;
 		} else if(returns.ivalue[0] == -2)
 			core.attack_target = 0;
 		else
 			core.attack_target = core.select_cards[returns.bvalue[1]];
-		core.phase_action = TRUE;
-		core.attack_state_count[infos.turn_player]++;
-		check_card_counter(core.attacker, 5, infos.turn_player);
-		core.attacker->announce_count++;
-		effect_set eset;
-		filter_player_effect(infos.turn_player, EFFECT_ATTACK_COST, &eset, FALSE);
-		core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
-		for (int32 i = 0; i < eset.size(); ++i) {
-			if (eset[i]->operation) {
-				core.sub_solving_event.push_back(nil_event);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, eset[i], 0, infos.turn_player, 0);
+		if(!core.units.begin()->arg1) {
+			core.phase_action = TRUE;
+			core.attack_state_count[infos.turn_player]++;
+			check_card_counter(core.attacker, 5, infos.turn_player);
+			core.attacker->announce_count++;
+			effect_set eset;
+			filter_player_effect(infos.turn_player, EFFECT_ATTACK_COST, &eset, FALSE);
+			core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
+			for (int32 i = 0; i < eset.size(); ++i) {
+				if (eset[i]->operation) {
+					core.sub_solving_event.push_back(nil_event);
+					add_process(PROCESSOR_EXECUTE_OPERATION, 0, eset[i], 0, infos.turn_player, 0);
+				}
 			}
 		}
 		if(core.attack_target)
 			core.pre_field[1] = core.attack_target->fieldid_r;
 		else
 			core.pre_field[1] = 0;
-		if(!core.units.begin()->arg1)
-			core.attacker->announced_cards.addcard(core.attack_target);
+		if (core.chain_attack && core.chain_attacker_id != core.attacker->fieldid) {
+			core.chain_attack = FALSE;
+			core.chain_attacker_id = 0;
+		}
 		return FALSE;
 	}
 	case 7: {
+		if(core.attacker->current.location != LOCATION_MZONE || core.attacker->fieldid_r != core.pre_field[0]) {
+			core.chain_attack = FALSE;
+			core.units.begin()->step = -1;
+			return FALSE;
+		}
+		if(!core.units.begin()->arg1)
+			core.attacker->announced_cards.addcard(core.attack_target);
 		bool evt = false;
 		attack_all_target_check();
 		pduel->write_buffer8(MSG_ATTACK);
