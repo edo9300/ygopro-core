@@ -280,6 +280,8 @@ public:
 	static int32 effect_set_owner_player(lua_State *L);
 	static int32 effect_get_description(lua_State *L);
 	static int32 effect_get_code(lua_State *L);
+	static int32 effect_get_count_limit(lua_State *L);
+	static int32 effect_get_reset(lua_State *L);
 	static int32 effect_get_type(lua_State *L);
 	static int32 effect_get_property(lua_State *L);
 	static int32 effect_get_label(lua_State *L);

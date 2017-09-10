@@ -2381,7 +2381,7 @@ int32 scriptlib::card_is_can_be_synchro_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	if(lua_gettop(L) >= 3) {
+	if(lua_gettop(L) >= 3 && !lua_isnil(L, 3)) {
 		check_param(L, PARAM_TYPE_CARD, 3);
 		tuner = *(card**) lua_touserdata(L, 3);
 	}

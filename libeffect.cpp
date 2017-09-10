@@ -328,6 +328,29 @@ int32 scriptlib::effect_get_code(lua_State *L) {
 	}
 	return 0;
 }
+int32 scriptlib::effect_get_count_limit(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_EFFECT, 1);
+	effect* peffect = *(effect**) lua_touserdata(L, 1);
+	if (peffect) {
+		lua_pushinteger(L, peffect->reset_flag);
+		lua_pushinteger(L, peffect->reset_count);
+		return 2;
+	}
+	return 0;
+}
+int32 scriptlib::effect_get_reset(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_EFFECT, 1);
+	effect* peffect = *(effect**) lua_touserdata(L, 1);
+	if (peffect) {
+		lua_pushinteger(L, peffect->count_limit);
+		lua_pushinteger(L, peffect->count_limit_max);
+		lua_pushinteger(L, peffect->count_code);
+		return 3;
+	}
+	return 0;
+}
 int32 scriptlib::effect_get_type(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_EFFECT, 1);

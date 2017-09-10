@@ -280,6 +280,8 @@ static const struct luaL_Reg effectlib[] = {
 	{ "SetOwnerPlayer", scriptlib::effect_set_owner_player },
 	{ "GetDescription", scriptlib::effect_get_description },
 	{ "GetCode", scriptlib::effect_get_code },
+	{ "GetCountLimit", scriptlib::effect_get_count_limit },
+	{ "GetReset", scriptlib::effect_get_reset },
 	{ "GetType", scriptlib::effect_get_type },
 	{ "GetProperty", scriptlib::effect_get_property },
 	{ "GetLabel", scriptlib::effect_get_label },
