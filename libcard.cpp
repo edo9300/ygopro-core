@@ -195,7 +195,7 @@ int32 scriptlib::card_get_type(lua_State *L) {
 	card* scard = 0;
 	uint32 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1) {
+	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**)lua_touserdata(L, 2);
 	}
@@ -429,7 +429,7 @@ int32 scriptlib::card_get_attribute(lua_State *L) {
 	card* scard = 0;
 	uint32 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1) {
+	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**)lua_touserdata(L, 2);
 	}
@@ -459,7 +459,7 @@ int32 scriptlib::card_get_race(lua_State *L) {
 	card* scard = 0;
 	uint32 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1) {
+	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**)lua_touserdata(L, 2);
 	}
