@@ -260,6 +260,7 @@ struct processor {
 	group* limit_xyz;
 	int32 limit_xyz_minc;
 	int32 limit_xyz_maxc;
+	uint8 attack_cancelable;
 	uint8 attack_rollback;
 	uint8 effect_damage_step;
 	int32 battle_damage[2];
@@ -277,7 +278,6 @@ struct processor {
 	uint8 to_m2;
 	uint8 to_ep;
 	uint8 skip_m2;
-	uint8 must_attack;
 	uint8 chain_attack;
 	uint32 chain_attacker_id;
 	card* chain_attack_target;
