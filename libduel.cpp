@@ -1413,6 +1413,14 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
+int32 scriptlib::duel_attack_cost_paid(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	uint8 paid = TRUE;
+	if(lua_gettop(L) >= 1)
+		paid = lua_tointeger(L, 1);
+	pduel->game_field->core.attack_cost_paid = paid;
+	return 0;
+}
 int32 scriptlib::duel_calculate_damage(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 2);
@@ -1876,6 +1884,11 @@ int32 scriptlib::duel_skip_phase(lua_State *L) {
 	peffect->value = value;
 	pduel->game_field->add_effect(peffect, playerid);
 	return 0;
+}
+int32 scriptlib::duel_is_attack_cost_paid(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	lua_pushinteger(L, pduel->game_field->core.attack_cost_paid);
+	return 1;
 }
 int32 scriptlib::duel_is_damage_calculated(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);

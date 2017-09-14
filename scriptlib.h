@@ -411,6 +411,7 @@ public:
 	static int32 duel_shuffle_setcard(lua_State *L);
 	static int32 duel_change_attacker(lua_State *L);
 	static int32 duel_change_attack_target(lua_State *L);
+	static int32 duel_attack_cost_paid(lua_State *L);
 	static int32 duel_calculate_damage(lua_State *L);
 	static int32 duel_get_battle_damage(lua_State *L);
 	static int32 duel_change_battle_damage(lua_State *L);
@@ -438,6 +439,7 @@ public:
 	static int32 duel_get_first_target(lua_State *L);
 	static int32 duel_get_current_phase(lua_State *L);
 	static int32 duel_skip_phase(lua_State *L);
+	static int32 duel_is_attack_cost_paid(lua_State *L);
 	static int32 duel_is_damage_calculated(lua_State *L);
 	static int32 duel_get_attacker(lua_State *L);
 	static int32 duel_get_attack_target(lua_State *L);

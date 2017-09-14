@@ -2893,6 +2893,7 @@ int32 field::process_battle_command(uint16 step) {
 		if(must_attack.size())
 			core.to_ep = FALSE;
 		core.attack_cancelable = TRUE;
+		core.attack_cost_paid = FALSE;
 		add_process(PROCESSOR_SELECT_BATTLECMD, 0, 0, 0, infos.turn_player, 0);
 		return FALSE;
 	}
@@ -2974,6 +2975,11 @@ int32 field::process_battle_command(uint16 step) {
 		if(core.attacker->current.location != LOCATION_MZONE || core.attacker->current.controler != infos.turn_player || core.attacker->fieldid_r != core.pre_field[0]) {
 			core.units.begin()->arg3 = TRUE;
 			core.units.begin()->step = 6;
+			return FALSE;
+		}
+		//Cancel the attack cost
+		if(core.attack_cost_paid != 1 && !core.attack_cancelable) {
+			core.units.begin()->step = -1;
 			return FALSE;
 		}
 		return FALSE;
