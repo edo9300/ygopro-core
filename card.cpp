@@ -3562,7 +3562,7 @@ int32 card::is_removeable(uint8 playerid, int32 pos) {
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_REMOVE))
 		return FALSE;
-	if(data.type & TYPE_TOKEN)
+	if((data.type & TYPE_TOKEN) && (pos & POS_FACEDOWN))
 		return FALSE;
 	return TRUE;
 }
