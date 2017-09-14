@@ -503,7 +503,7 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 		filter_effect(EFFECT_REMOVE_TYPE, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_TYPE, &effects);
 		for (int32 i = 0; i < effects.size(); ++i) {
-			if ((effects[i]->operation && !sumtype) || effects[i]->is_flag(EFFECT_FLAG_IGNORE RANGE))
+			if ((effects[i]->operation && !sumtype) || !(effects[i]->is_flag(EFFECT_FLAG_IGNORE RANGE)))
 				continue;
 			if (effects[i]->operation) {
 				pduel->lua->add_param(scard, PARAM_TYPE_CARD);
