@@ -2933,15 +2933,25 @@ int32 field::process_battle_command(uint16 step) {
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, FALSE);
 			core.pre_field[0] = core.attacker->fieldid_r;
 			effect_set eset;
+			core.tpchain.clear();
+			chain newchain;
 			filter_player_effect(infos.turn_player, EFFECT_ATTACK_COST, &eset, FALSE);
 			core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
 			for(int32 i = 0; i < eset.size(); ++i) {
 				if(eset[i]->operation) {
+					newchain.triggering_effect = eset[i];
+					core.tpchain.push_back(newchain);
 					core.attack_cancelable = FALSE;
-					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, eset[i], 0, infos.turn_player, 0);
-					adjust_all();
 				}
+			}
+			if(core.tpchain.size() > 1) {
+				add_process(PROCESSOR_SORT_CHAIN, 0, 0, 0, 1, infos.turn_player);
+				core.units.begin()->step = 12;
+			}
+			else if(core.tpchain.size() == 1){
+				core.sub_solving_event.push_back(nil_event);
+				add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.tpchain.begin()->triggering_effect, 0, infos.turn_player, 0);
+				adjust_all();
 			}
 			return FALSE;
 		} else {
@@ -3238,6 +3248,16 @@ int32 field::process_battle_command(uint16 step) {
 		core.units.begin()->step = -1;
 		reset_phase(PHASE_DAMAGE);
 		adjust_all();
+		return FALSE;
+	}
+	case 13: {
+		for(auto clit = core.tpchain.begin(); clit != core.tpchain.end(); ++clit) {
+			core.sub_solving_event.push_back(nil_event);
+			add_process(PROCESSOR_EXECUTE_OPERATION, 0, clit->triggering_effect, 0, infos.turn_player, 0);
+			adjust_all();
+		}
+		core.tpchain.clear();
+		core.units.begin()->step = 2;
 		return FALSE;
 	}
 	case 19: {
