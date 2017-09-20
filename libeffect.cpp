@@ -56,9 +56,25 @@ int32 scriptlib::effect_clone(lua_State *L) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->operation);
 		ceffect->operation = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
-	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+	if(peffect->value) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->value);
 		ceffect->value = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->label) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label);
+		ceffect->label = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->label_object) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
+		ceffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->s_range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->s_range);
+		ceffect->s_range = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->o_range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->o_range);
+		ceffect->o_range = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 	interpreter::effect2value(L, ceffect);
 	return 1;
