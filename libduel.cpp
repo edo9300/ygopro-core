@@ -3824,7 +3824,7 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 				break;
 		}
 		effect* peffect = eit->second;
-		if(!(peffect->type & 0x7c)) continue;
+		if(!(peffect->type & 0x7c) && !peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) continue;
 		if(!peffect->is_flag(EFFECT_FLAG_INITIAL)) continue;
 		effect* ceffect = pduel->new_effect();
 		int32 ref = ceffect->ref_handle;
@@ -3849,6 +3849,22 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 		if(peffect->operation) {
 			lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->operation);
 			ceffect->operation = luaL_ref(L, LUA_REGISTRYINDEX);
+		}
+		if(peffect->value) {
+			lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->value);
+			ceffect->value = luaL_ref(L, LUA_REGISTRYINDEX);
+		}
+		if(peffect->label) {
+			lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label);
+			ceffect->label = luaL_ref(L, LUA_REGISTRYINDEX);
+		}
+		if(peffect->label_object) {
+			lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
+			ceffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
+		}
+		if(peffect->code && peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) {
+			lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->code);
+			ceffect->code = luaL_ref(L, LUA_REGISTRYINDEX);
 		}
 		ceffect->reset_flag = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
 		ceffect->reset_count = 0x1;

@@ -40,6 +40,10 @@ int32 scriptlib::effect_clone(lua_State *L) {
 	*ceffect = *peffect;
 	ceffect->ref_handle = ref;
 	ceffect->handler = 0;
+	if(peffect->code) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->code);
+		ceffect->code = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
 	if(peffect->condition) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->condition);
 		ceffect->condition = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -56,9 +60,37 @@ int32 scriptlib::effect_clone(lua_State *L) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->operation);
 		ceffect->operation = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
-	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+	if(peffect->value) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->value);
 		ceffect->value = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->label) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label);
+		ceffect->label = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->label_object) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
+		ceffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->s_range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->s_range);
+		ceffect->s_range = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->o_range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->o_range);
+		ceffect->o_range = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->count_limit) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->count_limit);
+		ceffect->count_limit = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->count_limit_max) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->count_limit_max);
+		ceffect->count_limit_max = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->count_code) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->count_code);
+		ceffect->count_code = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 	interpreter::effect2value(L, ceffect);
 	return 1;
