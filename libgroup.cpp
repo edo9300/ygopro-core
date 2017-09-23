@@ -118,6 +118,20 @@ int32 scriptlib::group_get_first(lua_State *L) {
 		lua_pushnil(L);
 	return 1;
 }
+int32 scriptlib::group_take_at_pos(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	group* pgroup = *(group**)lua_touserdata(L, 1);
+	int32 pos = lua_tointeger(L, 2);
+	if(pos > pgroup->container.size())
+		lua_pushnil(L);
+	else {
+		auto cit = pgroup->container.begin();
+		std::advance(cit, pos);
+		interpreter::card2value(L, (*cit));
+	}
+	return 1;
+}
 int32 scriptlib::group_get_count(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_GROUP, 1);

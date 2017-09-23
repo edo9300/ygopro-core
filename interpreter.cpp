@@ -319,6 +319,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "RemoveCard", scriptlib::group_remove_card },
 	{ "GetNext", scriptlib::group_get_next },
 	{ "GetFirst", scriptlib::group_get_first },
+	{ "TakeatPos", scriptlib::group_take_at_pos },
 	{ "GetCount", scriptlib::group_get_count },
 	{ "ForEach", scriptlib::group_for_each },
 	{ "Filter", scriptlib::group_filter },

@@ -317,6 +317,7 @@ public:
 	static int32 group_remove_card(lua_State *L);
 	static int32 group_get_next(lua_State *L);
 	static int32 group_get_first(lua_State *L);
+	static int32 group_take_at_pos(lua_State *L);
 	static int32 group_get_count(lua_State *L);
 	static int32 group_for_each(lua_State *L);
 	static int32 group_filter(lua_State *L);
