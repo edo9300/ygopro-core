@@ -492,14 +492,49 @@ uint32 card::get_fusion_set_card() {
 uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_TYPE)
 		return assume_value;
-	if(!(current.location & (LOCATION_ONFIELD | LOCATION_HAND | LOCATION_GRAVE)))
-		return data.type;
+	if(!(current.location & (LOCATION_ONFIELD | LOCATION_HAND | LOCATION_GRAVE))){
+		if (temp.type != 0xffffffff)
+			return temp.type;
+		int32 type = data.type;
+		int32 alttype = 0;
+		temp.type = data.type;
+		effect_set effects;
+		filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
+		filter_effect(EFFECT_REMOVE_TYPE, &effects, FALSE);
+		filter_effect(EFFECT_CHANGE_TYPE, &effects);
+		for (int32 i = 0; i < effects.size(); ++i) {
+			if ((effects[i]->operation && !sumtype) || !(effects[i]->is_flag(EFFECT_FLAG_IGNORE RANGE)))
+				continue;
+			if (effects[i]->operation) {
+				pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+				pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+				pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+				if (!pduel->lua->check_condition(effects[i]->operation, 3))
+					continue;
+				if (effects[i]->code == EFFECT_ADD_TYPE)
+					alttype |= effects[i]->get_value(this);
+				else if (effects[i]->code == EFFECT_REMOVE_TYPE)
+					alttype &= ~(effects[i]->get_value(this));
+				else
+					alttype = effects[i]->get_value(this);
+			} else {
+				if (effects[i]->code == EFFECT_ADD_TYPE)
+					type |= effects[i]->get_value(this);
+				else if (effects[i]->code == EFFECT_REMOVE_TYPE)
+					type &= ~(effects[i]->get_value(this));
+				else
+					type = effects[i]->get_value(this);
+					temp.type = type;
+			}
+		}
+		return type;
+	}
+	int32 type = data.type;
 	if(current.is_location(LOCATION_PZONE) && !sumtype)
-		return TYPE_PENDULUM + TYPE_SPELL;
+		type = TYPE_PENDULUM + TYPE_SPELL;
 	if (temp.type != 0xffffffff)
 		return temp.type;
 	effect_set effects;
-	int32 type = data.type;
 	int32 alttype = 0;
 	temp.type = data.type;
 	filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
