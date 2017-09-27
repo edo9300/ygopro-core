@@ -31,8 +31,8 @@ public:
 	static int32 card_get_origin_set_card(lua_State *L);
 	static int32 card_get_pre_set_card(lua_State *L);
 	static int32 card_get_fusion_set_card(lua_State *L);
-	static int32 card_get_type(lua_State *L);
-	static int32 card_get_origin_type(lua_State *L);
+	static int64 card_get_type(lua_State *L);
+	static int64 card_get_origin_type(lua_State *L);
 	static int32 card_get_level(lua_State *L);
 	static int32 card_get_rank(lua_State *L);
 	static int32 card_get_link(lua_State *L);
@@ -69,7 +69,7 @@ public:
 	static int32 card_get_origin_defense(lua_State *L);
 	static int32 card_get_text_defense(lua_State *L);
 	static int32 card_get_previous_code_onfield(lua_State *L);
-	static int32 card_get_previous_type_onfield(lua_State *L);
+	static int64 card_get_previous_type_onfield(lua_State *L);
 	static int32 card_get_previous_level_onfield(lua_State *L);
 	static int32 card_get_previous_rank_onfield(lua_State *L);
 	static int32 card_get_previous_attribute_onfield(lua_State *L);
@@ -99,7 +99,7 @@ public:
 	static int32 card_get_fieldid(lua_State *L);
 	static int32 card_get_fieldidr(lua_State *L);
 	static int32 card_is_code(lua_State *L);
-	static int32 card_is_type(lua_State *L);
+	static int64 card_is_type(lua_State *L);
 	static int32 card_is_level(lua_State *L);
 	static int32 card_is_rank(lua_State *L);
 	static int32 card_is_link(lua_State *L);

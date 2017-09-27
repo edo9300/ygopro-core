@@ -188,7 +188,7 @@ int32 scriptlib::card_get_fusion_set_card(lua_State *L) {
 	}
 	return count;
 }
-int32 scriptlib::card_get_type(lua_State *L) {
+int64 scriptlib::card_get_type(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -208,7 +208,7 @@ int32 scriptlib::card_get_type(lua_State *L) {
 	lua_pushinteger(L, pcard->get_type(scard, sumtype, playerid));
 	return 1;
 }
-int32 scriptlib::card_get_origin_type(lua_State *L) {
+int64 scriptlib::card_get_origin_type(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -785,7 +785,7 @@ int32 scriptlib::card_is_type(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 ttype = lua_tointeger(L, 2);
+	uint64 ttype = lua_tointeger(L, 2);
 	card* scard = 0;
 	uint32 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
