@@ -38,6 +38,7 @@ typedef int BOOL;
 #ifndef NULL
 #define NULL 0
 #endif
+#define lua_tonumberint(L,i) (int32)(lua_tonumberx(L,(i),NULL) + 0.5)
 struct card_sort {
 	bool operator()(void* const & c1, void* const & c2) const;
 };
