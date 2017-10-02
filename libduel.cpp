@@ -524,6 +524,44 @@ int32 scriptlib::duel_sendto_extra(lua_State *L) {
 	pduel->game_field->core.subunits.back().type = PROCESSOR_SENDTO_S;
 	return lua_yield(L, 0);
 }
+int32 scriptlib::duel_sendto(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 3);
+	card* pcard = 0;
+	group* pgroup = 0;
+	duel* pduel = 0;
+	if(check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
+		pcard = *(card**) lua_touserdata(L, 1);
+		pduel = pcard->pduel;
+	} else if(check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
+		pgroup = *(group**) lua_touserdata(L, 1);
+		pduel = pgroup->pduel;
+	} else
+		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
+	uint32 location = lua_tonumberint(L, 2);
+	uint32 reason = lua_tonumberint(L, 3);
+	uint32 pos = POS_FACEUP;
+	if (lua_gettop(L) > 3) {
+		pos = lua_tonumberint(L, 4);
+	}
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 4) {
+		playerid = lua_tonumberint(L, 5);
+		if (lua_isnil(L, 5) || (playerid != 0 && playerid != 1)) {
+			playerid = PLAYER_NONE;
+		}
+	}
+	int32 sequence = 0;
+	if(lua_gettop(L) > 5) {
+		sequence = lua_tonumberint(L, 6);
+	}
+	if(pcard)
+		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, pos, TRUE);
+	else
+		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, pos, TRUE);
+	pduel->game_field->core.subunits.back().type = PROCESSOR_SENDTO_S;
+	return lua_yield(L, 0);
+}
 int32 scriptlib::duel_get_operated_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group(pduel->game_field->core.operated_set);
