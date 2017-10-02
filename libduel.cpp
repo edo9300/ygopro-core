@@ -3089,6 +3089,35 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD_S, 0, 0, 0, playerid, flag, count);
 	return lua_yield(L, 0);
 }
+int32 scriptlib::duel_select_field_zone(lua_State * L) {
+	check_action_permission(L);
+	check_param_count(L, 4);
+	int32 playerid = lua_tonumberint(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	uint32 count = lua_tonumberint(L, 2);
+	uint32 location1 = lua_tonumberint(L, 3);
+	uint32 location2 = lua_tonumberint(L, 4);
+	duel* pduel = interpreter::get_duel_info(L);
+	uint32 filter = 0xe0e0e0e0;
+	if(lua_gettop(L) > 4)
+		filter = lua_tonumberint(L, 5);
+	filter |= (pduel->game_field->core.duel_rule > 3) ? 0xC080C080 : 0x80E080E0;
+	uint32 flag = 0xffffffff;
+	if(location1 & LOCATION_MZONE)
+		flag &= 0xffffff00;
+	if(location1 & LOCATION_SZONE)
+		flag &= 0xffff00ff;
+	if(location2 & LOCATION_MZONE)
+		flag &= 0xff00ffff;
+	if(location1 & LOCATION_SZONE)
+		flag &= 0xffffff;
+	flag |= filter;
+	if (flag == 0xffffffff)
+		return 0;
+	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD_S, 0, 0, 0, playerid, flag, count);
+	return lua_yield(L, 0);
+}
 int32 scriptlib::duel_announce_race(lua_State * L) {
 	check_action_permission(L);
 	check_param_count(L, 3);
