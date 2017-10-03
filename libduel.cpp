@@ -3884,6 +3884,22 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* ccard = *(card**) lua_touserdata(L, 2);
 	duel* pduel = pcard->pduel;
+	uint32 resv = 0;
+	uint32 resc = 0;
+	if (lua_gettop(L) > 2) {
+		resv = lua_tounsigned(L, 3);
+		if (lua_gettop(L) > 3)
+			resc = lua_tounsigned(L, 4);
+		else
+			resc = 1;
+	} else {
+		resv = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
+		resc = 0x1;
+	}
+	
+	if(resv & (RESET_PHASE) && !(resv & (RESET_SELF_TURN | RESET_OPPO_TURN)))
+		resv |= (RESET_SELF_TURN | RESET_OPPO_TURN);
+		
 	for(auto eit = ccard->single_effect.begin(); eit != ccard->field_effect.end(); ++eit) {
 		if(eit == ccard->single_effect.end()) {
 			eit = ccard->field_effect.begin();
@@ -3891,7 +3907,7 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 				break;
 		}
 		effect* peffect = eit->second;
-		if(!(peffect->type & 0x7c)) continue;
+		if(!(peffect->type & 0x7c) && !peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) continue;
 		if(!peffect->is_flag(EFFECT_FLAG_INITIAL)) continue;
 		effect* ceffect = pduel->new_effect();
 		int32 ref = ceffect->ref_handle;
@@ -3917,8 +3933,50 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 			lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->operation);
 			ceffect->operation = luaL_ref(L, LUA_REGISTRYINDEX);
 		}
-		ceffect->reset_flag = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
-		ceffect->reset_count = 0x1;
+		if(peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) {
+			if(peffect->value) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->value);
+				ceffect->value = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->label) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label);
+				ceffect->label = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->label_object) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
+				ceffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->s_range) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->s_range);
+				ceffect->s_range = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->o_range) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->o_range);
+				ceffect->o_range = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->flag[0]) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->flag[0]);
+				ceffect->flag[0] = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->hint_timing[0]) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->hint_timing[0]);
+				ceffect->hint_timing[0] = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->hint_timing[1]) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->hint_timing[1]);
+				ceffect->hint_timing[1] = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->code) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->code);
+				ceffect->code = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+			if(peffect->type) {
+				lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->type);
+				ceffect->type = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+		}
+		ceffect->reset_flag = resv;
+		ceffect->reset_count = resc;
 		ceffect->recharge();
 		if(ceffect->type & EFFECT_TYPE_TRIGGER_F) {
 			ceffect->type &= ~EFFECT_TYPE_TRIGGER_F;
