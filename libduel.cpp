@@ -3198,9 +3198,11 @@ int32 scriptlib::duel_announce_level(lua_State * L) {
 		for (int32 i = min; i <= max; ++i) {
 			int32 chk = 1;
 			for (int32 j = 4; j <= lua_gettop(L); ++j) {
-				int32 ex = lua_tointeger(L, j);
-				if (ex == i && !lua_isnil(L,j))
-					chk = 0;
+				if (!lua_isnil(L, j)) {
+					int32 ex = lua_tointeger(L, j);
+					if (ex == i)
+						chk = 0;
+				}
 			}
 			if (chk == 1) {
 				count += 1;
