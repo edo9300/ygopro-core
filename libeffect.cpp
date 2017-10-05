@@ -40,10 +40,6 @@ int32 scriptlib::effect_clone(lua_State *L) {
 	*ceffect = *peffect;
 	ceffect->ref_handle = ref;
 	ceffect->handler = 0;
-	if(peffect->code) {
-		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->code);
-		ceffect->code = luaL_ref(L, LUA_REGISTRYINDEX);
-	}
 	if(peffect->condition) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->condition);
 		ceffect->condition = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -67,10 +63,6 @@ int32 scriptlib::effect_clone(lua_State *L) {
 	if(peffect->label) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label);
 		ceffect->label = luaL_ref(L, LUA_REGISTRYINDEX);
-	}
-	if(peffect->label_object) {
-		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
-		ceffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 	if(peffect->s_range) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->s_range);
@@ -99,10 +91,6 @@ int32 scriptlib::effect_clone(lua_State *L) {
 	if(peffect->reset_count) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->reset_count);
 		ceffect->reset_count = luaL_ref(L, LUA_REGISTRYINDEX);
-	}
-	if(peffect->type) {
-		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->type);
-		ceffect->type = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 	if(peffect->flag[0]) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->flag[0]);
