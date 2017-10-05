@@ -56,9 +56,73 @@ int32 scriptlib::effect_clone(lua_State *L) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->operation);
 		ceffect->operation = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
-	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE)) {
+	if(peffect->value) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->value);
 		ceffect->value = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->label) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label);
+		ceffect->label = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->s_range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->s_range);
+		ceffect->s_range = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->o_range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->o_range);
+		ceffect->o_range = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->count_limit) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->count_limit);
+		ceffect->count_limit = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->count_limit_max) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->count_limit_max);
+		ceffect->count_limit_max = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->count_code) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->count_code);
+		ceffect->count_code = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->reset_flag) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->reset_flag);
+		ceffect->reset_flag = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->reset_count) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->reset_count);
+		ceffect->reset_count = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->flag[0]) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->flag[0]);
+		ceffect->flag[0] = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->flag[1]) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->flag[1]);
+		ceffect->flag[1] = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->description) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->description);
+		ceffect->description = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->effect_owner) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->effect_owner);
+		ceffect->effect_owner = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->range) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->range);
+		ceffect->range = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->category) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->category);
+		ceffect->category = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->hint_timing[0]) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->hint_timing[0]);
+		ceffect->hint_timing[0] = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+	if(peffect->hint_timing[1]) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->hint_timing[1]);
+		ceffect->hint_timing[1] = luaL_ref(L, LUA_REGISTRYINDEX);
 	}
 	interpreter::effect2value(L, ceffect);
 	return 1;
