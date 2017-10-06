@@ -4318,7 +4318,7 @@ int32 field::add_chain(uint16 step) {
 			if(phandler->current.location == LOCATION_HAND) {
 				if(phandler->data.type & TYPE_TRAP)
 					ecode = EFFECT_TRAP_ACT_IN_HAND;
-				else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY)
+				else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK))
 				        && infos.turn_player != phandler->current.controler)
 					ecode = EFFECT_QP_ACT_IN_NTPHAND;
 			} else if(phandler->current.location == LOCATION_SZONE) {
@@ -4344,17 +4344,25 @@ int32 field::add_chain(uint16 step) {
 					}
 				}
 			}
-			if(phandler->current.location == LOCATION_HAND) {
-				phandler->enable_field_effect(false);
-				phandler->set_status(STATUS_ACT_FROM_HAND, TRUE);
-				if (phandler->data.type & TYPE_PENDULUM) {
-					move_to_field(phandler, phandler->current.controler, phandler->current.controler, LOCATION_PZONE, POS_FACEUP);
-				} else {
-					move_to_field(phandler, phandler->current.controler, phandler->current.controler, LOCATION_SZONE, POS_FACEUP);
-				}
-			} else {
+			if(phandler->current.location == LOCATION_SZONE) {
 				phandler->set_status(STATUS_ACT_FROM_HAND, FALSE);
 				change_position(phandler, 0, phandler->current.controler, POS_FACEUP, 0);
+			} else {
+				int32 loc = 0;
+				if(phandler->current.location == LOCATION_HAND) {
+					phandler->set_status(STATUS_ACT_FROM_HAND, TRUE);
+					if (phandler->data.type & TYPE_PENDULUM) {
+						loc=LOCATION_PZONE
+					} else {
+						loc=LOCATION_SZONE
+					}
+				}
+				if (peffect->value)
+					loc = peffect->value
+				if (loc>0) {
+					phandler->enable_field_effect(false);
+					move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP);
+				}
 			}
 		}
 		if(phandler->current.location & 0x30)
