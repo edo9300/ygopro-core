@@ -1083,6 +1083,10 @@ int32 scriptlib::duel_win(lua_State *L) {
 		else if (pduel->game_field->is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_EFFECT))
 			playerid = 1;
 	}
+	if ((pduel->game_field->core.win_player == 0 && playerid == 1) || (pduel->game_field->core.win_player == 1 && playerid == 0)) {
+		pduel->game_field->core.win_player = 2;
+		pduel->game_field->core.win_reason = reason;
+	}
 	if (pduel->game_field->core.win_player == 5) {
 		pduel->game_field->core.win_player = playerid;
 		pduel->game_field->core.win_reason = reason;
