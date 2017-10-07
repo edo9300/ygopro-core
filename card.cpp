@@ -489,7 +489,7 @@ uint32 card::get_fusion_set_card() {
 	}
 	return count;
 }
-uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
+uint64 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if(assume_type == ASSUME_TYPE)
 		return assume_value;
 	if(!(current.location & (LOCATION_ONFIELD | LOCATION_HAND | LOCATION_GRAVE)))
@@ -499,8 +499,8 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if (temp.type != 0xffffffff)
 		return temp.type;
 	effect_set effects;
-	int32 type = data.type;
-	int32 alttype = 0;
+	uint64 type = data.type;
+	uint64 alttype = 0;
 	temp.type = data.type;
 	filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_TYPE, &effects, FALSE);
