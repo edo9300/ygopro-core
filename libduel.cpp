@@ -3923,6 +3923,20 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* ccard = *(card**) lua_touserdata(L, 2);
 	duel* pduel = pcard->pduel;
+	uint32 resv = 0;
+	uint32 resc = 0;
+	if(lua_gettop(L) > 2) {
+		resv = lua_tounsigned(L, 3);
+		if(lua_gettop(L) > 3)
+			resc = lua_tounsigned(L, 4);
+		else
+			resc = 1;
+	} else {
+		resv = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
+		resc = 0x1;
+	}
+	if(resv & (RESET_PHASE) && !(resv & (RESET_SELF_TURN | RESET_OPPO_TURN)))
+		resv |= (RESET_SELF_TURN | RESET_OPPO_TURN);
 	for(auto eit = ccard->single_effect.begin(); eit != ccard->field_effect.end(); ++eit) {
 		if(eit == ccard->single_effect.end()) {
 			eit = ccard->field_effect.begin();
@@ -3930,14 +3944,14 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 				break;
 		}
 		effect* peffect = eit->second;
-		if(!(peffect->type & 0x7c)) continue;
+		if (!(peffect->type & 0x7c) && !peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) continue;
 		if(!peffect->is_flag(EFFECT_FLAG_INITIAL)) continue;
-		effect* ceffect = peffect->clone();
+		effect* ceffect = peffect->clone(true);
 		ceffect->owner = pcard;
 		ceffect->flag[0] &= ~EFFECT_FLAG_INITIAL;
 		ceffect->effect_owner = PLAYER_NONE;
-		ceffect->reset_flag = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
-		ceffect->reset_count = 0x1;
+		ceffect->reset_flag = resv;
+		ceffect->reset_count = resc;
 		ceffect->recharge();
 		if(ceffect->type & EFFECT_TYPE_TRIGGER_F) {
 			ceffect->type &= ~EFFECT_TYPE_TRIGGER_F;

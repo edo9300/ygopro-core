@@ -90,7 +90,7 @@ public:
 	void get_value(effect* peffect, uint32 extraargs, std::vector<int32>* result);
 	int32 check_value_condition(uint32 extraargs = 0);
 	int32 get_speed();
-	effect* clone();
+	effect* clone(int32 majestic = FALSE);
 	card* get_owner() const;
 	uint8 get_owner_player();
 	card* get_handler() const;
@@ -190,6 +190,7 @@ enum effect_flag : uint32 {
 enum effect_flag2 : uint32 {
 	EFFECT_FLAG2_NAGA				= 0x0001,
 	EFFECT_FLAG2_COF				= 0x0002,
+	EFFECT_FLAG2_MAJESTIC_MUST_COPY = 0x80000000,
 };
 inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 {
