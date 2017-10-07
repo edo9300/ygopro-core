@@ -25,7 +25,7 @@ struct card_data {
 	uint32 code;
 	uint32 alias;
 	uint64 setcode;
-	uint64 type;
+	uint32 type;
 	uint32 level;
 	uint32 attribute;
 	uint32 race;
@@ -40,7 +40,7 @@ struct card_state {
 	uint32 code;
 	uint32 code2;
 	uint16 setcode;
-	uint64 type;
+	uint32 type;
 	uint32 level;
 	uint32 rank;
 	uint32 link;
@@ -68,7 +68,7 @@ struct card_state {
 struct query_cache {
 	uint32 code;
 	uint32 alias;
-	uint64 type;
+	uint32 type;
 	uint32 level;
 	uint32 rank;
 	uint32 link;
@@ -200,7 +200,7 @@ public:
 	uint32 get_origin_set_card();
 	uint32 get_pre_set_card();
 	uint32 get_fusion_set_card();
-	uint64 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
+	uint32 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 0);
 	int32 get_base_attack();
 	int32 get_attack();
 	int32 get_base_defense();
