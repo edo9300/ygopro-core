@@ -4352,13 +4352,13 @@ int32 field::add_chain(uint16 step) {
 				if(phandler->current.location == LOCATION_HAND) {
 					phandler->set_status(STATUS_ACT_FROM_HAND, TRUE);
 					if (phandler->data.type & TYPE_PENDULUM) {
-						loc=LOCATION_PZONE
+						loc=LOCATION_PZONE;
 					} else {
-						loc=LOCATION_SZONE
+						loc=LOCATION_SZONE;
 					}
 				}
 				if (peffect->value)
-					loc = peffect->value
+					loc = peffect->value;
 				if (loc>0) {
 					phandler->enable_field_effect(false);
 					move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP);
