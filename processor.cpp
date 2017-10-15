@@ -807,7 +807,7 @@ int32 field::process() {
 		if(it->step == 0) {
 			effect_set eset;
 			card* pcard = (card*)it->ptr2;
-			pcard->fusion_filter_valid(it->ptarget, (card*)it->ptr1, it->arg1>>16, &eset);
+			pcard->fusion_filter_valid(it->ptarget, (group*)it->ptr1, it->arg1>>16, &eset);
 			core.select_effects.clear();
 			core.select_options.clear();
 			if(eset.size() < 1) {
@@ -834,14 +834,12 @@ int32 field::process() {
 				return pduel->bufferlen;
 			}
 			core.sub_solving_event.push_back(e);
-			pduel->lua->add_param(it->ptr1, PARAM_TYPE_CARD);
+			pduel->lua->add_param(it->ptr1, PARAM_TYPE_GROUP);
 			pduel->lua->add_param(it->arg1 >> 16, PARAM_TYPE_INT);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.select_effects[returns.ivalue[0]], 0, it->arg1 & 0xffff, 0);
 			it->step++;
 		} else {
 			group* pgroup = pduel->new_group(core.fusion_materials);
-			if(it->ptr1)
-				pgroup->container.insert((card*)it->ptr1);
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}

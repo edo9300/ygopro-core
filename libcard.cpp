@@ -2520,16 +2520,19 @@ int32 scriptlib::card_check_fusion_material(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	duel* pduel = pcard->pduel;
 	uint32 chkf = PLAYER_NONE;
 	group* pgroup = 0;
 	if(lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_GROUP, 2);
 		pgroup = *(group**) lua_touserdata(L, 2);
 	}
-	card* cg = 0;
-	if(lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
-		check_param(L, PARAM_TYPE_CARD, 3);
-		cg = *(card**) lua_touserdata(L, 3);
+	group* cg = 0;
+	if (lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
+		if (check_param(L, PARAM_TYPE_CARD, 3, TRUE))
+			cg = pduel->new_group(*(card**)lua_touserdata(L, 3));
+		else if (check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
+			cg = *(group**)lua_touserdata(L, 3);
 	}
 	if(lua_gettop(L) > 3)
 		chkf = lua_tonumberint(L, 4);

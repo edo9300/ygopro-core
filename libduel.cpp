@@ -2481,17 +2481,19 @@ int32 scriptlib::duel_select_fusion_material(lua_State *L) {
 		return 0;
 	check_param(L, PARAM_TYPE_CARD, 2);
 	check_param(L, PARAM_TYPE_GROUP, 3);
-	card* cg = 0;
+	card* pcard = *(card**)lua_touserdata(L, 2);
+	group* pgroup = *(group**)lua_touserdata(L, 3);
+	duel* pduel = pcard->pduel;
+	group* cg = 0;
 	uint32 chkf = PLAYER_NONE;
 	if(lua_gettop(L) > 3 && !lua_isnil(L, 4)) {
-		check_param(L, PARAM_TYPE_CARD, 4);
-		cg = *(card**) lua_touserdata(L, 4);
+		if (check_param(L, PARAM_TYPE_CARD, 4, TRUE))
+			cg = pduel->new_group(*(card**)lua_touserdata(L, 4));
+		else if (check_param(L, PARAM_TYPE_GROUP, 4, TRUE))
+			cg = *(group**)lua_touserdata(L, 4);
 	}
 	if(lua_gettop(L) > 4)
 		chkf = lua_tonumberint(L, 5);
-	card* pcard = *(card**) lua_touserdata(L, 2);
-	group* pgroup = *(group**) lua_touserdata(L, 3);
-	duel* pduel = pcard->pduel;
 	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, 0, (group*)pgroup, playerid + (chkf << 16), 0, 0, 0, cg, (card*)pcard);
 	return lua_yield(L, 0);
 }
