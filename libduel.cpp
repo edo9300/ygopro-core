@@ -1650,7 +1650,7 @@ int32 scriptlib::duel_get_location_count(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	uint32 uplayer = pduel->game_field->core.reason_player;
 	uint32 reason = LOCATION_REASON_TOFIELD;
-	if(lua_gettop(L) >= 3)
+	if(lua_gettop(L) >= 3 && !lua_isnil(L,3))
 		uplayer = lua_tonumberint(L, 3);
 	if(lua_gettop(L) >= 4)
 		reason = lua_tonumberint(L, 4);
