@@ -2919,7 +2919,8 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
 		check_card_counter(target, 3, target->summon_player);
-		move_to_field(target, target->summon_player, playerid, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
+		uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
+		move_to_field(target, move_player, playerid, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		return FALSE;
 	}
 	case 2: {
@@ -5528,8 +5529,10 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		core.operated_set.insert(pcard);
 		core.release_cards.erase(pcard);
 		if(min <= (int32)pcard->release_param) {
-			if(max > 1 && (!core.release_cards.empty() || !core.release_cards_ex.empty() || !core.release_cards_ex_sum.empty()))
+			if(max > 1 && core.release_cards_ex.empty() && (!core.release_cards.empty() || !core.release_cards_ex_sum.empty()))
 				add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, 210);
+			else if(max > 1 && !core.release_cards_ex.empty())
+				returns.ivalue[0] = TRUE;
 			else
 				core.units.begin()->step = 8;
 		} else
@@ -5638,6 +5641,8 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 			rmax += (*cit)->release_param;
 		min -= rmax;
 		max -= rmin;
+		min = min > 0 ? min : 0;
+		max = max > 0 ? max : 0;
 		core.units.begin()->arg2 = (max << 16) + min;
 		if(min <= 0) {
 			if(max > 0 && !core.release_cards.empty())
@@ -5743,6 +5748,8 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 			max--;
 			fcount++;
 		}
+		min = min > 0 ? min : 0;
+		max = max > 0 ? max : 0;
 		core.units.begin()->arg2 = (max << 16) + min;
 		if(core.release_cards.size() == 0
 			|| (fcount <= 0 && min < 2)) {
