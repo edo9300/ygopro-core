@@ -623,7 +623,7 @@ int32 field::get_spsummonable_count_fromex(card* pcard, uint8 playerid, uint32 z
 	filter_player_effect(playerid, EFFECT_FORCE_MZONE, &eset);
 	for (int32 i = 0; i < eset.size(); ++i) {
 		value = eset[i]->get_value();
-		if(player[playerid].disabled_location & value!=0)
+		if((flag & value) == 0)
 			flag |= ~(value >> 16 * playerid) & 0xff7f;
 	}
 	eset.clear();
