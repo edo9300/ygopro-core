@@ -592,7 +592,7 @@ int32 field::get_tofield_count(uint8 playerid, uint8 location, uint32 zone, uint
 	uint32 value;
 	if(uplayer == 2)
 		uplayer = playerid;
-	if((reason & (LOCATION_REASON_TOFIELD | LOCATION_REASON_CONTROL) != 0) && location == LOCATION_MZONE)
+	if((reason & (LOCATION_REASON_TOFIELD) != 0) && location == LOCATION_MZONE)
 		filter_player_effect(uplayer, EFFECT_FORCE_MZONE, &eset);
 	for(int32 i = 0; i < eset.size(); ++i) {
 		value = eset[i]->get_value();
