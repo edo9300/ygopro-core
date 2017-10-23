@@ -88,6 +88,10 @@ private:
 #define DUEL_OBSOLETE_IGNITION	0x100
 #define DUEL_1ST_TURN_DRAW		0x200
 #define DUEL_1_FIELD			0x400
-#define DUEL_NO_PZONE			0x800
-#define DUEL_NO_EMZONE			0x1000
+#define DUEL_PZONE				0x800
+#define DUEL_EMZONE				0x1000
+#define MASTER_RULE_1			0x700
+#define MASTER_RULE_2			0x600
+#define MASTER_RULE_3			0x800
+#define MASTER_RULE_4			0x1800
 #endif /* DUEL_H_ */

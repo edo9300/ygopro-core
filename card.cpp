@@ -1356,7 +1356,7 @@ uint32 card::get_linked_zone() {
 		zones |= 1u << (s - 1);
 	if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT))
 		zones |= 1u << (s + 1);
-	if (!(pduel->game_field->core.duel_options & DUEL_NO_EMZONE)) {
+	if (pduel->game_field->core.duel_options & DUEL_EMZONE) {
 		if ((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT))
 			|| (s == 1 && is_link_marker(LINK_MARKER_TOP))
 			|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)))
@@ -1406,7 +1406,7 @@ uint32 card::get_free_linked_zone() {
 		zones |= 1u << (s - 1);
 	if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, s + 1))
 		zones |= 1u << (s + 1);
-	if (!(pduel->game_field->core.duel_options & DUEL_NO_EMZONE)) {
+	if (pduel->game_field->core.duel_options & DUEL_EMZONE) {
 		if (((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT))
 			|| (s == 1 && is_link_marker(LINK_MARKER_TOP))
 			|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)))
@@ -1701,7 +1701,7 @@ int32 card::is_all_column() {
 	card_set cset;
 	get_column_cards(&cset, 0, 0);
 	int32 full = 3;
-	if(!(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) && (current.sequence == 1 || current.sequence == 3))
+	if((pduel->game_field->core.duel_options & DUEL_EMZONE) && (current.sequence == 1 || current.sequence == 3))
 		full++;
 	if(cset.size() == full)
 		return TRUE;
