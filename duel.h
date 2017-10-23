@@ -85,4 +85,9 @@ private:
 #define DUEL_TAG_MODE			0x20
 #define DUEL_SIMPLE_AI			0x40
 #define SPEED_DUEL				0x80
+#define DUEL_OBSOLETE_IGNITION	0x100
+#define DUEL_1ST_TURN_DRAW		0x200
+#define DUEL_1_FIELD			0x400
+#define DUEL_NO_PZONE			0x800
+#define DUEL_NO_EMZONE			0x1000
 #endif /* DUEL_H_ */

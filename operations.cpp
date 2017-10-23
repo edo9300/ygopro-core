@@ -2750,7 +2750,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			positions &= ~eset[i]->get_value();
 		}
 		uint32 zone = 0xff;
-		if(core.duel_rule >= 4) {
+		if(!(pduel->game_field->core.duel_options & DUEL_NO_EMZONE)) {
 			uint32 flag1, flag2;
 			int32 ct1 = get_tofield_count(sumplayer, LOCATION_MZONE, zone, &flag1);
 			int32 ct2 = get_spsummonable_count_fromex(pcard, sumplayer, sumplayer, zone, &flag2);
@@ -4150,18 +4150,18 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP) && zone==0xff) || (zone & 0x20 && zone != 0xff))) {
 			card* pcard = get_field_card(playerid, LOCATION_SZONE, 5);
 			if(pcard) {
-				if(core.duel_rule >= 3)
+				if(!(pduel->game_field->core.duel_options & DUEL_1_FIELD))
 					send_to(pcard, 0, REASON_RULE, pcard->current.controler, PLAYER_NONE, LOCATION_GRAVE, 0, 0);
 				else
 					destroy(pcard, 0, REASON_RULE, pcard->current.controler);
 				adjust_all();
 			}
-		} else if(location == LOCATION_SZONE && ((!is_equip && ((target->data.type & TYPE_PENDULUM && zone != 0xff))) || pzone) && core.duel_rule > 2) {
+		} else if(location == LOCATION_SZONE && ((!is_equip && ((target->data.type & TYPE_PENDULUM && zone != 0xff))) || pzone) && !(pduel->game_field->core.duel_options & DUEL_NO_PZONE)) {
 			uint32 flag = 0;
 			if(is_location_useable(playerid, LOCATION_PZONE, 0) && zone & 1)
-				flag |= 0x1u << (core.duel_rule >= 4 ? (core.duel_options & SPEED_DUEL) ? 9 : 8 : 14);
+				flag |= 0x1u << (!(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) ? (core.duel_options & SPEED_DUEL) ? 9 : 8 : 14);
 			if(is_location_useable(playerid, LOCATION_PZONE, 1) && zone & 2)
-				flag |= 0x1u << (core.duel_rule >= 4 ? (core.duel_options & SPEED_DUEL) ? 11 : 12 : 15);
+				flag |= 0x1u << (!(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) ? (core.duel_options & SPEED_DUEL) ? 11 : 12 : 15);
 			if(!flag)
 				return TRUE;
 			if(move_player != playerid)
@@ -4277,7 +4277,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		if(target->overlay_target)
 			target->overlay_target->xyz_remove(target);
 		// call move_card()
-		if (!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && zone==0xff && core.duel_rule > 2)
+		if (!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && zone==0xff && !(pduel->game_field->core.duel_options & DUEL_NO_PZONE))
 			pzone = TRUE;
 		move_card(playerid, target, location, target->temp.sequence, pzone);
 		target->current.position = returns.ivalue[0];
@@ -4928,7 +4928,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 			return FALSE;
 		}
 		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		uint32 linked_zone = !(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		if(linked_cards.find(tuner) != linked_cards.end())
 			ct++;
@@ -5096,7 +5096,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		int32 ct = get_spsummonable_count(scard, playerid);
 		card_set linked_cards;
 		if(ct <= 0) {
-			uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+			uint32 linked_zone = !(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 			get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		}
 		for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end(); ++cit)
@@ -5164,7 +5164,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 			return FALSE;
 		}
 		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		uint32 linked_zone = !(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		int32 mmax = 0;
 		core.select_cards.clear();
@@ -5340,7 +5340,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		if(ct > 0)
 			return FALSE;
 		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		uint32 linked_zone = !(pduel->game_field->core.duel_options & DUEL_NO_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
