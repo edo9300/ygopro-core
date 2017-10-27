@@ -1626,7 +1626,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				returns.bvalue[0] = 0;
 				core.units.begin()->step = 3;
 			} else {
-				int32 ct = get_tofield_count(sumplayer, LOCATION_MZONE, zone);
+				int32 ct = get_tofield_count(sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 				int32 fcount = get_mzone_limit(sumplayer, sumplayer, LOCATION_REASON_TOFIELD);
 				if(min == 0 && ct > 0 && fcount > 0) {
 					add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, sumplayer, 90);
@@ -2176,7 +2176,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 				returns.bvalue[0] = 0;
 				core.units.begin()->step = 3;
 			} else {
-				int32 ct = get_tofield_count(setplayer, LOCATION_MZONE, zone);
+				int32 ct = get_tofield_count(setplayer, LOCATION_MZONE, setplayer, LOCATION_REASON_TOFIELD, zone);
 				int32 fcount = get_mzone_limit(setplayer, setplayer, LOCATION_REASON_TOFIELD);
 				if(min == 0 && ct > 0 && fcount > 0) {
 					add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, setplayer, 90);
@@ -2752,7 +2752,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		uint32 zone = 0xff;
 		if(core.duel_rule >= 4) {
 			uint32 flag1, flag2;
-			int32 ct1 = get_tofield_count(sumplayer, LOCATION_MZONE, zone, &flag1);
+			int32 ct1 = get_tofield_count(sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
 			int32 ct2 = get_spsummonable_count_fromex(pcard, sumplayer, sumplayer, zone, &flag2);
 			for(auto it = pgroup->it; it != pgroup->container.end(); ++it) {
 				if((*it)->current.location != LOCATION_EXTRA)
@@ -5492,7 +5492,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		}
 		core.operated_set.clear();
 		zone &= 0x1f;
-		int32 ct = get_tofield_count(playerid, LOCATION_MZONE, zone);
+		int32 ct = get_tofield_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
 		if(ct > 0) {
 			returns.ivalue[0] = TRUE;
 			core.units.begin()->step = 1;
@@ -5691,7 +5691,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 	case 20: {
 		core.operated_set.clear();
 		zone &= 0x1f;
-		int32 ct = get_tofield_count(toplayer, LOCATION_MZONE, zone);
+		int32 ct = get_tofield_count(toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
 		if(ct > 0) {
 			returns.ivalue[0] = TRUE;
 			core.units.begin()->step = 21;
