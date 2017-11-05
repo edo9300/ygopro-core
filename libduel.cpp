@@ -1792,7 +1792,7 @@ int32 scriptlib::duel_get_location_count_fromex(lua_State *L) {
 		scard = *(card**)lua_touserdata(L, 4);
 	}
 	uint32 zone = 0xff;
-	if(pduel->game_field->core.duel_rule >= 4)
+	if(pduel->game_field->core.duel_options & DUEL_EMZONE)
 		lua_pushinteger(L, pduel->game_field->get_useable_count_fromex(scard, playerid, uplayer, zone));
 	else
 		lua_pushinteger(L, pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone));
@@ -1814,7 +1814,7 @@ int32 scriptlib::duel_get_usable_mzone_count(lua_State *L) {
 	if(lua_gettop(L) >= 2)
 		uplayer = lua_tonumberint(L, 2);
 	uint32 zone = 0xff;
-	if(pduel->game_field->core.duel_rule >= 4) {
+	if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
 		uint32 flag1, flag2;
 		int32 ct1 = pduel->game_field->get_tofield_count(playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
 		int32 ct2 = pduel->game_field->get_spsummonable_count_fromex(0, playerid, uplayer, zone, &flag2);
@@ -3158,7 +3158,7 @@ int32 scriptlib::duel_select_disable_field(lua_State * L) {
 	uint32 location1 = lua_tonumberint(L, 3);
 	uint32 location2 = lua_tonumberint(L, 4);
 	duel* pduel = interpreter::get_duel_info(L);
-	uint32 filter = (pduel->game_field->core.duel_rule > 3) ? 0xC080C080 : 0x80E080E0;
+	uint32 filter = (pduel->game_field->core.duel_options & DUEL_EMZONE) ? 0xC080C080 : 0x80E080E0;
 	filter |= lua_tonumberint(L, 5);
 	uint32 all_field = FALSE;
 	if(lua_gettop(L) > 5)
@@ -3251,7 +3251,7 @@ int32 scriptlib::duel_select_field_zone(lua_State * L) {
 	uint32 filter = 0xe0e0e0e0;
 	if(lua_gettop(L) > 4)
 		filter = lua_tonumberint(L, 5);
-	filter |= (pduel->game_field->core.duel_rule > 3) ? 0xC080C080 : 0x80E080E0;
+	filter |= (pduel->game_field->core.duel_options & DUEL_EMZONE) ? 0xC080C080 : 0x80E080E0;
 	uint32 flag = 0xffffffff;
 	if(location1 & LOCATION_MZONE)
 		flag &= 0xffffff00;
