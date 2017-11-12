@@ -152,7 +152,7 @@ void field::reload_field_info() {
 		pduel->write_buffer8(chit->triggering_controler);
 		pduel->write_buffer8((uint8)chit->triggering_location);
 		pduel->write_buffer8(chit->triggering_sequence);
-		pduel->write_buffer32(peffect->description);
+		pduel->write_buffer64(peffect->description);
 	}
 }
 // The core of moving cards, and Debug.AddCard() will call this function directly.
@@ -483,10 +483,10 @@ card* field::get_field_card(uint32 playerid, uint32 location, uint32 sequence) {
 	}
 	case LOCATION_PZONE: {
 		if(sequence == 0) {
-			card* pcard = player[playerid].list_szone[(pduel->game_field->core.duel_options & DUEL_EMZONE) ? (core.duel_options & SPEED_DUEL) ? 1 : 0 : 6];
+			card* pcard = player[playerid].list_szone[!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? 1 : 0 : 6];
 			return pcard && pcard->current.pzone ? pcard : 0;
 		} else if(sequence == 1) {
-			card* pcard = player[playerid].list_szone[(pduel->game_field->core.duel_options & DUEL_EMZONE) ? (core.duel_options & SPEED_DUEL) ? 3 : 4 : 7];
+			card* pcard = player[playerid].list_szone[!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? 3 : 4 : 7];
 			return pcard && pcard->current.pzone ? pcard : 0;
 		} else
 			return 0;
@@ -550,12 +550,12 @@ int32 field::is_location_useable(uint32 playerid, uint32 location, uint32 sequen
 	} else if (location == LOCATION_PZONE) {
 		if(!(pduel->game_field->core.duel_options & DUEL_PZONE))
 			return FALSE;
-		else if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
-			if(flag & (0x100u << ((core.duel_options & SPEED_DUEL) ? (sequence == 0) ? 1 : 3 : (sequence * 4))))
+		else if(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) {
+			if (flag & (0x100u << (6 + sequence)))
 				return FALSE;
 		} else {
-			if(flag & (0x100u << (6 + sequence)))
-				return FALSE;
+			if (flag & (0x100u << ((core.duel_options & SPEED_DUEL) ? (sequence == 0) ? 1 : 3 : (sequence * 4))))
+				return FALSE;			
 		}
 	}
 	return TRUE;
@@ -1088,13 +1088,13 @@ void field::add_effect(effect* peffect, uint8 owner_player) {
 				pduel->write_buffer8(MSG_PLAYER_HINT);
 				pduel->write_buffer8(0);
 				pduel->write_buffer8(PHINT_DESC_ADD);
-				pduel->write_buffer32(peffect->description);
+				pduel->write_buffer64(peffect->description);
 			}
 			if(target_player[1]) {
 				pduel->write_buffer8(MSG_PLAYER_HINT);
 				pduel->write_buffer8(1);
 				pduel->write_buffer8(PHINT_DESC_ADD);
-				pduel->write_buffer32(peffect->description);
+				pduel->write_buffer64(peffect->description);
 			}
 		}
 	}
@@ -1149,13 +1149,13 @@ void field::remove_effect(effect* peffect) {
 				pduel->write_buffer8(MSG_PLAYER_HINT);
 				pduel->write_buffer8(0);
 				pduel->write_buffer8(PHINT_DESC_REMOVE);
-				pduel->write_buffer32(peffect->description);
+				pduel->write_buffer64(peffect->description);
 			}
 			if(target_player[1]) {
 				pduel->write_buffer8(MSG_PLAYER_HINT);
 				pduel->write_buffer8(1);
 				pduel->write_buffer8(PHINT_DESC_REMOVE);
-				pduel->write_buffer32(peffect->description);
+				pduel->write_buffer64(peffect->description);
 			}
 		}
 	}
@@ -1363,7 +1363,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 		}
 		if(location & LOCATION_PZONE) {
 			for(int32 i = 0; i < 2; ++i) {
-				pcard = player[self].list_szone[(pduel->game_field->core.duel_options & DUEL_EMZONE) ? (core.duel_options & SPEED_DUEL) ? (i == 0) ? 1 : 3 : i * 4 : i + 6];
+				pcard = player[self].list_szone[!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? (i == 0) ? 1 : 3 : i * 4 : i + 6];
 				if(pcard && pcard->current.pzone && !pcard->is_status(STATUS_ACTIVATE_DISABLED)
 				        && pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
 				        && pduel->lua->check_matching(pcard, findex, extraargs)
@@ -1514,7 +1514,7 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 		}
 		if(location & LOCATION_PZONE) {
 			for(int32 i = 0; i < 2; ++i) {
-				pcard = player[self].list_szone[(pduel->game_field->core.duel_options & DUEL_EMZONE) ? (core.duel_options & SPEED_DUEL) ? (i == 0) ? 1 : 3 : i * 4 : i + 6];
+				pcard = player[self].list_szone[!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? (i == 0) ? 1 : 3 : i * 4 : i + 6];
 				if(pcard && pcard->current.pzone) {
 					if(pgroup)
 						pgroup->container.insert(pcard);

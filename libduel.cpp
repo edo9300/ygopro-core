@@ -3070,14 +3070,14 @@ int32 scriptlib::duel_hint(lua_State * L) {
 	int32 playerid = lua_tonumberint(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	int32 desc = lua_tonumberint(L, 3);
+	uint64 desc = lua_tonumber(L, 3);
 	if(htype == HINT_OPSELECTED)
 		playerid = 1 - playerid;
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->write_buffer8(MSG_HINT);
 	pduel->write_buffer8(htype);
 	pduel->write_buffer8(playerid);
-	pduel->write_buffer32(desc);
+	pduel->write_buffer64(desc);
 	return 0;
 }
 int32 scriptlib::duel_hint_selection(lua_State *L) {
