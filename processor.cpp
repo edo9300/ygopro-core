@@ -1422,9 +1422,8 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			tf_count++;
 		}
 		pr = effects.continuous_effect.equal_range(phase_event);
-		for(; pr.first != pr.second;) {
+		for(; pr.first != pr.second; ++pr.first) {
 			peffect = pr.first->second;
-			++pr.first;
 			if(peffect->get_handler_player() != check_player || !peffect->is_activateable(check_player, nil_event))
 				continue;
 			peffect->id = infos.field_id++;
@@ -1505,6 +1504,16 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 				newchain.triggering_effect = peffect;
 				if(check_hint_timing(peffect))
 					core.spe_effect[check_player]++;
+				core.select_chains.push_back(newchain);
+				fc_count++;
+			}
+			pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
+			for(; pr.first != pr.second; ++pr.first) {
+				peffect = pr.first->second;
+				if(peffect->get_handler_player() != check_player || !peffect->is_activateable(check_player, nil_event))
+					continue;
+				peffect->id = infos.field_id++;
+				newchain.triggering_effect = peffect;
 				core.select_chains.push_back(newchain);
 				fc_count++;
 			}
@@ -2016,6 +2025,70 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			peffect->get_value();
 		core.new_ochain_s.erase(clit);
 		core.units.begin()->step = 4;
+		return FALSE;
+	}
+	case 30: {
+		int32 check_player = infos.turn_player;
+		nil_event.event_code = EVENT_FREE_CHAIN;
+		chain newchain;
+		core.select_chains.clear();
+		core.spe_effect[check_player] = 0;
+		auto pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
+		for(; pr.first != pr.second; ++pr.first) {
+			effect* peffect = pr.first->second;
+			newchain.triggering_effect = peffect;
+			if(peffect->get_handler_player() == check_player && peffect->is_activateable(check_player, nil_event)) {
+				core.select_chains.push_back(newchain);
+				core.spe_effect[check_player]++;
+			}
+		}
+		if(!core.select_chains.empty())
+			add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, check_player, core.spe_effect[check_player]);
+		else
+			core.units.begin()->step = 31;
+		return FALSE;
+	}
+	case 31: {
+		if(returns.ivalue[0] == -1)
+			return FALSE;
+		const chain& newchain = core.select_chains[returns.ivalue[0]];
+		effect* peffect = newchain.triggering_effect;
+		core.select_chains.clear();
+		core.sub_solving_event.push_back(nil_event);
+		add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, peffect, 0, peffect->get_handler_player(), 0);
+		core.units.begin()->step = 29;
+		return FALSE;
+	}
+	case 32: {
+		int32 check_player = 1 - infos.turn_player;
+		nil_event.event_code = EVENT_FREE_CHAIN;
+		chain newchain;
+		core.select_chains.clear();
+		core.spe_effect[check_player] = 0;
+		auto pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
+		for(; pr.first != pr.second; ++pr.first) {
+			effect* peffect = pr.first->second;
+			newchain.triggering_effect = peffect;
+			if(peffect->get_handler_player() == check_player && peffect->is_activateable(check_player, nil_event)) {
+				core.select_chains.push_back(newchain);
+				core.spe_effect[check_player]++;
+			}
+		}
+		if(!core.select_chains.empty())
+			add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, check_player, core.spe_effect[check_player]);
+		else
+			core.units.begin()->step = -1;
+		return FALSE;
+	}
+	case 33: {
+		if(returns.ivalue[0] == -1)
+			return FALSE;
+		const chain& newchain = core.select_chains[returns.ivalue[0]];
+		effect* peffect = newchain.triggering_effect;
+		core.select_chains.clear();
+		core.sub_solving_event.push_back(nil_event);
+		add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, peffect, 0, peffect->get_handler_player(), 0);
+		core.units.begin()->step = 31;
 		return FALSE;
 	}
 	}
@@ -2569,6 +2642,13 @@ int32 field::process_idle_command(uint16 step) {
 			if(peffect->is_activateable(infos.turn_player, nil_event))
 				core.select_chains.push_back(newchain);
 		}
+		pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
+		for(; pr.first != pr.second; ++pr.first) {
+			peffect = pr.first->second;
+			newchain.triggering_effect = peffect;
+			if(peffect->get_handler_player() == infos.turn_player && peffect->is_activateable(infos.turn_player, nil_event))
+				core.select_chains.push_back(newchain);
+		}
 		for(auto eit = effects.ignition_effect.begin(); eit != effects.ignition_effect.end(); ++eit) {
 			peffect = eit->second;
 			peffect->set_activate_location();
@@ -2640,6 +2720,13 @@ int32 field::process_idle_command(uint16 step) {
 		if(ctype == 5) {
 			chain newchain = core.select_chains[sel];
 			effect* peffect = newchain.triggering_effect;
+			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
+				core.select_chains.clear();
+				core.sub_solving_event.push_back(nil_event);
+				add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, peffect, 0, peffect->get_handler_player(), 0);
+				core.units.begin()->step = -1;
+				return FALSE;
+			}
 			card* phandler = peffect->get_handler();
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
@@ -2858,6 +2945,13 @@ int32 field::process_battle_command(uint16 step) {
 			if(peffect->is_activateable(infos.turn_player, nil_event))
 				core.select_chains.push_back(newchain);
 		}
+		pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
+		for(; pr.first != pr.second; ++pr.first) {
+			peffect = pr.first->second;
+			newchain.triggering_effect = peffect;
+			if(peffect->get_handler_player() == infos.turn_player && peffect->is_activateable(infos.turn_player, nil_event))
+				core.select_chains.push_back(newchain);
+		}
 		core.attackable_cards.clear();
 		card_vector first_attack;
 		card_vector must_attack;
@@ -2901,6 +2995,13 @@ int32 field::process_battle_command(uint16 step) {
 		if(ctype == 0) {
 			chain newchain = core.select_chains[sel];
 			effect* peffect = newchain.triggering_effect;
+			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
+				core.select_chains.clear();
+				core.sub_solving_event.push_back(nil_event);
+				add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, peffect, 0, peffect->get_handler_player(), 0);
+				core.units.begin()->step = -1;
+				return FALSE;
+			}
 			card* phandler = peffect->get_handler();
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
@@ -3153,7 +3254,7 @@ int32 field::process_battle_command(uint16 step) {
 		pduel->write_buffer64(24);
 		core.hint_timing[0] = TIMING_BATTLE_PHASE;
 		core.hint_timing[1] = TIMING_BATTLE_PHASE;
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		add_process(PROCESSOR_POINT_EVENT, 30, 0, 0, 0, 0);
 		return FALSE;
 	}
 	case 10: {
