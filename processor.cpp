@@ -3471,7 +3471,7 @@ int32 field::process_battle_command(uint16 step) {
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_EVENT);
 		pduel->write_buffer8(1);
-		pduel->write_buffer32(42);
+		pduel->write_buffer64(42);
 		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		return FALSE;
@@ -3715,7 +3715,7 @@ int32 field::process_battle_command(uint16 step) {
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_EVENT);
 		pduel->write_buffer8(0);
-		pduel->write_buffer32(43);
+		pduel->write_buffer64(43);
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_EVENT);
 		pduel->write_buffer8(1);

@@ -3103,9 +3103,9 @@ int32 scriptlib::duel_select_effect_yesno(lua_State * L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	card* pcard = *(card**) lua_touserdata(L, 2);
-	int32 desc = 95;
+	uint64 desc = 95;
 	if(lua_gettop(L) >= 3)
-		desc = lua_tonumberint(L, 3);
+		desc = lua_tonumber(L, 3);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->add_process(PROCESSOR_SELECT_EFFECTYN_S, 0, 0, (group*)pcard, playerid, desc);
 	return lua_yield(L, 0);
@@ -3116,7 +3116,7 @@ int32 scriptlib::duel_select_yesno(lua_State * L) {
 	int32 playerid = lua_tonumberint(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	int32 desc = lua_tonumberint(L, 2);
+	uint64 desc = lua_tonumber(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->add_process(PROCESSOR_SELECT_YESNO_S, 0, 0, 0, playerid, desc);
 	return lua_yield(L, 0);
@@ -3131,7 +3131,7 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_options.clear();
 	for(uint32 i = 0; i < count; ++i)
-		pduel->game_field->core.select_options.push_back(lua_tonumberint(L, i + 2));
+		pduel->game_field->core.select_options.push_back(lua_tonumber(L, i + 2));
 	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION_S, 0, 0, 0, playerid, 0);
 	return lua_yield(L, 0);
 }
