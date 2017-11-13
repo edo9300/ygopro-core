@@ -658,12 +658,11 @@ int32 scriptlib::card_set_reason(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**)lua_touserdata(L, 1);
 	int32 reason = lua_tonumberint(L, 2);
-	int32 add = 0;
-	if (lua_gettop(L) > 2 && !lua_isnil(L, 3))
+	bool add = false;
+	if (lua_gettop(L) > 2)
 		add = lua_toboolean(L, 3);
-	if (add) {
+	if (add)
 		pcard->current.reason |= reason;
-	}
 	else
 		pcard->current.reason = reason;
 	return 0;
@@ -682,13 +681,13 @@ int32 scriptlib::card_set_reason_player(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**)lua_touserdata(L, 1);
 	int32 rp = lua_tointeger(L, 2);
-	if (rp != 0 && rp != 1 && rp != 2 && rp != 3)
+	if (rp < 0 || rp > PLAYER_ALL)
 		return 0;
 	pcard->current.reason_player = rp;
 	return 0;
 }
 int32 scriptlib::card_set_reason_effect(lua_State *L) {
-	check_param_count(L, 1);
+	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	check_param(L, PARAM_TYPE_EFFECT, 2);
 	card* pcard = *(card**)lua_touserdata(L, 1);
