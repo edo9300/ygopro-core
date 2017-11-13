@@ -51,6 +51,7 @@ public:
 	void release_script_group();
 	void restore_assumes();
 	int32 read_buffer(byte* buf);
+	void write_buffer64(uint64 value);
 	void write_buffer32(uint32 value);
 	void write_buffer16(uint16 value);
 	void write_buffer8(uint8 value);
@@ -85,4 +86,18 @@ private:
 #define DUEL_TAG_MODE			0x20
 #define DUEL_SIMPLE_AI			0x40
 #define SPEED_DUEL				0x80
+#define DUEL_OBSOLETE_IGNITION	0x100
+#define DUEL_1ST_TURN_DRAW		0x200
+#define DUEL_1_FIELD			0x400
+#define DUEL_PZONE				0x800
+#define DUEL_SEPARATE_PZONE		0x1000
+#define DUEL_EMZONE				0x2000
+#define MASTER_RULE_1			DUEL_OBSOLETE_IGNITION + DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
+#define MASTER_RULE_2			DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
+#define MASTER_RULE_3			DUEL_PZONE + DUEL_SEPARATE_PZONE
+#define MASTER_RULE_4			DUEL_PZONE + DUEL_EMZONE
+#define MASTER_RULE_1_FORB		TYPE_XYZ + TYPE_PENDULUM + TYPE_LINK
+#define MASTER_RULE_2_FORB		TYPE_PENDULUM + TYPE_LINK
+#define MASTER_RULE_3_FORB		TYPE_LINK
+#define MASTER_RULE_4_FORB		0
 #endif /* DUEL_H_ */

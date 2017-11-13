@@ -268,13 +268,13 @@ void field::release(card* target, effect* reason_effect, uint32 reason, uint32 r
 }
 // set current.reason, sendto_param
 // send-to in scripts: here->PROCESSOR_SENDTO, step 0
-void field::send_to(card_set* targets, effect* reason_effect, uint32 reason, uint32 reason_player, uint32 playerid, uint32 destination, uint32 sequence, uint32 position) {
+void field::send_to(card_set* targets, effect* reason_effect, uint32 reason, uint32 reason_player, uint32 playerid, uint32 destination, uint32 sequence, uint32 position, uint32 ignore) {
 	if(destination & LOCATION_ONFIELD)
 		return;
 	uint32 p, pos;
 	for(auto cit = targets->begin(); cit != targets->end(); ) {
 		card* pcard = *cit++;
-		if((destination & LOCATION_EXTRA) && !(pcard->data.type & TYPE_PENDULUM)) {
+		if(((destination & LOCATION_EXTRA) && !(pcard->data.type & TYPE_PENDULUM)) && !ignore) {
 			targets->erase(pcard);
 			continue;
 		}
@@ -290,7 +290,7 @@ void field::send_to(card_set* targets, effect* reason_effect, uint32 reason, uin
 			p = reason_player;
 		if(p == PLAYER_NONE)
 			p = pcard->owner;
-		if(destination != LOCATION_REMOVED)
+		if(destination != LOCATION_REMOVED && !ignore)
 			pos = POS_FACEUP;
 		else if(position == 0)
 			pos = pcard->current.position;
@@ -301,10 +301,10 @@ void field::send_to(card_set* targets, effect* reason_effect, uint32 reason, uin
 	ng->is_readonly = TRUE;
 	add_process(PROCESSOR_SENDTO, 0, reason_effect, ng, reason, reason_player);
 }
-void field::send_to(card* target, effect* reason_effect, uint32 reason, uint32 reason_player, uint32 playerid, uint32 destination, uint32 sequence, uint32 position) {
+void field::send_to(card* target, effect* reason_effect, uint32 reason, uint32 reason_player, uint32 playerid, uint32 destination, uint32 sequence, uint32 position, uint32 ignore) {
 	card_set tset;
 	tset.insert(target);
-	send_to(&tset, reason_effect, reason, reason_player, playerid, destination, sequence, position);
+	send_to(&tset, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
 void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 rule) {
 	if(!(destination & (LOCATION_MZONE + LOCATION_SZONE + LOCATION_PZONE)) || !positions || (destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE)))
@@ -829,7 +829,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(rplayer);
-		pduel->write_buffer32(519);
+		pduel->write_buffer64(519);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, rplayer, min + (max << 16));
 		return FALSE;
 	}
@@ -875,7 +875,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 			if((pcard->get_type() & TYPE_TRAPMONSTER) && get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_CONTROL) <= 0)
 				change = false;
 			if(!change)
-				targets->container.erase(pcard);
+				targets->container.erase(rm);
 		}
 		int32 fcount = get_useable_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_CONTROL, zone);
 		if(fcount <= 0) {
@@ -890,7 +890,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(502);
+			pduel->write_buffer64(502);
 			uint32 ct = targets->container.size() - fcount;
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, ct + (ct << 16));
 		} else
@@ -921,8 +921,6 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 		}
 		card* pcard = *targets->it;
 		move_to_field(pcard, playerid, playerid, LOCATION_MZONE, pcard->current.position, FALSE, 0, FALSE, zone);
-		pcard->fieldid = infos.field_id++;
-		pcard->fieldid_r = pcard->fieldid;
 		return FALSE;
 	}
 	case 4: {
@@ -1058,7 +1056,7 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(p1);
-		pduel->write_buffer32(pcard2->data.code);
+		pduel->write_buffer64(pcard2->data.code);
 		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, p1, flag, 1);
 		return FALSE;
 	}
@@ -1074,7 +1072,7 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(p2);
-		pduel->write_buffer32(pcard1->data.code);
+		pduel->write_buffer64(pcard1->data.code);
 		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, p2, flag, 1);
 		return FALSE;
 	}
@@ -1185,7 +1183,7 @@ int32 field::control_adjust(uint16 step) {
 					pduel->write_buffer8(MSG_HINT);
 					pduel->write_buffer8(HINT_SELECTMSG);
 					pduel->write_buffer8(infos.turn_player);
-					pduel->write_buffer32(502);
+					pduel->write_buffer64(502);
 					add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, 1, count + (count << 16));
 				}
 			} else
@@ -1204,7 +1202,7 @@ int32 field::control_adjust(uint16 step) {
 					pduel->write_buffer8(MSG_HINT);
 					pduel->write_buffer8(HINT_SELECTMSG);
 					pduel->write_buffer8(infos.turn_player);
-					pduel->write_buffer32(502);
+					pduel->write_buffer64(502);
 					add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, 0, count + (count << 16));
 				}
 			} else
@@ -1237,20 +1235,9 @@ int32 field::control_adjust(uint16 step) {
 		while(cit1 != core.control_adjust_set[0].end() && cit2 != core.control_adjust_set[1].end()) {
 			card* pcard1 = *cit1++;
 			card* pcard2 = *cit2++;
-			uint8 p1 = pcard1->current.controler, p2 = pcard2->current.controler;
-			uint8 l1 = pcard1->current.location, l2 = pcard2->current.location;
-			uint8 s1 = pcard1->current.sequence, s2 = pcard2->current.sequence;
-			remove_card(pcard1);
-			remove_card(pcard2);
-			add_card(p2, pcard1, l2, s2);
-			add_card(p1, pcard2, l1, s1);
+			swap_card(pcard1, pcard2);
 			pcard1->reset(RESET_CONTROL, RESET_EVENT);
 			pcard2->reset(RESET_CONTROL, RESET_EVENT);
-			pduel->write_buffer8(MSG_SWAP);
-			pduel->write_buffer32(pcard1->data.code);
-			pduel->write_buffer32(pcard2->get_info_location());
-			pduel->write_buffer32(pcard2->data.code);
-			pduel->write_buffer32(pcard1->get_info_location());
 		}
 		card_set* adjust_set = new card_set;
 		core.units.begin()->ptarget = (group*)adjust_set;
@@ -1301,36 +1288,85 @@ int32 field::control_adjust(uint16 step) {
 	}
 	return TRUE;
 }
-int32 field::self_destroy(uint16 step) {
+int32 field::self_destroy(uint16 step, card* ucard, int32 p) {
 	switch(step) {
 	case 0: {
-		if(!core.unique_destroy_set.empty())
-			destroy(&core.unique_destroy_set, 0, REASON_RULE, 5);
-		return FALSE;
-	}
-	case 1: {
-		core.unique_destroy_set.clear();
-		core.operated_set.clear();
-		if(!core.self_destroy_set.empty())
-			destroy(&core.self_destroy_set, 0, REASON_EFFECT, 5);
-		return FALSE;
-	}
-	case 2: {
-		core.self_destroy_set.clear();
-		core.operated_set.clear();
-		returns.ivalue[0] = 0;
-		if(!(core.global_flag & GLOBALFLAG_SELF_TOGRAVE))
+		core.unique_destroy_set.erase(ucard);
+		if(core.unique_cards[p].find(ucard) == core.unique_cards[p].end())
 			return TRUE;
-		if(!core.self_tograve_set.empty())
-			send_to(&core.self_tograve_set, 0, REASON_EFFECT, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
-		else
-			return TRUE;
+		card_set cset;
+		ucard->get_unique_target(&cset, p);
+		if(cset.size() == 0)
+			ucard->unique_fieldid = 0;
+		else if(cset.size() == 1) {
+			auto cit = cset.begin();
+			ucard->unique_fieldid = (*cit)->fieldid;
+		} else {
+			card* mcard = 0;
+			for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+				card* pcard = *cit;
+				if(ucard->unique_fieldid == pcard->fieldid) {
+					mcard = pcard;
+					break;
+				}
+				if(!mcard || pcard->fieldid < mcard->fieldid)
+					mcard = pcard;
+			}
+			ucard->unique_fieldid = mcard->fieldid;
+			cset.erase(mcard);
+			for(auto cit = cset.begin(); cit != cset.end(); ++cit) {
+				card* pcard = *cit;
+				pcard->temp.reason_effect = pcard->current.reason_effect;
+				pcard->temp.reason_player = pcard->current.reason_player;
+				pcard->current.reason_effect = ucard->unique_effect;
+				pcard->current.reason_player = ucard->current.controler;
+			}
+			destroy(&cset, 0, REASON_RULE, 5);
+		}
+		return TRUE;
+	}
+	case 10: {
+		if(core.self_destroy_set.empty())
+			return FALSE;
+		auto it = core.self_destroy_set.begin();
+		card* pcard = *it;
+		effect* peffect = pcard->is_affected_by_effect(EFFECT_SELF_DESTROY);
+		if(peffect) {
+			pcard->temp.reason_effect = pcard->current.reason_effect;
+			pcard->temp.reason_player = pcard->current.reason_player;
+			pcard->current.reason_effect = peffect;
+			pcard->current.reason_player = peffect->get_handler_player();
+			destroy(pcard, 0, REASON_EFFECT, 5);
+		}
+		core.self_destroy_set.erase(it);
+		core.units.begin()->step = 9;
 		return FALSE;
 	}
-	case 3: {
-		core.self_tograve_set.clear();
-		core.operated_set.clear();
+	case 11: {
 		returns.ivalue[0] = 0;
+		core.operated_set.clear();
+		return TRUE;
+	}
+	case 20: {
+		if(core.self_tograve_set.empty())
+			return FALSE;
+		auto it = core.self_tograve_set.begin();
+		card* pcard = *it;
+		effect* peffect = pcard->is_affected_by_effect(EFFECT_SELF_TOGRAVE);
+		if(peffect) {
+			pcard->temp.reason_effect = pcard->current.reason_effect;
+			pcard->temp.reason_player = pcard->current.reason_player;
+			pcard->current.reason_effect = peffect;
+			pcard->current.reason_player = peffect->get_handler_player();
+			send_to(pcard, 0, REASON_EFFECT, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		}
+		core.self_tograve_set.erase(it);
+		core.units.begin()->step = 19;
+		return FALSE;
+	}
+	case 21: {
+		returns.ivalue[0] = 0;
+		core.operated_set.clear();
 		return TRUE;
 	}
 	}
@@ -1590,9 +1626,9 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				returns.bvalue[0] = 0;
 				core.units.begin()->step = 3;
 			} else {
-				int32 ct = get_tofield_count(sumplayer, LOCATION_MZONE, zone);
+				int32 ct = get_tofield_count(sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 				int32 fcount = get_mzone_limit(sumplayer, sumplayer, LOCATION_REASON_TOFIELD);
-				if(min == 0 && ct > 0) {
+				if(min == 0 && ct > 0 && fcount > 0) {
 					add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, sumplayer, 90);
 					core.units.begin()->arg2 = required;
 				} else {
@@ -1600,7 +1636,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 						min = -fcount + 1;
 						required = min + (max << 16);
 					}
-					add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, sumplayer + ((uint32)core.summon_cancelable << 16), required, zone);
+					add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, sumplayer + ((uint32)core.summon_cancelable << 16), required, sumplayer, zone);
 					core.units.begin()->step = 3;
 				}
 			}
@@ -1612,7 +1648,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			returns.bvalue[0] = 0;
 		else {
 			int32 required = 1 + core.units.begin()->arg2;
-			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, sumplayer + ((uint32)core.summon_cancelable << 16), required, zone);
+			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, sumplayer + ((uint32)core.summon_cancelable << 16), required, sumplayer, zone);
 		}
 		return FALSE;
 	}
@@ -1674,7 +1710,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				pduel->write_buffer8(MSG_HINT);
 				pduel->write_buffer8(HINT_CARD);
 				pduel->write_buffer8(0);
-				pduel->write_buffer32(pdec->handler->data.code);
+				pduel->write_buffer64(pdec->handler->data.code);
 			}
 			for(int32 i = 0; i < eset.size() && min > 0; ++i) {
 				if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT) && eset[i]->count_limit > 0 && eset[i]->target) {
@@ -1684,7 +1720,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 					pduel->write_buffer8(MSG_HINT);
 					pduel->write_buffer8(HINT_CARD);
 					pduel->write_buffer8(0);
-					pduel->write_buffer32(eset[i]->handler->data.code);
+					pduel->write_buffer64(eset[i]->handler->data.code);
 				}
 			}
 			for(int32 i = 0; i < eset.size() && min > 0; ++i) {
@@ -1695,7 +1731,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 					pduel->write_buffer8(MSG_HINT);
 					pduel->write_buffer8(HINT_CARD);
 					pduel->write_buffer8(0);
-					pduel->write_buffer32(eset[i]->handler->data.code);
+					pduel->write_buffer64(eset[i]->handler->data.code);
 				}
 			}
 		}
@@ -1743,7 +1779,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_CARD);
 			pduel->write_buffer8(0);
-			pduel->write_buffer32(pextra->handler->data.code);
+			pduel->write_buffer64(pextra->handler->data.code);
 			if(pextra->operation) {
 				pduel->lua->add_param(target, PARAM_TYPE_CARD);
 				core.sub_solving_event.push_back(nil_event);
@@ -1797,7 +1833,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_CARD);
 			pduel->write_buffer8(0);
-			pduel->write_buffer32(pextra->handler->data.code);
+			pduel->write_buffer64(pextra->handler->data.code);
 			if(pextra->operation) {
 				pduel->lua->add_param(target, PARAM_TYPE_CARD);
 				core.sub_solving_event.push_back(nil_event);
@@ -2081,7 +2117,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 						min = new_min_tribute;
 						unchanged = false;
 					}
-					if(!check_tribute(target, min, max, 0, target->current.controler, new_zone, releasable))
+					if(!check_tribute(target, min, max, 0, target->current.controler, new_zone, releasable, POS_FACEDOWN_DEFENSE))
 						continue;
 				}
 				if(unlimited < 0 && unchanged)
@@ -2135,14 +2171,14 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 			core.release_cards.clear();
 			core.release_cards_ex.clear();
 			core.release_cards_ex_sum.clear();
-			int32 rcount = get_summon_release_list(target, &core.release_cards, &core.release_cards_ex, &core.release_cards_ex_sum, NULL, 0, releasable);
+			int32 rcount = get_summon_release_list(target, &core.release_cards, &core.release_cards_ex, &core.release_cards_ex_sum, NULL, 0, releasable, POS_FACEDOWN_DEFENSE);
 			if(rcount == 0) {
 				returns.bvalue[0] = 0;
 				core.units.begin()->step = 3;
 			} else {
-				int32 ct = get_tofield_count(setplayer, LOCATION_MZONE, zone);
+				int32 ct = get_tofield_count(setplayer, LOCATION_MZONE, setplayer, LOCATION_REASON_TOFIELD, zone);
 				int32 fcount = get_mzone_limit(setplayer, setplayer, LOCATION_REASON_TOFIELD);
-				if(min == 0 && ct > 0) {
+				if(min == 0 && ct > 0 && fcount > 0) {
 					add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, setplayer, 90);
 					core.units.begin()->arg2 = required;
 				} else {
@@ -2150,7 +2186,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 						min = -fcount + 1;
 						required = min + (max << 16);
 					}
-					add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, setplayer + ((uint32)core.summon_cancelable << 16), required, zone);
+					add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, setplayer + ((uint32)core.summon_cancelable << 16), required, setplayer, zone);
 					core.units.begin()->step = 3;
 				}
 			}
@@ -2162,7 +2198,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 			returns.bvalue[0] = 0;
 		else {
 			int32 required = 1 + core.units.begin()->arg2;
-			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, setplayer + ((uint32)core.summon_cancelable << 16), required, zone);
+			add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, 0, setplayer + ((uint32)core.summon_cancelable << 16), required, setplayer, zone);
 		}
 		return FALSE;
 	}
@@ -2232,7 +2268,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_CARD);
 			pduel->write_buffer8(0);
-			pduel->write_buffer32(pextra->handler->data.code);
+			pduel->write_buffer64(pextra->handler->data.code);
 			if(pextra->operation) {
 				pduel->lua->add_param(target, PARAM_TYPE_CARD);
 				core.sub_solving_event.push_back(nil_event);
@@ -2714,10 +2750,10 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			positions &= ~eset[i]->get_value();
 		}
 		uint32 zone = 0xff;
-		if(core.duel_rule >= 4) {
+		if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
 			uint32 flag1, flag2;
-			int32 ct1 = get_tofield_count(sumplayer, LOCATION_MZONE, zone, &flag1);
-			int32 ct2 = get_spsummonable_count_fromex(pcard, sumplayer, zone, &flag2);
+			int32 ct1 = get_tofield_count(sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
+			int32 ct2 = get_spsummonable_count_fromex(pcard, sumplayer, sumplayer, zone, &flag2);
 			for(auto it = pgroup->it; it != pgroup->container.end(); ++it) {
 				if((*it)->current.location != LOCATION_EXTRA)
 					ct1--;
@@ -2883,7 +2919,8 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
 		check_card_counter(target, 3, target->summon_player);
-		move_to_field(target, target->summon_player, playerid, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
+		uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
+		move_to_field(target, move_player, playerid, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		return FALSE;
 	}
 	case 2: {
@@ -3172,7 +3209,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_CARD);
 			pduel->write_buffer8(0);
-			pduel->write_buffer32((*eit)->owner->data.code);
+			pduel->write_buffer64((*eit)->owner->data.code);
 		}
 		operation_replace(EFFECT_DESTROY_REPLACE, 5, targets);
 		return FALSE;
@@ -3276,7 +3313,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 						pduel->write_buffer8(MSG_HINT);
 						pduel->write_buffer8(HINT_CARD);
 						pduel->write_buffer8(0);
-						pduel->write_buffer32(eset[i]->owner->data.code);
+						pduel->write_buffer64(eset[i]->owner->data.code);
 						indes = true;
 						break;
 					}
@@ -3306,7 +3343,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 							pduel->write_buffer8(MSG_HINT);
 							pduel->write_buffer8(HINT_CARD);
 							pduel->write_buffer8(0);
-							pduel->write_buffer32(eset[i]->owner->data.code);
+							pduel->write_buffer64(eset[i]->owner->data.code);
 							indes = true;
 						}
 					} else {
@@ -3320,7 +3357,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 								pduel->write_buffer8(MSG_HINT);
 								pduel->write_buffer8(HINT_CARD);
 								pduel->write_buffer8(0);
-								pduel->write_buffer32(eset[i]->owner->data.code);
+								pduel->write_buffer64(eset[i]->owner->data.code);
 								indes = true;
 							}
 						}
@@ -3790,7 +3827,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(pcard->current.controler);
-		pduel->write_buffer32(pcard->data.code);
+		pduel->write_buffer64(pcard->data.code);
 		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, pcard->current.controler, flag, 1);
 		return FALSE;
 	}
@@ -4113,18 +4150,18 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP) && zone==0xff) || (zone & 0x20 && zone != 0xff))) {
 			card* pcard = get_field_card(playerid, LOCATION_SZONE, 5);
 			if(pcard) {
-				if(core.duel_rule >= 3)
+				if(!(pduel->game_field->core.duel_options & DUEL_1_FIELD))
 					send_to(pcard, 0, REASON_RULE, pcard->current.controler, PLAYER_NONE, LOCATION_GRAVE, 0, 0);
 				else
 					destroy(pcard, 0, REASON_RULE, pcard->current.controler);
 				adjust_all();
 			}
-		} else if(location == LOCATION_SZONE && ((!is_equip && ((target->data.type & TYPE_PENDULUM && zone != 0xff))) || pzone)) {
+		} else if(location == LOCATION_SZONE && ((!is_equip && ((target->data.type & TYPE_PENDULUM && zone != 0xff))) || pzone) && (pduel->game_field->core.duel_options & DUEL_PZONE)) {
 			uint32 flag = 0;
 			if(is_location_useable(playerid, LOCATION_PZONE, 0) && zone & 1)
-				flag |= 0x1u << (core.duel_rule >= 4 ? (core.duel_options & SPEED_DUEL) ? 9 : 8 : 14);
+				flag |= 0x1u << (!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? 9 : 8 : 14);
 			if(is_location_useable(playerid, LOCATION_PZONE, 1) && zone & 2)
-				flag |= 0x1u << (core.duel_rule >= 4 ? (core.duel_options & SPEED_DUEL) ? 11 : 12 : 15);
+				flag |= 0x1u << (!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? 11 : 12 : 15);
 			if(!flag)
 				return TRUE;
 			if(move_player != playerid)
@@ -4133,7 +4170,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(move_player);
-			pduel->write_buffer32(target->data.code);
+			pduel->write_buffer64(target->data.code);
 			add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, move_player, flag, 1);
 		} else {
 			uint32 flag;
@@ -4170,7 +4207,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(move_player);
-			pduel->write_buffer32(target->data.code);
+			pduel->write_buffer64(target->data.code);
 			add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, move_player, flag, 1);
 		}
 		return FALSE;
@@ -4240,7 +4277,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		if(target->overlay_target)
 			target->overlay_target->xyz_remove(target);
 		// call move_card()
-		if (!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && zone==0xff)
+		if (!is_equip && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && zone==0xff && (pduel->game_field->core.duel_options & DUEL_PZONE))
 			pzone = TRUE;
 		move_card(playerid, target, location, target->temp.sequence, pzone);
 		target->current.position = returns.ivalue[0];
@@ -4700,7 +4737,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 				pduel->write_buffer8(MSG_HINT);
 				pduel->write_buffer8(HINT_SELECTMSG);
 				pduel->write_buffer8(playerid);
-				pduel->write_buffer32(512);
+				pduel->write_buffer64(512);
 				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), 0x10001);
 				return FALSE;
 			}
@@ -4724,7 +4761,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(512);
+		pduel->write_buffer64(512);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), 0x10001);
 		return FALSE;
 	}
@@ -4891,7 +4928,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 			return FALSE;
 		}
 		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		uint32 linked_zone = (pduel->game_field->core.duel_options & DUEL_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
 		if(linked_cards.find(tuner) != linked_cards.end())
 			ct++;
@@ -4920,7 +4957,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(512);
+		pduel->write_buffer64(512);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, 0x10001);
 		return FALSE;
 	}
@@ -4987,7 +5024,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(512);
+		pduel->write_buffer64(512);
 		add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, lv, playerid + (min << 16) + (max << 24));
 		return FALSE;
 	}
@@ -5042,7 +5079,7 @@ int32 field::select_synchro_material(int16 step, uint8 playerid, card* pcard, in
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(512);
+		pduel->write_buffer64(512);
 		add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, lv, playerid + (min << 16) + (max << 24));
 		core.units.begin()->step = 7;
 		return FALSE;
@@ -5054,21 +5091,99 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 	switch(step) {
 	case 0: {
 		core.operated_set.clear();
+		effect_set eset;
+		filter_player_effect(playerid, EFFECT_MUST_BE_XMATERIAL, &eset);
+		core.select_cards.clear();
+		for(int i = 0; i < eset.size(); ++i)
+			core.select_cards.push_back(eset[i]->handler);
+		int32 mct = core.select_cards.size();
+		if(mct == 0) {
+			returns.ivalue[0] = 1;
+			core.units.begin()->step = 1;
+			return FALSE;
+		}
+		pduel->write_buffer8(MSG_HINT);
+		pduel->write_buffer8(HINT_SELECTMSG);
+		pduel->write_buffer8(playerid);
+		pduel->write_buffer32(513);
+		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), mct + (mct << 16));
+		return FALSE;
+	}
+	case 1: {
+		if(returns.ivalue[0] == -1) {
+			pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
+			return TRUE;
+		}
+		int32 pv = 0;
+		for(int32 i = 0; i < returns.bvalue[0]; ++i) {
+			card* pcard = core.select_cards[returns.bvalue[i + 1]];
+			core.operated_set.insert(pcard);
+			for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
+				if(iter->second == pcard) {
+					if(pv < iter->first)
+						pv = iter->first;
+					core.xmaterial_lst.erase(iter);
+					break;
+				}
+			}
+		}
+		max -= returns.bvalue[0];
+		if(max == 0 || core.xmaterial_lst.size() == 0) {
+			group* pgroup = pduel->new_group(core.operated_set);
+			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
+			return TRUE;
+		}
+		min -= returns.bvalue[0];
+		if(min < 0)
+			min = 0;
+		if((int32)core.operated_set.size() < pv)
+			min = pv - core.operated_set.size();
+		core.units.begin()->arg2 = min + (max << 16);
+		if(min == 0) {
+			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, 93);
+			return FALSE;
+		}
+		returns.ivalue[0] = 1;
+		return FALSE;
+	}
+	case 2: {
+		if(!returns.ivalue[0]) {
+			group* pgroup = pduel->new_group(core.operated_set);
+			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
+			return TRUE;
+		}
 		if(!(core.global_flag & GLOBALFLAG_TUNE_MAGICIAN))
 			return FALSE;
 		int32 ct = get_spsummonable_count(scard, playerid);
 		card_set linked_cards;
 		if(ct <= 0) {
-			uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+			uint32 linked_zone = (pduel->game_field->core.duel_options & DUEL_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 			get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
+		}
+		for(auto mit = core.operated_set.begin(); mit != core.operated_set.end(); ++mit) {
+			card* pcard = *mit;
+			effect* peffect = pcard->is_affected_by_effect(EFFECT_TUNE_MAGICIAN_X);
+			if(peffect) {
+				for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end();) {
+					if(peffect->get_value(cit->second))
+						cit = core.xmaterial_lst.erase(cit);
+					else
+						++cit;
+				}
+			}
 		}
 		for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end(); ++cit)
 			cit->second->sum_param = 0;
 		int32 digit = 1;
-		for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end(); ++cit) {
+		for(auto cit = core.xmaterial_lst.begin(); cit != core.xmaterial_lst.end();) {
 			card* pcard = cit->second;
 			effect* peffect = pcard->is_affected_by_effect(EFFECT_TUNE_MAGICIAN_X);
 			if(peffect) {
+				if(std::any_of(core.operated_set.begin(), core.operated_set.end(),
+					[=](card* pcard) { return !!peffect->get_value(pcard); })) {
+					cit = core.xmaterial_lst.erase(cit);
+					continue;
+				}
 				digit <<= 1;
 				for(auto mit = core.xmaterial_lst.begin(); mit != core.xmaterial_lst.end(); ++mit) {
 					if(!peffect->get_value(mit->second))
@@ -5077,6 +5192,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 				pcard->sum_param |= digit;
 			} else
 				pcard->sum_param |= 1;
+			++cit;
 		}
 		int32 selectable = 0;
 		std::multimap<int32, card*, std::greater<int32> > mat;
@@ -5087,7 +5203,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 					mat.insert(*cit);
 			}
 			if(core.global_flag & GLOBALFLAG_XMAT_COUNT_LIMIT) {
-				int32 maxc = std::min(max, (int32)mat.size());
+				int32 maxc = std::min(max, (int32)mat.size()) + core.operated_set.size();
 				auto iter = mat.lower_bound(maxc);
 				mat.erase(mat.begin(), iter);
 			}
@@ -5116,19 +5232,26 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		if(acc)
 			return FALSE;
 		core.units.begin()->arg3 = selectable;
-		core.units.begin()->step = 9;
+		core.units.begin()->step = 19;
 		return FALSE;
 	}
-	case 1: {
+	case 3: {
 		int32 ct = get_spsummonable_count(scard, playerid);
 		if(ct > 0) {
 			returns.ivalue[0] = 1;
-			core.units.begin()->step = 2;
+			core.units.begin()->step = 4;
 			return FALSE;
 		}
 		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		uint32 linked_zone = (pduel->game_field->core.duel_options & DUEL_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
+		int32 ft = ct + std::count_if(core.operated_set.begin(), core.operated_set.end(),
+			[=](card* pcard) { return linked_cards.find(pcard) != linked_cards.end(); });
+		if(ft > 0) {
+			returns.ivalue[0] = 1;
+			core.units.begin()->step = 4;
+			return FALSE;
+		}
 		int32 mmax = 0;
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
@@ -5140,17 +5263,17 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		}
 		if(min > mmax) {
 			returns.ivalue[0] = 1;
-			core.units.begin()->step = 2;
+			core.units.begin()->step = 4;
 			return FALSE;
 		}
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(513);
+		pduel->write_buffer64(513);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), 0x10001);
 		return FALSE;
 	}
-	case 2: {
+	case 4: {
 		if(returns.ivalue[0] == -1) {
 			pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			return TRUE;
@@ -5184,7 +5307,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		returns.ivalue[0] = 1;
 		return FALSE;
 	}
-	case 3: {
+	case 5: {
 		if(!returns.ivalue[0]) {
 			group* pgroup = pduel->new_group(core.operated_set);
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
@@ -5200,13 +5323,13 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(513);
+			pduel->write_buffer64(513);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), min + (max << 16));
 		} else
-			core.units.begin()->step = 4;
+			core.units.begin()->step = 6;
 		return FALSE;
 	}
-	case 4: {
+	case 6: {
 		if(returns.ivalue[0] == -1) {
 			pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			return TRUE;
@@ -5219,18 +5342,18 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 		return TRUE;
 	}
-	case 5: {
+	case 7: {
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter)
 			core.select_cards.push_back(iter->second);
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(513);
+		pduel->write_buffer64(513);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), min + (min << 16));
 		return FALSE;
 	}
-	case 6: {
+	case 8: {
 		if(returns.ivalue[0] == -1) {
 			pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			return TRUE;
@@ -5265,7 +5388,7 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		returns.ivalue[0] = 1;
 		return FALSE;
 	}
-	case 7: {
+	case 9: {
 		if(!returns.ivalue[0]) {
 			group* pgroup = pduel->new_group(core.operated_set);
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
@@ -5278,18 +5401,18 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(513);
+		pduel->write_buffer64(513);
 		if(min == 0)
 			min = 1;
 		if(min + (int32)core.operated_set.size() >= maxv)
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, min + (max << 16));
 		else {
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, min + (min << 16));
-			core.units.begin()->step = 5;
+			core.units.begin()->step = 7;
 		}
 		return FALSE;
 	}
-	case 8: {
+	case 10: {
 		group* pgroup = pduel->new_group(core.operated_set);
 		for(int32 i = 0; i < returns.bvalue[0]; ++i) {
 			card* pcard = core.select_cards[returns.bvalue[i + 1]];
@@ -5298,13 +5421,17 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 		return TRUE;
 	}
-	case 10: {
+	case 20: {
 		int32 ct = get_spsummonable_count(scard, playerid);
 		if(ct > 0)
 			return FALSE;
 		card_set linked_cards;
-		uint32 linked_zone = core.duel_rule >= 4 ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
+		uint32 linked_zone = (pduel->game_field->core.duel_options & DUEL_EMZONE) ? get_linked_zone(playerid) | (1u << 5) | (1u << 6) : 0x1f;
 		get_cards_in_zone(&linked_cards, linked_zone, playerid, LOCATION_MZONE);
+		int32 ft = ct + std::count_if(core.operated_set.begin(), core.operated_set.end(),
+			[=](card* pcard) { return linked_cards.find(pcard) != linked_cards.end(); });
+		if(ft > 0)
+			return FALSE;
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter) {
 			card* pcard = iter->second;
@@ -5314,23 +5441,23 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(513);
+		pduel->write_buffer64(513);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), 0x10001);
-		core.units.begin()->step = 11;
+		core.units.begin()->step = 21;
 		return FALSE;
 	}
-	case 11: {
+	case 21: {
 		core.select_cards.clear();
 		for(auto iter = core.xmaterial_lst.begin(); iter != core.xmaterial_lst.end(); ++iter)
 			core.select_cards.push_back(iter->second);
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(513);
+		pduel->write_buffer64(513);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + ((uint32)core.summon_cancelable << 16), 0x10001);
 		return FALSE;
 	}
-	case 12: {
+	case 22: {
 		if(returns.ivalue[0] == -1) {
 			pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			return TRUE;
@@ -5364,16 +5491,16 @@ int32 field::select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* sc
 			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, 93);
 			return FALSE;
 		}
-		core.units.begin()->step = 10;
+		core.units.begin()->step = 20;
 		return FALSE;
 	}
-	case 13: {
+	case 23: {
 		if(!returns.ivalue[0]) {
 			group* pgroup = pduel->new_group(core.operated_set);
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			return TRUE;
 		}
-		core.units.begin()->step = 10;
+		core.units.begin()->step = 20;
 		return FALSE;
 	}
 	}
@@ -5389,7 +5516,7 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 check_field,
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(500);
+			pduel->write_buffer64(500);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
 			return TRUE;
 		}
@@ -5400,7 +5527,7 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 check_field,
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(500);
+			pduel->write_buffer64(500);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
 			return TRUE;
 		}
@@ -5411,7 +5538,7 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 check_field,
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(500);
+		pduel->write_buffer64(500);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (core.release_cards_ex.size() << 16) + core.release_cards_ex.size());
 		min -= core.release_cards_ex.size();
 		max -= core.release_cards_ex.size();
@@ -5427,7 +5554,7 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 check_field,
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(500);
+		pduel->write_buffer64(500);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
 		return FALSE;
 	}
@@ -5446,12 +5573,16 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 check_field,
 	}
 	return TRUE;
 }
-int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, int32 min, int32 max, uint32 zone) {
+int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, int32 min, int32 max, uint8 toplayer, uint32 zone) {
 	switch(step) {
 	case 0: {
+		if(toplayer != playerid) {
+			core.units.begin()->step = 19;
+			return FALSE;
+		}
 		core.operated_set.clear();
 		zone &= 0x1f;
-		int32 ct = get_tofield_count(playerid, LOCATION_MZONE, zone);
+		int32 ct = get_tofield_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
 		if(ct > 0) {
 			returns.ivalue[0] = TRUE;
 			core.units.begin()->step = 1;
@@ -5460,7 +5591,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		int32 rmax = 0;
 		core.select_cards.clear();
 		for(auto cit = core.release_cards.begin(); cit != core.release_cards.end(); ++cit) {
-			if((zone >> (*cit)->current.sequence) & 1)
+			if((*cit)->current.location == LOCATION_MZONE && ((zone >> (*cit)->current.sequence) & 1))
 				core.select_cards.push_back(*cit);
 			else
 				rmax += (*cit)->release_param;
@@ -5468,7 +5599,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(500);
+		pduel->write_buffer64(500);
 		if(core.release_cards_ex.empty() && core.release_cards_ex_sum.empty() && min > rmax) {
 			if(rmax > 0) {
 				core.select_cards.clear();
@@ -5488,8 +5619,10 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		core.operated_set.insert(pcard);
 		core.release_cards.erase(pcard);
 		if(min <= (int32)pcard->release_param) {
-			if(max > 1 && (!core.release_cards.empty() || !core.release_cards_ex.empty() || !core.release_cards_ex_sum.empty()))
+			if(max > 1 && core.release_cards_ex.empty() && (!core.release_cards.empty() || !core.release_cards_ex_sum.empty()))
 				add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, 210);
+			else if(max > 1 && !core.release_cards_ex.empty())
+				returns.ivalue[0] = TRUE;
 			else
 				core.units.begin()->step = 8;
 		} else
@@ -5515,7 +5648,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(500);
+			pduel->write_buffer64(500);
 			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
 			core.units.begin()->step = 7;
 			return FALSE;
@@ -5527,7 +5660,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(500);
+			pduel->write_buffer64(500);
 			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
 			core.units.begin()->step = 7;
 			return FALSE;
@@ -5564,7 +5697,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(500);
+		pduel->write_buffer64(500);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, 0x10001);
 		return FALSE;
 	}
@@ -5583,7 +5716,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(500);
+		pduel->write_buffer64(500);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (core.release_cards_ex.size() << 16) + core.release_cards_ex.size());
 		return FALSE;
 	}
@@ -5598,6 +5731,8 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 			rmax += (*cit)->release_param;
 		min -= rmax;
 		max -= rmin;
+		min = min > 0 ? min : 0;
+		max = max > 0 ? max : 0;
 		core.units.begin()->arg2 = (max << 16) + min;
 		if(min <= 0) {
 			if(max > 0 && !core.release_cards.empty())
@@ -5619,7 +5754,7 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(500);
+		pduel->write_buffer64(500);
 		add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
 		return FALSE;
 	}
@@ -5641,6 +5776,114 @@ int32 field::select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		effect* peffect = core.units.begin()->peffect;
 		if(peffect)
 			peffect->dec_count();
+		return TRUE;
+	}
+	case 20: {
+		core.operated_set.clear();
+		zone &= 0x1f;
+		int32 ct = get_tofield_count(toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
+		if(ct > 0) {
+			returns.ivalue[0] = TRUE;
+			core.units.begin()->step = 21;
+			return FALSE;
+		}
+		int32 rmax = 0;
+		core.select_cards.clear();
+		for(auto cit = core.release_cards_ex.begin(); cit != core.release_cards_ex.end(); ++cit) {
+			if((*cit)->current.location == LOCATION_MZONE && ((zone >> (*cit)->current.sequence) & 1))
+				core.select_cards.push_back(*cit);
+			else
+				rmax += (*cit)->release_param;
+		}
+		pduel->write_buffer8(MSG_HINT);
+		pduel->write_buffer8(HINT_SELECTMSG);
+		pduel->write_buffer8(playerid);
+		pduel->write_buffer64(500);
+		if(core.release_cards.empty() && min > rmax) {
+			if(rmax > 0) {
+				core.select_cards.clear();
+				for(auto cit = core.release_cards_ex.begin(); cit != core.release_cards_ex.end(); ++cit)
+					core.select_cards.push_back(*cit);
+			}
+			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
+			return TRUE;
+		}
+		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, 0x10001);
+		return FALSE;
+
+	}
+	case 21: {
+		if(returns.ivalue[0] == -1)
+			return TRUE;
+		card* pcard = core.select_cards[returns.bvalue[1]];
+		core.operated_set.insert(pcard);
+		core.release_cards_ex.erase(pcard);
+		if(min <= (int32)pcard->release_param) {
+			if(max > 1 && (!core.release_cards_ex.empty() || !core.release_cards.empty()))
+				add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, 210);
+			else
+				core.units.begin()->step = 24;
+		} else
+			returns.ivalue[0] = TRUE;
+		return FALSE;
+	}
+	case 22: {
+		if(!returns.ivalue[0]) {
+			core.units.begin()->step = 24;
+			return FALSE;
+		}
+		int32 fcount = get_mzone_limit(toplayer, playerid, LOCATION_REASON_TOFIELD);
+		if(!core.operated_set.empty()) {
+			min -= (*core.operated_set.begin())->release_param;
+			max--;
+			fcount++;
+		}
+		min = min > 0 ? min : 0;
+		max = max > 0 ? max : 0;
+		core.units.begin()->arg2 = (max << 16) + min;
+		if(core.release_cards.size() == 0
+			|| (fcount <= 0 && min < 2)) {
+			core.select_cards.clear();
+			for(auto cit = core.release_cards_ex.begin(); cit != core.release_cards_ex.end(); ++cit)
+				core.select_cards.push_back(*cit);
+			pduel->write_buffer8(MSG_HINT);
+			pduel->write_buffer8(HINT_SELECTMSG);
+			pduel->write_buffer8(playerid);
+			pduel->write_buffer64(500);
+			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
+			core.units.begin()->step = 23;
+			return FALSE;
+		}
+		return FALSE;
+	}
+	case 23: {
+		core.select_cards.clear();
+		for(auto cit = core.release_cards_ex.begin(); cit != core.release_cards_ex.end(); ++cit)
+			core.select_cards.push_back(*cit);
+		for(auto cit = core.release_cards.begin(); cit != core.release_cards.end(); ++cit)
+			core.select_cards.push_back(*cit);
+		pduel->write_buffer8(MSG_HINT);
+		pduel->write_buffer8(HINT_SELECTMSG);
+		pduel->write_buffer8(playerid);
+		pduel->write_buffer64(500);
+		add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
+		return FALSE;
+	}
+	case 24: {
+		if(returns.ivalue[0] == -1)
+			return TRUE;
+		for(int32 i = 0; i < returns.bvalue[0]; ++i)
+			core.operated_set.insert(core.select_cards[returns.bvalue[i + 1]]);
+		return FALSE;
+	}
+	case 25: {
+		core.select_cards.clear();
+		returns.bvalue[0] = core.operated_set.size();
+		int32 i = 0;
+		for(auto cit = core.operated_set.begin(); cit != core.operated_set.end(); ++cit, ++i) {
+			core.select_cards.push_back(*cit);
+			returns.bvalue[i + 1] = i;
+		}
 		return TRUE;
 	}
 	}

@@ -143,6 +143,8 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetOwnerTargetCount", scriptlib::card_get_owner_target_count },
 	{ "GetActivateEffect", scriptlib::card_get_activate_effect },
 	{ "CheckActivateEffect", scriptlib::card_check_activate_effect },
+	{ "GetTunerLimit", scriptlib::card_get_tuner_limit },
+	{ "GetHandSynchro", scriptlib::card_get_hand_synchro },
 	{ "RegisterEffect", scriptlib::card_register_effect },
 	{ "IsHasEffect", scriptlib::card_is_has_effect },
 	{ "GetCardEffect", scriptlib::card_get_card_effect },
@@ -250,7 +252,6 @@ static const struct luaL_Reg cardlib[] = {
 	{ "ResetNegateEffect", scriptlib::card_reset_negate_effect },
 	{ "AssumeProperty", scriptlib::card_assume_prop },
 	{ "SetSPSummonOnce", scriptlib::card_set_spsummon_once },
-	{ "CheckMZoneFromEx", scriptlib::card_check_mzone_from_ex },
 	{ NULL, NULL }
 };
 
@@ -319,6 +320,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "RemoveCard", scriptlib::group_remove_card },
 	{ "GetNext", scriptlib::group_get_next },
 	{ "GetFirst", scriptlib::group_get_first },
+	{ "TakeatPos", scriptlib::group_take_at_pos },
 	{ "GetCount", scriptlib::group_get_count },
 	{ "ForEach", scriptlib::group_for_each },
 	{ "Filter", scriptlib::group_filter },
@@ -356,12 +358,15 @@ static const struct luaL_Reg duellib[] = {
 	{ "RegisterFlagEffect", scriptlib::duel_register_flag_effect },
 	{ "GetFlagEffect", scriptlib::duel_get_flag_effect },
 	{ "ResetFlagEffect", scriptlib::duel_reset_flag_effect },
+	{ "SetFlagEffectLabel", scriptlib::duel_set_flag_effect_label },
+	{ "GetFlagEffectLabel", scriptlib::duel_get_flag_effect_label },
 	{ "Destroy", scriptlib::duel_destroy },
 	{ "Remove", scriptlib::duel_remove },
 	{ "SendtoGrave", scriptlib::duel_sendto_grave },
 	{ "SendtoHand", scriptlib::duel_sendto_hand },
 	{ "SendtoDeck", scriptlib::duel_sendto_deck },
 	{ "SendtoExtraP", scriptlib::duel_sendto_extra },
+	{ "Sendto", scriptlib::duel_sendto },
 	{ "GetOperatedGroup", scriptlib::duel_get_operated_group },
 	{ "Summon", scriptlib::duel_summon },
 	{ "SpecialSummonRule", scriptlib::duel_special_summon_rule },
@@ -431,6 +436,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "IncreaseSummonedCount", scriptlib::duel_increase_summon_count },
 	{ "CheckSummonedCount", scriptlib::duel_check_summon_count },
 	{ "GetLocationCount", scriptlib::duel_get_location_count },
+	{ "GetMZoneCount", scriptlib::duel_get_mzone_count },
 	{ "GetLocationCountFromEx", scriptlib::duel_get_location_count_fromex },
 	{ "GetUsableMZoneCount", scriptlib::duel_get_usable_mzone_count },
 	{ "GetLinkedGroup", scriptlib::duel_get_linked_group },
@@ -440,6 +446,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "CheckLocation", scriptlib::duel_check_location },
 	{ "GetCurrentChain", scriptlib::duel_get_current_chain },
 	{ "GetChainInfo", scriptlib::duel_get_chain_info },
+	{ "GetChainEvent", scriptlib::duel_get_chain_event },
 	{ "GetFirstTarget", scriptlib::duel_get_first_target },
 	{ "GetCurrentPhase", scriptlib::duel_get_current_phase },
 	{ "SkipPhase", scriptlib::duel_skip_phase },
@@ -505,6 +512,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SelectSequence", scriptlib::duel_select_sequence },
 	{ "SelectPosition", scriptlib::duel_select_position },
 	{ "SelectDisableField", scriptlib::duel_select_disable_field },
+	{ "SelectFieldZone", scriptlib::duel_select_field_zone },
 	{ "AnnounceRace", scriptlib::duel_announce_race },
 	{ "AnnounceAttribute", scriptlib::duel_announce_attribute },
 	{ "AnnounceLevel", scriptlib::duel_announce_level },
@@ -1152,6 +1160,11 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 		}
 		return COROUTINE_ERROR;
 	}
+}
+int32 interpreter::clone_function_ref(int32 func_ref) {
+	lua_rawgeti(current_state, LUA_REGISTRYINDEX, func_ref);
+	int32 ref = luaL_ref(current_state, LUA_REGISTRYINDEX);
+	return ref;
 }
 //Convert a pointer to a lua value, +1 -0
 void interpreter::card2value(lua_State* L, card* pcard) {
