@@ -200,7 +200,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 						return FALSE;
 				}
 			} else {
-				if(!((handler->data.type & TYPE_FIELD) || (value & LOCATION_FZONE) || (value & LOCATION_HAND))) {
+				if(!(((handler->data.type & TYPE_FIELD) && value<=0) || (value & LOCATION_FZONE) || (value & LOCATION_HAND))) {
 					if ((value & LOCATION_MZONE) && pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0) {
 						return FALSE;
 					} else if ((value & LOCATION_SZONE) && pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0) {
