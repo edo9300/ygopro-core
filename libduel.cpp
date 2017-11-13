@@ -1380,7 +1380,7 @@ int32 scriptlib::duel_shuffle_setcard(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_GROUP, 1);
 	group* pgroup = *(group**)lua_touserdata(L, 1);
-	if(pgroup->container.size() <= 1)
+	if(pgroup->container.size() <= 0)
 		return 0;
 	duel* pduel = pgroup->pduel;
 	card* ms[7];
