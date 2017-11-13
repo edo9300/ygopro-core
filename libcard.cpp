@@ -674,6 +674,48 @@ int32 scriptlib::card_get_reason_effect(lua_State *L) {
 	interpreter::effect2value(L, pcard->current.reason_effect);
 	return 1;
 }
+int32 scriptlib::card_set_reason(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	int32 reason = lua_tonumberint(L, 2);
+	bool add = false;
+	if (lua_gettop(L) > 2)
+		add = lua_toboolean(L, 3);
+	if (add)
+		pcard->current.reason |= reason;
+	else
+		pcard->current.reason = reason;
+	return 0;
+}
+int32 scriptlib::card_set_reason_card(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	card* rcard = *(card**)lua_touserdata(L, 2);
+	pcard->current.reason_card = rcard;
+	return 0;
+}
+int32 scriptlib::card_set_reason_player(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	int32 rp = lua_tointeger(L, 2);
+	if (rp < 0 || rp > PLAYER_ALL)
+		return 0;
+	pcard->current.reason_player = rp;
+	return 0;
+}
+int32 scriptlib::card_set_reason_effect(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_EFFECT, 2);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	effect* re = *(effect**)lua_touserdata(L, 2);
+	pcard->current.reason_effect = re;
+	return 0;
+}
 int32 scriptlib::card_get_position(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
