@@ -4459,7 +4459,11 @@ int32 field::add_chain(uint16 step) {
 					loc = peffect->value;
 				if (loc>0) {
 					phandler->enable_field_effect(false);
-					move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP);
+					if (loc==LOCATION_MZONE) {
+						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP_ATTACK);
+					} else {
+						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP);
+					}
 				}
 			}
 		}

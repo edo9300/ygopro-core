@@ -179,7 +179,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 		return FALSE;
 	if (!is_flag(EFFECT_FLAG_FIELD_ONLY)) {
 		if (type & EFFECT_TYPE_ACTIVATE) {
-			if(handler->current.controler != playerid)
+			if((handler->current.controler != playerid) && !(flag[0] & EFFECT_FLAG_BOTH_SIDE))
 				return FALSE;
 			if(pduel->game_field->check_unique_onfield(handler, playerid, LOCATION_SZONE))
 				return FALSE;
@@ -190,17 +190,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 					return FALSE;
 			}
 			// additional check for each location
-			if(handler->current.location == LOCATION_HAND) {
-				if(handler->data.type & TYPE_MONSTER) {
-					if((handler->data.type & TYPE_PENDULUM)) {
-						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
-								&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
-							return FALSE;
-					}
-				} else if(!(handler->data.type & TYPE_FIELD)
-						&& pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
-					return FALSE;
-			} else if(handler->current.location == LOCATION_SZONE) {
+			if(handler->current.location == LOCATION_SZONE) {
 				if(handler->is_position(POS_FACEUP))
 					return FALSE;
 				if(handler->equiping_target)
@@ -208,6 +198,20 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(handler->get_status(STATUS_SET_TURN)) {
 					if((handler->data.type & TYPE_SPELL) && ((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK)))
 						return FALSE;
+				}
+			} else {
+				if(!(((handler->data.type & TYPE_FIELD) && value<=0) || (value & LOCATION_FZONE) || (value & LOCATION_HAND))) {
+					if (value & LOCATION_MZONE) {
+						if (pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+							return FALSE;
+					} else if ((handler->data.type & TYPE_PENDULUM) || (value & LOCATION_PZONE)) {
+						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
+							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
+						return FALSE;
+					} else {
+						if (pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+							return FALSE;
+					}
 				}
 			}
 			// check activate in hand/in set turn
