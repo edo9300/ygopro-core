@@ -258,6 +258,19 @@ public:
 	static int32 card_reset_negate_effect(lua_State *L);
 	static int32 card_assume_prop(lua_State *L);
 	static int32 card_set_spsummon_once(lua_State *L);
+	static int32 card_code(lua_State *L);
+	static int32 card_alias(lua_State *L);
+	static int32 card_setcode(lua_State *L);
+	static int32 card_type(lua_State *L);
+	static int32 card_level(lua_State *L);
+	static int32 card_attribute(lua_State *L);
+	static int32 card_race(lua_State *L);
+	static int32 card_attack(lua_State *L);
+	static int32 card_defense(lua_State *L);
+	static int32 card_rscale(lua_State *L);
+	static int32 card_lscale(lua_State *L);
+	static int32 card_link_marker(lua_State *L);
+	static int32 card_recreate(lua_State *L);
 
 	//Effect functions
 	static int32 effect_new(lua_State *L);

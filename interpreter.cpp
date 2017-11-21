@@ -256,6 +256,19 @@ static const struct luaL_Reg cardlib[] = {
 	{ "ResetNegateEffect", scriptlib::card_reset_negate_effect },
 	{ "AssumeProperty", scriptlib::card_assume_prop },
 	{ "SetSPSummonOnce", scriptlib::card_set_spsummon_once },
+	{ "Code", scriptlib::card_code },
+	{ "Alias", scriptlib::card_alias },
+	{ "Setcode", scriptlib::card_setcode },
+	{ "Type", scriptlib::card_type },
+	{ "Level", scriptlib::card_level },
+	{ "Attribute", scriptlib::card_attribute },
+	{ "Race", scriptlib::card_race },
+	{ "Attack", scriptlib::card_attack },
+	{ "Defense", scriptlib::card_defense },
+	{ "Rscale", scriptlib::card_rscale },
+	{ "Lscale", scriptlib::card_lscale },
+	{ "LinkMarker", scriptlib::card_link_marker },
+	{ "Recreate", scriptlib::card_recreate },
 	{ NULL, NULL }
 };
 

@@ -3945,3 +3945,10 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 			return FALSE;
 	return TRUE;
 }
+bool card::recreate(uint32 code) {
+	card_data dat;
+	read_card(code, &dat);
+	if(code)
+		data = dat;
+	return code != 0;
+}
