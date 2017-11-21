@@ -4079,7 +4079,6 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 2);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* ccard = *(card**) lua_touserdata(L, 2);
-	duel* pduel = pcard->pduel;
 	uint32 resv = 0;
 	uint32 resc = 0;
 	if(lua_gettop(L) > 2) {
