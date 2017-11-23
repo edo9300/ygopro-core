@@ -2452,16 +2452,36 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		effect_set eset;
 		card* tuner = core.limit_tuner;
 		group* syn = core.limit_syn;
-		group* materials = core.limit_xyz;
-		int32 minc = core.limit_xyz_minc;
-		int32 maxc = core.limit_xyz_maxc;
+		int32 xyzlink = 0;
+		if (core.limit_xyz)
+			xyzlink = 1;
+		else
+			xyzlink = 2;
+		group* materials = 0;
+		int32 minc = 0;
+		int32 maxc = 0;
+		if (xyzlink == 1) {
+			materials = core.limit_xyz;
+			core.limit_xyz_minc;
+			core.limit_xyz_maxc;
+		} else if(xyzlink == 2) {
+			materials = core.limit_link;
+			minc = core.limit_link_minc;
+			maxc = core.limit_link_maxc;
+		}
 		target->filter_spsummon_procedure(sumplayer, &eset, summon_type);
 		target->filter_spsummon_procedure_g(sumplayer, &eset);
 		core.limit_tuner = tuner;
 		core.limit_syn = syn;
-		core.limit_xyz = materials;
-		core.limit_xyz_minc = minc;
-		core.limit_xyz_maxc = maxc;
+		if (xyzlink == 1) {
+			core.limit_xyz = materials;
+			core.limit_xyz_minc = minc;
+			core.limit_xyz_maxc = maxc;
+		} else if (xyzlink == 2) {
+			core.limit_link = materials;
+			core.limit_link_minc = minc;
+			core.limit_link_maxc = maxc;
+		}
 		if(!eset.size())
 			return TRUE;
 		core.select_effects.clear();
@@ -2494,6 +2514,12 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				if(core.limit_xyz_minc) {
 					pduel->lua->add_param(core.limit_xyz_minc, PARAM_TYPE_INT);
 					pduel->lua->add_param(core.limit_xyz_maxc, PARAM_TYPE_INT);
+				}
+			} else if(core.limit_link) {
+				pduel->lua->add_param(core.limit_link, PARAM_TYPE_GROUP);
+				if (core.limit_link_minc) {
+					pduel->lua->add_param(core.limit_link_minc, PARAM_TYPE_INT);
+					pduel->lua->add_param(core.limit_link_maxc, PARAM_TYPE_INT);
 				}
 			}
 			core.sub_solving_event.push_back(nil_event);
@@ -2539,6 +2565,16 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 					pduel->lua->add_param(core.limit_xyz_maxc, PARAM_TYPE_INT);
 					core.limit_xyz_minc = 0;
 					core.limit_xyz_maxc = 0;
+				}
+			}
+			if (core.limit_link) {
+				pduel->lua->add_param(core.limit_link, PARAM_TYPE_GROUP);
+				core.limit_link = 0;
+				if(core.limit_link_minc) {
+					pduel->lua->add_param(core.limit_link_minc, PARAM_TYPE_INT);
+					pduel->lua->add_param(core.limit_link_maxc, PARAM_TYPE_INT);
+					core.limit_link_minc = 0;
+					core.limit_link_maxc = 0;
 				}
 			}
 			core.sub_solving_event.push_back(nil_event);
