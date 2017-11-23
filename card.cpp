@@ -3863,12 +3863,17 @@ int32 card::is_can_be_fusion_material(card* fcard) {
 		if(eset[i]->get_value(fcard))
 			return FALSE;
 	eset.clear();
-	filter_effect(EFFECT_EXTRA_FUSION_MATERIAL, &eset);
-	if(eset.size()) {
-		for(int32 i = 0; i < eset.size(); ++i)
-			if(eset[i]->get_value(fcard))
-				return TRUE;
-		return FALSE;
+	if (fcard) {
+		filter_effect(EFFECT_EXTRA_FUSION_MATERIAL, &eset);
+		if(eset.size()) {
+			for(int32 i = 0; i < eset.size(); ++i)
+				if(eset[i]->get_value(fcard))
+					return TRUE;
+			return FALSE;
+		}
+	} else {
+		if (!(current.location & LOCATION_ONFIELD) && !(data.type & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_EXTRA_FUSION_MATERIAL))
+			return FALSE;
 	}
 	return TRUE;
 }
