@@ -179,7 +179,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 		return FALSE;
 	if (!is_flag(EFFECT_FLAG_FIELD_ONLY)) {
 		if (type & EFFECT_TYPE_ACTIVATE) {
-			if(handler->current.controler != playerid)
+			if((handler->current.controler != playerid) && !(flag[0] & EFFECT_FLAG_BOTH_SIDE))
 				return FALSE;
 			if(pduel->game_field->check_unique_onfield(handler, playerid, LOCATION_SZONE))
 				return FALSE;
@@ -190,17 +190,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 					return FALSE;
 			}
 			// additional check for each location
-			if(handler->current.location == LOCATION_HAND) {
-				if(handler->data.type & TYPE_MONSTER) {
-					if((handler->data.type & TYPE_PENDULUM)) {
-						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
-								&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
-							return FALSE;
-					}
-				} else if(!(handler->data.type & TYPE_FIELD)
-						&& pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
-					return FALSE;
-			} else if(handler->current.location == LOCATION_SZONE) {
+			if(handler->current.location == LOCATION_SZONE) {
 				if(handler->is_position(POS_FACEUP))
 					return FALSE;
 				if(handler->equiping_target)
@@ -208,6 +198,20 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(handler->get_status(STATUS_SET_TURN)) {
 					if((handler->data.type & TYPE_SPELL) && ((handler->data.type & TYPE_QUICKPLAY) || handler->is_affected_by_effect(EFFECT_BECOME_QUICK)))
 						return FALSE;
+				}
+			} else {
+				if(!(((handler->data.type & TYPE_FIELD) && value<=0) || (value & LOCATION_FZONE) || (value & LOCATION_HAND))) {
+					if (value & LOCATION_MZONE) {
+						if (pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+							return FALSE;
+					} else if ((handler->data.type & TYPE_PENDULUM) || (value & LOCATION_PZONE)) {
+						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
+							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
+						return FALSE;
+					} else {
+						if (pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+							return FALSE;
+					}
 				}
 			}
 			// check activate in hand/in set turn
@@ -689,9 +693,51 @@ int32 effect::get_speed() {
 	}
 	return 0;
 }
+effect* effect::clone(int32 majestic) {
+	effect* ceffect = pduel->new_effect();
+	int32 ref = ceffect->ref_handle;
+	*ceffect = *this;
+	ceffect->ref_handle = ref;
+	ceffect->handler = 0;
+	if(condition)
+		ceffect->condition = pduel->lua->clone_function_ref(condition);
+	if(cost)
+		ceffect->cost = pduel->lua->clone_function_ref(cost);
+	if(target)
+		ceffect->target = pduel->lua->clone_function_ref(target);
+	if(operation)
+		ceffect->operation = pduel->lua->clone_function_ref(operation);
+	if(value && is_flag(EFFECT_FLAG_FUNC_VALUE))
+		ceffect->value = pduel->lua->clone_function_ref(value);
+	if(majestic && is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) {
+		if(value && !is_flag(EFFECT_FLAG_FUNC_VALUE))
+			ceffect->value = value;
+		if(label)
+			ceffect->label = label;
+		if(label_object)
+			ceffect->label_object = label_object;
+		if(s_range)
+			ceffect->s_range = s_range;
+		if(o_range)
+			ceffect->o_range = o_range;
+		if(flag[0])
+			ceffect->flag[0] = flag[0];
+		if(hint_timing[0])
+			ceffect->hint_timing[0] = hint_timing[0];
+		if(hint_timing[1])
+			ceffect->hint_timing[1] = hint_timing[1];
+		if(code)
+			ceffect->code = code;
+		if(type)
+			ceffect->type = type;
+	}
+	return ceffect;
+}
 card* effect::get_owner() const {
+	if(active_handler)
+		return active_handler;
 	if(type & EFFECT_TYPE_XMATERIAL)
-		return active_handler ? active_handler : handler->overlay_target;
+		return handler->overlay_target;
 	return owner;
 }
 uint8 effect::get_owner_player() {
@@ -700,8 +746,10 @@ uint8 effect::get_owner_player() {
 	return get_owner()->current.controler;
 }
 card* effect::get_handler() const {
+	if(active_handler)
+		return active_handler;
 	if(type & EFFECT_TYPE_XMATERIAL)
-		return active_handler ? active_handler : handler->overlay_target;
+		return handler->overlay_target;
 	return handler;
 }
 uint8 effect::get_handler_player() {

@@ -33,7 +33,7 @@ public:
 	card* owner;
 	card* handler;
 	uint8 effect_owner;
-	uint32 description;
+	uint64 description;
 	uint32 code;
 	uint32 flag[2];
 	uint32 id;
@@ -90,6 +90,7 @@ public:
 	void get_value(effect* peffect, uint32 extraargs, std::vector<int32>* result);
 	int32 check_value_condition(uint32 extraargs = 0);
 	int32 get_speed();
+	effect* clone(int32 majestic = FALSE);
 	card* get_owner() const;
 	uint8 get_owner_player();
 	card* get_handler() const;
@@ -107,7 +108,7 @@ public:
 
 //status
 #define EFFECT_STATUS_AVAILABLE	0x0001
-#define EFFECT_STATUS_ACTIVATED	0x0002
+//#define EFFECT_STATUS_ACTIVATED	0x0002
 
 #define EFFECT_COUNT_CODE_OATH 0x10000000
 #define EFFECT_COUNT_CODE_DUEL 0x20000000
@@ -149,6 +150,7 @@ public:
 #define EFFECT_TYPE_QUICK_F			0x0400	//
 #define EFFECT_TYPE_CONTINUOUS		0x0800	//
 #define EFFECT_TYPE_XMATERIAL		0x1000	//
+#define EFFECT_TYPE_GRANT			0x2000	//
 
 //========== Flags ==========
 enum effect_flag : uint32 {
@@ -188,6 +190,7 @@ enum effect_flag : uint32 {
 enum effect_flag2 : uint32 {
 	EFFECT_FLAG2_NAGA				= 0x0001,
 	EFFECT_FLAG2_COF				= 0x0002,
+	EFFECT_FLAG2_MAJESTIC_MUST_COPY = 0x80000000,
 };
 inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 {
@@ -247,7 +250,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CANNOT_DISCARD_DECK		56	//
 #define EFFECT_CANNOT_USE_AS_COST		57	//
 #define EFFECT_CANNOT_PLACE_COUNTER		58	//
-
+#define EFFECT_CANNOT_TO_GRAVE_AS_COST	59	//
 #define EFFECT_LEAVE_FIELD_REDIRECT		60	//
 #define EFFECT_TO_HAND_REDIRECT			61	//
 #define EFFECT_TO_DECK_REDIRECT			62	//
@@ -323,6 +326,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_TRIBUTE_LIMIT			154
 #define EFFECT_EXTRA_RELEASE_SUM		155
 #define EFFECT_TRIPLE_TRIBUTE			156
+#define EFFECT_ADD_EXTRA_TRIBUTE		157
 #define EFFECT_PUBLIC					160
 #define EFFECT_COUNTER_PERMIT			0x10000
 #define EFFECT_COUNTER_LIMIT			0x20000
@@ -379,7 +383,8 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_USE_EXTRA_SZONE			262
 #define EFFECT_MAX_MZONE				263
 #define EFFECT_MAX_SZONE				264
-#define EFFECT_BECOME_LINKED_ZONE		265
+#define EFFECT_MUST_USE_MZONE			265
+#define EFFECT_BECOME_LINKED_ZONE		266
 #define EFFECT_HAND_LIMIT				270
 #define EFFECT_DRAW_COUNT				271
 #define EFFECT_SPIRIT_DONOT_RETURN		280
@@ -399,6 +404,9 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_TO_GRAVE_REDIRECT_CB		313
 #define EFFECT_CHANGE_LEVEL_FINAL		314
 #define EFFECT_CHANGE_RANK_FINAL		315
+#define EFFECT_MUST_BE_FMATERIAL		316
+#define EFFECT_MUST_BE_XMATERIAL		317
+#define EFFECT_MUST_BE_LMATERIAL		318
 #define EFFECT_SPSUMMON_PROC_G			320
 #define EFFECT_SPSUMMON_COUNT_LIMIT		330
 #define EFFECT_LEFT_SPSUMMON_COUNT		331

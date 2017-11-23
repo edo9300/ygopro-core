@@ -81,6 +81,10 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetReasonCard", scriptlib::card_get_reason_card },
 	{ "GetReasonPlayer", scriptlib::card_get_reason_player },
 	{ "GetReasonEffect", scriptlib::card_get_reason_effect },
+	{ "SetReason", scriptlib::card_set_reason },
+	{ "SetReasonCard", scriptlib::card_set_reason_card },
+	{ "SetReasonPlayer", scriptlib::card_set_reason_player },
+	{ "SetReasonEffect", scriptlib::card_set_reason_effect },
 	{ "GetPosition", scriptlib::card_get_position },
 	{ "GetPreviousPosition", scriptlib::card_get_previous_position },
 	{ "GetBattlePosition", scriptlib::card_get_battle_position },
@@ -143,6 +147,8 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetOwnerTargetCount", scriptlib::card_get_owner_target_count },
 	{ "GetActivateEffect", scriptlib::card_get_activate_effect },
 	{ "CheckActivateEffect", scriptlib::card_check_activate_effect },
+	{ "GetTunerLimit", scriptlib::card_get_tuner_limit },
+	{ "GetHandSynchro", scriptlib::card_get_hand_synchro },
 	{ "RegisterEffect", scriptlib::card_register_effect },
 	{ "IsHasEffect", scriptlib::card_is_has_effect },
 	{ "GetCardEffect", scriptlib::card_get_card_effect },
@@ -250,7 +256,19 @@ static const struct luaL_Reg cardlib[] = {
 	{ "ResetNegateEffect", scriptlib::card_reset_negate_effect },
 	{ "AssumeProperty", scriptlib::card_assume_prop },
 	{ "SetSPSummonOnce", scriptlib::card_set_spsummon_once },
-	{ "CheckMZoneFromEx", scriptlib::card_check_mzone_from_ex },
+	{ "Code", scriptlib::card_code },
+	{ "Alias", scriptlib::card_alias },
+	{ "Setcode", scriptlib::card_setcode },
+	{ "Type", scriptlib::card_type },
+	{ "Level", scriptlib::card_level },
+	{ "Attribute", scriptlib::card_attribute },
+	{ "Race", scriptlib::card_race },
+	{ "Attack", scriptlib::card_attack },
+	{ "Defense", scriptlib::card_defense },
+	{ "Rscale", scriptlib::card_rscale },
+	{ "Lscale", scriptlib::card_lscale },
+	{ "LinkMarker", scriptlib::card_link_marker },
+	{ "Recreate", scriptlib::card_recreate },
 	{ NULL, NULL }
 };
 
@@ -319,6 +337,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "RemoveCard", scriptlib::group_remove_card },
 	{ "GetNext", scriptlib::group_get_next },
 	{ "GetFirst", scriptlib::group_get_first },
+	{ "TakeatPos", scriptlib::group_take_at_pos },
 	{ "GetCount", scriptlib::group_get_count },
 	{ "ForEach", scriptlib::group_for_each },
 	{ "Filter", scriptlib::group_filter },
@@ -356,12 +375,15 @@ static const struct luaL_Reg duellib[] = {
 	{ "RegisterFlagEffect", scriptlib::duel_register_flag_effect },
 	{ "GetFlagEffect", scriptlib::duel_get_flag_effect },
 	{ "ResetFlagEffect", scriptlib::duel_reset_flag_effect },
+	{ "SetFlagEffectLabel", scriptlib::duel_set_flag_effect_label },
+	{ "GetFlagEffectLabel", scriptlib::duel_get_flag_effect_label },
 	{ "Destroy", scriptlib::duel_destroy },
 	{ "Remove", scriptlib::duel_remove },
 	{ "SendtoGrave", scriptlib::duel_sendto_grave },
 	{ "SendtoHand", scriptlib::duel_sendto_hand },
 	{ "SendtoDeck", scriptlib::duel_sendto_deck },
 	{ "SendtoExtraP", scriptlib::duel_sendto_extra },
+	{ "Sendto", scriptlib::duel_sendto },
 	{ "GetOperatedGroup", scriptlib::duel_get_operated_group },
 	{ "Summon", scriptlib::duel_summon },
 	{ "SpecialSummonRule", scriptlib::duel_special_summon_rule },
@@ -388,6 +410,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SetChainLimitTillChainEnd", scriptlib::duel_set_chain_limit_p },
 	{ "GetChainMaterial", scriptlib::duel_get_chain_material },
 	{ "ConfirmDecktop", scriptlib::duel_confirm_decktop },
+	{ "ConfirmExtratop", scriptlib::duel_confirm_extratop },
 	{ "ConfirmCards", scriptlib::duel_confirm_cards },
 	{ "SortDecktop", scriptlib::duel_sort_decktop },
 	{ "CheckEvent", scriptlib::duel_check_event },
@@ -411,6 +434,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "DiscardHand", scriptlib::duel_discard_hand },
 	{ "DisableShuffleCheck", scriptlib::duel_disable_shuffle_check },
 	{ "ShuffleDeck", scriptlib::duel_shuffle_deck },
+	{ "ShuffleExtra", scriptlib::duel_shuffle_extra },
 	{ "ShuffleHand", scriptlib::duel_shuffle_hand },
 	{ "ShuffleSetCard", scriptlib::duel_shuffle_setcard },
 	{ "ChangeAttacker", scriptlib::duel_change_attacker },
@@ -431,6 +455,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "IncreaseSummonedCount", scriptlib::duel_increase_summon_count },
 	{ "CheckSummonedCount", scriptlib::duel_check_summon_count },
 	{ "GetLocationCount", scriptlib::duel_get_location_count },
+	{ "GetMZoneCount", scriptlib::duel_get_mzone_count },
 	{ "GetLocationCountFromEx", scriptlib::duel_get_location_count_fromex },
 	{ "GetUsableMZoneCount", scriptlib::duel_get_usable_mzone_count },
 	{ "GetLinkedGroup", scriptlib::duel_get_linked_group },
@@ -440,6 +465,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "CheckLocation", scriptlib::duel_check_location },
 	{ "GetCurrentChain", scriptlib::duel_get_current_chain },
 	{ "GetChainInfo", scriptlib::duel_get_chain_info },
+	{ "GetChainEvent", scriptlib::duel_get_chain_event },
 	{ "GetFirstTarget", scriptlib::duel_get_first_target },
 	{ "GetCurrentPhase", scriptlib::duel_get_current_phase },
 	{ "SkipPhase", scriptlib::duel_skip_phase },
@@ -454,6 +480,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "GetFieldGroup", scriptlib::duel_get_field_group },
 	{ "GetFieldGroupCount", scriptlib::duel_get_field_group_count },
 	{ "GetDecktopGroup", scriptlib::duel_get_decktop_group },
+	{ "GetExtraTopGroup", scriptlib::duel_get_extratop_group },
 	{ "GetMatchingGroup", scriptlib::duel_get_matching_group },
 	{ "GetMatchingGroupCount", scriptlib::duel_get_matching_count },
 	{ "GetFirstMatchingCard", scriptlib::duel_get_first_matching_card },
@@ -505,6 +532,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SelectSequence", scriptlib::duel_select_sequence },
 	{ "SelectPosition", scriptlib::duel_select_position },
 	{ "SelectDisableField", scriptlib::duel_select_disable_field },
+	{ "SelectFieldZone", scriptlib::duel_select_field_zone },
 	{ "AnnounceRace", scriptlib::duel_announce_race },
 	{ "AnnounceAttribute", scriptlib::duel_announce_attribute },
 	{ "AnnounceLevel", scriptlib::duel_announce_level },
@@ -631,10 +659,11 @@ int32 interpreter::register_card(card *pcard) {
 	lua_setmetatable(current_state, -2);
 	lua_pop(current_state, 1);
 	//Initial
-	if(pcard->data.code && (!(pcard->data.type & TYPE_NORMAL) || (pcard->data.type & TYPE_PENDULUM))) {
+	if(pcard->data.code) {
+		bool forced = !(pcard->data.type & TYPE_NORMAL) || (pcard->data.type & TYPE_PENDULUM);
 		pcard->set_status(STATUS_INITIALIZING, TRUE);
 		add_param(pcard, PARAM_TYPE_CARD);
-		call_card_function(pcard, (char*) "initial_effect", 1, 0);
+		call_card_function(pcard, (char*) "initial_effect", 1, 0, forced);
 		pcard->set_status(STATUS_INITIALIZING, FALSE);
 	}
 	pcard->cardid = pduel->game_field->infos.card_id++;
@@ -851,7 +880,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 	}
 	return OPERATION_SUCCESS;
 }
-int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count) {
+int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count, bool forced) {
 	if (param_count != params.size()) {
 		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->data.code, f);
 		handle_message(pduel, 1);
@@ -861,8 +890,10 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	card2value(current_state, pcard);
 	lua_getfield(current_state, -1, f);
 	if (!lua_isfunction(current_state, -1)) {
-		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
-		handle_message(pduel, 1);
+		if(forced) {
+			sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
+			handle_message(pduel, 1);
+		}
 		lua_pop(current_state, 2);
 		params.clear();
 		return OPERATION_FAIL;
@@ -1152,6 +1183,11 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 		}
 		return COROUTINE_ERROR;
 	}
+}
+int32 interpreter::clone_function_ref(int32 func_ref) {
+	lua_rawgeti(current_state, LUA_REGISTRYINDEX, func_ref);
+	int32 ref = luaL_ref(current_state, LUA_REGISTRYINDEX);
+	return ref;
 }
 //Convert a pointer to a lua value, +1 -0
 void interpreter::card2value(lua_State* L, card* pcard) {

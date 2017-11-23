@@ -287,8 +287,8 @@ public:
 	effect* is_affected_by_effect(int32 code, card* target);
 	int32 get_card_effect(int32 code);
 	effect* check_control_effect();
-	int32 fusion_check(group* fusion_m, card* cg, uint32 chkf);
-	void fusion_filter_valid(group* fusion_m, card* cg, uint32 chkf, effect_set* eset);
+	int32 fusion_check(group* fusion_m, group* cg, uint32 chkf);
+	void fusion_filter_valid(group* fusion_m, group* cg, uint32 chkf, effect_set* eset);
 	int32 check_fusion_substitute(card* fcard);
 
 	int32 check_unique_code(card* pcard);
@@ -304,7 +304,7 @@ public:
 	int32 get_set_tribute_count();
 	int32 is_can_be_flip_summoned(uint8 playerid);
 	int32 is_special_summonable(uint8 playerid, uint32 summon_type);
-	int32 is_can_be_special_summoned(effect* reason_effect, uint32 sumtype, uint8 sumpos, uint8 sumplayer, uint8 toplayer, uint8 nocheck, uint8 nolimit, uint32 zone, uint8 nozoneusedcheck = 0);
+	int32 is_can_be_special_summoned(effect* reason_effect, uint32 sumtype, uint8 sumpos, uint8 sumplayer, uint8 toplayer, uint8 nocheck, uint8 nolimit, uint32 zone);
 	int32 is_setable_mzone(uint8 playerid, uint8 ignore_count, effect* peffect, uint8 min_tribute, uint32 zone = 0x1f);
 	int32 is_setable_szone(uint8 playerid, uint8 ignore_fd = 0);
 	int32 is_affect_by_effect(effect* peffect);
@@ -339,6 +339,7 @@ public:
 	int32 is_can_be_ritual_material(card* scard);
 	int32 is_can_be_xyz_material(card* scard, uint8 playerid);
 	int32 is_can_be_link_material(card* scard, uint8 playerid);
+	bool recreate(uint32 code);
 };
 
 //Locations
