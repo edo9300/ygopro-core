@@ -3755,7 +3755,7 @@ int32 card::is_capable_cost_to_deck(uint8 playerid) {
 }
 int32 card::is_capable_cost_to_extra(uint8 playerid) {
 	uint32 redirect = 0;
-	uint32 dest = LOCATION_DECK;
+	uint32 dest = LOCATION_EXTRA;
 	if(!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)))
 		return FALSE;
 	if(current.location == LOCATION_EXTRA)
@@ -3772,7 +3772,7 @@ int32 card::is_capable_cost_to_extra(uint8 playerid) {
 	redirect = destination_redirect(dest, REASON_COST) & 0xffff;
 	if(redirect) dest = redirect;
 	sendto_param = op_param;
-	if(dest != LOCATION_DECK)
+	if(dest != LOCATION_EXTRA)
 		return FALSE;
 	return TRUE;
 }
