@@ -458,6 +458,9 @@ int32 effect::is_target(card* pcard) {
 			}
 		}
 	}
+	return is_fit_target_function(pcard);
+}
+int32 effect::is_fit_target_function(card* pcard) {
 	if(target) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
