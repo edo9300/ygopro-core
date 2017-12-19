@@ -403,6 +403,33 @@ int32 card::is_fusion_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
+int32 card::is_link_set_card(uint32 set_code) {
+	if(is_set_card(set_code))
+		return TRUE;
+	uint32 settype = set_code & 0xfff;
+	uint32 setsubtype = set_code & 0xf000;
+	effect_set eset;
+	filter_effect(EFFECT_ADD_LINK_CODE, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		uint32 code = eset[i]->get_value(this);
+		card_data dat;
+		::read_card(code, &dat);
+		uint64 setcode = dat.setcode;
+		while(setcode) {
+			if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+				return TRUE;
+			setcode = setcode >> 16;
+		}
+	}
+	effect_set eset2;
+	filter_effect(EFFECT_ADD_LINK_SETCODE, &eset2);
+	for(int32 i = 0; i < eset2.size(); ++i) {
+		uint32 setcode = eset2[i]->get_value(this);
+		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+			return TRUE;
+	}
+	return FALSE;
+}
 uint32 card::get_set_card() {
 	uint32 count = 0;
 	uint32 code = get_code();
