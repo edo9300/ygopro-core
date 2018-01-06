@@ -356,6 +356,33 @@ int32 scriptlib::duel_xyz_summon(lua_State *L) {
 	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_XYZ);
 	return lua_yield(L, 0);
 }
+int32 scriptlib::duel_link_summon(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 3);
+	check_param(L, PARAM_TYPE_CARD, 2);
+	uint32 playerid = lua_tonumberint(L, 1);
+	if (playerid != 0 && playerid != 1)
+		return 0;
+	card* pcard = *(card**)lua_touserdata(L, 2);
+	group* materials = 0;
+	if (!lua_isnil(L, 3)) {
+		check_param(L, PARAM_TYPE_GROUP, 3);
+		materials = *(group**)lua_touserdata(L, 3);
+	}
+	int32 minc = 0;
+	if (lua_gettop(L) >= 4)
+		minc = lua_tonumberint(L, 4);
+	int32 maxc = 0;
+	if (lua_gettop(L) >= 5)
+		maxc = lua_tonumberint(L, 5);
+	duel * pduel = pcard->pduel;
+	pduel->game_field->core.limit_link = materials;
+	pduel->game_field->core.limit_link_minc = minc;
+	pduel->game_field->core.limit_link_maxc = maxc;
+	pduel->game_field->core.summon_cancelable = FALSE;
+	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_LINK);
+	return lua_yield(L, 0);
+}
 int32 scriptlib::duel_setm(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 4);
@@ -1141,12 +1168,11 @@ int32 scriptlib::duel_win(lua_State *L) {
 		else if (pduel->game_field->is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_EFFECT))
 			playerid = 1;
 	}
-	if ((pduel->game_field->core.win_player == 0 && playerid == 1) || (pduel->game_field->core.win_player == 1 && playerid == 0)) {
-		pduel->game_field->core.win_player = 2;
-		pduel->game_field->core.win_reason = reason;
-	}
 	if (pduel->game_field->core.win_player == 5) {
 		pduel->game_field->core.win_player = playerid;
+		pduel->game_field->core.win_reason = reason;
+	} else if ((pduel->game_field->core.win_player == 0 && playerid == 1) || (pduel->game_field->core.win_player == 1 && playerid == 0)) {
+		pduel->game_field->core.win_player = 2;
 		pduel->game_field->core.win_reason = reason;
 	}
 	return 0;
