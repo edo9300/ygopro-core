@@ -2432,11 +2432,11 @@ int32 card::destination_redirect(uint8 destination, uint32 reason) {
 		return 0;
 	for(int32 i = 0; i < es.size(); ++i) {
 		redirect = es[i]->get_value(this, 0);
-		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(current.controler, this))
+		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(es[i]->get_handler_player(), this))
 			return redirect;
-		if((redirect & LOCATION_DECK) && !is_affected_by_effect(EFFECT_CANNOT_TO_DECK) && pduel->game_field->is_player_can_send_to_deck(current.controler, this))
+		if((redirect & LOCATION_DECK) && !is_affected_by_effect(EFFECT_CANNOT_TO_DECK) && pduel->game_field->is_player_can_send_to_deck(es[i]->get_handler_player(), this))
 			return redirect;
-		if((redirect & LOCATION_REMOVED) && !is_affected_by_effect(EFFECT_CANNOT_REMOVE) && pduel->game_field->is_player_can_remove(current.controler, this))
+		if((redirect & LOCATION_REMOVED) && !is_affected_by_effect(EFFECT_CANNOT_REMOVE) && pduel->game_field->is_player_can_remove(es[i]->get_handler_player(), this))
 			return redirect;
 	}
 	return 0;
@@ -3606,11 +3606,23 @@ int32 card::is_removeable(uint8 playerid, int32 pos) {
 	return TRUE;
 }
 int32 card::is_removeable_as_cost(uint8 playerid, int32 pos) {
+	uint32 redirect = 0;
+	uint32 dest = LOCATION_REMOVED;
 	if(current.location == LOCATION_REMOVED)
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_USE_AS_COST))
 		return FALSE;
 	if(!is_removeable(playerid, pos))
+		return FALSE;
+	auto op_param = sendto_param;
+	sendto_param.location = dest;
+	if (current.location & LOCATION_ONFIELD)
+		redirect = leave_field_redirect(REASON_COST) & 0xffff;
+	if (redirect) dest = redirect;
+	redirect = destination_redirect(dest, REASON_COST) & 0xffff;
+	if (redirect) dest = redirect;
+	sendto_param = op_param;
+	if (dest != LOCATION_REMOVED)
 		return FALSE;
 	return TRUE;
 }
@@ -3771,7 +3783,7 @@ int32 card::is_capable_cost_to_deck(uint8 playerid) {
 }
 int32 card::is_capable_cost_to_extra(uint8 playerid) {
 	uint32 redirect = 0;
-	uint32 dest = LOCATION_DECK;
+	uint32 dest = LOCATION_EXTRA;
 	if(!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)))
 		return FALSE;
 	if(current.location == LOCATION_EXTRA)
@@ -3788,7 +3800,7 @@ int32 card::is_capable_cost_to_extra(uint8 playerid) {
 	redirect = destination_redirect(dest, REASON_COST) & 0xffff;
 	if(redirect) dest = redirect;
 	sendto_param = op_param;
-	if(dest != LOCATION_DECK)
+	if(dest != LOCATION_EXTRA)
 		return FALSE;
 	return TRUE;
 }
