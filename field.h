@@ -259,11 +259,12 @@ struct processor {
 	uint8 summon_cancelable;
 	card* attacker;
 	card* attack_target;
-	card* limit_tuner;
-	group* limit_syn;
-	group* limit_xyz;
-	int32 limit_xyz_minc;
-	int32 limit_xyz_maxc;
+	group* forced_tuner;
+	group* forced_synmat;
+	group* forced_xyzmat;
+	group* forced_linkmat;
+	int32 forced_summon_minc;
+	int32 forced_summon_maxc;
 	uint8 attack_cancelable;
 	uint8 attack_cost_paid;
 	uint8 attack_rollback;
@@ -428,15 +429,11 @@ public:
 	int32 get_attack_target(card* pcard, card_vector* v, uint8 chain_attack = FALSE);
 	bool confirm_attack_target();
 	void attack_all_target_check();
-	int32 check_synchro_material(card* pcard, int32 findex1, int32 findex2, int32 min, int32 max, card* smat, group* mg);
-	int32 check_tuner_material(card* pcard, card* tuner, int32 findex1, int32 findex2, int32 min, int32 max, card* smat, group* mg);
-	int32 check_other_synchro_material(const card_vector& nsyn, int32 lv, int32 min, int32 max, int32 mcount);
 	int32 check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 toplayer, uint32 zone = 0x1f, uint32 releasable = 0xff00ff, uint32 pos = 0x1);
 	static int32 check_with_sum_limit(const card_vector& mats, int32 acc, int32 index, int32 count, int32 min, int32 max);
 	static int32 check_with_sum_limit_m(const card_vector& mats, int32 acc, int32 index, int32 min, int32 max, int32 must_count);
 	static int32 check_with_sum_greater_limit(const card_vector& mats, int32 acc, int32 index, int32 opmin);
 	static int32 check_with_sum_greater_limit_m(const card_vector& mats, int32 acc, int32 index, int32 opmin, int32 must_count);
-	int32 check_xyz_material(card* pcard, int32 findex, int32 lv, int32 min, int32 max, group* mg);
 
 	int32 is_player_can_draw(uint8 playerid);
 	int32 is_player_can_discard_deck(uint8 playerid, int32 count);
@@ -565,8 +562,6 @@ public:
 	int32 change_position(uint16 step, group* targets, effect* reason_effect, uint8 reason_player, uint32 enable);
 	int32 operation_replace(uint16 step, effect* replace_effect, group* targets, card* target, int32 is_destroy);
 	int32 activate_effect(uint16 step, effect* peffect);
-	int32 select_synchro_material(int16 step, uint8 playerid, card* pcard, int32 min, int32 max, card* smat, group* mg);
-	int32 select_xyz_material(int16 step, uint8 playerid, uint32 lv, card* pcard, int32 min, int32 max);
 	int32 select_release_cards(int16 step, uint8 playerid, uint8 check_field, uint8 cancelable, int32 min, int32 max);
 	int32 select_tribute_cards(int16 step, uint8 playerid, uint8 cancelable, int32 min, int32 max, uint8 toplayer, uint32 zone);
 	int32 toss_coin(uint16 step, effect* reason_effect, uint8 reason_player, uint8 playerid, uint8 count);
@@ -585,7 +580,7 @@ public:
 	int32 select_position(uint16 step, uint8 playerid, uint32 code, uint8 positions);
 	int32 select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max);
 	int32 select_counter(uint16 step, uint8 playerid, uint16 countertype, uint16 count, uint8 s, uint8 o);
-	int32 select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 min, int max);
+	int32 select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 min, int32 max);
 	int32 sort_card(int16 step, uint8 playerid, uint8 is_chain);
 	int32 announce_race(int16 step, uint8 playerid, int32 count, int32 available);
 	int32 announce_attribute(int16 step, uint8 playerid, int32 count, int32 available);
@@ -752,14 +747,14 @@ public:
 #define PROCESSOR_SELECT_RELEASE_S	129
 #define PROCESSOR_SELECT_TARGET		130
 #define PROCESSOR_SELECT_FUSION		131
-#define PROCESSOR_SELECT_SYNCHRO	132
+//#define PROCESSOR_SELECT_SYNCHRO	132
 #define PROCESSOR_SELECT_SUM_S		133
 #define PROCESSOR_SELECT_DISFIELD_S	134
 #define PROCESSOR_SPSUMMON_S		135
 #define PROCESSOR_SPSUMMON_STEP_S	136
 #define PROCESSOR_SPSUMMON_COMP_S	137
 #define PROCESSOR_RANDOM_SELECT_S	138
-#define PROCESSOR_SELECT_XMATERIAL	139
+//#define PROCESSOR_SELECT_XMATERIAL	139
 #define PROCESSOR_DRAW_S			140
 #define PROCESSOR_DAMAGE_S			141
 #define PROCESSOR_RECOVER_S			142

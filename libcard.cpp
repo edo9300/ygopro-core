@@ -1872,12 +1872,12 @@ int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	if(!(pcard->data.type & TYPE_SYNCHRO))
 		return 0;
-	card* tuner = 0;
+	group* tuner = 0;
 	group* mg = 0;
-	if(!lua_isnil(L, 2)) {
-		check_param(L, PARAM_TYPE_CARD, 2);
-		tuner = *(card**) lua_touserdata(L, 2);
-	}
+	if(check_param(L, PARAM_TYPE_CARD, 2, TRUE))
+		tuner = pcard->pduel->new_group(*(card**)lua_touserdata(L, 2));
+	else if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE))
+		tuner = *(group**)lua_touserdata(L, 2);
 	if(lua_gettop(L) >= 3) {
 		if(!lua_isnil(L, 3)) {
 			check_param(L, PARAM_TYPE_GROUP, 3);
@@ -1885,8 +1885,8 @@ int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
 		}
 	}
 	uint32 p = pcard->pduel->game_field->core.reason_player;
-	pcard->pduel->game_field->core.limit_tuner = tuner;
-	pcard->pduel->game_field->core.limit_syn = mg;
+	pcard->pduel->game_field->core.forced_tuner = tuner;
+	pcard->pduel->game_field->core.forced_synmat = mg;
 	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_SYNCHRO));
 	return 1;
 }
@@ -1908,10 +1908,34 @@ int32 scriptlib::card_is_xyz_summonable(lua_State *L) {
 	if(lua_gettop(L) >= 4)
 		maxc = lua_tonumberint(L, 4);
 	uint32 p = pcard->pduel->game_field->core.reason_player;
-	pcard->pduel->game_field->core.limit_xyz = materials;
-	pcard->pduel->game_field->core.limit_xyz_minc = minc;
-	pcard->pduel->game_field->core.limit_xyz_maxc = maxc;
+	pcard->pduel->game_field->core.forced_xyzmat = materials;
+	pcard->pduel->game_field->core.forced_summon_minc = minc;
+	pcard->pduel->game_field->core.forced_summon_maxc = maxc;
 	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_XYZ));
+	return 1;
+}
+int32 scriptlib::card_is_link_summonable(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	if (!(pcard->data.type & TYPE_LINK))
+		return 0;
+	group* materials = 0;
+	if (!lua_isnil(L, 2)) {
+		check_param(L, PARAM_TYPE_GROUP, 2);
+		materials = *(group**)lua_touserdata(L, 2);
+	}
+	int32 minc = 0;
+	if (lua_gettop(L) >= 3)
+		minc = lua_tonumberint(L, 3);
+	int32 maxc = 0;
+	if (lua_gettop(L) >= 4)
+		maxc = lua_tonumberint(L, 4);
+	uint32 p = pcard->pduel->game_field->core.reason_player;
+	pcard->pduel->game_field->core.forced_linkmat = materials;
+	pcard->pduel->game_field->core.forced_summon_minc = minc;
+	pcard->pduel->game_field->core.forced_summon_minc = maxc;
+	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_LINK));
 	return 1;
 }
 int32 scriptlib::card_is_can_be_summoned(lua_State *L) {

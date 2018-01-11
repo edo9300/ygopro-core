@@ -187,6 +187,7 @@ public:
 	static int32 card_is_special_summonable(lua_State *L);
 	static int32 card_is_synchro_summonable(lua_State *L);
 	static int32 card_is_xyz_summonable(lua_State *L);
+	static int32 card_is_link_summonable(lua_State *L);
 	static int32 card_is_can_be_summoned(lua_State *L);
 	static int32 card_is_can_be_special_summoned(lua_State *L);
 	static int32 card_is_able_to_hand(lua_State *L);
@@ -383,6 +384,7 @@ public:
 	static int32 duel_special_summon_rule(lua_State *L);
 	static int32 duel_synchro_summon(lua_State *L);
 	static int32 duel_xyz_summon(lua_State *L);
+	static int32 duel_link_summon(lua_State *L);
 	static int32 duel_setm(lua_State *L);
 	static int32 duel_sets(lua_State *L);
 	static int32 duel_create_token(lua_State *L);
@@ -503,10 +505,6 @@ public:
 	static int32 duel_select_fusion_material(lua_State *L);
 	static int32 duel_set_fusion_material(lua_State *L);
 	static int32 duel_set_synchro_material(lua_State *L);
-	static int32 duel_select_synchro_material(lua_State *L);
-	static int32 duel_check_synchro_material(lua_State *L);
-	static int32 duel_select_tuner_material(lua_State *L);
-	static int32 duel_check_tuner_material(lua_State *L);
 	static int32 duel_get_ritual_material(lua_State *L);
 	static int32 duel_release_ritual_material(lua_State *L);
 	static int32 duel_get_fusion_material(lua_State *L);
@@ -518,8 +516,6 @@ public:
 	static int32 duel_set_operation_info(lua_State *L);
 	static int32 duel_get_operation_info(lua_State *L);
 	static int32 duel_get_operation_count(lua_State *L);
-	static int32 duel_check_xyz_material(lua_State *L);
-	static int32 duel_select_xyz_material(lua_State *L);
 	static int32 duel_overlay(lua_State *L);
 	static int32 duel_get_overlay_group(lua_State *L);
 	static int32 duel_get_overlay_count(lua_State *L);
