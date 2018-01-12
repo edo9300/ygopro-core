@@ -284,7 +284,7 @@ int32 scriptlib::duel_summon(lua_State *L) {
 	uint32 zone = 0x1f;
 	if(lua_gettop(L) >= 6)
 		zone = lua_tonumberint(L, 6);
-	duel * pduel = pcard->pduel;
+	duel* pduel = pcard->pduel;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->summon(playerid, pcard, peffect, ignore_count, min_tribute, zone);
 	return lua_yield(L, 0);
@@ -297,9 +297,12 @@ int32 scriptlib::duel_special_summon_rule(lua_State *L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	card* pcard = *(card**)lua_touserdata(L, 2);
-	duel * pduel = pcard->pduel;
+	duel* pduel = pcard->pduel;
+	uint32 sumtype = 0;
+	if(lua_gettop(L) >= 3)
+		sumtype = lua_tointeger(L, 3);
 	pduel->game_field->core.summon_cancelable = FALSE;
-	pduel->game_field->special_summon_rule(playerid, pcard, 0);
+	pduel->game_field->special_summon_rule(playerid, pcard, sumtype);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_synchro_summon(lua_State *L) {
@@ -310,7 +313,7 @@ int32 scriptlib::duel_synchro_summon(lua_State *L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	card* pcard = *(card**)lua_touserdata(L, 2);
-	duel * pduel = pcard->pduel;
+	duel* pduel = pcard->pduel;
 	group* tuner = 0;
 	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE))
 		tuner = pduel->new_group(*(card**)lua_touserdata(L, 3));
@@ -348,7 +351,7 @@ int32 scriptlib::duel_xyz_summon(lua_State *L) {
 	int32 maxc = 0;
 	if(lua_gettop(L) >= 5)
 		maxc = lua_tonumberint(L, 5);
-	duel * pduel = pcard->pduel;
+	duel* pduel = pcard->pduel;
 	pduel->game_field->core.forced_xyzmat = materials;
 	pduel->game_field->core.forced_summon_minc = minc;
 	pduel->game_field->core.forced_summon_maxc = maxc;
