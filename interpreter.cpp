@@ -46,6 +46,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetOriginalLeftScale", scriptlib::card_get_origin_lscale },
 	{ "GetRightScale", scriptlib::card_get_rscale },
 	{ "GetOriginalRightScale", scriptlib::card_get_origin_rscale },
+	{ "GetLinkMarker", scriptlib::card_get_link_marker },
 	{ "IsLinkMarker", scriptlib::card_is_link_marker },
 	{ "GetLinkedGroup", scriptlib::card_get_linked_group },
 	{ "GetLinkedGroupCount", scriptlib::card_get_linked_group_count },

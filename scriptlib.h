@@ -13,7 +13,7 @@
 
 class scriptlib {
 public:
-	static int32 check_param(lua_State* L, int32 param_type, int32 index, BOOL retfalse = FALSE);
+	static int32 check_param(lua_State* L, int32 param_type, int32 index, int32 retfalse = FALSE);
 	static int32 check_param_count(lua_State* L, int32 count);
 	static int32 check_action_permission(lua_State* L);
 
@@ -48,6 +48,7 @@ public:
 	static int32 card_get_origin_lscale(lua_State *L);
 	static int32 card_get_rscale(lua_State *L);
 	static int32 card_get_origin_rscale(lua_State *L);
+	static int32 card_get_link_marker(lua_State *L);
 	static int32 card_is_link_marker(lua_State *L);
 	static int32 card_get_linked_group(lua_State *L);
 	static int32 card_get_linked_group_count(lua_State *L);
