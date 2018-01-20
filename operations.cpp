@@ -1823,6 +1823,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		deffect->description = 64;
 		deffect->reset_flag = RESET_EVENT + 0x1fe0000;
 		target->add_effect(deffect);
+		core.summoning_card = target;
 		return FALSE;
 	}
 	case 10: {
@@ -1843,7 +1844,6 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				add_process(PROCESSOR_EXECUTE_OPERATION, 0, pextra, 0, sumplayer, 0);
 			}
 		}
-		core.summoning_card = target;
 		return FALSE;
 	}
 	case 11: {
