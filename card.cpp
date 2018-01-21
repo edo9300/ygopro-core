@@ -2995,7 +2995,14 @@ int32 card::get_card_effect(int32 code) {
 	int32 i = 0;
 	for (auto rg = single_effect.begin(); rg != single_effect.end(); ++rg) {
 		peffect = rg->second;
-		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)) && (code==0 || peffect->code==code)) {
+		if ((code == 0 || peffect->code == code) && peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))) {
+			interpreter::effect2value(pduel->lua->current_state, peffect);
+			i++;
+		}
+	}
+	for (auto rg = field_effect.begin(); rg != field_effect.end(); ++rg) {
+		peffect = rg->second;
+		if ((code == 0 || peffect->code == code) && is_affect_by_effect(peffect)) {
 			interpreter::effect2value(pduel->lua->current_state, peffect);
 			i++;
 		}
@@ -3003,7 +3010,7 @@ int32 card::get_card_effect(int32 code) {
 	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
 		for (auto rg = (*cit)->equip_effect.begin(); rg != (*cit)->equip_effect.end(); ++rg) {
 			peffect = rg->second;
-			if (peffect->is_available() && is_affect_by_effect(peffect) && (code == 0 || peffect->code == code)) {
+			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
 				interpreter::effect2value(pduel->lua->current_state, peffect);
 				i++;
 			}
@@ -3014,7 +3021,7 @@ int32 card::get_card_effect(int32 code) {
 			peffect = rg->second;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
-			if (peffect->is_available() && is_affect_by_effect(peffect) && (code == 0 || peffect->code == code)) {
+			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
 				interpreter::effect2value(pduel->lua->current_state, peffect);
 				i++;
 			}
@@ -3022,8 +3029,8 @@ int32 card::get_card_effect(int32 code) {
 	}
 	for (auto rg = pduel->game_field->effects.aura_effect.begin(); rg != pduel->game_field->effects.aura_effect.end(); ++rg) {
 		peffect = rg->second;
-		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
-			&& peffect->is_available() && is_affect_by_effect(peffect) && (code == 0 || peffect->code == code)) {
+		if ((code == 0 || peffect->code == code) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
+			&& peffect->is_available() && is_affect_by_effect(peffect)) {
 			interpreter::effect2value(pduel->lua->current_state, peffect);
 			i++;
 		}

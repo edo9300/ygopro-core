@@ -1588,7 +1588,7 @@ int32 field::get_player_effect(uint8 playerid, uint32 code) {
 	int32 i = 0;
 	for (auto rg = effects.aura_effect.begin(); rg != effects.aura_effect.end(); ++rg) {
 		effect* peffect = rg->second;
-		if (peffect->is_target_player(playerid) && peffect->is_available() && (code == 0 || peffect->code == code)) {
+		if ((code == 0 || peffect->code == code) && peffect->is_target_player(playerid) && peffect->is_available()) {
 			interpreter::effect2value(pduel->lua->current_state, peffect);
 			i++;
 		}
