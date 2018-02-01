@@ -3867,6 +3867,23 @@ int32 scriptlib::duel_is_able_to_enter_bp(lua_State *L) {
 	lua_pushboolean(L, pduel->game_field->is_able_to_enter_bp());
 	return 1;
 }
+int32 scriptlib::duel_get_random_number(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 min = 0;
+	int32 max = 1;
+	if (lua_gettop(L) > 1) {
+		min = lua_tonumberint(L, 1);
+		max = lua_tonumberint(L, 2);
+	} else
+		max = lua_tonumberint(L, 1);
+	lua_pushinteger(L, pduel->get_next_integer(min, max));
+	return 1;
+}
+int32 scriptlib::duel_assume_reset(lua_State *L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->restore_assumes();
+	return 1;
+}
 int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 2);
@@ -3988,21 +4005,4 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 		pcard->add_effect(ceffect);
 	}
 	return 0;
-}
-int32 scriptlib::duel_get_random_number(lua_State *L) {
-	duel* pduel = interpreter::get_duel_info(L);
-	int32 min = 0;
-	int32 max = 1;
-	if (lua_gettop(L) > 1) {
-		min = lua_tonumberint(L, 1);
-		max = lua_tonumberint(L, 2);
-	} else
-		max = lua_tonumberint(L, 1);
-	lua_pushinteger(L, pduel->get_next_integer(min, max));
-	return 1;
-}
-int32 scriptlib::duel_assume_reset(lua_State *L) {
-	duel* pduel = interpreter::get_duel_info(L);
-	pduel->restore_assumes();
-	return 1;
 }

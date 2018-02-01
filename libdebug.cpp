@@ -83,6 +83,7 @@ int32 scriptlib::debug_set_player_info(lua_State *L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->player[playerid].lp = lp;
+	pduel->game_field->player[playerid].start_lp = lp;
 	pduel->game_field->player[playerid].start_count = startcount;
 	pduel->game_field->player[playerid].draw_count = drawcount;
 	return 0;

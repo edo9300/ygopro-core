@@ -576,14 +576,14 @@ public:
 	static int32 duel_get_custom_activity_count(lua_State *L);
 	static int32 duel_is_able_to_enter_bp(lua_State *L);
 	static int32 duel_get_battled_count(lua_State *L);
+	static int32 duel_get_random_number(lua_State *L);
+	static int32 duel_assume_reset(lua_State *L);
 
 	//specific card functions
 	static int32 duel_venom_swamp_check(lua_State *L);
 	static int32 duel_tag_swap(lua_State *L);
 	static int32 duel_swap_deck_and_grave(lua_State *L);
 	static int32 duel_majestic_copy(lua_State *L);
-	static int32 duel_get_random_number(lua_State *L);
-	static int32 duel_assume_reset(lua_State *L);
 
 	//preload
 	static int32 debug_message(lua_State *L);

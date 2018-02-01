@@ -50,12 +50,15 @@ field::field(duel* pduel) {
 		//cost[i].amount = 0;
 		core.hint_timing[i] = 0;
 		player[i].lp = 8000;
+		player[i].start_lp = 8000;
 		player[i].start_count = 5;
 		player[i].draw_count = 1;
 		player[i].disabled_location = 0;
 		player[i].used_location = 0;
 		player[i].extra_p_count = 0;
 		player[i].tag_extra_p_count = 0;
+		player[i].exchanges = 0;
+		player[i].recharge = false;
 		player[i].list_mzone.resize(7, 0);
 		player[i].list_szone.resize(8, 0);
 		player[i].list_main.reserve(45);
@@ -1050,6 +1053,66 @@ void field::tag_swap(uint8 playerid) {
 		pduel->write_buffer32((*cit)->data.code | ((*cit)->is_position(POS_FACEUP) ? 0x80000000 : 0));
 	for(auto cit = player[playerid].list_extra.begin(); cit != player[playerid].list_extra.end(); ++cit)
 		pduel->write_buffer32((*cit)->data.code | ((*cit)->is_position(POS_FACEUP) ? 0x80000000 : 0));
+}
+bool field::relay_check(uint8 playerid) {
+	if (player[playerid].exchanges >= player[playerid].relay_list_main.size())
+		return false;
+	player[playerid].exchanges++;
+	core.force_turn_end = true;
+	player[playerid].recharge = true;
+	return true;
+}
+void field::next_player(uint8 playerid) {
+	//main
+	for (auto clit = player[playerid].list_main.begin(); clit != player[playerid].list_main.end(); ++clit) {
+		(*clit)->enable_field_effect(false);
+		(*clit)->cancel_field_effect();
+	}
+	std::swap(player[playerid].list_main, player[playerid].relay_list_main[player[playerid].exchanges - 1]);
+	for (auto clit = player[playerid].list_main.begin(); clit != player[playerid].list_main.end(); ++clit) {
+		(*clit)->apply_field_effect();
+		(*clit)->enable_field_effect(true);
+	}
+	//hand
+	for (auto clit = player[playerid].list_hand.begin(); clit != player[playerid].list_hand.end(); ++clit) {
+		(*clit)->enable_field_effect(false);
+		(*clit)->cancel_field_effect();
+	}
+	std::swap(player[playerid].list_hand, player[playerid].relay_list_hand[player[playerid].exchanges - 1]);
+	for (auto clit = player[playerid].list_hand.begin(); clit != player[playerid].list_hand.end(); ++clit) {
+		(*clit)->apply_field_effect();
+		(*clit)->enable_field_effect(true);
+	}
+	//extra
+	for (auto clit = player[playerid].list_extra.begin(); clit != player[playerid].list_extra.end(); ++clit) {
+		(*clit)->enable_field_effect(false);
+		(*clit)->cancel_field_effect();
+	}
+	std::swap(player[playerid].list_extra, player[playerid].relay_list_extra[player[playerid].exchanges - 1]);
+	std::swap(player[playerid].extra_p_count, player[playerid].relay_extra_p_count[player[playerid].exchanges - 1]);
+	for (auto clit = player[playerid].list_extra.begin(); clit != player[playerid].list_extra.end(); ++clit) {
+		(*clit)->apply_field_effect();
+		(*clit)->enable_field_effect(true);
+	}
+	pduel->write_buffer8(MSG_TAG_SWAP);
+	pduel->write_buffer8(playerid);
+	pduel->write_buffer8(player[playerid].list_main.size());
+	pduel->write_buffer8(player[playerid].list_extra.size());
+	pduel->write_buffer8(player[playerid].extra_p_count);
+	pduel->write_buffer8(player[playerid].list_hand.size());
+	if (core.deck_reversed && player[playerid].list_main.size())
+		pduel->write_buffer32(player[playerid].list_main.back()->data.code);
+	else
+		pduel->write_buffer32(0);
+	for (auto cit = player[playerid].list_hand.begin(); cit != player[playerid].list_hand.end(); ++cit)
+		pduel->write_buffer32((*cit)->data.code | ((*cit)->is_position(POS_FACEUP) ? 0x80000000 : 0));
+	for (auto cit = player[playerid].list_extra.begin(); cit != player[playerid].list_extra.end(); ++cit)
+		pduel->write_buffer32((*cit)->data.code | ((*cit)->is_position(POS_FACEUP) ? 0x80000000 : 0));
+	player[playerid].lp = player[playerid].start_lp;
+	pduel->write_buffer8(MSG_LPUPDATE);
+	pduel->write_buffer8(playerid);
+	pduel->write_buffer32(player[playerid].start_lp);
+	player[playerid].recharge = false;
 }
 void field::add_effect(effect* peffect, uint8 owner_player) {
 	if (!peffect->handler) {

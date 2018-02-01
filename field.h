@@ -69,12 +69,16 @@ struct chain {
 struct player_info {
 	typedef std::vector<card*> card_vector;
 	int32 lp;
+	int32 start_lp;
 	int32 start_count;
 	int32 draw_count;
 	uint32 used_location;
 	uint32 disabled_location;
 	uint32 extra_p_count;
 	uint32 tag_extra_p_count;
+	std::vector<uint32> relay_extra_p_count;
+	uint32 exchanges;
+	bool recharge;
 	card_vector list_mzone;
 	card_vector list_szone;
 	card_vector list_main;
@@ -85,6 +89,9 @@ struct player_info {
 	card_vector tag_list_main;
 	card_vector tag_list_hand;
 	card_vector tag_list_extra;
+	std::vector<card_vector> relay_list_main;
+	std::vector<card_vector> relay_list_hand;
+	std::vector<card_vector> relay_list_extra;
 };
 struct field_effect {
 	typedef std::multimap<uint32, effect*> effect_container;
@@ -313,6 +320,7 @@ struct processor {
 	uint32 hint_timing[2];
 	uint8 current_player;
 	uint8 conti_player;
+	bool force_turn_end;
 	std::unordered_map<uint32, std::pair<uint32, uint32> > summon_counter;
 	std::unordered_map<uint32, std::pair<uint32, uint32> > normalsummon_counter;
 	std::unordered_map<uint32, std::pair<uint32, uint32> > spsummon_counter;
@@ -374,6 +382,8 @@ public:
 	void swap_deck_and_grave(uint8 playerid);
 	void reverse_deck(uint8 playerid);
 	void tag_swap(uint8 playerid);
+	bool relay_check(uint8 playerid);
+	void next_player(uint8 playerid);
 
 	void add_effect(effect* peffect, uint8 owner_player = 2);
 	void remove_effect(effect* peffect);

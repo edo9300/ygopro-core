@@ -1375,9 +1375,9 @@ int32 field::check_hint_timing(effect* peffect) {
 int32 field::process_phase_event(int16 step, int32 phase) {
 	switch(step) {
 	case 0: {
-		if((phase == PHASE_DRAW && is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_DP))
-		        || (phase == PHASE_STANDBY && is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP))
-		        || (phase == PHASE_BATTLE_START && is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP))) {
+		if((phase == PHASE_DRAW && (core.force_turn_end || is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_DP)))
+		        || (phase == PHASE_STANDBY && (core.force_turn_end || is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP)))
+		        || (phase == PHASE_BATTLE_START && (core.force_turn_end || is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP)))) {
 			core.units.begin()->step = 24;
 			return FALSE;
 		}
@@ -1844,7 +1844,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		return FALSE;
 	}
 	case 8: {
-		if(!(pduel->game_field->core.duel_options & DUEL_OBSOLETE_IGNITION) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
+		if(!(core.duel_options & DUEL_OBSOLETE_IGNITION) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
 			return FALSE;
 		// Obsolete ignition effect ruling
 		tevent e;
@@ -2467,7 +2467,7 @@ int32 field::process_idle_command(uint16 step) {
 		nil_event.event_code = EVENT_FREE_CHAIN;
 		core.to_bp = TRUE;
 		core.to_ep = TRUE;
-		if((!(core.duel_options & DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1 && !(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP))
+		if((!(core.duel_options & DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1 && !(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP) || core.force_turn_end)
 			core.to_bp = FALSE;
 		if(infos.phase == PHASE_MAIN1) {
 			for(auto cit = player[infos.turn_player].list_mzone.begin(); cit != player[infos.turn_player].list_mzone.end(); ++cit) {
@@ -2481,7 +2481,7 @@ int32 field::process_idle_command(uint16 step) {
 				core.to_ep = FALSE;
 		}
 		if((infos.phase == PHASE_MAIN1 && is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_M1))
-		        || (infos.phase == PHASE_MAIN2 && is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_M2))) {
+		        || (infos.phase == PHASE_MAIN2 && is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_M2)) || core.force_turn_end) {
 			if(core.to_bp && core.to_ep) {
 				core.select_options.clear();
 				core.select_options.push_back(80);
@@ -2793,13 +2793,13 @@ int32 field::process_battle_command(uint16 step) {
 		core.attack_player = FALSE;
 		core.attacker = 0;
 		core.attack_target = 0;
-		if((peffect = is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP))) {
+		if((peffect = is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP)) || core.force_turn_end) {
 			core.units.begin()->step = 41;
 			core.units.begin()->arg1 = 2;
 			if(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_TWICE))
 				core.units.begin()->arg2 = 1;
 			else core.units.begin()->arg2 = 0;
-			if(!peffect->value) {
+			if(core.force_turn_end || !peffect->value) {
 				infos.phase = PHASE_BATTLE;
 				add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_BATTLE, 0);
 			} else {
@@ -2860,7 +2860,7 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		core.to_m2 = (core.duel_options & SPEED_DUEL) ? FALSE : TRUE;
 		core.to_ep = TRUE;
-		if(must_attack.size() || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_M2))
+		if(must_attack.size() || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_M2) || core.force_turn_end)
 			core.to_m2 = FALSE;
 		if(must_attack.size())
 			core.to_ep = FALSE;
@@ -3120,7 +3120,7 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 9: {
-		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.attack_rollback) {
+		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.attack_rollback || core.force_turn_end) {
 			core.units.begin()->step = 10;
 			return FALSE;
 		}
@@ -3156,7 +3156,7 @@ int32 field::process_battle_command(uint16 step) {
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		}
 		effect* peffect = is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP);
-		if(peffect) {
+		if(peffect || core.force_turn_end) {
 			core.units.begin()->step = 41;
 			core.units.begin()->arg1 = 2;
 			if(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_TWICE))
@@ -3167,7 +3167,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(core.attacker->fieldid_r == afid && !atk_disabled) {
 				core.attacker->attacked_cards.addcard(core.attack_target);
 			}
-			if(!peffect->value) {
+			if(core.force_turn_end || !peffect->value) {
 				infos.phase = PHASE_BATTLE;
 				add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_BATTLE, 0);
 			} else {
@@ -3999,7 +3999,10 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			core.extra_summon[p] = 0;
 			core.spsummon_once_map[p].clear();
 			core.spsummon_once_map_rst[p].clear();
+			if (player[p].recharge)
+				next_player(p);
 		}
+		core.force_turn_end = false;
 		core.spsummon_rst = false;
 		for(auto rit = effects.rechargeable.begin(); rit != effects.rechargeable.end(); ++rit)
 			if(!(*rit)->is_flag(EFFECT_FLAG_NO_TURN_RESET))
@@ -4054,7 +4057,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_DP)) {
+		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_DP) || core.force_turn_end) {
 			core.units.begin()->step = 2;
 			reset_phase(PHASE_DRAW);
 			adjust_all();
@@ -4070,7 +4073,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 	}
 	case 2: {
 		// Draw, new ruling
-		if((pduel->game_field->core.duel_options & DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
+		if((core.duel_options & DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
 			int32 count = get_draw_count(infos.turn_player);
 			if(count > 0) {
 				draw(0, REASON_RULE, turn_player, turn_player, count);
@@ -4092,7 +4095,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP)) {
+		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP) || core.force_turn_end) {
 			core.units.begin()->step = 5;
 			reset_phase(PHASE_STANDBY);
 			adjust_all();
@@ -4148,7 +4151,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		pduel->write_buffer8(MSG_NEW_PHASE);
 		pduel->write_buffer16(infos.phase);
 		// Show the texts to indicate that BP is entered and skipped
-		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP)) {
+		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.force_turn_end) {
 			core.units.begin()->step = 14;
 			reset_phase(PHASE_BATTLE_START);
 			reset_phase(PHASE_BATTLE_STEP);
@@ -4200,7 +4203,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			return FALSE;
 		}
 		core.skip_m2 = FALSE;
-		if(returns.ivalue[0] == 3) { // End Phase
+		if(returns.ivalue[0] == 3 || core.force_turn_end) { // End Phase
 			core.skip_m2 = TRUE;
 		}
 		//Main2
@@ -4738,7 +4741,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if(activate && pcard->is_has_relation(*cait)) {
 			pcard->set_status(STATUS_ACTIVATED, TRUE);
 			pcard->enable_field_effect(true);
-			if((pduel->game_field->core.duel_options & DUEL_1_FIELD)) {
+			if((core.duel_options & DUEL_1_FIELD)) {
 				if(pcard->data.type & TYPE_FIELD) {
 					card* fscard = player[1 - pcard->current.controler].list_szone[5];
 					if(fscard && fscard->is_position(POS_FACEUP))
@@ -4865,7 +4868,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if((pcard->data.type & TYPE_EQUIP) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 			&& !pcard->equiping_target && pcard->is_has_relation(*cait))
 			destroy(pcard, 0, REASON_RULE, PLAYER_NONE);
-		if((pduel->game_field->core.duel_options & DUEL_1_FIELD)) {
+		if((core.duel_options & DUEL_1_FIELD)) {
 			if((pcard->data.type & TYPE_FIELD) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 					&& !pcard->is_status(STATUS_LEAVE_CONFIRMED) && pcard->is_has_relation(*cait)) {
 				card* fscard = player[1 - pcard->current.controler].list_szone[5];
@@ -5182,55 +5185,75 @@ int32 field::adjust_step(uint16 step) {
 	}
 	case 1: {
 		//win check(deck=0 or lp=0)
-		uint32 winp = 5, rea = 1;
-		if (player[0].lp <= 0 && player[1].lp > 0 && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP)) {
-			winp = 1;
-			rea = 1;
-		}
-		if (core.overdraw[0] && !core.overdraw[1] && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK)) {
-			winp = 1;
-			rea = 2;
-		}
-		if (player[1].lp <= 0 && player[0].lp > 0 && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP)) {
-			winp = 0;
-			rea = 1;
-		}
-		if (core.overdraw[1] && !core.overdraw[0] && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK)) {
-			winp = 0;
-			rea = 2;
-		}
-		if (player[1].lp <= 0 && player[0].lp <= 0 && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))) {
-			if (is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP))
-				winp = 0;
-			else if (is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))
+		if(!core.force_turn_end){
+			uint32 winp = 5, rea = 1;
+			if (player[0].lp <= 0 && player[1].lp > 0 && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP)) {
 				winp = 1;
-			else
-				winp = PLAYER_NONE;
-			rea = 1;
-		}
-		if (core.overdraw[1] && core.overdraw[0] && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))) {
-			if (is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK))
-				winp = 0;
-			else if (is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))
+				rea = 1;
+			}
+			if (core.overdraw[0] && !core.overdraw[1] && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK)) {
 				winp = 1;
-			else
-				winp = PLAYER_NONE;
-			rea = 2;
-		}
-		if(winp != 5) {
-			pduel->write_buffer8(MSG_WIN);
-			pduel->write_buffer8(winp);
-			pduel->write_buffer8(rea);
-			core.overdraw[0] = core.overdraw[1] = FALSE;
-			core.win_player = 5;
-			core.win_reason = 0;
-		} else if(core.win_player != 5) {
-			pduel->write_buffer8(MSG_WIN);
-			pduel->write_buffer8(core.win_player);
-			pduel->write_buffer8(core.win_reason);
-			core.win_player = 5;
-			core.win_reason = 0;
-			core.overdraw[0] = core.overdraw[1] = FALSE;
+				rea = 2;
+			}
+			if (player[1].lp <= 0 && player[0].lp > 0 && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP)) {
+				winp = 0;
+				rea = 1;
+			}
+			if (core.overdraw[1] && !core.overdraw[0] && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK)) {
+				winp = 0;
+				rea = 2;
+			}
+			if (player[1].lp <= 0 && player[0].lp <= 0 && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))) {
+				if (is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP))
+					winp = 0;
+				else if (is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))
+					winp = 1;
+				else
+					winp = PLAYER_NONE;
+				rea = 1;
+			}
+			if (core.overdraw[1] && core.overdraw[0] && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))) {
+				if (is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK))
+					winp = 0;
+				else if (is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))
+					winp = 1;
+				else
+					winp = PLAYER_NONE;
+				rea = 2;
+			}
+			if (core.duel_options & DUEL_RELAY_MODE) {
+				if (winp == PLAYER_NONE) {
+					bool p1 = relay_check(0);
+					bool p2 = relay_check(1);
+					if (p1 && !p2)
+						winp = 0;
+					else if (!p1 && p2)
+						winp = 1;
+					else if (p1 && p2) {
+						winp = 5;
+						core.overdraw[0] = core.overdraw[1] = FALSE;
+					}
+				} else if (winp < PLAYER_NONE)
+					if (relay_check(1 - winp)) {
+						winp = 5;
+						core.overdraw[0] = core.overdraw[1] = FALSE;
+					}
+			}
+			if(winp != 5) {
+				pduel->write_buffer8(MSG_WIN);
+				pduel->write_buffer8(winp);
+				pduel->write_buffer8(rea);
+				core.overdraw[0] = core.overdraw[1] = FALSE;
+				core.win_player = 5;
+				core.win_reason = 0;
+			} else if(core.win_player != 5) {
+				pduel->write_buffer8(MSG_WIN);
+				pduel->write_buffer8(core.win_player);
+				pduel->write_buffer8(core.win_reason);
+				core.win_player = 5;
+				core.win_reason = 0;
+				core.overdraw[0] = core.overdraw[1] = FALSE;
+			}
 		}
 		return FALSE;
 	}
