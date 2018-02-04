@@ -2930,6 +2930,7 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 		target->enable_field_effect(false);
 		check_card_counter(target, 3, target->summon_player);
 		uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
+		bool extra = !(zone & 0xff);
 		if(targets && (pduel->game_field->core.duel_options & DUEL_EMZONE)) {
 			uint32 flag1, flag2;
 			int32 ct1 = get_tofield_count(playerid, LOCATION_MZONE, target->summon_player, LOCATION_REASON_TOFIELD, zone, &flag1);
@@ -2941,8 +2942,11 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 					ct2--;
 			}
 			if(target->current.location != LOCATION_EXTRA) {
-				if(ct2 == 0)
+				if(ct2 == 0) {
 					zone = flag2;
+					if (!extra)
+						zone &= ~0x60;
+				}
 			} else {
 				if(ct1 == 0)
 					zone = flag1;
