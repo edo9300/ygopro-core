@@ -60,11 +60,11 @@ int32 field::select_battle_command(uint16 step, uint8 playerid) {
 	} else {
 		uint32 t = returns.ivalue[0] & 0xffff;
 		uint32 s = returns.ivalue[0] >> 16;
-		if(t < 0 || t > 3 || s < 0
-		        || (t == 0 && s >= core.select_chains.size())
-		        || (t == 1 && s >= core.attackable_cards.size())
-		        || (t == 2 && !core.to_m2)
-		        || (t == 3 && !core.to_ep)) {
+		if(t > 3
+		   || (t == 0 && s >= core.select_chains.size())
+		   || (t == 1 && s >= core.attackable_cards.size())
+		   || (t == 2 && !core.to_m2)
+		   || (t == 3 && !core.to_ep)) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -155,16 +155,16 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 	} else {
 		uint32 t = returns.ivalue[0] & 0xffff;
 		uint32 s = returns.ivalue[0] >> 16;
-		if(t < 0 || t > 8 || s < 0
-		        || (t == 0 && s >= core.summonable_cards.size())
-		        || (t == 1 && s >= core.spsummonable_cards.size())
-		        || (t == 2 && s >= core.repositionable_cards.size())
-		        || (t == 3 && s >= core.msetable_cards.size())
-		        || (t == 4 && s >= core.ssetable_cards.size())
-		        || (t == 5 && s >= core.select_chains.size())
-		        || (t == 6 && (infos.phase != PHASE_MAIN1 || !core.to_bp))
-		        || (t == 7 && !core.to_ep)
-		        || (t == 8 && !(infos.can_shuffle && player[playerid].list_hand.size() > 1))) {
+		if(t > 8
+		   || (t == 0 && s >= core.summonable_cards.size())
+		   || (t == 1 && s >= core.spsummonable_cards.size())
+		   || (t == 2 && s >= core.repositionable_cards.size())
+		   || (t == 3 && s >= core.msetable_cards.size())
+		   || (t == 4 && s >= core.ssetable_cards.size())
+		   || (t == 5 && s >= core.select_chains.size())
+		   || (t == 6 && (infos.phase != PHASE_MAIN1 || !core.to_bp))
+		   || (t == 7 && !core.to_ep)
+		   || (t == 8 && !(infos.can_shuffle && player[playerid].list_hand.size() > 1))) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -278,7 +278,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		uint8 m = core.select_cards.size(), v = 0;
 		for(int32 i = 0; i < returns.bvalue[0]; ++i) {
 			v = returns.bvalue[i + 1];
-			if(v < 0 || v >= m || v >= 63 || c[v]) {
+			if(v >= m || v >= 63 || c[v]) {
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
@@ -328,7 +328,7 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 		uint8 m = core.select_cards.size() + core.unselect_cards.size(), v = 0;
 		for (int32 i = 0; i < returns.bvalue[0]; ++i) {
 			v = returns.bvalue[i + 1];
-			if (v < 0 || v >= m || v >= 63 || c[v]) {
+			if (v >= m || v >= 63 || c[v]) {
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
@@ -492,7 +492,7 @@ int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 pos
 		return FALSE;
 	} else {
 		uint32 pos = returns.ivalue[0];
-		if(pos != 0x1 && pos != 0x2 && pos != 0x4 && pos != 0x8 || !(pos & positions)) {
+		if((pos != 0x1 && pos != 0x2 && pos != 0x4 && pos != 0x8) || !(pos & positions)) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -543,7 +543,7 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		uint8 m = core.select_cards.size(), v = 0, tt = 0;
 		for(int32 i = 0; i < returns.bvalue[0]; ++i) {
 			v = returns.bvalue[i + 1];
-			if(v < 0 || v >= m || v >= 6 || c[v]) {
+			if(v >= m || v >= 6 || c[v]) {
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
@@ -934,7 +934,7 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 		}
 		case OPCODE_ISCODE: {
 			if(stack.size() >= 1) {
-				int32 code = stack.top();
+				uint32 code = stack.top();
 				stack.pop();
 				stack.push(cd.code == code);
 			}

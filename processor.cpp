@@ -704,9 +704,9 @@ int32 field::process() {
 			if (returns.bvalue[0] == -1)
 				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			else {
-				group* pgroup = pduel->new_group();
+				//group* pgroup = pduel->new_group(); // UNUSED VARIABLE
 				card* pcard;
-				if (returns.bvalue[1] < core.select_cards.size())
+				if ((size_t)returns.bvalue[1] < core.select_cards.size())
 					pcard = core.select_cards[returns.bvalue[1]];
 				else
 					pcard = core.unselect_cards[returns.bvalue[1] - core.select_cards.size()];
@@ -1696,11 +1696,11 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			}
 			uint8 tp = clit->triggering_player;
 			bool act = true;
-			if(peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE)
-				&& (!(peffect->type & EFFECT_TYPE_FIELD) || phandler->is_has_relation(*clit))
-				&& (peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE
-					|| (clit->triggering_location & 0x43) && (clit->triggering_position & POS_FACEDOWN)
-					|| !(phandler->current.location & 0x43) || phandler->is_position(POS_FACEUP))) {
+			if((peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE)) &&
+			   (!(peffect->type & EFFECT_TYPE_FIELD) || phandler->is_has_relation(*clit)) &&
+			   ((peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE) ||
+			   ((clit->triggering_location & 0x43) && (clit->triggering_position & POS_FACEDOWN)) ||
+			   !(phandler->current.location & 0x43) || phandler->is_position(POS_FACEUP))) {
 				if(peffect->is_flag(EFFECT_FLAG_CHAIN_UNIQUE)) {
 					for(auto tpit = core.current_chain.begin(); tpit != core.current_chain.end(); ++tpit) {
 						if(tpit->triggering_effect->get_handler()->data.code == phandler->data.code && tpit->triggering_player == tp) {
@@ -1766,11 +1766,12 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			}
 			uint8 tp = clit->triggering_player;
 			bool act = true;
-			if(peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE)
-				&& (!(peffect->type & EFFECT_TYPE_FIELD) || phandler->is_has_relation(*clit))
-				&& (peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE
-					|| (clit->triggering_location & 0x43) && (clit->triggering_position & POS_FACEDOWN)
-					|| !(phandler->current.location & 0x43) || phandler->is_position(POS_FACEUP))) {
+			if(peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE) &&
+				(!(peffect->type & EFFECT_TYPE_FIELD) || phandler->is_has_relation(*clit)) &&
+				((peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE) ||
+				((clit->triggering_location & 0x43) && (clit->triggering_position & POS_FACEDOWN)) ||
+				!(phandler->current.location & 0x43) ||
+				phandler->is_position(POS_FACEUP))) {
 				if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) && clit->triggering_location == LOCATION_HAND
 					&& (((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) && phandler->is_has_relation(*clit))
 						|| (peffect->range & LOCATION_HAND))) {
@@ -2445,7 +2446,7 @@ int32 field::process_single_event(effect* peffect, const tevent& e, effect_vecto
 		}
 		phandler->create_relation(newchain);
 		effect* deffect;
-		if(deffect = phandler->is_affected_by_effect(EFFECT_DISABLE_EFFECT)) {
+		if((deffect = phandler->is_affected_by_effect(EFFECT_DISABLE_EFFECT))) {
 			effect* negeff = pduel->new_effect();
 			negeff->owner = deffect->owner;
 			negeff->type = EFFECT_TYPE_SINGLE;
@@ -3732,7 +3733,7 @@ int32 field::process_damage_step(uint16 step, uint32 new_attack) {
 		core.attack_target = (card*)core.units.begin()->ptarget;
 		core.units.begin()->ptarget = (group*)tmp;
 		core.units.begin()->arg1 = infos.phase;
-		if(core.attacker->current.location != LOCATION_MZONE || core.attack_target && core.attack_target->current.location != LOCATION_MZONE) {
+		if(core.attacker->current.location != LOCATION_MZONE || (core.attack_target && core.attack_target->current.location != LOCATION_MZONE)) {
 			core.units.begin()->step = 2;
 			return FALSE;
 		}
@@ -4619,7 +4620,7 @@ int32 field::solve_continuous(uint16 step, effect * peffect, uint8 triggering_pl
 		newchain.disable_reason = 0;
 		newchain.flag = 0;
 		core.continuous_chain.push_back(newchain);
-		if(peffect->is_flag(EFFECT_FLAG_DELAY) || !(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START)))
+		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START))))
 			core.conti_solving = TRUE;
 		core.units.begin()->ptarget = (group*)core.reason_effect;
 		core.units.begin()->arg2 = core.reason_player;
@@ -4651,7 +4652,7 @@ int32 field::solve_continuous(uint16 step, effect * peffect, uint8 triggering_pl
 		}
 		core.continuous_chain.pop_back();
 		core.solving_event.pop_front();
-		if(peffect->is_flag(EFFECT_FLAG_DELAY) || !(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START))) {
+		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START)))) {
 			core.conti_solving = FALSE;
 			adjust_all();
 			return FALSE;

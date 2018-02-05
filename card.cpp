@@ -1085,14 +1085,14 @@ uint32 card::get_link() {
 		return data.level;
 	if (temp.level != 0xffffffff)
 		return temp.level;
-		effect_set effects;
-		int32 link = data.level;
-		temp.level = link;
-		int32 up = 0, upc = 0;
-		filter_effect(EFFECT_UPDATE_LINK, &effects, FALSE);
-		filter_effect(EFFECT_CHANGE_LINK, &effects, FALSE);
-		filter_effect(EFFECT_CHANGE_LINK_FINAL, &effects);
-		for (int32 i = 0; i < effects.size(); ++i) {
+	effect_set effects;
+	int32 link = data.level;
+	temp.level = link;
+	int32 up = 0, upc = 0;
+	filter_effect(EFFECT_UPDATE_LINK, &effects, FALSE);
+	filter_effect(EFFECT_CHANGE_LINK, &effects, FALSE);
+	filter_effect(EFFECT_CHANGE_LINK_FINAL, &effects);
+	for (int32 i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
 		case EFFECT_UPDATE_LINK:
 			if ((effects[i]->type & EFFECT_TYPE_SINGLE) && !effects[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
@@ -1119,7 +1119,7 @@ uint32 card::get_link() {
 	return link;		
 }
 uint32 card::get_synchro_level(card* pcard) {
-	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	if(((data.type & TYPE_XYZ) || ((status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S))))
 	|| (data.type & TYPE_LINK))
 		return 0;
 	uint32 lev;
@@ -1132,7 +1132,7 @@ uint32 card::get_synchro_level(card* pcard) {
 	return lev;
 }
 uint32 card::get_ritual_level(card* pcard) {
-	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	if(((data.type & TYPE_XYZ) || ((status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S))))
 	|| (data.type & TYPE_LINK))
 		return 0;
 	uint32 lev;
@@ -1668,7 +1668,7 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 	int32 zones = 0;
 	int32 loc2 = current.location;
 	int32 s = current.sequence;
-	if(!(loc1 & LOCATION_ONFIELD) || !(loc2 & LOCATION_ONFIELD) || loc2 == LOCATION_SZONE && s >=5 || left < 0 || right < 0)
+	if(!(loc1 & LOCATION_ONFIELD) || !(loc2 & LOCATION_ONFIELD) || (loc2 == LOCATION_SZONE && s >= 5) || left < 0 || right < 0)
 		return 0;
 	if(s <= 4) {
 		if(loc1 != loc2)
@@ -1736,7 +1736,7 @@ int32 card::is_all_column() {
 		return FALSE;
 	card_set cset;
 	get_column_cards(&cset, 0, 0);
-	int32 full = 3;
+	uint32 full = 3;
 	if((pduel->game_field->core.duel_options & DUEL_EMZONE) && (current.sequence == 1 || current.sequence == 3))
 		full++;
 	if(cset.size() == full)
@@ -2842,11 +2842,13 @@ int32 card::check_set_procedure(effect* peffect, uint8 playerid, uint8 ignore_co
 		return FALSE;
 	if(!pduel->game_field->is_player_can_mset(peffect->get_value(this), playerid, this))
 		return FALSE;
+	/*
 	uint8 toplayer = playerid;
 	if(peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
 		if(peffect->o_range)
 			toplayer = 1 - playerid;
 	}
+	*/ // UNUSED VARIABLE
 	if(!ignore_count && !pduel->game_field->core.extra_summon[playerid]
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
 		effect_set eset;
@@ -2990,7 +2992,7 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	}
 	return 0;
 }
-int32 card::get_card_effect(int32 code) {
+int32 card::get_card_effect(uint32 code) {
 	effect* peffect;
 	int32 i = 0;
 	for (auto rg = single_effect.begin(); rg != single_effect.end(); ++rg) {
@@ -3592,7 +3594,7 @@ int32 card::is_destructable_by_effect(effect* peffect, uint8 playerid) {
 			pduel->lua->add_param(REASON_EFFECT, PARAM_TYPE_INT);
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			int32 ct;
-			if(ct = eset[i]->get_value(3)) {
+			if((ct = eset[i]->get_value(3))) {
 				auto it = indestructable_effects.insert(std::make_pair(eset[i]->id, 0));
 				if(it.first->second + 1 <= ct) {
 					return FALSE;

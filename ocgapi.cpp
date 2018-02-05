@@ -44,7 +44,7 @@ byte* default_script_reader(const char* script_name, int* slen) {
 	fp = fopen(script_name, "rb");
 	if (!fp)
 		return 0;
-	int len = fread(buffer, 1, sizeof(buffer), fp);
+	size_t len = fread(buffer, 1, sizeof(buffer), fp);
 	fclose(fp);
 	if(len >= sizeof(buffer))
 		return 0;
@@ -108,8 +108,8 @@ extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
 	}
 	if (options & DUEL_RELAY_MODE) {
 		for (int p = 0; p < 2; p++)
-			for (int l = 0; l < pd->game_field->player[p].relay_list_main.size(); l++)
-				for (int i = 0; i < pd->game_field->player[p].start_count && pd->game_field->player[p].relay_list_main[l].size(); ++i) {
+			for (size_t l = 0; l < pd->game_field->player[p].relay_list_main.size(); l++)
+				for (size_t i = 0; i < (size_t)pd->game_field->player[p].start_count && pd->game_field->player[p].relay_list_main[l].size(); ++i) {
 					if (pd->game_field->player[p].relay_list_hand.size() == l)
 						pd->game_field->player[p].relay_list_hand.push_back(std::vector<card*>());
 					card* pcard = pd->game_field->player[p].relay_list_main[l].back();

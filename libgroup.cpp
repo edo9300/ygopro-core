@@ -123,7 +123,7 @@ int32 scriptlib::group_take_at_pos(lua_State *L) {
 	check_param(L, PARAM_TYPE_GROUP, 1);
 	group* pgroup = *(group**)lua_touserdata(L, 1);
 	int32 pos = lua_tonumberint(L, 2);
-	if(pos > pgroup->container.size())
+	if(pos > (int32)pgroup->container.size())
 		lua_pushnil(L);
 	else {
 		auto cit = pgroup->container.begin();
