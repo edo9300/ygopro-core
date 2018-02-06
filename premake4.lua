@@ -1,10 +1,11 @@
 project "ocgcore"
-    kind "StaticLib"
+	kind "StaticLib"
 
-    files { "**.cc", "**.cpp", "**.c", "**.h" }
-    configuration "windows"
-        includedirs { ".." }
-    configuration "not vs*"
-        buildoptions { "-std=gnu++0x" }
-    configuration "not windows"
-        includedirs { "/usr/include/lua", "/usr/include/lua5.3", "/usr/include/lua/5.3" }
+	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
+	buildoptions { "-Wall", "-Wextra", "-pedantic" }
+	
+	configuration "windows"
+		includedirs { ".." }
+	configuration "not windows"
+		buildoptions { "-std=c++11", "-Wno-unused-parameter" }
+		includedirs { "/usr/include/lua", "/usr/include/lua5.3", "/usr/include/lua/5.3" }

@@ -1522,8 +1522,8 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 	field::card_vector cv;
 	pduel->game_field->get_attack_target(attacker, &cv, pduel->game_field->core.chain_attack);
 	auto turnp = pduel->game_field->infos.turn_player;
-	if((target && std::find(cv.begin(), cv.end(), target) != cv.end() || ignore)
-			|| !target && !attacker->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK)) {
+	if(((target && std::find(cv.begin(), cv.end(), target) != cv.end()) || ignore) ||
+		(!target && !attacker->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK))) {
 		pduel->game_field->core.attack_target = target;
 		pduel->game_field->core.attack_rollback = FALSE;
 		pduel->game_field->core.opp_mzone.clear();

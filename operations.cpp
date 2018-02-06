@@ -1545,7 +1545,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				std::vector<int32> retval;
 				eset[i]->get_value(target, 0, &retval);
 				int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
 				int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff - retval[2] : retval[2]) : 0xff00ff;
 				new_zone &= zone;
 				bool unchanged = (new_zone == zone);
@@ -2095,7 +2095,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 				std::vector<int32> retval;
 				eset[i]->get_value(target, 0, &retval);
 				int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
 				int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff - retval[2] : retval[2]) : 0xff00ff;
 				new_zone &= zone;
 				bool unchanged = (new_zone == zone);
@@ -3180,7 +3180,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 						pduel->lua->add_param(pcard->current.reason, PARAM_TYPE_INT);
 						pduel->lua->add_param(pcard->current.reason_player, PARAM_TYPE_INT);
 						int32 ct;
-						if(ct = eset[i]->get_value(3)) {
+						if((ct = eset[i]->get_value(3))) {
 							auto it = pcard->indestructable_effects.insert(std::make_pair(eset[i]->id, 0));
 							if(++it.first->second <= ct) {
 								indestructable_effect_set.insert(eset[i]);
@@ -3383,7 +3383,7 @@ int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint3
 						pduel->lua->add_param(pcard->current.reason, PARAM_TYPE_INT);
 						pduel->lua->add_param(pcard->current.reason_player, PARAM_TYPE_INT);
 						int32 ct;
-						if(ct = eset[i]->get_value(3)) {
+						if((ct = eset[i]->get_value(3))) {
 							auto it = pcard->indestructable_effects.insert(std::make_pair(eset[i]->id, 0));
 							if(++it.first->second <= ct) {
 								pduel->write_buffer8(MSG_HINT);
@@ -4179,7 +4179,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 		returns.ivalue[0] = FALSE;
 		if((ret == 1) && (!(target->current.reason & REASON_TEMPORARY) || (target->current.reason_effect->owner != core.reason_effect->owner)))
 			return TRUE;
-		if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL|TYPE_TRAP) && zone==0xff) || (zone & 0x20 && zone != 0xff))) {
+		if(location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & (TYPE_SPELL|TYPE_TRAP)) && zone==0xff) || (zone & 0x20 && zone != 0xff))) {
 			card* pcard = get_field_card(playerid, LOCATION_SZONE, 5);
 			if(pcard) {
 				if(!(pduel->game_field->core.duel_options & DUEL_1_FIELD))
@@ -4208,11 +4208,15 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			uint32 flag;
 			uint32 lreason = (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
 			int32 ct = get_useable_count(target, playerid, location, move_player, lreason, zone, &flag);
-			if (location == LOCATION_MZONE && zone & 0x60 && zone!=0xff && !rule) {
-				if (zone & 0x20 && pduel->game_field->is_location_useable(playerid, location, 5))
-					flag = flag & ~(1u << 5); ct++;
-				if (zone & 0x40 && pduel->game_field->is_location_useable(playerid, location, 6))
-					flag = flag & ~(1u << 6); ct++;
+			if (location == LOCATION_MZONE && (zone & 0x60) && (zone!=0xff) && !rule) {
+				if ((zone & 0x20) && pduel->game_field->is_location_useable(playerid, location, 5)){
+					flag = flag & ~(1u << 5);
+					ct++;
+				}
+				if ((zone & 0x40) && pduel->game_field->is_location_useable(playerid, location, 6)){
+					flag = flag & ~(1u << 6);
+					ct++;
+				}
 			}
 			if (location == LOCATION_SZONE)
 				flag = flag | ~zone;
@@ -4246,7 +4250,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 	}
 	case 1: {
 		uint32 seq = returns.bvalue[2];
-		if (location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & TYPE_SPELL | TYPE_TRAP) && zone==0xff) || (zone & 0x20 && zone !=0xff)))
+		if (location == LOCATION_SZONE && ((!is_equip && (target->data.type & TYPE_FIELD) && (target->data.type & (TYPE_SPELL | TYPE_TRAP)) && zone==0xff) || (zone & 0x20 && zone !=0xff)))
 			seq = 5;
 		if(ret != 1) {
 			if(location != target->current.location) {

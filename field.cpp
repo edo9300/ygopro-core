@@ -219,7 +219,7 @@ void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence
 		break;
 	}
 	case LOCATION_EXTRA: {
-		if(player[playerid].extra_p_count == 0 || (pcard->data.type & TYPE_PENDULUM) && (pcard->sendto_param.position & POS_FACEUP))
+		if(player[playerid].extra_p_count == 0 || ((pcard->data.type & TYPE_PENDULUM) && (pcard->sendto_param.position & POS_FACEUP)))
 			player[playerid].list_extra.push_back(pcard);
 		else
 			player[playerid].list_extra.insert(player[playerid].list_extra.end() - player[playerid].extra_p_count, pcard);
@@ -2343,7 +2343,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack) 
 					attack_tg.push_back(atarget);
 			}
 		}
-		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !&attack_tg)) {
+		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !attack_tg.size())) {
 			for (uint32 i = 0; i < 7; ++i) {
 				card* atarget = player[p].list_mzone[i];
 				if (atarget != core.attacker) {
@@ -2486,7 +2486,7 @@ bool field::confirm_attack_target() {
 	uint8 p = pcard->current.controler;
 	effect* peffect;
 	card_vector* pv = NULL;
-	int32 atype = 0;
+	//int32 atype = 0; // UNUSED VARIABLE
 	card_vector must_be_attack;
 	card_vector attack_tg;
 	card_vector only_be_attack;
@@ -2504,7 +2504,7 @@ bool field::confirm_attack_target() {
 	}
 	pcard->filter_effect(EFFECT_RISE_TO_FULL_HEIGHT, &eset);
 	if(eset.size()) {
-		atype = 1;
+		//atype = 1; // UNUSED VARIABLE
 		std::set<uint32> idset;
 		for(int32 i = 0; i < eset.size(); ++i)
 			idset.insert(eset[i]->label);
@@ -2513,26 +2513,26 @@ bool field::confirm_attack_target() {
 		else
 			return false;
 	} else if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER)) {
-		atype = 2;
+		//atype = 2; // UNUSED VARIABLE
 		if(only_be_attack.size() == 1)
 			pv = &only_be_attack;
 		else
 			return false;
 	} else if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER)) {
-		atype = 3;
+		//atype = 3; // UNUSED VARIABLE
 		if(must_be_attack.size())
 			pv = &must_be_attack;
 		else
 			return false;
 	} else {
-		atype = 4;
+		//atype = 4; // UNUSED VARIABLE
 		for (uint32 i = 0; i < 7; ++i) {
 			card* atarget = player[1 - p].list_mzone[i];
 			if (atarget != core.attacker) {
 				attack_tg.push_back(atarget);
 			}
 		}
-		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !&attack_tg)) {
+		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !attack_tg.size())) {
 			for (uint32 i = 0; i < 7; ++i) {
 				card* atarget = player[p].list_mzone[i];
 				if (atarget != core.attacker) {
@@ -3024,7 +3024,7 @@ int32 field::is_player_can_remove(uint8 playerid, card * pcard) {
 }
 int32 field::is_chain_negatable(uint8 chaincount) {
 	effect_set eset;
-	if(chaincount < 0 || chaincount > core.current_chain.size())
+	if(chaincount > core.current_chain.size())
 		return FALSE;
 	effect* peffect;
 	if(chaincount == 0)
@@ -3043,7 +3043,7 @@ int32 field::is_chain_negatable(uint8 chaincount) {
 }
 int32 field::is_chain_disablable(uint8 chaincount) {
 	effect_set eset;
-	if(chaincount < 0 || chaincount > core.current_chain.size())
+	if(chaincount > core.current_chain.size())
 		return FALSE;
 	effect* peffect;
 	if(chaincount == 0)
@@ -3063,7 +3063,7 @@ int32 field::is_chain_disablable(uint8 chaincount) {
 	return TRUE;
 }
 int32 field::is_chain_disabled(uint8 chaincount) {
-	if(chaincount < 0 || chaincount > core.current_chain.size())
+	if(chaincount > core.current_chain.size())
 		return FALSE;
 	chain* pchain;
 	if(chaincount == 0)
@@ -3084,7 +3084,7 @@ int32 field::is_chain_disabled(uint8 chaincount) {
 	return FALSE;
 }
 int32 field::check_chain_target(uint8 chaincount, card * pcard) {
-	if(chaincount < 0 || chaincount > core.current_chain.size())
+	if(chaincount > core.current_chain.size())
 		return FALSE;
 	chain* pchain;
 	if(chaincount == 0)
@@ -3140,7 +3140,7 @@ int32 field::get_cteffect(effect* peffect, int32 playerid, int32 store) {
 		if(!feffect->in_range(phandler))
 			continue;
 		uint32 code = efit->first;
-		if(code == EVENT_FREE_CHAIN || code == EVENT_PHASE + infos.phase) {
+		if(code == EVENT_FREE_CHAIN || code == EVENT_PHASE + (uint32)infos.phase) {
 			nil_event.event_code = code;
 			if(get_cteffect_evt(feffect, playerid, nil_event, store) && !store)
 				return TRUE;
