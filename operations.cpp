@@ -4188,7 +4188,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 					destroy(pcard, 0, REASON_RULE, pcard->current.controler);
 				adjust_all();
 			}
-		} else if(location == LOCATION_SZONE && ((!is_equip && ((target->data.type & TYPE_PENDULUM && zone != 0xff))) || pzone) && (pduel->game_field->core.duel_options & DUEL_PZONE)) {
+		} else if((!is_equip && zone & 0x3 && zone != 0xff && pzone) && (pduel->game_field->core.duel_options & DUEL_PZONE)) {
 			uint32 flag = 0;
 			if(is_location_useable(playerid, LOCATION_PZONE, 0) && zone & 1)
 				flag |= 0x1u << (!(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (core.duel_options & SPEED_DUEL) ? 9 : 8 : 14);
