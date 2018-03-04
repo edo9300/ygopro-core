@@ -17,6 +17,27 @@ int32 scriptlib::card_get_code(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	if (lua_gettop(L) > 1) {
+		card* scard = 0;
+		uint32 sumtype = 0;
+		uint32 playerid = PLAYER_NONE;
+		if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
+			check_param(L, PARAM_TYPE_CARD, 2);
+			scard = *(card**)lua_touserdata(L, 2);
+		}
+		if (lua_gettop(L) > 2)
+			sumtype = lua_tonumberint(L, 3);
+		if (lua_gettop(L) > 3)
+			playerid = lua_tonumberint(L, 4);
+		else if (sumtype == SUMMON_TYPE_FUSION)
+			playerid = pcard->pduel->game_field->core.reason_player;
+		int32 count = pcard->get_summon_code(scard, sumtype, playerid);
+		if (count == 0) {
+			lua_pushnil(L);
+			return 1;
+		}
+		return count;
+	}
 	lua_pushinteger(L, pcard->get_code());
 	uint32 otcode = pcard->get_another_code();
 	if(otcode) {
@@ -61,34 +82,31 @@ int32 scriptlib::card_get_origin_code_rule(lua_State *L) {
 	}
 	return 1;
 }
-int32 scriptlib::card_get_summon_code(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	card* scard = 0;
-	uint32 sumtype = 0;
-	uint32 playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
-		check_param(L, PARAM_TYPE_CARD, 2);
-		scard = *(card**)lua_touserdata(L, 2);
-	}
-	if (lua_gettop(L) > 2)
-		sumtype = lua_tonumberint(L, 3);
-	if (lua_gettop(L) > 3)
-		playerid = lua_tonumberint(L, 4);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pcard->pduel->game_field->core.reason_player;
-	int32 count = pcard->get_summon_code(scard, sumtype, playerid);
-	if (count == 0) {
-		lua_pushnil(L);
-		return 1;
-	}
-	return count;
-}
 int32 scriptlib::card_get_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	if (lua_gettop(L) > 1) {
+		card* scard = 0;
+		uint32 sumtype = 0;
+		uint32 playerid = PLAYER_NONE;
+		if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
+			check_param(L, PARAM_TYPE_CARD, 2);
+			scard = *(card**)lua_touserdata(L, 2);
+		}
+		if (lua_gettop(L) > 2)
+			sumtype = lua_tonumberint(L, 3);
+		if (lua_gettop(L) > 3)
+			playerid = lua_tonumberint(L, 4);
+		else if (sumtype == SUMMON_TYPE_FUSION)
+			playerid = pcard->pduel->game_field->core.reason_player;
+		int32 count = pcard->get_summon_set_card(scard, sumtype, playerid);
+		if (count == 0) {
+			lua_pushnil(L);
+			return 1;
+		}
+		return count;
+	}
 	int32 count = pcard->get_set_card();
 	if (count == 0) {
 		lua_pushnil(L);
@@ -116,30 +134,6 @@ int32 scriptlib::card_get_pre_set_card(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	int32 count = pcard->get_pre_set_card();
-	if (count == 0) {
-		lua_pushnil(L);
-		return 1;
-	}
-	return count;
-}
-int32 scriptlib::card_get_summon_set_card(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	card* scard = 0;
-	uint32 sumtype = 0;
-	uint32 playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
-		check_param(L, PARAM_TYPE_CARD, 2);
-		scard = *(card**)lua_touserdata(L, 2);
-	}
-	if (lua_gettop(L) > 2)
-		sumtype = lua_tonumberint(L, 3);
-	if (lua_gettop(L) > 3)
-		playerid = lua_tonumberint(L, 4);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pcard->pduel->game_field->core.reason_player;
-	int32 count = pcard->get_summon_set_card(scard, sumtype, playerid);
 	if (count == 0) {
 		lua_pushnil(L);
 		return 1;
