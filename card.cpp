@@ -285,6 +285,43 @@ uint32 card::get_another_code() {
 		return otcode;
 	return 0;
 }
+uint32 card::get_summon_code(card* scard, uint32 sumtype, uint8 playerid) {
+	std::set<uint32> codes;
+	effect_set eset;
+	bool changed = false;
+	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
+	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
+	filter_effect(EFFECT_CHANGE_CODE, &eset);
+	for (int32 i = 0; i < eset.size(); ++i) {
+		if (!eset[i]->operation)
+			continue;
+		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if (!pduel->lua->check_condition(eset[i]->operation, 3))
+			continue;
+		if (eset[i]->code == EFFECT_ADD_CODE)
+			codes.insert(eset[i]->get_value(this));
+		else if (eset[i]->code == EFFECT_REMOVE_CODE) {
+			auto cit = codes.find(eset[i]->get_value(this));
+			if (cit != codes.end())
+				codes.erase(cit);
+		} else {
+			codes.clear();
+			codes.insert(eset[i]->get_value(this));
+			changed = true;
+		}
+	}
+	if (!changed) {
+		codes.insert(get_code());
+		uint32 code = get_another_code();
+		if (code)
+			codes.insert(code);
+	}
+	for(uint32 code : codes)
+		lua_pushinteger(pduel->lua->current_state, code);
+	return codes.size();
+}
 int32 card::is_set_card(uint32 set_code) {
 	uint32 code = get_code();
 	uint64 setcode;
@@ -376,58 +413,68 @@ int32 card::is_pre_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
-int32 card::is_fusion_set_card(uint32 set_code) {
-	if(is_set_card(set_code))
-		return TRUE;
+int32 card::is_sumon_set_card(uint32 set_code, card * scard, uint32 sumtype, uint8 playerid) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	effect_set eset;
-	filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		uint32 code = eset[i]->get_value(this);
+	std::set<uint32> codes;
+	bool changed = false;
+	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
+	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
+	filter_effect(EFFECT_CHANGE_CODE, &eset);
+	for (int32 i = 0; i < eset.size(); ++i) {
+		if (!eset[i]->operation)
+			continue;
+		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if (!pduel->lua->check_condition(eset[i]->operation, 3))
+			continue;
+		if (eset[i]->code== EFFECT_ADD_CODE)
+			codes.insert(eset[i]->get_value(this));
+		else if (eset[i]->code == EFFECT_REMOVE_CODE) {
+			auto cit = codes.find(eset[i]->get_value(this));
+			if (cit != codes.end())
+				codes.erase(cit);
+		} else {
+			codes.clear();
+			codes.insert(eset[i]->get_value(this));
+			changed = true;
+		}
+	}
+	std::set<uint16> setcodes;
+	for (uint32 code : codes) {
 		card_data dat;
 		::read_card(code, &dat);
 		uint64 setcode = dat.setcode;
-		while(setcode) {
-			if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
-				return TRUE;
+		while (setcode) {
+			setcodes.insert(setcode & 0xffff);
 			setcode = setcode >> 16;
 		}
 	}
 	effect_set eset2;
-	filter_effect(EFFECT_ADD_FUSION_SETCODE, &eset2);
-	for(int32 i = 0; i < eset2.size(); ++i) {
+	filter_effect(EFFECT_ADD_SETCODE, &eset2, FALSE);
+	filter_effect(EFFECT_CHANGE_SETCODE, &eset2);
+	for (int32 i = 0; i < eset2.size(); ++i) {
+		if (!eset2[i]->operation)
+			continue;
+		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if (!pduel->lua->check_condition(eset2[i]->operation, 3))
+			continue;
 		uint32 setcode = eset2[i]->get_value(this);
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
-			return TRUE;
-	}
-	return FALSE;
-}
-int32 card::is_link_set_card(uint32 set_code) {
-	if(is_set_card(set_code))
-		return TRUE;
-	uint32 settype = set_code & 0xfff;
-	uint32 setsubtype = set_code & 0xf000;
-	effect_set eset;
-	filter_effect(EFFECT_ADD_LINK_CODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		uint32 code = eset[i]->get_value(this);
-		card_data dat;
-		::read_card(code, &dat);
-		uint64 setcode = dat.setcode;
-		while(setcode) {
-			if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
-				return TRUE;
-			setcode = setcode >> 16;
+		if (eset2[i]->code == EFFECT_CHANGE_SETCODE) {
+			setcodes.clear();
+			changed = true;
 		}
+		setcodes.insert(setcode & 0xffff);
 	}
-	effect_set eset2;
-	filter_effect(EFFECT_ADD_LINK_SETCODE, &eset2);
-	for(int32 i = 0; i < eset2.size(); ++i) {
-		uint32 setcode = eset2[i]->get_value(this);
+	if (!changed && is_set_card(set_code))
+		return TRUE;
+	for (uint16 setcode : setcodes)
 		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
 			return TRUE;
-	}
 	return FALSE;
 }
 uint32 card::get_set_card() {
@@ -494,26 +541,66 @@ uint32 card::get_pre_set_card() {
 		lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
 	return count;
 }
-uint32 card::get_fusion_set_card() {
-	uint32 count = get_set_card();
-	uint64 setcode = 0;
+uint32 card::get_summon_set_card(card* scard, uint32 sumtype, uint8 playerid) {
 	effect_set eset;
-	filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		uint32 code = eset[i]->get_value(this);
+	std::set<uint32> codes;
+	bool changed = false;
+	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
+	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
+	filter_effect(EFFECT_CHANGE_CODE, &eset);
+	for (int32 i = 0; i < eset.size(); ++i) {
+		if (!eset[i]->operation)
+			continue;
+		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if (!pduel->lua->check_condition(eset[i]->operation, 3))
+			continue;
+		if (eset[i]->code == EFFECT_ADD_CODE)
+			codes.insert(eset[i]->get_value(this));
+		else if (eset[i]->code == EFFECT_REMOVE_CODE) {
+			auto cit = codes.find(eset[i]->get_value(this));
+			if (cit != codes.end())
+				codes.erase(cit);
+		} else {
+			codes.clear();
+			codes.insert(eset[i]->get_value(this));
+			changed = true;
+		}
+	}
+	std::set<uint16> setcodes;
+	for (uint32 code : codes) {
 		card_data dat;
 		::read_card(code, &dat);
-		setcode = dat.setcode;
-		for (; setcode > 0; count++, setcode = setcode >> 16)
-			lua_pushinteger(pduel->lua->current_state, setcode & 0xffff);
+		uint64 setcode = dat.setcode;
+		while (setcode) {
+			setcodes.insert(setcode & 0xffff);
+			setcode = setcode >> 16;
+		}
 	}
 	eset.clear();
-	filter_effect(EFFECT_ADD_FUSION_SETCODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		uint32 setcode2 = eset[i]->get_value(this);
-		for (; setcode2 > 0; count++, setcode2 = setcode2 >> 16)
-			lua_pushinteger(pduel->lua->current_state, setcode2 & 0xffff);
+	filter_effect(EFFECT_ADD_SETCODE, &eset, FALSE);
+	filter_effect(EFFECT_CHANGE_SETCODE, &eset);
+	for (int32 i = 0; i < eset.size(); ++i) {
+		if (!eset[i]->operation)
+			continue;
+		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if (!pduel->lua->check_condition(eset[i]->operation, 3))
+			continue;
+		uint32 setcode = eset[i]->get_value(this);
+		if (eset[i]->code == EFFECT_CHANGE_SETCODE) {
+			setcodes.clear();
+			changed = true;
+		}
+		setcodes.insert(setcode & 0xffff);
 	}
+	for (uint16 setcode : setcodes)
+		lua_pushinteger(pduel->lua->current_state, setcode);
+	uint32 count = setcodes.size();
+	if(!changed)
+		count += get_set_card();
 	return count;
 }
 uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
@@ -526,8 +613,8 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	if (temp.type != 0xffffffff)
 		return temp.type;
 	effect_set effects;
-	int32 type = data.type;
-	int32 alttype = 0;
+	int32 type = data.type, alttype = 0;
+	bool changed = false;
 	temp.type = data.type;
 	filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_TYPE, &effects, FALSE);
@@ -546,8 +633,10 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 				alttype |= effects[i]->get_value(this,1);
 			else if (effects[i]->code == EFFECT_REMOVE_TYPE)
 				alttype &= ~(effects[i]->get_value(this,1));
-			else
-				alttype = effects[i]->get_value(this,1);
+			else {
+				alttype = effects[i]->get_value(this, 1);
+				changed = true;
+			}
 		} else {
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			if (effects[i]->code == EFFECT_ADD_TYPE)
@@ -560,6 +649,8 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 		}
 	}
 	type |= alttype;
+	if (changed)
+		type = alttype;
 	temp.type = 0xffffffff;
 	return type;
 }
@@ -1039,13 +1130,13 @@ uint32 card::get_rank() {
 		filter_effect(EFFECT_UPDATE_LEVEL, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_LEVEL, &effects, FALSE);
-		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects);
+		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_LEVEL_FINAL, &effects);
 	}
 	else {
 		filter_effect(EFFECT_UPDATE_RANK, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
-		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects);
+		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects, FALSE);
 	}
 	for (int32 i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
@@ -1174,15 +1265,12 @@ uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 	if (temp.attribute != 0xffffffff)
 		return temp.attribute;
 	effect_set effects;
-	effect_set effects2;
-	int32 attribute = data.attribute;
-	int32 changeatt = 0;
-	int32 altattribute = 0;
-	int32 changealtatt = 0;
+	int32 attribute = data.attribute, altattribute = 0;
+	bool changed = false;
 	temp.attribute = data.attribute;
 	filter_effect(EFFECT_ADD_ATTRIBUTE, &effects, FALSE);
-	filter_effect(EFFECT_REMOVE_ATTRIBUTE, &effects);
-	filter_effect(EFFECT_CHANGE_ATTRIBUTE, &effects2);
+	filter_effect(EFFECT_REMOVE_ATTRIBUTE, &effects, FALSE);
+	filter_effect(EFFECT_CHANGE_ATTRIBUTE, &effects);
 	for (int32 i = 0; i < effects.size(); ++i) {
 		if (effects[i]->operation && !sumtype)
 			continue;
@@ -1194,40 +1282,27 @@ uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 				continue;
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			if (effects[i]->code == EFFECT_ADD_ATTRIBUTE)
-				altattribute |= effects[i]->get_value(this,1);
-			else
-				altattribute &= ~(effects[i]->get_value(this,1));
+				altattribute |= effects[i]->get_value(this, 1);
+			else if (effects[i]->code == EFFECT_REMOVE_ATTRIBUTE)
+				altattribute &= ~(effects[i]->get_value(this, 1));
+			else if (effects[i]->code == EFFECT_CHANGE_ATTRIBUTE) {
+				altattribute = effects[i]->get_value(this, 1);
+				changed = true;
+			}
 		} else {
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			if (effects[i]->code == EFFECT_ADD_ATTRIBUTE)
-				attribute |= effects[i]->get_value(this,1);
-			else
-				attribute &= ~(effects[i]->get_value(this,1));
+				attribute |= effects[i]->get_value(this, 1);
+			else if (effects[i]->code == EFFECT_REMOVE_ATTRIBUTE)
+				attribute &= ~(effects[i]->get_value(this, 1));
+			else if (effects[i]->code == EFFECT_CHANGE_ATTRIBUTE)
+				attribute = effects[i]->get_value(this, 1);
 			temp.attribute = attribute;
 		}
 	}
 	attribute |= altattribute;
-	for (int32 i = 0; i < effects2.size(); ++i) {
-		if (effects2[i]->operation && !sumtype)
-			continue;
-		if (effects2[i]->operation) {
-			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
-			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			if (!pduel->lua->check_condition(effects2[i]->operation, 3))
-				continue;
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			changealtatt = effects2[i]->get_value(this,1);
-		} else {
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			changeatt = effects2[i]->get_value(this,1);
-			temp.attribute = changeatt;
-		}
-	}
-	if(changealtatt)
-		changeatt = changealtatt;
-	if(changeatt)
-		attribute = changeatt;
+	if (changed)
+		attribute = altattribute;
 	temp.attribute = 0xffffffff;
 	return attribute;
 }
@@ -1240,15 +1315,12 @@ uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
 	if (temp.race != 0xffffffff)
 		return temp.race;
 	effect_set effects;
-	effect_set effects2;
-	int32 race = data.race;
-	int32 changerace = 0;
-	int32 altrace = 0;
-	int32 changealtrace = 0;
+	int32 race = data.race, altrace = 0;
+	bool changed = false;
 	temp.race = data.race;
 	filter_effect(EFFECT_ADD_RACE, &effects, FALSE);
-	filter_effect(EFFECT_REMOVE_RACE, &effects);
-	filter_effect(EFFECT_CHANGE_RACE, &effects2);
+	filter_effect(EFFECT_REMOVE_RACE, &effects, FALSE);
+	filter_effect(EFFECT_CHANGE_RACE, &effects);
 	for (int32 i = 0; i < effects.size(); ++i) {
 		if (effects[i]->operation && !sumtype)
 			continue;
@@ -1261,38 +1333,26 @@ uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			if (effects[i]->code == EFFECT_ADD_RACE)
 				altrace |= effects[i]->get_value(this,1);
-			else
+			else if (effects[i]->code == EFFECT_REMOVE_RACE)
 				altrace &= ~(effects[i]->get_value(this,1));
+			else if (effects[i]->code == EFFECT_CHANGE_RACE) {
+				altrace = effects[i]->get_value(this, 1);
+				changed = true;
+			}
 		} else {
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			if (effects[i]->code == EFFECT_ADD_RACE)
 				race |= effects[i]->get_value(this,1);
-			else
-				race &= ~(effects[i]->get_value(this,1));
+			else if (effects[i]->code == EFFECT_REMOVE_RACE)
+				race &= ~(effects[i]->get_value(this, 1));
+			else if (effects[i]->code == EFFECT_CHANGE_RACE)
+				race = effects[i]->get_value(this, 1);
 			temp.race = race;
 		}
 	}
 	race |= altrace;
-	for (int32 i = 0; i < effects2.size(); ++i) {
-		if (effects2[i]->operation && !sumtype)
-			continue;
-		if (effects2[i]->operation) {
-			pduel->lua->add_param(scard, PARAM_TYPE_CARD);
-			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			if (!pduel->lua->check_condition(effects2[i]->operation, 3))
-				continue;
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			changealtrace = effects2[i]->get_value(this,1);
-		} else {
-			changerace = effects2[i]->get_value(this,1);
-			temp.race = changerace;
-		}
-	}
-	if(changealtrace)
-		changerace = changealtrace;
-	if(changerace)
-		race = changerace;
+	if (changed)
+		race = altrace;
 	temp.race = 0xffffffff;
 	return race;
 }
@@ -1360,21 +1420,18 @@ uint32 card::get_link_marker() {
 	if (temp.link_marker != 0xffffffff)
 		return temp.link_marker;
 	effect_set effects;
-	effect_set effects2;
 	int32 link_marker = data.link_marker;
 	temp.link_marker = data.link_marker;
 	filter_effect(EFFECT_ADD_LINKMARKER, &effects, FALSE);
-	filter_effect(EFFECT_REMOVE_LINKMARKER, &effects);
-	filter_effect(EFFECT_CHANGE_LINKMARKER, &effects2);
+	filter_effect(EFFECT_REMOVE_LINKMARKER, &effects, FALSE);
+	filter_effect(EFFECT_CHANGE_LINKMARKER, &effects);
 	for (int32 i = 0; i < effects.size(); ++i) {
 		if (effects[i]->code == EFFECT_ADD_LINKMARKER)
 			link_marker |= effects[i]->get_value(this);
-		else
+		else if (effects[i]->code == EFFECT_REMOVE_LINKMARKER)
 			link_marker &= ~(effects[i]->get_value(this));
-		temp.link_marker = link_marker;
-	}
-	for (int32 i = 0; i < effects2.size(); ++i) {
-		link_marker = effects2[i]->get_value(this);
+		else if (effects[i]->code == EFFECT_CHANGE_LINKMARKER)
+			link_marker = effects[i]->get_value(this);
 		temp.link_marker = link_marker;
 	}
 	temp.link_marker = 0xffffffff;

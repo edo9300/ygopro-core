@@ -61,139 +61,29 @@ int32 scriptlib::card_get_origin_code_rule(lua_State *L) {
 	}
 	return 1;
 }
-int32 scriptlib::card_get_fusion_code(lua_State *L) {
+int32 scriptlib::card_get_summon_code(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_code());
-	int32 count = 1;
-	uint32 otcode = pcard->get_another_code();
-	if(otcode) {
-		lua_pushinteger(L, otcode);
-		count++;
+	card* scard = 0;
+	uint32 sumtype = 0;
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
+		check_param(L, PARAM_TYPE_CARD, 2);
+		scard = *(card**)lua_touserdata(L, 2);
 	}
-	effect_set eset;
-	pcard->filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
-		lua_pushinteger(L, eset[i]->get_value(pcard));
-	return count + eset.size();
-}
-int32 scriptlib::card_get_link_code(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_code());
-	int32 count = 1;
-	uint32 otcode = pcard->get_another_code();
-	if(otcode) {
-		lua_pushinteger(L, otcode);
-		count++;
+	if (lua_gettop(L) > 2)
+		sumtype = lua_tonumberint(L, 3);
+	if (lua_gettop(L) > 3)
+		playerid = lua_tonumberint(L, 4);
+	else if (sumtype == SUMMON_TYPE_FUSION)
+		playerid = pcard->pduel->game_field->core.reason_player;
+	int32 count = pcard->get_summon_code(scard, sumtype, playerid);
+	if (count == 0) {
+		lua_pushnil(L);
+		return 1;
 	}
-	effect_set eset;
-	pcard->filter_effect(EFFECT_ADD_LINK_CODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
-		lua_pushinteger(L, eset[i]->get_value(pcard));
-	return count + eset.size();
-}
-int32 scriptlib::card_is_fusion_code(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	effect_set eset;
-	pcard->filter_effect(EFFECT_ADD_FUSION_CODE, &eset);
-	if(!eset.size())
-		return card_is_code(L);
-	uint32 code1 = pcard->get_code();
-	uint32 code2 = pcard->get_another_code();
-	std::unordered_set<uint32> fcode;
-	fcode.insert(code1);
-	if(code2)
-		fcode.insert(code2);
-	for(int32 i = 0; i < eset.size(); ++i)
-		fcode.insert(eset[i]->get_value(pcard));
-	uint32 count = lua_gettop(L) - 1;
-	uint32 result = FALSE;
-	for(uint32 i = 0; i < count; ++i) {
-		if(lua_isnil(L, i + 2))
-			continue;
-		uint32 tcode = lua_tonumberint(L, i + 2);
-		if(fcode.find(tcode) != fcode.end()) {
-			result = TRUE;
-			break;
-		}
-	}
-	lua_pushboolean(L, result);
-	return 1;
-}
-int32 scriptlib::card_is_link_code(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	effect_set eset;
-	pcard->filter_effect(EFFECT_ADD_LINK_CODE, &eset);
-	if(!eset.size())
-		return card_is_code(L);
-	uint32 code1 = pcard->get_code();
-	uint32 code2 = pcard->get_another_code();
-	std::unordered_set<uint32> fcode;
-	fcode.insert(code1);
-	if(code2)
-		fcode.insert(code2);
-	for(int32 i = 0; i < eset.size(); ++i)
-		fcode.insert(eset[i]->get_value(pcard));
-	uint32 count = lua_gettop(L) - 1;
-	uint32 result = FALSE;
-	for(uint32 i = 0; i < count; ++i) {
-		if(lua_isnil(L, i + 2))
-			continue;
-		uint32 tcode = lua_tointeger(L, i + 2);
-		if(fcode.find(tcode) != fcode.end()) {
-			result = TRUE;
-			break;
-		}
-	}
-	lua_pushboolean(L, result);
-	return 1;
-}
-int32 scriptlib::card_is_set_card(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 set_code = lua_tonumberint(L, 2);
-	lua_pushboolean(L, pcard->is_set_card(set_code));
-	return 1;
-}
-int32 scriptlib::card_is_origin_set_card(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 set_code = lua_tonumberint(L, 2);
-	lua_pushboolean(L, pcard->is_origin_set_card(set_code));
-	return 1;
-}
-int32 scriptlib::card_is_pre_set_card(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 set_code = lua_tonumberint(L, 2);
-	lua_pushboolean(L, pcard->is_pre_set_card(set_code));
-	return 1;
-}
-int32 scriptlib::card_is_fusion_set_card(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 set_code = lua_tonumberint(L, 2);
-	lua_pushboolean(L, pcard->is_fusion_set_card(set_code));
-	return 1;
-}
-int32 scriptlib::card_is_link_set_card(lua_State *L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 set_code = lua_tointeger(L, 2);
-	lua_pushboolean(L, pcard->is_link_set_card(set_code));
-	return 1;
+	return count;
 }
 int32 scriptlib::card_get_set_card(lua_State *L) {
 	check_param_count(L, 1);
@@ -232,11 +122,24 @@ int32 scriptlib::card_get_pre_set_card(lua_State *L) {
 	}
 	return count;
 }
-int32 scriptlib::card_get_fusion_set_card(lua_State *L) {
+int32 scriptlib::card_get_summon_set_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	int32 count = pcard->get_fusion_set_card();
+	card* scard = 0;
+	uint32 sumtype = 0;
+	uint32 playerid = PLAYER_NONE;
+	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
+		check_param(L, PARAM_TYPE_CARD, 2);
+		scard = *(card**)lua_touserdata(L, 2);
+	}
+	if (lua_gettop(L) > 2)
+		sumtype = lua_tonumberint(L, 3);
+	if (lua_gettop(L) > 3)
+		playerid = lua_tonumberint(L, 4);
+	else if (sumtype == SUMMON_TYPE_FUSION)
+		playerid = pcard->pduel->game_field->core.reason_player;
+	int32 count = pcard->get_summon_set_card(scard, sumtype, playerid);
 	if (count == 0) {
 		lua_pushnil(L);
 		return 1;
@@ -904,6 +807,102 @@ int32 scriptlib::card_is_code(lua_State *L) {
 		}
 	}
 	lua_pushboolean(L, result);
+	return 1;
+}
+int32 scriptlib::card_is_summon_code(lua_State *L) {
+	check_param_count(L, 5);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	effect_set eset;
+	duel* pduel = pcard->pduel;
+	card* scard = 0;
+	uint32 playerid = PLAYER_NONE;
+	if (!lua_isnil(L, 2)) {
+		check_param(L, PARAM_TYPE_CARD, 2);
+		scard = *(card**)lua_touserdata(L, 2);
+	}
+	uint32 sumtype = lua_tonumberint(L, 3);
+	playerid = lua_tonumberint(L, 4);
+	std::set<uint32> codes;
+	pcard->filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
+	pcard->filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
+	pcard->filter_effect(EFFECT_CHANGE_CODE, &eset);
+	if(!eset.size())
+		return card_is_code(L);
+	uint32 code1 = pcard->get_code();
+	uint32 code2 = pcard->get_another_code();
+	codes.insert(code1);
+	if (code2)
+		codes.insert(code2);
+	for (int32 i = 0; i < eset.size(); ++i) {
+		if (!eset[i]->operation)
+			continue;
+		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if (!pduel->lua->check_condition(eset[i]->operation, 3))
+			continue;
+		if (eset[i]->code == EFFECT_ADD_CODE)
+			codes.insert(eset[i]->get_value(pcard));
+		else if (eset[i]->code == EFFECT_REMOVE_CODE) {
+			auto cit = codes.find(eset[i]->get_value(pcard));
+			if (cit != codes.end())
+				codes.erase(cit);
+		} else {
+			codes.clear();
+			codes.insert(eset[i]->get_value(pcard));
+		}
+	}
+	uint32 count = lua_gettop(L) - 4;
+	uint32 result = FALSE;
+	for(uint32 i = 0; i < count; ++i) {
+		if(lua_isnil(L, i + 5))
+			continue;
+		uint32 tcode = lua_tonumberint(L, i + 5);
+		if(codes.find(tcode) != codes.end()) {
+			result = TRUE;
+			break;
+		}
+	}
+	lua_pushboolean(L, result);
+	return 1;
+}
+int32 scriptlib::card_is_set_card(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 set_code = lua_tonumberint(L, 2);
+	if (lua_gettop(L) > 2) {
+		card* scard = 0;
+		uint32 sumtype = 0;
+		uint32 playerid = PLAYER_NONE;
+		if (lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
+			check_param(L, PARAM_TYPE_CARD, 3);
+			scard = *(card**)lua_touserdata(L, 3);
+		}
+		if (lua_gettop(L) > 3)
+			sumtype = lua_tonumberint(L, 4);
+		if (lua_gettop(L) > 4)
+			playerid = lua_tonumberint(L, 5);
+		lua_pushboolean(L, pcard->is_sumon_set_card(set_code, scard, sumtype, playerid));
+	} else
+		lua_pushboolean(L, pcard->is_set_card(set_code));
+	return 1;
+}
+int32 scriptlib::card_is_origin_set_card(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 set_code = lua_tonumberint(L, 2);
+	lua_pushboolean(L, pcard->is_origin_set_card(set_code));
+	return 1;
+}
+int32 scriptlib::card_is_pre_set_card(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 set_code = lua_tonumberint(L, 2);
+	lua_pushboolean(L, pcard->is_pre_set_card(set_code));
 	return 1;
 }
 int32 scriptlib::card_is_type(lua_State *L) {

@@ -304,6 +304,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_ADD_TYPE					115	//
 #define EFFECT_REMOVE_TYPE				116	//
 #define EFFECT_CHANGE_TYPE				117	//
+#define EFFECT_REMOVE_CODE				118	//
 #define EFFECT_ADD_RACE					120	//
 #define EFFECT_REMOVE_RACE				121	//
 #define EFFECT_CHANGE_RACE				122	//
@@ -420,8 +421,6 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 //#define EFFECT_DISABLE_CHAIN_FIELD		337
 #define EFFECT_DISCARD_COST_CHANGE		338
 #define EFFECT_HAND_SYNCHRO				339
-#define EFFECT_ADD_FUSION_CODE			340
-#define EFFECT_ADD_FUSION_SETCODE		341
 #define EFFECT_RISE_TO_FULL_HEIGHT		342
 #define EFFECT_ONLY_ATTACK_MONSTER		343
 #define EFFECT_MUST_ATTACK_MONSTER		344
@@ -429,10 +428,10 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_EXTRA_ATTACK_MONSTER		346
 #define EFFECT_UNION_STATUS				347
 #define EFFECT_OLDUNION_STATUS			348
+#define EFFECT_REMOVE_SETCODE			349
+#define EFFECT_CHANGE_SETCODE			350
 #define EFFECT_EXTRA_FUSION_MATERIAL	352
 #define EFFECT_TUNER_MATERIAL_LIMIT		353
-#define EFFECT_ADD_LINK_CODE				354
-#define EFFECT_ADD_LINK_SETCODE			355
 
 #define EFFECT_CANNOT_LOSE_DECK			400
 #define EFFECT_CANNOT_LOSE_LP			401
