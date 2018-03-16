@@ -4448,7 +4448,7 @@ int32 field::add_chain(uint16 step) {
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_OPSELECTED);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(core.select_options[returns.ivalue[0]]);
+		pduel->write_buffer64(core.select_options[returns.ivalue[0]]);
 		clit.triggering_effect = peffect;
 		clit.evt = ch.evt;
 		phandler->create_relation(clit);
