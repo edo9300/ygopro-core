@@ -205,14 +205,14 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 			} else {
 				if(!(((handler->data.type & TYPE_FIELD) && value<=0) || (value & LOCATION_FZONE) || (value & LOCATION_HAND))) {
 					if (value & LOCATION_MZONE) {
-						if (pduel->game_field->get_useable_count(playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
 							return FALSE;
 					} else if ((handler->data.type & TYPE_PENDULUM) || (value & LOCATION_PZONE)) {
 						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
 							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
 						return FALSE;
 					} else {
-						if (pduel->game_field->get_useable_count(playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
 							return FALSE;
 					}
 				}
