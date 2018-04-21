@@ -716,25 +716,6 @@ int32 field::process() {
 		}
 		return pduel->bufferlen;
 	}
-	case PROCESSOR_SELECT_UNSELECT_CARD_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3);
-			it->step++;
-		} else {
-			if(returns.bvalue[0] == -1)
-				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
-			else {
-				card* pcard;
-				if(returns.bvalue[1] < core.select_cards.size())
-					pcard = core.select_cards[returns.bvalue[1]];
-				else
-					pcard = core.unselect_cards[returns.bvalue[1] - core.select_cards.size()];
-				pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-			}
-			core.units.pop_front();
-		}
-		return pduel->bufferlen;
-	}
 	case PROCESSOR_SELECT_POSITION_S: {
 		if(it->step == 0) {
 			add_process(PROCESSOR_SELECT_POSITION, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
