@@ -562,7 +562,7 @@ int32 field::is_location_useable(uint32 playerid, uint32 location, uint32 sequen
 				return FALSE;
 		} else {
 			if (flag & (0x100u << ((core.duel_options & SPEED_DUEL) ? (sequence == 0) ? 1 : 3 : (sequence * 4))))
-				return FALSE;			
+				return FALSE;
 		}
 	}
 	return TRUE;
@@ -652,7 +652,8 @@ int32 field::get_tofield_count(card* pcard, uint8 playerid, uint8 location, uint
 			if ((flag1 & flag) != flag1 && (uplayer == playerid)) {
 				flag |= flag1;
 			} else if ((flag2 & flag) != flag2 && (uplayer != playerid)) {
-				flag |= flag2
+				flag |= flag2;
+			}
 		}
 	}
 	if (location == LOCATION_MZONE)
