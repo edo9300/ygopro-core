@@ -1705,6 +1705,45 @@ int32 card::is_link_state() {
 		return TRUE;
 	return FALSE;
 }
+int32 card::is_extra_link_state() {
+	if(current.location != LOCATION_MZONE)
+		return FALSE;
+	uint32 checked = 1u << current.sequence;
+	uint32 linked_zone = get_mutual_linked_zone();
+	const auto& list_mzone0 = pduel->game_field->player[current.controler].list_mzone;
+	const auto& list_mzone1 = pduel->game_field->player[1 - current.controler].list_mzone;
+	while(true) {
+		if(((linked_zone >> 5) | (linked_zone >> (16 + 6))) & ((linked_zone >> 6) | (linked_zone >> (16 + 5))) & 1)
+			return TRUE;
+		int32 checking = (int32)(linked_zone & ~checked);
+		if(!checking)
+			return FALSE;
+		int32 rightmost = checking & (-checking);
+		checked |= (uint32)rightmost;
+		if(rightmost < 0x10000) {
+			for(int32 i = 0; i < 7; ++i) {
+				if(rightmost & 1) {
+					card* pcard = list_mzone0[i];
+					linked_zone |= pcard->get_mutual_linked_zone();
+					break;
+				}
+				rightmost >>= 1;
+			}
+		} else {
+			rightmost >>= 16;
+			for(int32 i = 0; i < 7; ++i) {
+				if(rightmost & 1) {
+					card* pcard = list_mzone1[i];
+					uint32 zone = pcard->get_mutual_linked_zone();
+					linked_zone |= (zone << 16) | (zone >> 16);
+					break;
+				}
+				rightmost >>= 1;
+			}
+		}
+	}
+	return FALSE;
+}
 int32 card::is_position(int32 pos) {
 	return current.position & pos;
 }
@@ -3693,6 +3732,16 @@ int32 card::is_removeable_as_cost(uint8 playerid, int32 pos) {
 	if (redirect) dest = redirect;
 	sendto_param = op_param;
 	if (dest != LOCATION_REMOVED)
+		return FALSE;
+	auto op_param = sendto_param;
+	sendto_param.location = dest;
+	if(current.location & LOCATION_ONFIELD)
+		redirect = leave_field_redirect(REASON_COST) & 0xffff;
+	if(redirect) dest = redirect;
+	redirect = destination_redirect(dest, REASON_COST) & 0xffff;
+	if(redirect) dest = redirect;
+	sendto_param = op_param;
+	if(dest != LOCATION_REMOVED)
 		return FALSE;
 	return TRUE;
 }
