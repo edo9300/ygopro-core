@@ -106,10 +106,13 @@ card::~card() {
 	xmaterial_effect.clear();
 	relate_effect.clear();
 }
-uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache) {
+uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignore_cache) {
 	int32* p = (int32*)buf;
 	int32 tdata = 0;
 	p += 2;
+	query_cache tmp_q_cache;
+	if(ignore_cache)
+		tmp_q_cache = q_cache;
 	if(query_flag & QUERY_CODE) *p++ = data.code;
 	if(query_flag & QUERY_POSITION) *p++ = get_info_location();
 	if(!use_cache) {
@@ -232,6 +235,8 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache) {
 			} else query_flag &= ~QUERY_LINK;
 		}
 	}
+	if(ignore_cache)
+		 q_cache = tmp_q_cache;
 	*(uint32*)buf = (byte*)p - buf;
 	*(uint32*)(buf + 4) = query_flag;
 	return (byte*)p - buf;

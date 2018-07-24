@@ -227,7 +227,7 @@ extern "C" DECL_DLLEXPORT void new_relay_card(ptr pduel, uint32 code, uint8 owne
 		break;
 	}
 }
-extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf, int32 use_cache) {
+extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	duel* ptduel = (duel*)pduel;
@@ -254,7 +254,7 @@ extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 loca
 		}
 	}
 	if(pcard)
-		return pcard->get_infos(buf, query_flag, use_cache);
+		return pcard->get_infos(buf, query_flag, use_cache, ignore_cache);
 	else {
 		*((int32*)buf) = 4;
 		return 4;
@@ -289,7 +289,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_count(ptr pduel, uint8 playerid, uin
 	}
 	return 0;
 }
-extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint8 location, int32 query_flag, byte* buf, int32 use_cache) {
+extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint8 location, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	duel* ptduel = (duel*)pduel;
@@ -300,7 +300,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 		for(auto cit = player.list_mzone.begin(); cit != player.list_mzone.end(); ++cit) {
 			card* pcard = *cit;
 			if(pcard) {
-				ct += clen = pcard->get_infos(p, query_flag, use_cache);
+				ct += clen = pcard->get_infos(p, query_flag, use_cache, ignore_cache);
 				p += clen;
 			} else {
 				*((int32*)p) = 4;
@@ -312,7 +312,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 		for(auto cit = player.list_szone.begin(); cit != player.list_szone.end(); ++cit) {
 			card* pcard = *cit;
 			if(pcard) {
-				ct += clen = pcard->get_infos(p, query_flag, use_cache);
+				ct += clen = pcard->get_infos(p, query_flag, use_cache, ignore_cache);
 				p += clen;
 			} else {
 				*((int32*)p) = 4;
@@ -333,7 +333,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 		else if(location == LOCATION_DECK)
 			lst = &player.list_main;
 		for(auto cit = lst->begin(); cit != lst->end(); ++cit) {
-			ct += clen = (*cit)->get_infos(p, query_flag, use_cache);
+			ct += clen = (*cit)->get_infos(p, query_flag, use_cache, ignore_cache);
 			p += clen;
 		}
 	}
