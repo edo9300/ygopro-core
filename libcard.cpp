@@ -932,7 +932,6 @@ int32 scriptlib::card_is_type(lua_State *L) {
 }
 int32 scriptlib::card_is_level(lua_State *L) {
 	check_param_count(L, 2);
-	card* pcard = *(card**)lua_touserdata(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 level = pcard->get_level();
@@ -952,7 +951,6 @@ int32 scriptlib::card_is_level(lua_State *L) {
 }
 int32 scriptlib::card_is_rank(lua_State *L) {
 	check_param_count(L, 2);
-	card* pcard = *(card**)lua_touserdata(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 rank = pcard->get_rank();

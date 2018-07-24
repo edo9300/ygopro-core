@@ -3725,16 +3725,6 @@ int32 card::is_removeable_as_cost(uint8 playerid, int32 pos) {
 		return FALSE;
 	auto op_param = sendto_param;
 	sendto_param.location = dest;
-	if (current.location & LOCATION_ONFIELD)
-		redirect = leave_field_redirect(REASON_COST) & 0xffff;
-	if (redirect) dest = redirect;
-	redirect = destination_redirect(dest, REASON_COST) & 0xffff;
-	if (redirect) dest = redirect;
-	sendto_param = op_param;
-	if (dest != LOCATION_REMOVED)
-		return FALSE;
-	auto op_param = sendto_param;
-	sendto_param.location = dest;
 	if(current.location & LOCATION_ONFIELD)
 		redirect = leave_field_redirect(REASON_COST) & 0xffff;
 	if(redirect) dest = redirect;
