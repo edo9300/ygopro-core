@@ -340,6 +340,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 	return ct;
 }
 extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
+	byte* p = buf;
 	duel* ptduel = (duel*)pduel;
 	*buf++ = MSG_RELOAD_FIELD;
 	*buf++ = ptduel->game_field->core.duel_rule + (((ptduel->game_field->core.duel_options & SPEED_DUEL) ? 1 : 0) << 4);
@@ -386,7 +387,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 		*((int*)(buf)) = peffect->description;
 		buf += 8;
 	}
-	return 0;
+	return (int32)(buf - p);
 }
 extern "C" DECL_DLLEXPORT void set_responsei(ptr pduel, int32 value) {
 	((duel*)pduel)->set_responsei(value);

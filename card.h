@@ -189,6 +189,7 @@ public:
 	explicit card(duel* pd);
 	~card();
 	static bool card_operation_sort(card* c1, card* c2);
+	const bool is_extra_deck_monster() { return !!(data.type & 0x4802040); }
 
 	uint32 get_infos(byte* buf, int32 query_flag, int32 use_cache = TRUE);
 	uint32 get_info_location();
@@ -231,8 +232,8 @@ public:
 	void set_status(uint32 status, int32 enabled);
 	int32 get_status(uint32 status);
 	int32 is_status(uint32 status);
-	uint32 get_column_zone(int32 loc1, int32 left, int32 right);
-	void get_column_cards(card_set* cset, int32 left, int32 right);
+	uint32 get_column_zone(int32 location);
+	void get_column_cards(card_set* cset);
 	int32 is_all_column();
 
 	void equip(card *target, uint32 send_msg = TRUE);
@@ -275,6 +276,7 @@ public:
 	void set_material(card_set* materials);
 	void add_card_target(card* pcard);
 	void cancel_card_target(card* pcard);
+	void clear_card_target();
 
 	void filter_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
 	void filter_single_effect(int32 code, effect_set* eset, uint8 sort = TRUE);
@@ -318,6 +320,8 @@ public:
 	int32 is_destructable_by_effect(effect* peffect, uint8 playerid);
 	int32 is_removeable(uint8 playerid, int32 pos = 0x5);
 	int32 is_removeable_as_cost(uint8 playerid, int32 pos = 0x5);
+	int32 is_attack_decreasable_as_cost(uint8 playerid, int32 val);
+	int32 is_defense_decreasable_as_cost(uint8 playerid, int32 val);
 	int32 is_releasable_by_summon(uint8 playerid, card* pcard);
 	int32 is_releasable_by_nonsummon(uint8 playerid);
 	int32 is_releasable_by_effect(uint8 playerid, effect* peffect);
