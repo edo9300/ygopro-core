@@ -2108,6 +2108,66 @@ int32 scriptlib::card_is_able_to_extra(lua_State *L) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
+int32 scriptlib::card_is_able_to_remove(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 p = pcard->pduel->game_field->core.reason_player;
+	if(lua_gettop(L) >= 2)
+		p = lua_tonumberint(L, 2);
+	uint32 pos = POS_FACEUP;
+	if(lua_gettop(L) >= 3)
+		pos = lua_tonumberint(L, 3);
+	if(pcard->is_removeable(p, pos))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
+int32 scriptlib::card_is_able_to_hand_as_cost(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 p = pcard->pduel->game_field->core.reason_player;
+	if(pcard->is_capable_cost_to_hand(p))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
+int32 scriptlib::card_is_able_to_grave_as_cost(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 p = pcard->pduel->game_field->core.reason_player;
+	if(pcard->is_capable_cost_to_grave(p))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
+int32 scriptlib::card_is_able_to_deck_as_cost(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 p = pcard->pduel->game_field->core.reason_player;
+	if(pcard->is_capable_cost_to_deck(p))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
+int32 scriptlib::card_is_able_to_extra_as_cost(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 p = pcard->pduel->game_field->core.reason_player;
+	if(pcard->is_capable_cost_to_extra(p))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
 int32 scriptlib::card_is_able_to_deck_or_extra_as_cost(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -2129,34 +2189,6 @@ int32 scriptlib::card_is_able_to_remove_as_cost(lua_State *L) {
 	if (lua_gettop(L) >= 2)
 		pos = lua_tonumberint(L, 2);
 	if(pcard->is_removeable_as_cost(p, pos))
-		lua_pushboolean(L, 1);
-	else
-		lua_pushboolean(L, 0);
-	return 1;
-}
-int32 scriptlib::card_is_able_to_decrease_attack_as_cost(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 p = pcard->pduel->game_field->core.reason_player;
-	int32 val = 0;
-	if(lua_gettop(L) > 1)
-		val = lua_tointeger(L, 2);
-	if(pcard->is_attack_decreasable_as_cost(p, val))
-		lua_pushboolean(L, 1);
-	else
-		lua_pushboolean(L, 0);
-	return 1;
-}
-int32 scriptlib::card_is_able_to_decrease_defense_as_cost(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 p = pcard->pduel->game_field->core.reason_player;
-	int32 val = 0;
-	if(lua_gettop(L) > 1)
-		val = lua_tointeger(L, 2);
-	if(pcard->is_defense_decreasable_as_cost(p, val))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
