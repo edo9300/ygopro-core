@@ -64,7 +64,6 @@ void card_data::clear() {
 	std::memset(this, 0, sizeof(card_data));
 }
 card::card(duel* pd) {
-	scrtype = 1;
 	ref_handle = 0;
 	pduel = pd;
 	owner = PLAYER_NONE;
@@ -3743,28 +3742,6 @@ int32 card::is_removeable_as_cost(uint8 playerid, int32 pos) {
 	if(redirect) dest = redirect;
 	sendto_param = op_param;
 	if(dest != LOCATION_REMOVED)
-		return FALSE;
-	return TRUE;
-}
-int32 card::is_attack_decreasable_as_cost(uint8 playerid, int32 val) {
-	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER))
-		return FALSE;
-	if(!(current.location & LOCATION_MZONE) || is_position(POS_FACEDOWN))
-		return FALSE;
-	if(is_affected_by_effect(EFFECT_SET_ATTACK_FINAL) || is_affected_by_effect(EFFECT_REVERSE_UPDATE))
-		return FALSE;
-	if(val && get_attack() < val)
-		return FALSE;
-	return TRUE;
-}
-int32 card::is_defense_decreasable_as_cost(uint8 playerid, int32 val) {
-	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER))
-		return FALSE;
-	if(!(current.location & LOCATION_MZONE) || is_position(POS_FACEDOWN) || (data.type & TYPE_LINK))
-		return FALSE;
-	if(is_affected_by_effect(EFFECT_SET_DEFENSE_FINAL) || is_affected_by_effect(EFFECT_REVERSE_UPDATE))
-		return FALSE;
-	if(val && get_defense() < val)
 		return FALSE;
 	return TRUE;
 }

@@ -1313,6 +1313,8 @@ void field::remove_oath_effect(effect* reason_effect) {
 void field::reset_phase(uint32 phase) {
 	for(auto eit = effects.pheff.begin(); eit != effects.pheff.end();) {
 		auto rm = eit++;
+		if((*rm)->code == EFFECT_SET_CONTROL)
+			continue;
 		if((*rm)->reset(phase, RESET_PHASE)) {
 			if((*rm)->is_flag(EFFECT_FLAG_FIELD_ONLY))
 				remove_effect((*rm));
@@ -2127,7 +2129,7 @@ int32 field::adjust_grant_effect() {
 		}
 		for(auto cit = add_set.begin(); cit != add_set.end(); ++cit) {
 			card* pcard = *cit;
-			effect* geffect = (effect*)peffect->label_object;
+			effect* geffect = (effect*)peffect->get_label_object();
 			effect* ceffect = geffect->clone();
 			ceffect->owner = pcard;
 			pcard->add_effect(ceffect);

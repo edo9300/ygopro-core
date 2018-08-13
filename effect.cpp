@@ -15,7 +15,6 @@ bool effect_sort_id(const effect* e1, const effect* e2) {
 	return e1->id < e2->id;
 }
 effect::effect(duel* pd) {
-	scrtype = 3;
 	ref_handle = 0;
 	pduel = pd;
 	owner = 0;
@@ -676,6 +675,9 @@ int32 effect::check_value_condition(uint32 extraargs) {
 		pduel->lua->params.clear();
 		return (int32)value;
 	}
+}
+void* effect::get_label_object() {
+	return pduel->lua->get_ref_object(label_object);
 }
 int32 effect::get_speed() {
 	if(!(type & EFFECT_TYPE_ACTIONS))
