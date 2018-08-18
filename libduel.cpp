@@ -811,6 +811,7 @@ int32 scriptlib::duel_move_sequence(lua_State *L) {
 	return 0;
 }
 int32 scriptlib::duel_swap_sequence(lua_State *L) {
+	loc_info tmp_info;
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
@@ -830,9 +831,11 @@ int32 scriptlib::duel_swap_sequence(lua_State *L) {
 		pduel->game_field->add_card(player, pcard2, location, s1);
 		pduel->write_buffer8(MSG_SWAP);
 		pduel->write_buffer32(pcard1->data.code);
-		pduel->write_buffer32(pcard2->get_info_location());
+		tmp_info = pcard2->get_info_location();
+		pduel->write_info_location(&tmp_info);
 		pduel->write_buffer32(pcard2->data.code);
-		pduel->write_buffer32(pcard1->get_info_location());
+		tmp_info = pcard1->get_info_location();
+		pduel->write_info_location(&tmp_info);
 		field::card_set swapped;
 		swapped.insert(pcard1);
 		swapped.insert(pcard2);
@@ -965,14 +968,14 @@ int32 scriptlib::duel_confirm_cards(lua_State *L) {
 		pduel->write_buffer32(pcard->data.code);
 		pduel->write_buffer8(pcard->current.controler);
 		pduel->write_buffer8(pcard->current.location);
-		pduel->write_buffer8(pcard->current.sequence);
+		pduel->write_buffer32(pcard->current.sequence);
 	} else {
 		pduel->write_buffer8(pgroup->container.size());
 		for(auto cit = pgroup->container.begin(); cit != pgroup->container.end(); ++cit) {
 			pduel->write_buffer32((*cit)->data.code);
 			pduel->write_buffer8((*cit)->current.controler);
 			pduel->write_buffer8((*cit)->current.location);
-			pduel->write_buffer8((*cit)->current.sequence);
+			pduel->write_buffer32((*cit)->current.sequence);
 		}
 	}
 	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
@@ -1489,9 +1492,11 @@ int32 scriptlib::duel_shuffle_setcard(lua_State *L) {
 	pduel->write_buffer8(MSG_SHUFFLE_SET_CARD);
 	pduel->write_buffer8(loc);
 	pduel->write_buffer8(ct);
+	loc_info tmp_info; 
 	for(uint32 i = 0; i < ct; ++i) {
 		card* pcard = ms[i];
-		pduel->write_buffer32(pcard->get_info_location());
+		tmp_info = pcard->get_info_location();
+		pduel->write_info_location(&tmp_info);
 		if(loc == LOCATION_MZONE)
 			pduel->game_field->player[tp].list_mzone[seq[i]] = pcard;
 		else
@@ -1503,10 +1508,12 @@ int32 scriptlib::duel_shuffle_setcard(lua_State *L) {
 	pduel->game_field->process_single_event();
 	pduel->game_field->process_instant_event();
 	for(uint32 i = 0; i < ct; ++i) {
-		if(ms[i]->xyz_materials.size())
-			pduel->write_buffer32(ms[i]->get_info_location());
-		else
-			pduel->write_buffer32(0);
+		if(ms[i]->xyz_materials.size()) {
+			tmp_info = ms[i]->get_info_location();
+			pduel->write_info_location(&tmp_info);
+		} else {
+			pduel->write_info_location();
+		}
 	}
 	return 0;
 }
@@ -2822,19 +2829,22 @@ int32 scriptlib::duel_set_target_card(lua_State *L) {
 				(*cit)->create_relation(*ch);
 		}
 		if(peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
+			loc_info tmp_info;
 			if(pcard) {
 				if(pcard->current.location & 0x30)
 					pduel->game_field->move_card(pcard->current.controler, pcard, pcard->current.location, 0);
 				pduel->write_buffer8(MSG_BECOME_TARGET);
 				pduel->write_buffer8(1);
-				pduel->write_buffer32(pcard->get_info_location());
+				tmp_info = pcard->get_info_location();
+				pduel->write_info_location(&tmp_info);
 			} else {
 				for(auto cit = pgroup->container.begin(); cit != pgroup->container.end(); ++cit) {
 					if((*cit)->current.location & 0x30)
 						pduel->game_field->move_card((*cit)->current.controler, (*cit), (*cit)->current.location, 0);
 					pduel->write_buffer8(MSG_BECOME_TARGET);
 					pduel->write_buffer8(1);
-					pduel->write_buffer32((*cit)->get_info_location());
+					tmp_info = (*cit)->get_info_location();
+					pduel->write_info_location(&tmp_info);
 				}
 			}
 		}
@@ -3050,7 +3060,8 @@ int32 scriptlib::duel_hint_selection(lua_State *L) {
 		card* pcard = *cit;
 		pduel->write_buffer8(MSG_BECOME_TARGET);
 		pduel->write_buffer8(1);
-		pduel->write_buffer32(pcard->get_info_location());
+		loc_info tmp_info = pcard->get_info_location();
+		pduel->write_info_location(&tmp_info);
 	}
 	return 0;
 }
@@ -3707,7 +3718,7 @@ int32 scriptlib::duel_is_chain_negatable(lua_State * L) {
 }
 int32 scriptlib::duel_is_chain_disablable(lua_State * L) {
 	check_param_count(L, 1);
-	int32 chaincount = lua_tonumberint(L, 1);
+	int32 chaincount = lua_tointeger(L, 1);
 	duel* pduel = interpreter::get_duel_info(L);
 	if(pduel->game_field->core.chain_solving) {
 		lua_pushboolean(L, pduel->game_field->is_chain_disablable(chaincount));

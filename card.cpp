@@ -113,7 +113,7 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignor
 	if(ignore_cache)
 		tmp_q_cache = q_cache;
 	if(query_flag & QUERY_CODE) *p++ = data.code;
-	if(query_flag & QUERY_POSITION) *p++ = get_info_location();
+	if(query_flag & QUERY_POSITION) *p++ = (get_info_location().position & 0xff)<<24;
 	if(!use_cache) {
 		if(query_flag & QUERY_ALIAS) q_cache.code = *p++ = get_code();
 		if(query_flag & QUERY_TYPE) q_cache.type = *p++ = get_type();
@@ -172,18 +172,38 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignor
 			*p++ = tdata;
 		} else query_flag &= ~QUERY_REASON;
 	}
-	if(query_flag & QUERY_REASON_CARD)
-		*p++ = current.reason_card ? current.reason_card->get_info_location() : 0;
+	if(query_flag & QUERY_REASON_CARD){
+		if(current.reason_card) {
+			loc_info info = current.reason_card->get_info_location();
+			*(byte*)p++ = info.controler;
+			*(byte*)p++ = info.location;
+			*p++ = info.sequence;
+			*p++ = info.position;
+		}
+		else {
+			buf = 0;
+			*(byte*)p += 10;
+		}
+	}
 	if(query_flag & QUERY_EQUIP_CARD) {
-		if(equiping_target)
-			*p++ = equiping_target->get_info_location();
-		else
+		if(equiping_target) {
+			loc_info info = current.reason_card->get_info_location();
+			*(byte*)p++ = info.controler;
+			*(byte*)p++ = info.location;
+			*p++ = info.sequence;
+			*p++ = info.position;
+		} else
 			query_flag &= ~QUERY_EQUIP_CARD;
 	}
 	if(query_flag & QUERY_TARGET_CARD) {
 		*p++ = effect_target_cards.size();
-		for(auto cit = effect_target_cards.begin(); cit != effect_target_cards.end(); ++cit)
-			*p++ = (*cit)->get_info_location();
+		for(auto cit = effect_target_cards.begin(); cit != effect_target_cards.end(); ++cit) {
+			loc_info info = current.reason_card->get_info_location();
+			*(byte*)p++ = info.controler;
+			*(byte*)p++ = info.location;
+			*p++ = info.sequence;
+			*p++ = info.position;
+		}
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
 		*p++ = xyz_materials.size();
@@ -240,20 +260,20 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignor
 	*(uint32*)(buf + 4) = query_flag;
 	return (byte*)p - buf;
 }
-uint32 card::get_info_location() {
+loc_info card::get_info_location() {
+	loc_info info;
 	if(overlay_target) {
-		uint32 c = overlay_target->current.controler;
-		uint32 l = overlay_target->current.location | LOCATION_OVERLAY;
-		uint32 s = overlay_target->current.sequence;
-		uint32 ss = current.sequence;
-		return c + (l << 8) + (s << 16) + (ss << 24);
+		info.controler = overlay_target->current.controler;
+		info.location = overlay_target->current.location | LOCATION_OVERLAY;
+		info.sequence = overlay_target->current.sequence;
+		info.position = current.sequence;
 	} else {
-		uint32 c = current.controler;
-		uint32 l = current.location;
-		uint32 s = current.sequence;
-		uint32 ss = current.position;
-		return c + (l << 8) + (s << 16) + (ss << 24);
+		info.controler = current.controler;
+		info.location = current.location;
+		info.sequence = current.sequence;
+		info.position = current.position;
 	}
+	return info;
 }
 // get the current code
 uint32 card::get_code() {
@@ -1857,8 +1877,10 @@ void card::equip(card *target, uint32 send_msg) {
 	}
 	if(send_msg) {
 		pduel->write_buffer8(MSG_EQUIP);
-		pduel->write_buffer32(get_info_location());
-		pduel->write_buffer32(target->get_info_location());
+		loc_info tmp_info = get_info_location();
+		pduel->write_info_location(&tmp_info);
+		tmp_info = target->get_info_location();
+		pduel->write_info_location(&tmp_info);
 	}
 	return;
 }
@@ -1928,7 +1950,8 @@ void card::xyz_add(card* mat, card_set* des) {
 		return;
 	pduel->write_buffer8(MSG_MOVE);
 	pduel->write_buffer32(mat->data.code);
-	pduel->write_buffer32(mat->get_info_location());
+	loc_info tmp_info = mat->get_info_location();
+	pduel->write_info_location(&tmp_info);
 	if(mat->overlay_target) {
 		mat->overlay_target->xyz_remove(mat);
 	} else {
@@ -1938,8 +1961,8 @@ void card::xyz_add(card* mat, card_set* des) {
 	}
 	pduel->write_buffer8(current.controler);
 	pduel->write_buffer8(current.location | LOCATION_OVERLAY);
-	pduel->write_buffer8(current.sequence);
-	pduel->write_buffer8(current.position);
+	pduel->write_buffer32(current.sequence);
+	pduel->write_buffer32(current.position);
 	pduel->write_buffer32(REASON_XYZ + REASON_MATERIAL);
 	xyz_materials.push_back(mat);
 	for(auto cit = mat->equiping_cards.begin(); cit != mat->equiping_cards.end();) {
@@ -2133,7 +2156,8 @@ int32 card::add_effect(effect* peffect) {
 		pduel->game_field->effects.rechargeable.insert(peffect);
 	if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT)) {
 		pduel->write_buffer8(MSG_CARD_HINT);
-		pduel->write_buffer32(get_info_location());
+		loc_info tmp_info = get_info_location();
+		pduel->write_info_location(&tmp_info);
 		pduel->write_buffer8(CHINT_DESC_ADD);
 		pduel->write_buffer64(peffect->description);
 	}
@@ -2213,7 +2237,8 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 	}
 	if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT)) {
 		pduel->write_buffer8(MSG_CARD_HINT);
-		pduel->write_buffer32(get_info_location());
+		loc_info tmp_info = get_info_location();
+		pduel->write_info_location(&tmp_info);
 		pduel->write_buffer8(CHINT_DESC_REMOVE);
 		pduel->write_buffer64(peffect->description);
 	}
@@ -2429,7 +2454,8 @@ uint8 card::refresh_control_status() {
 void card::count_turn(uint16 ct) {
 	turn_counter = ct;
 	pduel->write_buffer8(MSG_CARD_HINT);
-	pduel->write_buffer32(get_info_location());
+	loc_info tmp_info = get_info_location();
+	pduel->write_info_location(&tmp_info);
 	pduel->write_buffer8(CHINT_TURN);
 	pduel->write_buffer32(ct);
 }
@@ -2654,8 +2680,10 @@ void card::add_card_target(card* pcard) {
 	effect_target_cards.insert(pcard);
 	pcard->effect_target_owner.insert(this);
 	pduel->write_buffer8(MSG_CARD_TARGET);
-	pduel->write_buffer32(get_info_location());
-	pduel->write_buffer32(pcard->get_info_location());
+	loc_info tmp_info = get_info_location();
+	pduel->write_info_location(&tmp_info);
+	tmp_info = pcard->get_info_location();
+	pduel->write_info_location(&tmp_info);
 }
 void card::cancel_card_target(card* pcard) {
 	auto cit = effect_target_cards.find(pcard);
@@ -2663,8 +2691,10 @@ void card::cancel_card_target(card* pcard) {
 		effect_target_cards.erase(cit);
 		pcard->effect_target_owner.erase(this);
 		pduel->write_buffer8(MSG_CANCEL_TARGET);
-		pduel->write_buffer32(get_info_location());
-		pduel->write_buffer32(pcard->get_info_location());
+		loc_info tmp_info = get_info_location();
+		pduel->write_info_location(&tmp_info);
+		tmp_info = pcard->get_info_location();
+		pduel->write_info_location(&tmp_info);
 	}
 }
 void card::clear_card_target() {
@@ -3703,8 +3733,8 @@ int32 card::is_destructable_by_effect(effect* peffect, uint8 playerid) {
 			pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(REASON_EFFECT, PARAM_TYPE_INT);
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			int32 ct;
-			if(ct = eset[i]->get_value(3)) {
+			int32 ct = eset[i]->get_value(3);
+			if(ct) {
 				auto it = indestructable_effects.emplace(eset[i]->id, 0);
 				if(it.first->second + 1 <= ct) {
 					return FALSE;
@@ -3735,13 +3765,13 @@ int32 card::is_removeable_as_cost(uint8 playerid, int32 pos) {
 		return FALSE;
 	auto op_param = sendto_param;
 	sendto_param.location = dest;
-	if(current.location & LOCATION_ONFIELD)
+	if (current.location & LOCATION_ONFIELD)
 		redirect = leave_field_redirect(REASON_COST) & 0xffff;
-	if(redirect) dest = redirect;
+	if (redirect) dest = redirect;
 	redirect = destination_redirect(dest, REASON_COST) & 0xffff;
-	if(redirect) dest = redirect;
+	if (redirect) dest = redirect;
 	sendto_param = op_param;
-	if(dest != LOCATION_REMOVED)
+	if (dest != LOCATION_REMOVED)
 		return FALSE;
 	return TRUE;
 }
@@ -3821,7 +3851,7 @@ int32 card::is_capable_send_to_deck(uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_capable_send_to_extra(uint8 playerid) {
-	if(!is_extra_deck_monster() && !(data.type & TYPE_PENDULUM))
+	if(!is_extra_deck_monster())
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_DECK))
 		return FALSE;

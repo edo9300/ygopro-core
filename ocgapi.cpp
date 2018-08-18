@@ -367,11 +367,16 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 				*buf++ = 0;
 			}
 		}
-		*buf++ = player.list_main.size();
-		*buf++ = player.list_hand.size();
-		*buf++ = player.list_grave.size();
-		*buf++ = player.list_remove.size();
-		*buf++ = player.list_extra.size();
+		*((uint16*)buf) = player.list_main.size();
+		buf += 2;
+		*((uint16*)buf) = player.list_hand.size();
+		buf += 2;
+		*((uint16*)buf) = player.list_grave.size();
+		buf += 2;
+		*((uint16*)buf) = player.list_remove.size();
+		buf += 2;
+		*((uint16*)buf) = player.list_extra.size();
+		buf += 2;
 		*buf++ = player.extra_p_count;
 	}
 	*buf++ = ptduel->game_field->core.current_chain.size();
@@ -379,7 +384,12 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 		effect* peffect = chit->triggering_effect;
 		*((int*)(buf)) = peffect->get_handler()->data.code;
 		buf += 4;
-		*((int*)(buf)) = peffect->get_handler()->get_info_location();
+		loc_info info = peffect->get_handler()->get_info_location();
+		*buf++ = info.controler;
+		*buf++ = info.location;
+		*((int*)(buf)) = info.sequence;
+		buf += 4;
+		*((int*)(buf)) = info.position;
 		buf += 4;
 		*buf++ = chit->triggering_controler;
 		*buf++ = (uint8)chit->triggering_location;

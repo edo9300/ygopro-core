@@ -2,11 +2,12 @@ project "ocgcore"
 	kind "StaticLib"
 
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
-    links { "lua" }
-	buildoptions { "-Wall", "-Wextra", "-pedantic" }
+	flags { "ExtraWarnings", "OptimizeSpeed" }
 	
 	configuration "windows"
+		links { "lua" }
 		includedirs { ".." }
 	configuration "not windows"
-		buildoptions { "-std=c++11", "-Wno-unused-parameter" }
+		links { "lua5.3" }
+		buildoptions { "-std=c++11", "-Wno-unused-parameter", "-pedantic" }
 		includedirs { "/usr/include/lua", "/usr/include/lua5.3", "/usr/include/lua/5.3" }

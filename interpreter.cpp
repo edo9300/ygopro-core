@@ -15,6 +15,8 @@
 #include "ocgapi.h"
 #include "interpreter.h"
 
+#include <cmath>
+
 static const struct luaL_Reg cardlib[] = {
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },
@@ -197,8 +199,6 @@ static const struct luaL_Reg cardlib[] = {
 	{ "IsAbleToDeckOrExtraAsCost", scriptlib::card_is_able_to_deck_or_extra_as_cost },
 	{ "IsAbleToGraveAsCost", scriptlib::card_is_able_to_grave_as_cost },
 	{ "IsAbleToRemoveAsCost", scriptlib::card_is_able_to_remove_as_cost },
-	{ "IsAbleToDecreaseAttackAsCost", scriptlib::card_is_able_to_decrease_attack_as_cost },
-	{ "IsAbleToDecreaseDefenseAsCost", scriptlib::card_is_able_to_decrease_defense_as_cost },
 	{ "IsReleasable", scriptlib::card_is_releasable },
 	{ "IsReleasableByEffect", scriptlib::card_is_releasable_by_effect },
 	{ "IsDiscardable", scriptlib::card_is_discardable },
@@ -368,7 +368,6 @@ static const struct luaL_Reg grouplib[] = {
 	{ "Equal", scriptlib::group_equal },
 	{ "IsContains", scriptlib::group_is_contains },
 	{ "SearchCard", scriptlib::group_search_card },
-	{ "GetBinClassCount", scriptlib::group_get_bin_class_count },
 	{ NULL, NULL }
 };
 
@@ -1045,7 +1044,7 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 		}
 		return OPERATION_FAIL;
 	}
-	result = round(lua_tonumber(current_state, -1));
+	result = std::round(lua_tonumber(current_state, -1));
 	lua_pop(current_state, 1);
 	no_action--;
 	call_depth--;
@@ -1067,7 +1066,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count) {
 		if (lua_isboolean(current_state, -1))
 			result = lua_toboolean(current_state, -1);
 		else
-			result = round(lua_tonumber(current_state, -1));
+			result = std::round(lua_tonumber(current_state, -1));
 		lua_pop(current_state, 1);
 		no_action--;
 		call_depth--;
@@ -1101,7 +1100,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count, std::vector<i
 			if (lua_isboolean(current_state, index))
 				return_value = lua_toboolean(current_state, index);
 			else
-				return_value = round(lua_tonumber(current_state, index));
+				return_value = std::round(lua_tonumber(current_state, index));
 			result->push_back(return_value);
 		}
 		lua_settop(current_state, stack_top);
@@ -1162,7 +1161,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
-			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : round(lua_tonumber(rthread, -1));
+			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : std::round(lua_tonumber(rthread, -1));
 		current_state = lua_state;
 		call_depth--;
 		if(call_depth == 0) {

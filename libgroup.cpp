@@ -32,7 +32,7 @@ int32 scriptlib::group_from_cards(lua_State *L) {
 	for(int32 i = 0; i < lua_gettop(L); ++i) {
 		if(!lua_isnil(L, i + 1)) {
 			check_param(L, PARAM_TYPE_CARD, i + 1);
-			card* pcard = *(card**) lua_touserdata(L, i + 1);
+			card* pcard = *(card**)lua_touserdata(L, i + 1);
 			pgroup->container.insert(pcard);
 		}
 	}

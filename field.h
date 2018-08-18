@@ -19,6 +19,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <bitset>
 #include <cmath>
 
 class card;
@@ -151,10 +152,12 @@ struct processor_unit {
 	void* ptr2;
 };
 union return_value {
+	std::bitset<64 * 8> bitvalue;
 	int8 bvalue[64];
 	int16 svalue[32];
 	int32 ivalue[16];
 	int64 lvalue[8];
+	return_value() {};
 };
 struct processor {
 	typedef std::vector<effect*> effect_vector;

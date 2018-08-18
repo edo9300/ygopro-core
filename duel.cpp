@@ -115,6 +115,17 @@ void duel::restore_assumes() {
 		(*sit)->assume_type = 0;
 	assumes.clear();
 }
+void duel::write_info_location(loc_info* loc) {
+	if(loc) {
+		write_buffer8(loc->controler);
+		write_buffer8(loc->location);
+		write_buffer32(loc->sequence);
+		write_buffer32(loc->position);
+	} else {
+		write_buffer16(0);
+		write_buffer64(0);
+	}
+}
 void duel::write_buffer64(uint64 value) {
 	std::memcpy(bufferp, &value, sizeof(value));
 	bufferp += 8;

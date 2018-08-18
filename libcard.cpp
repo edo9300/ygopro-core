@@ -2970,7 +2970,8 @@ int32 scriptlib::card_set_hint(lua_State *L) {
 	if(type >= CHINT_DESC_ADD)
 		return 0;
 	pduel->write_buffer8(MSG_CARD_HINT);
-	pduel->write_buffer32(pcard->get_info_location());
+	loc_info tmp_info = pcard->get_info_location();
+	pduel->write_info_location(&tmp_info);
 	pduel->write_buffer8(type);
 	pduel->write_buffer32(value);
 	return 0;

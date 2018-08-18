@@ -21,6 +21,13 @@ class effect;
 class group;
 struct chain;
 
+struct loc_info {
+	uint8 controler;
+	uint8 location;
+	uint32 sequence;
+	uint32 position;
+};
+
 struct card_data {
 	uint32 code;
 	uint32 alias;
@@ -57,8 +64,8 @@ struct card_state {
 	int32 base_defense;
 	uint8 controler;
 	uint8 location;
-	uint8 sequence;
-	uint8 position;
+	uint32 sequence;
+	uint32 position;
 	uint32 reason;
 	bool pzone;
 	card* reason_card;
@@ -190,8 +197,8 @@ public:
 	static bool card_operation_sort(card* c1, card* c2);
 	const bool is_extra_deck_monster() { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK))); }
 
-	uint32 get_infos(byte* buf, int32 query_flag, int32 use_cache = TRUE);
-	uint32 get_info_location();
+	uint32 get_infos(byte* buf, int32 query_flag, int32 use_cache = TRUE, int32 ignore_cache = FALSE);
+	loc_info get_info_location();
 	uint32 get_code();
 	uint32 get_another_code();
 	uint32 get_summon_code(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 2);
@@ -319,8 +326,6 @@ public:
 	int32 is_destructable_by_effect(effect* peffect, uint8 playerid);
 	int32 is_removeable(uint8 playerid, int32 pos = 0x5);
 	int32 is_removeable_as_cost(uint8 playerid, int32 pos = 0x5);
-	int32 is_attack_decreasable_as_cost(uint8 playerid, int32 val);
-	int32 is_defense_decreasable_as_cost(uint8 playerid, int32 val);
 	int32 is_releasable_by_summon(uint8 playerid, card* pcard);
 	int32 is_releasable_by_nonsummon(uint8 playerid);
 	int32 is_releasable_by_effect(uint8 playerid, effect* peffect);
