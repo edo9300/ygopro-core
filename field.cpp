@@ -3061,9 +3061,11 @@ int32 field::is_player_can_send_to_hand(uint8 playerid, card * pcard) {
 		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if (pduel->lua->check_condition(eset[i]->target, 3))
+		if(pduel->lua->check_condition(eset[i]->target, 3))
 			return FALSE;
 	}
+	if(pcard->is_extra_deck_monster() && !is_player_can_send_to_deck(playerid, pcard))
+		return FALSE;
 	return TRUE;
 }
 int32 field::is_player_can_send_to_deck(uint8 playerid, card * pcard) {
@@ -3075,11 +3077,9 @@ int32 field::is_player_can_send_to_deck(uint8 playerid, card * pcard) {
 		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if (pduel->lua->check_condition(eset[i]->target, 3))
+		if(pduel->lua->check_condition(eset[i]->target, 3))
 			return FALSE;
 	}
-	if(pcard->is_extra_deck_monster() && !is_player_can_send_to_deck(playerid, pcard))
-		return FALSE;
 	return TRUE;
 }
 int32 field::is_player_can_remove(uint8 playerid, card * pcard) {
