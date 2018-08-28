@@ -15,6 +15,8 @@
 #include "ocgapi.h"
 #include "interpreter.h"
 
+#include <cmath>
+
 static const struct luaL_Reg cardlib[] = {
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },
@@ -197,8 +199,6 @@ static const struct luaL_Reg cardlib[] = {
 	{ "IsAbleToDeckOrExtraAsCost", scriptlib::card_is_able_to_deck_or_extra_as_cost },
 	{ "IsAbleToGraveAsCost", scriptlib::card_is_able_to_grave_as_cost },
 	{ "IsAbleToRemoveAsCost", scriptlib::card_is_able_to_remove_as_cost },
-	{ "IsAbleToDecreaseAttackAsCost", scriptlib::card_is_able_to_decrease_attack_as_cost },
-	{ "IsAbleToDecreaseDefenseAsCost", scriptlib::card_is_able_to_decrease_defense_as_cost },
 	{ "IsReleasable", scriptlib::card_is_releasable },
 	{ "IsReleasableByEffect", scriptlib::card_is_releasable_by_effect },
 	{ "IsDiscardable", scriptlib::card_is_discardable },
@@ -368,7 +368,6 @@ static const struct luaL_Reg grouplib[] = {
 	{ "Equal", scriptlib::group_equal },
 	{ "IsContains", scriptlib::group_is_contains },
 	{ "SearchCard", scriptlib::group_search_card },
-	{ "GetBinClassCount", scriptlib::group_get_bin_class_count },
 	{ NULL, NULL }
 };
 
@@ -719,15 +718,25 @@ void interpreter::unregister_group(group *pgroup) {
 	luaL_unref(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
 	pgroup->ref_handle = 0;
 }
-int32 interpreter::load_script(char* script_name) {
+/*
+If no script_name is given, then the api will use the buffer as reference
+for the script name to load. If a script_name is given, the api will use
+the buffer and the len passed as the script buffer, without calling the
+script reader.
+*/
+int32 interpreter::load_script(char* buffer, int len, char* script_name) {
 	int32 error;
-	int32 len = 0;
-	byte* buffer = read_script(script_name, &len);
-	if (!buffer)
+	byte* buffer2 = nullptr;
+	if(!script_name)
+		buffer2 = read_script(buffer, &len);
+	if(!buffer || !buffer2)
 		return OPERATION_FAIL;
 	no_action++;
-	error = luaL_loadbuffer(current_state, (const char*) buffer, len, (const char*) script_name) || lua_pcall(current_state, 0, 0, 0);
-	if (error) {
+	if(script_name)
+		error = luaL_loadbuffer(current_state, (const char*)buffer, len, (const char*)script_name) || lua_pcall(current_state, 0, 0, 0);
+	else
+		error = luaL_loadbuffer(current_state, (const char*)buffer2, len, (const char*)buffer) || lua_pcall(current_state, 0, 0, 0);
+	if(error) {
 		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
@@ -1045,7 +1054,7 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 		}
 		return OPERATION_FAIL;
 	}
-	result = round(lua_tonumber(current_state, -1));
+	result = std::round(lua_tonumber(current_state, -1));
 	lua_pop(current_state, 1);
 	no_action--;
 	call_depth--;
@@ -1067,7 +1076,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count) {
 		if (lua_isboolean(current_state, -1))
 			result = lua_toboolean(current_state, -1);
 		else
-			result = round(lua_tonumber(current_state, -1));
+			result = std::round(lua_tonumber(current_state, -1));
 		lua_pop(current_state, 1);
 		no_action--;
 		call_depth--;
@@ -1101,7 +1110,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count, std::vector<i
 			if (lua_isboolean(current_state, index))
 				return_value = lua_toboolean(current_state, index);
 			else
-				return_value = round(lua_tonumber(current_state, index));
+				return_value = std::round(lua_tonumber(current_state, index));
 			result->push_back(return_value);
 		}
 		lua_settop(current_state, stack_top);
@@ -1162,7 +1171,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
-			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : round(lua_tonumber(rthread, -1));
+			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : std::round(lua_tonumber(rthread, -1));
 		current_state = lua_state;
 		call_depth--;
 		if(call_depth == 0) {
