@@ -729,7 +729,7 @@ int32 interpreter::load_script(char* buffer, int len, char* script_name) {
 	byte* buffer2 = nullptr;
 	if(!script_name)
 		buffer2 = read_script(buffer, &len);
-	if(!buffer || !buffer2)
+	if(!buffer && !buffer2)
 		return OPERATION_FAIL;
 	no_action++;
 	if(script_name)
