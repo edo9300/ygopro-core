@@ -405,6 +405,6 @@ extern "C" DECL_DLLEXPORT void set_responsei(ptr pduel, int32 value) {
 extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf) {
 	((duel*)pduel)->set_responseb(buf);
 }
-extern "C" DECL_DLLEXPORT int32 preload_script(ptr pduel, char* script, int32 len) {
-	return ((duel*)pduel)->lua->load_script(script);
+extern "C" DECL_DLLEXPORT int32 preload_script(ptr pduel, char* script, int32 len, int32 scriptlen, char* scriptbuff) {
+	return ((duel*)pduel)->lua->load_script(scriptbuff, scriptlen, script);
 }
