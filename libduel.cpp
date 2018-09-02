@@ -2605,6 +2605,8 @@ int32 scriptlib::duel_select_tribute(lua_State *L) {
 	if(toplayer != playerid)
 		ex = TRUE;
 	uint32 zone = 0x1f;
+	if (lua_gettop(L) >= 7 && !lua_isnil(L, 7))
+		zone = lua_tonumberint(L, 7);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
