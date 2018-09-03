@@ -304,7 +304,7 @@ void field::send_to(card* target, effect* reason_effect, uint32 reason, uint32 r
 	tset.insert(target);
 	send_to(&tset, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
-void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 rule) {
+void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 rule, uint32 reason) {
 	if(!(destination & (LOCATION_MZONE + LOCATION_SZONE + LOCATION_PZONE)) || !positions || (destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE)))
 		return;
 	if(destination == target->current.location && playerid == target->current.controler)
@@ -317,7 +317,7 @@ void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uin
 			zone = 0x3;
 	}
 	target->to_field_param = (move_player << 24) + (playerid << 16) + (destination << 8) + positions;
-	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable, ret + (is_equip << 8), zone + (pzone << 8) + (rule << 16));
+	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable, ret + (is_equip << 8), zone + (pzone << 8) + (rule << 16), uint32 reason);
 }
 void field::change_position(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 au, uint32 ad, uint32 du, uint32 dd, uint32 flag, uint32 enable) {
 	group* ng = pduel->new_group(*targets);
@@ -4257,7 +4257,7 @@ int32 field::discard_deck(uint16 step, uint8 playerid, uint8 count, uint32 reaso
 // move a card from anywhere to field, including sp_summon, Duel.MoveToField(), Duel.ReturnToField()
 // ret: 0 = default, 1 = return after temporarily banished, 2 = trap_monster return to LOCATION_SZONE
 // call move_card() in step 2
-int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 pzone, uint32 rule) {
+int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret, uint32 is_equip, uint32 zone, uint32 pzone, uint32 rule, uint32 reason) {
 	uint32 move_player = (target->to_field_param >> 24) & 0xff;
 	uint32 playerid = (target->to_field_param >> 16) & 0xff;
 	uint32 location = (target->to_field_param >> 8) & 0xff;
@@ -4294,7 +4294,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, move_player, flag, 1);
 		} else {
 			uint32 flag;
-			uint32 lreason = (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
+			uint32 lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
 			int32 ct = get_useable_count(target, playerid, location, move_player, lreason, zone, &flag);
 			if (location == LOCATION_MZONE && (zone & 0x60) && (zone!=0xff) && !rule) {
 				if ((zone & 0x20) && pduel->game_field->is_location_useable(playerid, location, 5)){
@@ -4445,10 +4445,22 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 				effect* peffect = eset[i];
 				if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peffect->count_limit == 0)
 					continue;
+				uint32 lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
+				if(eset[i]->operation) {
+					pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT, TRUE);
+					pduel->lua->add_param(target->current.controler, PARAM_TYPE_INT);
+					pduel->lua->add_param(move_player, PARAM_TYPE_INT);
+					pduel->lua->add_param(lreason, PARAM_TYPE_INT);
+					if(!pduel->lua->check_condition(eset[i]->operation, 4))
+						continue;
+				}
 				uint32 value = 0x1f;
-				if(peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET))
-					value = peffect->get_value();
-				else {
+				if(eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
+					pduel->lua->add_param(target->current.controler, PARAM_TYPE_INT);
+					pduel->lua->add_param(move_player, PARAM_TYPE_INT);
+					pduel->lua->add_param(lreason, PARAM_TYPE_INT);
+					value = eset[i]->get_value(3);
+				} else {
 					uint32 lreason = (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
 					pduel->lua->add_param(target->current.controler, PARAM_TYPE_INT);
 					pduel->lua->add_param(move_player, PARAM_TYPE_INT);
