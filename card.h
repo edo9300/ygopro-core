@@ -101,11 +101,12 @@ public:
 	typedef std::unordered_map<effect*, effect_container::iterator> effect_indexer;
 	typedef std::unordered_set<std::pair<effect*, uint16>, effect_relation_hash> effect_relation;
 	typedef std::unordered_map<card*, uint32> relation_map;
-	typedef std::map<uint16, std::array<uint16, 2> > counter_map;
+	typedef std::map<uint16, std::array<uint16, 2>> counter_map;
 	typedef std::map<uint32, int32> effect_count;
-	class attacker_map : public std::unordered_map<uint16, std::pair<card*, uint32> > {
+	class attacker_map : public std::unordered_map<uint16, std::pair<card*, uint32>> {
 	public:
 		void addcard(card* pcard);
+		uint32 findcard(card* pcard);
 	};
 	struct sendto_param_t {
 		void set(uint8 p, uint8 pos, uint8 loc, uint8 seq = 0) {
@@ -142,6 +143,7 @@ public:
 	uint32 position_param;
 	uint32 spsummon_param;
 	uint32 to_field_param;
+	uint8 attack_announce_count;
 	uint8 direct_attackable;
 	uint8 announce_count;
 	uint8 attacked_count;
@@ -385,7 +387,7 @@ public:
 #define STATUS_FUTURE_FUSION		0x100000
 #define STATUS_ATTACK_CANCELED		0x200000
 #define STATUS_INITIALIZING			0x400000
-#define STATUS_ACTIVATED			0x800000
+//#define STATUS_ACTIVATED			0x800000
 #define STATUS_JUST_POS				0x1000000
 #define STATUS_CONTINUOUS_POS		0x2000000
 #define STATUS_FORBIDDEN			0x4000000
