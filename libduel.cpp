@@ -792,7 +792,7 @@ int32 scriptlib::duel_return_to_field(lua_State *L) {
 	pcard->enable_field_effect(false);
 	pduel->game_field->adjust_instant();
 	pduel->game_field->refresh_location_info_instant();
-	pduel->game_field->move_to_field(pcard, pcard->previous.controler, pcard->previous.controler, pcard->previous.location, pos, TRUE, 1, 0, zone);
+	pduel->game_field->move_to_field(pcard, pcard->previous.controler, pcard->previous.controler, pcard->previous.location, pos, TRUE, 1, 0, zone, FALSE, LOCATION_REASON_TOFIELD | LOCATION_REASON_RETURN);
 	pduel->game_field->core.subunits.back().type = PROCESSOR_MOVETOFIELD_S;
 	return lua_yield(L, 0);
 }
@@ -2612,6 +2612,8 @@ int32 scriptlib::duel_select_tribute(lua_State *L) {
 	if(toplayer != playerid)
 		ex = TRUE;
 	uint32 zone = 0x1f;
+	if (lua_gettop(L) >= 7 && !lua_isnil(L, 7))
+		zone = lua_tonumberint(L, 7);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
