@@ -2538,6 +2538,7 @@ int32 field::process_idle_command(uint16 step) {
 			if(peffect->is_activateable(infos.turn_player, nil_event))
 				core.select_chains.push_back(newchain);
 		}
+		core.summonable_cards.clear();
 		for(auto& pcard : player[infos.turn_player].list_hand)
 			if(pcard->is_can_be_summoned(infos.turn_player, FALSE, 0, 0))
 				core.summonable_cards.push_back(pcard);
