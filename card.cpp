@@ -209,6 +209,7 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignor
 			*(byte*)p++ = info.location;
 			*p++ = info.sequence;
 			*p++ = info.position;
+		}
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
 		*p++ = xyz_materials.size();
@@ -3632,7 +3633,7 @@ int32 card::is_setable_mzone(uint8 playerid, uint8 ignore_count, effect* peffect
 	effect_set eset;
 	int32 res = filter_set_procedure(playerid, &eset, ignore_count, min_tribute, zone);
 	if(peffect) {
-		if(res < 0 || !pduel->game_field->is_player_can_mset(peffect->get_value(), playerid, this)) {
+		if(res < 0 || !pduel->game_field->is_player_can_mset(peffect->get_value(), playerid, this, playerid)) {
 			pduel->game_field->restore_lp_cost();
 			return FALSE;
 		}

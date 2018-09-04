@@ -311,7 +311,7 @@ void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uin
 			zone = 0x3;
 	}
 	target->to_field_param = (move_player << 24) + (playerid << 16) + (destination << 8) + positions;
-	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable, ret + (is_equip << 8), zone + (pzone << 8) + (rule << 16), uint32 reason);
+	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable, ret + (is_equip << 8), zone + (pzone << 8) + (rule << 16), reason);
 }
 void field::change_position(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 au, uint32 ad, uint32 du, uint32 dd, uint32 flag, uint32 enable) {
 	group* ng = pduel->new_group(*targets);
@@ -1601,7 +1601,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		if(min < min_tribute) {
 			min = min_tribute;
 		}
-		uint32 adv = is_player_can_summon(SUMMON_TYPE_ADVANCE, sumplayer, target);
+		uint32 adv = is_player_can_summon(SUMMON_TYPE_ADVANCE, sumplayer, target, sumplayer);
 		if(max == 0 || !adv) {
 			returns.bvalue[0] = 0;
 			core.units.begin()->step = 3;
@@ -2087,7 +2087,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 					int32 rcount = target->get_set_tribute_count();
 					int32 min = rcount & 0xffff;
 					int32 max = (rcount >> 16) & 0xffff;
-					if(!is_player_can_summon(SUMMON_TYPE_ADVANCE, setplayer, target, sumplayer))
+					if(!is_player_can_summon(SUMMON_TYPE_ADVANCE, setplayer, target, setplayer))
 						max = 0;
 					if(min < (int32)min_tribute)
 						min = min_tribute;

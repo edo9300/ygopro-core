@@ -1421,7 +1421,6 @@ void field::filter_affected_cards(effect* peffect, card_set* cset) {
 	}
 	for(auto& cvit : cvec) {
 		for(auto& pcard : *cvit) {
-			card* pcard = *it;
 			if(pcard && peffect->is_target(pcard))
 				cset->insert(pcard);
 		}
@@ -1455,7 +1454,6 @@ void field::filter_inrange_cards(effect* peffect, card_set* cset) {
 	}
 	for(auto& cvit : cvec) {
 		for(auto& pcard : *cvit) {
-			card* pcard = *it;
 			if(pcard && peffect->is_fit_target_function(pcard))
 				cset->insert(pcard);
 		}
@@ -1927,7 +1925,7 @@ void field::get_fusion_material(uint8 playerid, card_set* material) {
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[playerid].list_hand)
-		if(pcard->data.type & TYPE_MONSTER || pcard->is_affected_by_effect(EFFECT_EXTRA_FUSION_MATERIAL)))
+		if(pcard->data.type & TYPE_MONSTER || pcard->is_affected_by_effect(EFFECT_EXTRA_FUSION_MATERIAL))
 			material->insert(pcard);
 }
 void field::ritual_release(card_set* material) {
@@ -1947,7 +1945,7 @@ void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, g
 	uint32 xyz_level;
 	if(mg) {
 		for (auto& pcard : mg->container) {
-			if(pcard->is_can_be_xyz_material(scard) && (xyz_level = pcard->check_xyz_level(scard, lv))
+			if(pcard->is_can_be_xyz_material(scard, playerid) && (xyz_level = pcard->check_xyz_level(scard, lv))
 					&& (findex == 0 || pduel->lua->check_matching(pcard, findex, 0)))
 				core.xmaterial_lst.emplace((xyz_level >> 12) & 0xf, pcard);
 		}
@@ -2130,7 +2128,6 @@ int32 field::adjust_grant_effect() {
 				remove_set.insert(pcard);
 		}
 		for(auto& pcard : add_set) {
-			card* pcard = *cit;
 			effect* geffect = (effect*)peffect->get_label_object();
 			effect* ceffect = geffect->clone();
 			ceffect->owner = pcard;
@@ -2351,7 +2348,7 @@ int32 field::effect_replace_check(uint32 code, const tevent& e) {
 int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, bool select_target) {
 	pcard->direct_attackable = 0;
 	uint8 p = pcard->current.controler;
-	card_vector auto_attack, only_attack, must_attack;
+	card_vector auto_attack, only_attack, must_attack, attack_tg;
 	for(auto& atarget : player[1 - p].list_mzone) {
 		if(atarget) {
 			if(atarget->is_affected_by_effect(EFFECT_ONLY_BE_ATTACKED))
@@ -2438,7 +2435,8 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, 
 				}
 				v->push_back(atarget);
 			}
-		return atype;
+			return atype;
+		}
 	}
 	//chain attack or announce count check passed
 	uint32 mcount = 0;

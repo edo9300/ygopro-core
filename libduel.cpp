@@ -1570,7 +1570,9 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 				pduel->game_field->core.opp_mzone.insert(pcard->fieldid_r);
 		}
 		pduel->write_buffer8(MSG_ATTACK);
-		pduel->write_buffer32(attacker->get_info_location());
+		loc_info tmp_info;
+		tmp_info = attacker->get_info_location();
+		pduel->write_info_location(&tmp_info);
 		if(target) {
 			if(target->current.controler != turnp) {
 				pduel->game_field->raise_single_event(target, 0, EVENT_BE_BATTLE_TARGET, 0, REASON_REPLACE, 0, turnp, 0);
@@ -1581,10 +1583,11 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 			}
 			pduel->game_field->process_single_event();
 			pduel->game_field->process_instant_event();
-			pduel->write_buffer32(target->get_info_location());
+			tmp_info = target->get_info_location();
+			pduel->write_info_location(&tmp_info);
 		} else {
 			pduel->game_field->core.attack_player = TRUE;
-			pduel->write_buffer32(0);
+			pduel->write_info_location();
 		}
 		lua_pushboolean(L, 1);
 	} else
