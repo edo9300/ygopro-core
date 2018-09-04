@@ -6,7 +6,6 @@
  */
 
 #include <stdio.h>
-#include <iostream>
 #include "duel.h"
 #include "group.h"
 #include "card.h"
@@ -789,45 +788,45 @@ void interpreter::add_param(ptr param, int32 type, bool front) {
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	uint32 type;
 	int32 pushed = 0;
-	for (auto it = params.begin(); it != params.end(); ++it) {
-		type = it->second;
+	for (const auto& it : params) {
+		type = it.second;
 		switch(type) {
 		case PARAM_TYPE_INT:
-			lua_pushinteger(L, (ptr) it->first);
+			lua_pushinteger(L, (ptr) it.first);
 			break;
 		case PARAM_TYPE_STRING:
-			lua_pushstring(L, (const char *) it->first);
+			lua_pushstring(L, (const char *) it.first);
 			break;
 		case PARAM_TYPE_BOOLEAN:
-			lua_pushboolean(L, (ptr) it->first);
+			lua_pushboolean(L, (ptr) it.first);
 			break;
 		case PARAM_TYPE_CARD: {
-			if (it->first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ((card*)it->first)->ref_handle);
+			if (it.first)
+				lua_rawgeti(L, LUA_REGISTRYINDEX, ((card*)it.first)->ref_handle);
 			else
 				lua_pushnil(L);
 			break;
 		}
 		case PARAM_TYPE_EFFECT: {
-			if (it->first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ((effect*)it->first)->ref_handle);
+			if (it.first)
+				lua_rawgeti(L, LUA_REGISTRYINDEX, ((effect*)it.first)->ref_handle);
 			else
 				lua_pushnil(L);
 			break;
 		}
 		case PARAM_TYPE_GROUP: {
-			if (it->first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ((group*)it->first)->ref_handle);
+			if (it.first)
+				lua_rawgeti(L, LUA_REGISTRYINDEX, ((group*)it.first)->ref_handle);
 			else
 				lua_pushnil(L);
 			break;
 		}
 		case PARAM_TYPE_FUNCTION: {
-			function2value(L, (ptr)it->first);
+			function2value(L, (ptr)it.first);
 			break;
 		}
 		case PARAM_TYPE_INDEX: {
-			int32 index = (int32)(ptr)it->first;
+			int32 index = (int32)(ptr)it.first;
 			if(index > 0)
 				lua_pushvalue(L, index);
 			else if(is_coroutine) {
@@ -855,7 +854,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 		return OPERATION_FAIL;
 	}
 	if (param_count != params.size()) {
-		sprintf(pduel->strbuffer, "\"CallFunction\": incorrect parameter count (%d expected, %ud pushed)", param_count, (uint32)params.size());
+		sprintf(pduel->strbuffer, "\"CallFunction\": incorrect parameter count (%d expected, %zu pushed)", param_count, params.size());
 		handle_message(pduel, 1);
 		params.clear();
 		return OPERATION_FAIL;
@@ -891,7 +890,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 	}
 	return OPERATION_SUCCESS;
 }
-int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count, bool forced) {
+int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count) {
 	if (param_count != params.size()) {
 		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->data.code, f);
 		handle_message(pduel, 1);
@@ -901,10 +900,8 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	card2value(current_state, pcard);
 	lua_getfield(current_state, -1, f);
 	if (!lua_isfunction(current_state, -1)) {
-		if(forced) {
-			sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
-			handle_message(pduel, 1);
-		}
+		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
+		handle_message(pduel, 1);
 		lua_pop(current_state, 2);
 		params.clear();
 		return OPERATION_FAIL;
@@ -1171,7 +1168,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
-			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : std::round(lua_tonumber(rthread, -1));
+			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : lua_tointeger(rthread, -1);
 		current_state = lua_state;
 		call_depth--;
 		if(call_depth == 0) {
