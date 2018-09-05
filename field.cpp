@@ -625,46 +625,9 @@ int32 field::get_tofield_count(card* pcard, uint8 playerid, uint8 location, uint
 		return 0;
 	uint32 flag = player[playerid].disabled_location | player[playerid].used_location;
 	if(location == LOCATION_MZONE) {
-		effect_set eset;
-		if(uplayer < 2)
-			filter_player_effect(uplayer, EFFECT_MUST_USE_MZONE, &eset);
-		if(pcard)
-			pcard->filter_effect(EFFECT_MUST_USE_MZONE, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
-			if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT) && eset[i]->count_limit == 0)
-				continue;
-			if(eset[i]->operation) {
-				pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT, TRUE);
-				pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-				pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-				pduel->lua->add_param(reason, PARAM_TYPE_INT);
-				if(!pduel->lua->check_condition(eset[i]->operation, 4))
-					continue;
-			}
-			uint32 value = 0x1f;
-			if(eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
-				pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-				pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-				pduel->lua->add_param(reason, PARAM_TYPE_INT);
-				value = eset[i]->get_value(3);
-			} else {
-				pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-				pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-				pduel->lua->add_param(reason, PARAM_TYPE_INT);
-				value = eset[i]->get_value(pcard, 3);
-			}
-			uint32 flag1 = ~(value) & 0xff7f;
-			uint32 flag2 = ~(value >> 16) & 0xff7f;
-			if ((flag1 & flag) != flag1 && (uplayer == playerid)) {
-				flag |= flag1;
-			} else if((flag2 & flag) != flag2 && (uplayer != playerid)) {
-				flag |= flag2;
-			}
-		}
-	}
-	if (location == LOCATION_MZONE)
+		flag |= ~get_forced_zones(pcard, playerid, location, uplayer, reason);
 		flag = (flag | ~zone) & 0x1f;
-	else
+	} else
 		flag = (flag >> 8) & 0x1f;
 	int32 count = 5 - field_used_count[flag];
 	if(location == LOCATION_MZONE)
@@ -682,42 +645,7 @@ int32 field::get_useable_count_fromex_rule4(card* pcard, uint8 playerid, uint8 u
 }
 int32 field::get_spsummonable_count_fromex_rule4(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone, uint32* list) {
 	uint32 flag = player[playerid].disabled_location | player[playerid].used_location;
-	effect_set eset;
-	if(uplayer < 2)
-		filter_player_effect(uplayer, EFFECT_MUST_USE_MZONE, &eset);
-	if(pcard)
-		pcard->filter_effect(EFFECT_MUST_USE_MZONE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT) && eset[i]->count_limit == 0)
-			continue;
-		if(eset[i]->operation) {
-			pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT, TRUE);
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
-			if(!pduel->lua->check_condition(eset[i]->operation, 4))
-				continue;
-		}
-		uint32 value = 0x1f;
-		if(eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
-			value = eset[i]->get_value(3);
-		} else {
-			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
-			value = eset[i]->get_value(pcard, 3);
-		}
-		uint32 flag1 = ~(value) & 0xff7f;
-		uint32 flag2 = ~(value >> 16) & 0xff7f;
-		if ((flag1 & flag) != flag1 && (uplayer == playerid)) {
-			flag |= flag1;
-		} else if ((flag2 & flag) != flag2 && (uplayer != playerid)) {
-			flag |= flag2;
-		}
-	}
+	flag |= ~get_forced_zones(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD);
 	uint32 linked_zone = get_linked_zone(playerid) | (1u << 5) | (1u << 6);
 	flag = flag | ~zone | ~linked_zone;
 	if(player[playerid].list_mzone[5] && is_location_useable(playerid, LOCATION_MZONE, 6)
@@ -784,6 +712,44 @@ int32 field::get_szone_limit(uint8 playerid, uint8 uplayer, uint32 reason) {
 	}
 	int32 limit = max - field_used_count[used_flag];
 	return limit;
+}
+int32 field::get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint32 uplayer, uint32 reason) {
+	if(location != LOCATION_MZONE)
+		return 0xff;
+	effect_set eset;
+	uint32 res = 0xff7fff7f;
+	if(uplayer < 2)
+		filter_player_effect(uplayer, EFFECT_MUST_USE_MZONE, &eset);
+	if(pcard)
+		pcard->filter_effect(EFFECT_MUST_USE_MZONE, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT) && eset[i]->count_limit == 0)
+			continue;
+		if(eset[i]->operation) {
+			pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT, TRUE);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
+			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
+			if(!pduel->lua->check_condition(eset[i]->operation, 4))
+				continue;
+		}
+		if(eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
+			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
+			res &= eset[i]->get_value(3);
+		} else {
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
+			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
+			res &= eset[i]->get_value(pcard, 3);
+		}
+	}
+	if(uplayer == playerid || uplayer > 1)
+		res &= 0xff;
+	else
+		(res >>= 16 )&= 0xff;
+	return res;
 }
 uint32 field::get_linked_zone(int32 playerid) {
 	uint32 zones = 0;
@@ -2482,7 +2448,7 @@ int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 t
 		max = m;
 	if(min > max)
 		return FALSE;
-	zone &= 0x1f;
+	zone &= (0x1f & get_forced_zones(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD));
 	int32 s = 0;
 	int32 ct = get_tofield_count(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 	if(ct <= 0 && max <= 0)

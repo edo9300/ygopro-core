@@ -4977,7 +4977,7 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 	switch(step) {
 	case 0: {
 		core.operated_set.clear();
-		zone &= 0x1f;
+		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
 		int32 ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
 		if(ct > 0) {
 			returns.ivalue[0] = TRUE;
