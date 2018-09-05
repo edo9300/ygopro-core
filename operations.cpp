@@ -1732,8 +1732,17 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		target->current.reason_effect = proc;
 		target->current.reason_player = sumplayer;
 		if(proc->operation) {
+			effect* pextra = (effect*)core.units.begin()->ptr1;
+			int32 releasable = 0xff00ff;
+			if(pextra) {
+				std::vector<int32> retval;
+				pextra->get_value(target, 0, &retval);
+				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+			}
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
 			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
+			pduel->lua->add_param(zone, PARAM_TYPE_INT);
+			pduel->lua->add_param(releasable, PARAM_TYPE_INT);
 			core.sub_solving_event.push_back(nil_event);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, proc, 0, sumplayer, 0);
 		}
@@ -2209,9 +2218,21 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		target->summon_player = setplayer;
 		target->current.reason_effect = proc;
 		target->current.reason_player = setplayer;
-		pduel->lua->add_param(target, PARAM_TYPE_CARD);
-		core.sub_solving_event.push_back(nil_event);
-		add_process(PROCESSOR_EXECUTE_OPERATION, 0, proc, 0, setplayer, 0);
+		if(proc->operation) {
+			effect* pextra = (effect*)core.units.begin()->ptr1;
+			int32 releasable = 0xff00ff;
+			if(pextra) {
+				std::vector<int32> retval;
+				pextra->get_value(target, 0, &retval);
+				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+			}
+			pduel->lua->add_param(target, PARAM_TYPE_CARD);
+			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
+			pduel->lua->add_param(zone, PARAM_TYPE_INT);
+			pduel->lua->add_param(releasable, PARAM_TYPE_INT);
+			core.sub_solving_event.push_back(nil_event);
+			add_process(PROCESSOR_EXECUTE_OPERATION, 0, proc, 0, setplayer, 0);
+		}
 		proc->dec_count(setplayer);
 		return FALSE;
 	}
