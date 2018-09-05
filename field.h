@@ -382,6 +382,7 @@ public:
 	int32 get_spsummonable_count_fromex_rule4(card* pcard, uint8 playerid, uint8 uplayer, uint32 zone = 0xff, uint32* list = 0);
 	int32 get_mzone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
 	int32 get_szone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
+	int32 get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint32 uplayer, uint32 reason);
 	uint32 get_linked_zone(int32 playerid);
 	void get_linked_cards(uint8 self, uint8 s, uint8 o, card_set* cset);
 	int32 check_extra_link(int32 playerid);
