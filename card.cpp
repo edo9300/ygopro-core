@@ -2893,7 +2893,7 @@ int32 card::check_summon_procedure(effect* peffect, uint8 playerid, uint8 ignore
 			if(new_min_tribute < (int32)min_tribute)
 				new_min_tribute = min_tribute;
 			new_zone &= zone;
-			if(is_summonable(peffect, new_min_tribute, new_zone, releasable))
+			if(is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
 				return TRUE;
 		}
 	} else
@@ -2973,7 +2973,7 @@ int32 card::check_set_procedure(effect* peffect, uint8 playerid, uint8 ignore_co
 			if(new_min_tribute < (int32)min_tribute)
 				new_min_tribute = min_tribute;
 			new_zone &= zone;
-			if(is_summonable(peffect, new_min_tribute, new_zone, releasable))
+			if(is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
 				return TRUE;
 		}
 	} else
@@ -3355,7 +3355,7 @@ int32 card::is_spsummonable(effect* peffect) {
 	return result;
 }
 // check the condition of summon/set procedure peffect
-int32 card::is_summonable(effect* peffect, uint8 min_tribute, uint32 zone, uint32 releasable) {
+int32 card::is_summonable(effect* peffect, uint8 min_tribute, uint32 zone, uint32 releasable, effect* exeffect) {
 	effect* oreason = pduel->game_field->core.reason_effect;
 	uint8 op = pduel->game_field->core.reason_player;
 	pduel->game_field->core.reason_effect = peffect;
@@ -3367,7 +3367,8 @@ int32 card::is_summonable(effect* peffect, uint8 min_tribute, uint32 zone, uint3
 	pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
 	pduel->lua->add_param(zone, PARAM_TYPE_INT);
 	pduel->lua->add_param(releasable, PARAM_TYPE_INT);
-	if(pduel->lua->check_condition(peffect->condition, 5))
+	pduel->lua->add_param(exeffect, PARAM_TYPE_EFFECT);
+	if(pduel->lua->check_condition(peffect->condition, 6))
 		result = TRUE;
 	pduel->game_field->restore_lp_cost();
 	pduel->game_field->core.reason_effect = oreason;
