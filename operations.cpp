@@ -1650,7 +1650,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				return TRUE;
 			}
 			if(returns.bvalue[0]) {
-				card_set* tributes = new card_set(core.select_cards.begin(), core.select_cards.end());
+				card_set* tributes = new card_set;
+				for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
+					if(returns.bitvalue[i + 1])
+						tributes->insert(core.select_cards[i]);
 				core.units.begin()->peffect = (effect*)tributes;
 			}
 		}
@@ -2189,7 +2192,10 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 				return TRUE;
 			}
 			if(returns.bvalue[0]) {
-				card_set* tributes = new card_set(core.select_cards.begin(), core.select_cards.end());
+				card_set* tributes = new card_set;
+				for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
+					if(returns.bitvalue[i + 1])
+						tributes->insert(core.select_cards[i]);
 				core.units.begin()->peffect = (effect*)tributes;
 			}
 		}
