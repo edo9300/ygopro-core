@@ -1795,13 +1795,13 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 			pcard->release_param = 2;
 		else
 			pcard->release_param = 1;
-		if(ex || ex_tribute.find(pcard) != ex_tribute.end()) {
-			if(release_list)
-				release_list->insert(pcard);
-			rcount += pcard->release_param;
-		} else if(pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
+		if(pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)) {
 			if(ex_list)
 				ex_list->insert(pcard);
+			rcount += pcard->release_param;
+		} else if(ex || ex_tribute.find(pcard) != ex_tribute.end()) {
+			if(release_list)
+				release_list->insert(pcard);
 			rcount += pcard->release_param;
 		} else {
 			effect* peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
@@ -2453,7 +2453,7 @@ int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 t
 	int32 ct = get_tofield_count(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 	if(ct <= 0 && max <= 0)
 		return FALSE;
-	for(auto& pcard : release_list) {
+	for(auto& pcard : (ex_list.size() >= min) ? ex_list : release_list) {
 		if(pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer) {
 			s++;
 			if((zone >> pcard->current.sequence) & 1)

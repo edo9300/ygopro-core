@@ -747,10 +747,11 @@ int32 field::process() {
 			it->step++;
 		} else {
 			group* pgroup = pduel->new_group();
-			for(int32 i = 0; i < returns.bvalue[0]; ++i) {
-				card* pcard = core.select_cards[returns.bvalue[i + 1]];
-				pgroup->container.insert(pcard);
-			}
+			if(returns.ivalue[0] != -1)
+				for(int32 i = 0; i < returns.bvalue[0]; ++i) {
+					card* pcard = core.select_cards[returns.bvalue[i + 1]];
+					pgroup->container.insert(pcard);
+				}
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}
