@@ -213,7 +213,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer8(core.select_options.size());
 		for(auto& option : core.select_options)
-			pduel->write_buffer32(option);
+			pduel->write_buffer64(option);
 		return FALSE;
 	} else {
 		if(returns.ivalue[0] < 0 || returns.ivalue[0] >= (int32)core.select_options.size()) {
