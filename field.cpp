@@ -2386,8 +2386,8 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, 
 				}
 				v->push_back(atarget);
 			}
-			return atype;
 		}
+		return atype;
 	}
 	//chain attack or announce count check passed
 	uint32 mcount = 0;
