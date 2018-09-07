@@ -2540,7 +2540,7 @@ int32 scriptlib::duel_get_tribute_group(lua_State *L) {
 	card* target = *(card**) lua_touserdata(L, 1);
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->get_summon_release_list(target, &(pgroup->container), &(pgroup->container), NULL);
+	pduel->game_field->get_summon_release_list(target, &(pgroup->container), &(pgroup->container), &(pgroup->container));
 	interpreter::group2value(L, pgroup);
 	return 1;
 }
@@ -2614,12 +2614,15 @@ int32 scriptlib::duel_select_tribute(lua_State *L) {
 	uint32 zone = 0x1f;
 	if (lua_gettop(L) >= 7 && !lua_isnil(L, 7))
 		zone = lua_tonumberint(L, 7);
+	uint8 cancelable = FALSE;
+	if(lua_gettop(L) >= 8)
+		cancelable = lua_toboolean(L, 8);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
 	pduel->game_field->get_summon_release_list(target, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, mg, ex);
-	pduel->game_field->select_tribute_cards(0, playerid, 0, min, max, toplayer, zone);
+	pduel->game_field->select_tribute_cards(0, playerid, cancelable, min, max, toplayer, zone);
 	pduel->game_field->core.subunits.back().type = PROCESSOR_SELECT_TRIBUTE_S;
 	return lua_yield(L, 0);
 }
