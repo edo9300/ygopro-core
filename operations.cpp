@@ -1531,8 +1531,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				std::vector<int32> retval;
 				eset[i]->get_value(target, 0, &retval);
 				int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 				int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
 				if(peffect) {
 					if(new_min_tribute < (int32)min_tribute)
@@ -1572,10 +1574,12 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			std::vector<int32> retval;
 			pextra->get_value(target, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 			releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if((int32)min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
+			if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			zone &= new_zone;
 			core.units.begin()->arg1 = sumplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24);
 		}
@@ -2099,8 +2103,10 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 				std::vector<int32> retval;
 				eset[i]->get_value(target, 0, &retval);
 				int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 				int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
 				if(peffect) {
 					if(new_min_tribute < (int32)min_tribute)
@@ -2140,10 +2146,12 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 			std::vector<int32> retval;
 			pextra->get_value(target, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 			releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if((int32)min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
+			if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			zone &= new_zone;
 			core.units.begin()->arg1 = setplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24);
 		}
