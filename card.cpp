@@ -3679,7 +3679,7 @@ int32 card::is_affect_by_effect(effect* peffect) {
 int32 card::is_destructable() {
 	if(overlay_target)
 		return FALSE;
-	if(current.location & (LOCATION_GRAVE + LOCATION_REMOVED))
+	if(current.location & (LOCATION_GRAVE | LOCATION_REMOVED))
 		return FALSE;
 	return TRUE;
 }
@@ -3783,7 +3783,7 @@ int32 card::is_releasable_by_summon(uint8 playerid, card *pcard) {
 		return FALSE;
 	if(overlay_target)
 		return FALSE;
-	if(current.location & (LOCATION_GRAVE + LOCATION_REMOVED))
+	if(current.location & (LOCATION_GRAVE | LOCATION_REMOVED))
 		return FALSE;
 	if(!pduel->game_field->is_player_can_release(playerid, this))
 		return FALSE;
@@ -3798,7 +3798,7 @@ int32 card::is_releasable_by_nonsummon(uint8 playerid) {
 		return FALSE;
 	if(overlay_target)
 		return FALSE;
-	if(current.location & (LOCATION_GRAVE + LOCATION_REMOVED))
+	if(current.location & (LOCATION_GRAVE | LOCATION_REMOVED))
 		return FALSE;
 	if((current.location == LOCATION_HAND) && (data.type & (TYPE_SPELL | TYPE_TRAP)))
 		return FALSE;

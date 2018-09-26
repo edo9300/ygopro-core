@@ -643,7 +643,7 @@ int32 field::get_tofield_count(card* pcard, uint8 playerid, uint8 location, uint
 		flag |= ~get_forced_zones(pcard, playerid, location, uplayer, reason);
 		flag = (flag | ~zone) & 0x1f;
 	} else
-		flag = (flag >> 8) & 0x1f;
+		flag = ((flag >> 8) | ~zone) & 0x1f;
 	int32 count = 5 - field_used_count[flag];
 	if(location == LOCATION_MZONE)
 		flag |= (1u << 5) | (1u << 6);
