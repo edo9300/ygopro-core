@@ -1531,8 +1531,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				std::vector<int32> retval;
 				eset[i]->get_value(target, 0, &retval);
 				int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 				int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
 				if(peffect) {
 					if(new_min_tribute < (int32)min_tribute)
@@ -1572,10 +1574,12 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			std::vector<int32> retval;
 			pextra->get_value(target, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 			releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if((int32)min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
+			if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			zone &= new_zone;
 			core.units.begin()->arg1 = sumplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24);
 		}
@@ -2099,8 +2103,10 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 				std::vector<int32> retval;
 				eset[i]->get_value(target, 0, &retval);
 				int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+				uint32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 				int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
 				if(peffect) {
 					if(new_min_tribute < (int32)min_tribute)
@@ -2140,10 +2146,12 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 			std::vector<int32> retval;
 			pextra->get_value(target, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 			releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if((int32)min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
+			if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
+				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			zone &= new_zone;
 			core.units.begin()->arg1 = setplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24);
 		}
@@ -2236,10 +2244,30 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		target->summon_player = setplayer;
 		target->current.reason_effect = 0;
 		target->current.reason_player = setplayer;
-		core.units.begin()->step = 6;
+		core.units.begin()->step = 7;
 		return FALSE;
 	}
 	case 6: {
+		returns.ivalue[0] = TRUE;
+		if(proc->target) {
+			effect* pextra = (effect*)core.units.begin()->ptr1;
+			int32 releasable = 0xff00ff;
+			if(pextra) {
+				std::vector<int32> retval;
+				pextra->get_value(target, 0, &retval);
+				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+			}
+			pduel->lua->add_param(target, PARAM_TYPE_CARD);
+			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
+			pduel->lua->add_param(zone, PARAM_TYPE_INT);
+			pduel->lua->add_param(releasable, PARAM_TYPE_INT);
+			pduel->lua->add_param(pextra, PARAM_TYPE_EFFECT);
+			core.sub_solving_event.push_back(nil_event);
+			add_process(PROCESSOR_EXECUTE_TARGET, 0, proc, 0, setplayer, 0);
+		}
+		return FALSE;
+	}
+	case 7: {
 		target->summon_info = (proc->get_value(target) & 0xfffffff) | SUMMON_TYPE_NORMAL | (LOCATION_HAND << 16);
 		target->summon_player = setplayer;
 		target->current.reason_effect = proc;
@@ -2263,7 +2291,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		proc->dec_count(setplayer);
 		return FALSE;
 	}
-	case 7: {
+	case 8: {
 		break_effect();
 		if(ignore_count)
 			return FALSE;
@@ -2284,7 +2312,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		}
 		return FALSE;
 	}
-	case 8: {
+	case 9: {
 		uint8 targetplayer = setplayer;
 		uint8 positions = POS_FACEDOWN_DEFENSE;
 		if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
@@ -2296,7 +2324,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		move_to_field(target, setplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		return FALSE;
 	}
-	case 9: {
+	case 10: {
 		set_control(target, target->current.controler, 0, 0);
 		core.phase_action = TRUE;
 		core.normalsummon_state_count[setplayer]++;
