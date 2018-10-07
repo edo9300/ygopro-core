@@ -43,6 +43,9 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 		if(location == LOCATION_PZONE) {
 			int32 seq = !(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE) ? (pduel->game_field->core.duel_options & SPEED_DUEL) ? (sequence == 0) ? 1 : 3 : sequence * 4 : (6 + sequence);
 			pduel->game_field->add_card(playerid, pcard, LOCATION_SZONE, seq, TRUE);
+		} else if(location == LOCATION_FZONE) {
+			int32 loc = LOCATION_SZONE;
+			pduel->game_field->add_card(playerid, pcard, loc, 5);
 		} else
 			pduel->game_field->add_card(playerid, pcard, location, sequence);
 		pcard->current.position = position;
