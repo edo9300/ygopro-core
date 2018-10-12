@@ -4491,12 +4491,12 @@ int32 field::add_chain(uint16 step) {
 		}
 		if(peffect->type & EFFECT_TYPE_ACTIVATE) {
 			core.leave_confirmed.insert(phandler);
-			if(!(phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM))
+			if(!(phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM | TYPE_LINK))
 			        && !phandler->is_affected_by_effect(EFFECT_REMAIN_FIELD))
 				phandler->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
 		}
 		if((phandler->get_type() & (TYPE_SPELL | TYPE_TRAP))
-				&& (phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM))
+				&& (phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM | TYPE_LINK))
 				&& phandler->is_has_relation(clit) && phandler->current.location == LOCATION_SZONE
 				&& !peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
 			clit.flag |= CHAIN_CONTINUOUS_CARD;
@@ -5368,7 +5368,7 @@ int32 field::adjust_step(uint16 step) {
 		effect_set eset;
 		for(uint8 p = 0; p < 2; ++p) {
 			for(auto& pcard : player[tp].list_mzone) {
-				if(!pcard || (pcard->data.type & TYPE_LINK) || pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))
+				if(!pcard || ((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER)) || pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))
 					continue;
 				eset.clear();
 				pcard->filter_effect(EFFECT_SET_POSITION, &eset);

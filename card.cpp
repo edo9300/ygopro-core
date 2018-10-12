@@ -1448,8 +1448,6 @@ uint32 card::get_link_marker() {
 		return assume_value;
 	if(!(data.type & TYPE_LINK))
 		return 0;
-	if(!(current.location & LOCATION_MZONE))
-		return data.link_marker;
 	if (temp.link_marker != 0xffffffff)
 		return temp.link_marker;
 	effect_set effects;
@@ -1474,51 +1472,79 @@ int32 card::is_link_marker(uint32 dir) {
 	return (int32)(get_link_marker() & dir);
 }
 uint32 card::get_linked_zone() {
-	if(!(data.type & TYPE_LINK) || current.location != LOCATION_MZONE)
+	if(!(data.type & TYPE_LINK))
 		return 0;
 	int32 zones = 0;
 	int32 s = current.sequence;
-	if(s > 0 && s <= 4 && is_link_marker(LINK_MARKER_LEFT))
-		zones |= 1u << (s - 1);
-	if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT))
-		zones |= 1u << (s + 1);
-	if (pduel->game_field->core.duel_options & DUEL_EMZONE) {
-		if ((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT))
-			|| (s == 1 && is_link_marker(LINK_MARKER_TOP))
-			|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)))
-			zones |= (1u << 5) | (1u << (16 + 6));
-		if ((s == 2 && is_link_marker(LINK_MARKER_TOP_RIGHT))
-			|| (s == 3 && is_link_marker(LINK_MARKER_TOP))
-			|| (s == 4 && is_link_marker(LINK_MARKER_TOP_LEFT)))
-			zones |= (1u << 6) | (1u << (16 + 5));
-		if (s == 5) {
-			if (is_link_marker(LINK_MARKER_BOTTOM_LEFT))
-				zones |= 1u << 0;
-			if (is_link_marker(LINK_MARKER_BOTTOM))
-				zones |= 1u << 1;
-			if (is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
-				zones |= 1u << 2;
-			if (is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << (16 + 4);
-			if (is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << (16 + 3);
-			if (is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << (16 + 2);
+	int32 location = current.location;
+	if(location == LOCATION_MZONE) {
+		if(s > 0 && s <= 4 && is_link_marker(LINK_MARKER_LEFT))
+			zones |= 1u << (s - 1);
+		if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT))
+			zones |= 1u << (s + 1);
+		if(s < 5) {
+			if(s > 0 && is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+				zones |= 1u << (s + 7);
+			if(s < 4 && is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+				zones |= 1u << (s + 9);
+			if(is_link_marker(LINK_MARKER_BOTTOM))
+				zones |= 1u << (s + 8);
 		}
-		if (s == 6) {
-			if (is_link_marker(LINK_MARKER_BOTTOM_LEFT))
-				zones |= 1u << 2;
-			if (is_link_marker(LINK_MARKER_BOTTOM))
-				zones |= 1u << 3;
-			if (is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
-				zones |= 1u << 4;
-			if (is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << (16 + 2);
-			if (is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << (16 + 1);
-			if (is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << (16 + 0);
+		if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
+			if((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT))
+				|| (s == 1 && is_link_marker(LINK_MARKER_TOP))
+				|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)))
+				zones |= (1u << 5) | (1u << (16 + 6));
+			if((s == 2 && is_link_marker(LINK_MARKER_TOP_RIGHT))
+				|| (s == 3 && is_link_marker(LINK_MARKER_TOP))
+				|| (s == 4 && is_link_marker(LINK_MARKER_TOP_LEFT)))
+				zones |= (1u << 6) | (1u << (16 + 5));
+			if(s == 5) {
+				if(is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+					zones |= 1u << 0;
+				if(is_link_marker(LINK_MARKER_BOTTOM))
+					zones |= 1u << 1;
+				if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+					zones |= 1u << 2;
+				if(is_link_marker(LINK_MARKER_TOP_LEFT))
+					zones |= 1u << (16 + 4);
+				if(is_link_marker(LINK_MARKER_TOP))
+					zones |= 1u << (16 + 3);
+				if(is_link_marker(LINK_MARKER_TOP_RIGHT))
+					zones |= 1u << (16 + 2);
+			}
+			if(s == 6) {
+				if(is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+					zones |= 1u << 2;
+				if(is_link_marker(LINK_MARKER_BOTTOM))
+					zones |= 1u << 3;
+				if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+					zones |= 1u << 4;
+				if(is_link_marker(LINK_MARKER_TOP_LEFT))
+					zones |= 1u << (16 + 2);
+				if(is_link_marker(LINK_MARKER_TOP))
+					zones |= 1u << (16 + 1);
+				if(is_link_marker(LINK_MARKER_TOP_RIGHT))
+					zones |= 1u << (16 + 0);
+			}
 		}
+	} else if(location == LOCATION_SZONE) {
+		if(s > 4)
+			return 0;
+		if(s > 0) {
+			if(is_link_marker(LINK_MARKER_LEFT))
+				zones |= 1u << (s + 7);
+			if(is_link_marker(LINK_MARKER_TOP_LEFT))
+				zones |= 1u << (s - 1);
+		}
+		if(s <= 3) {
+			if(is_link_marker(LINK_MARKER_RIGHT))
+				zones |= 1u << (s + 9);
+			if(is_link_marker(LINK_MARKER_TOP_RIGHT))
+				zones |= 1u << (s + 1);
+		}
+		if(is_link_marker(LINK_MARKER_TOP))
+			zones |= 1u << s;
 	}
 	return zones;
 }
@@ -1576,7 +1602,7 @@ uint32 card::get_free_linked_zone() {
 }
 void card::get_linked_cards(card_set* cset) {
 	cset->clear();
-	if(!(data.type & TYPE_LINK) || current.location != LOCATION_MZONE)
+	if(!(data.type & TYPE_LINK))
 		return;
 	int32 p = current.controler;
 	uint32 linked_zone = get_linked_zone();
@@ -2918,12 +2944,10 @@ int32 card::check_summon_procedure(effect* peffect, uint8 playerid, uint8 ignore
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
 			int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if(new_min_tribute < (int32)min_tribute)
 				new_min_tribute = min_tribute;
-			if (peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM) && peffect->o_range)
-				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			new_zone &= zone;
 			if(is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
 				return TRUE;
@@ -3000,12 +3024,10 @@ int32 card::check_set_procedure(effect* peffect, uint8 playerid, uint8 ignore_co
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
 			int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if(new_min_tribute < (int32)min_tribute)
 				new_min_tribute = min_tribute;
-			if (peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM) && peffect->o_range)
-				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			new_zone &= zone;
 			if(is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
 				return TRUE;
@@ -3991,7 +4013,7 @@ int32 card::is_capable_attack_announce(uint8 playerid) {
 int32 card::is_capable_change_position(uint8 playerid) {
 	if(get_status(STATUS_SUMMON_TURN | STATUS_FLIP_SUMMON_TURN | STATUS_SPSUMMON_TURN | STATUS_FORM_CHANGED))
 		return FALSE;
-	if(data.type & TYPE_LINK)
+	if((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER))
 		return FALSE;
 	if(announce_count > 0)
 		return FALSE;
@@ -4004,12 +4026,12 @@ int32 card::is_capable_change_position(uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_capable_change_position_by_effect(uint8 playerid) {
-	if(data.type & TYPE_LINK)
+	if((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER))
 		return FALSE;
 	return TRUE;
 }
 int32 card::is_capable_turn_set(uint8 playerid) {
-	if(data.type & (TYPE_LINK | TYPE_TOKEN))
+	if((data.type & (TYPE_TOKEN)) || ((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER)))
 		return FALSE;
 	if(is_position(POS_FACEDOWN))
 		return FALSE;

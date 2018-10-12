@@ -197,7 +197,7 @@ public:
 	explicit card(duel* pd);
 	~card();
 	static bool card_operation_sort(card* c1, card* c2);
-	const bool is_extra_deck_monster() { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)); };
+	const bool is_extra_deck_monster() { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && !!(data.type & TYPE_MONSTER); };
 
 	uint32 get_infos(byte* buf, int32 query_flag, int32 use_cache = TRUE, int32 ignore_cache = FALSE);
 	loc_info get_info_location();
