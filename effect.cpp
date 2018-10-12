@@ -202,7 +202,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				pduel->lua->add_param(e.reason_player, PARAM_TYPE_INT);
 				zone = get_value(7);
 				if(!zone)
-					zone = 0xff;
+					return FALSE;
 			}
 			// additional check for each location
 			if(handler->current.location == LOCATION_SZONE) {
@@ -217,11 +217,11 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(!(handler->data.type & (TYPE_FIELD | TYPE_PENDULUM)) && is_flag(EFFECT_FLAG_LIMIT_ZONE) && !(zone & (1u << handler->current.sequence)))
 					return FALSE;
 			} else {
-				if(!(((handler->data.type & TYPE_FIELD) && value<=0) || (value & LOCATION_FZONE) || (value & LOCATION_HAND))) {
-					if (value & LOCATION_MZONE) {
+				if(!(((handler->data.type & TYPE_FIELD) && (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && value<=0)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_FZONE)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_HAND)))) {
+					if (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_MZONE)) {
 						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
 							return FALSE;
-					} else if ((handler->data.type & TYPE_PENDULUM) || (value & LOCATION_PZONE)) {
+					} else if ((handler->data.type & TYPE_PENDULUM) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_PZONE))) {
 						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
 							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
 						return FALSE;

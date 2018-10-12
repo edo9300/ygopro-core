@@ -4315,7 +4315,7 @@ int32 field::add_chain(uint16 step) {
 					pduel->lua->add_param(clit.evt.reason_player, PARAM_TYPE_INT);
 					zone = peffect->get_value(7);
 					if(!zone)
-						zone = 0xff;
+						return TRUE;
 				}
 				int32 loc = 0;
 				if(phandler->current.location == LOCATION_HAND) {
@@ -4326,7 +4326,7 @@ int32 field::add_chain(uint16 step) {
 						loc=LOCATION_SZONE;
 					}
 				}
-				if (peffect->value)
+				if (peffect->value && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
 					loc = peffect->value;
 				if (loc>0) {
 					phandler->enable_field_effect(false);

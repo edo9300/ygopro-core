@@ -768,54 +768,24 @@ int32 field::get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint3
 }
 uint32 field::get_linked_zone(int32 playerid) {
 	uint32 zones = 0;
-	for(uint32 i = 1; i < 5; ++i) {
-		card* pcard = player[playerid].list_mzone[i];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_LEFT))
-			zones |= 1u << (i - 1);
+	for(auto& pcard : player[playerid].list_mzone) {
+		if(pcard)
+			zones |= pcard->get_linked_zone();
 	}
-	for(uint32 i = 0; i < 4; ++i) {
-		card* pcard = player[playerid].list_mzone[i];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_RIGHT))
-			zones |= 1u << (i + 1);
+	for(auto& pcard : player[playerid].list_szone) {
+		if(pcard)
+			zones |= pcard->get_linked_zone();
 	}
-	if((player[playerid].list_mzone[0] && player[playerid].list_mzone[0]->is_link_marker(LINK_MARKER_TOP_RIGHT))
-		|| (player[playerid].list_mzone[1] && player[playerid].list_mzone[1]->is_link_marker(LINK_MARKER_TOP))
-		|| (player[playerid].list_mzone[2] && player[playerid].list_mzone[2]->is_link_marker(LINK_MARKER_TOP_LEFT)))
-		zones |= 1u << 5;
-	if((player[playerid].list_mzone[2] && player[playerid].list_mzone[2]->is_link_marker(LINK_MARKER_TOP_RIGHT))
-		|| (player[playerid].list_mzone[3] && player[playerid].list_mzone[3]->is_link_marker(LINK_MARKER_TOP))
-		|| (player[playerid].list_mzone[4] && player[playerid].list_mzone[4]->is_link_marker(LINK_MARKER_TOP_LEFT)))
-		zones |= 1u << 6;
-	for(uint32 i = 0; i < 2; ++i) {
-		card* pcard = player[playerid].list_mzone[i + 5];
-		if(pcard) {
-			if(pcard->is_link_marker(LINK_MARKER_BOTTOM_LEFT))
-				zones |= 1u << (i * 2);
-			if(pcard->is_link_marker(LINK_MARKER_BOTTOM))
-				zones |= 1u << (i * 2 + 1);
-			if(pcard->is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
-				zones |= 1u << (i * 2 + 2);
-		}
+	uint32 oppzones = 0;
+	for(auto& pcard : player[1 - playerid].list_mzone) {
+		if(pcard)
+			oppzones |= pcard->get_linked_zone();
 	}
-	if((player[1 - playerid].list_mzone[2] && player[1 - playerid].list_mzone[2]->is_link_marker(LINK_MARKER_TOP_RIGHT))
-		|| (player[1 - playerid].list_mzone[3] && player[1 - playerid].list_mzone[3]->is_link_marker(LINK_MARKER_TOP))
-		|| (player[1 - playerid].list_mzone[4] && player[1 - playerid].list_mzone[4]->is_link_marker(LINK_MARKER_TOP_LEFT)))
-		zones |= 1u << 5;
-	if((player[1 - playerid].list_mzone[0] && player[1 - playerid].list_mzone[0]->is_link_marker(LINK_MARKER_TOP_RIGHT))
-		|| (player[1 - playerid].list_mzone[1] && player[1 - playerid].list_mzone[1]->is_link_marker(LINK_MARKER_TOP))
-		|| (player[1 - playerid].list_mzone[2] && player[1 - playerid].list_mzone[2]->is_link_marker(LINK_MARKER_TOP_LEFT)))
-		zones |= 1u << 6;
-	for(uint32 i = 0; i < 2; ++i) {
-		card* pcard = player[1 - playerid].list_mzone[i + 5];
-		if(pcard) {
-			if(pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << (4 - i * 2);
-			if(pcard->is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << (3 - i * 2);
-			if(pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << (2 - i * 2);
-		}
+	for(auto& pcard : player[1 - playerid].list_szone) {
+		if(pcard)
+			oppzones |= pcard->get_linked_zone();
 	}
+	zones |= ((oppzones & 0xffff) << 16) | (oppzones >> 16);
 	effect_set eset;
 	uint32 value;
 	filter_field_effect(EFFECT_BECOME_LINKED_ZONE, &eset);
@@ -828,17 +798,9 @@ uint32 field::get_linked_zone(int32 playerid) {
 	eset.clear();
 	return zones;
 }
-void field::get_linked_cards(uint8 self, uint8 s, uint8 o, card_set* cset) {
-	cset->clear();
-	uint8 c = s;
-	for(int32 p = 0; p < 2; ++p) {
-		if(c) {
-			uint32 linked_zone = get_linked_zone(self);
-			get_cards_in_zone(cset, linked_zone, self, LOCATION_MZONE);
-		}
-		self = 1 - self;
-		c = o;
-	}
+void field::get_linked_cards(uint8 self, uint8 location1, uint8 location2, card_set* cset) {
+	get_cards_in_zone(cset, get_linked_zone(self), self, location1);
+	get_cards_in_zone(cset, get_linked_zone(1 - self), self, location2);
 }
 int32 field::check_extra_link(int32 playerid) {
 	if(!player[playerid].list_mzone[5] || !player[playerid].list_mzone[6])
@@ -900,14 +862,25 @@ int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 void field::get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location) {
 	if(!(location & LOCATION_ONFIELD))
 		return;
-	card_vector& svector = (location == LOCATION_MZONE) ? player[playerid].list_mzone : player[playerid].list_szone;
-	uint32 icheck = 0x1;
-	for(auto& pcard : svector) {
-		if(zone & icheck) {
-			if(pcard)
-				cset->insert(pcard);
+	if(location & LOCATION_MZONE) {
+		uint32 icheck = 0x1;
+		for(auto& pcard : player[playerid].list_mzone) {
+			if(zone & icheck) {
+				if(pcard)
+					cset->insert(pcard);
+			}
+			icheck <<= 1;
 		}
-		icheck <<= 1;
+	}
+	if(location & LOCATION_SZONE) {
+		uint32 icheck = 0x1 << 8;
+		for(auto& pcard : player[playerid].list_szone) {
+			if(zone & icheck) {
+				if(pcard)
+					cset->insert(pcard);
+			}
+			icheck <<= 1;
+		}
 	}
 }
 void field::shuffle(uint8 playerid, uint8 location) {
@@ -2665,7 +2638,7 @@ int32 field::is_player_can_spsummon(effect* peffect, uint32 sumtype, uint8 sumpo
 		return FALSE;
 	if(pcard->is_status(STATUS_FORBIDDEN))
 		return FALSE;
-	if(pcard->data.type & TYPE_LINK)
+	if((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER))
 		sumpos &= POS_FACEUP_ATTACK;
 	if(sumpos == 0)
 		return FALSE;

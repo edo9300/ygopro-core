@@ -309,13 +309,6 @@ int32 scriptlib::card_get_linked_zone(lua_State *L) {
 		lua_pushinteger(L, zone);
 	return 1;
 }
-int32 scriptlib::card_get_free_linked_zone(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_free_linked_zone());
-	return 1;
-}
 int32 scriptlib::card_get_mutual_linked_group(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);

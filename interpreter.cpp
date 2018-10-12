@@ -42,7 +42,6 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetLinkedGroup", scriptlib::card_get_linked_group },
 	{ "GetLinkedGroupCount", scriptlib::card_get_linked_group_count },
 	{ "GetLinkedZone", scriptlib::card_get_linked_zone },
-	{ "GetFreeLinkedZone", scriptlib::card_get_free_linked_zone },
 	{ "GetMutualLinkedGroup", scriptlib::card_get_mutual_linked_group },
 	{ "GetMutualLinkedGroupCount", scriptlib::card_get_mutual_linked_group_count },
 	{ "GetMutualLinkedZone", scriptlib::card_get_mutual_linked_zone },

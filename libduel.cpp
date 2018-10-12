@@ -1957,11 +1957,15 @@ int32 scriptlib::duel_get_linked_group(lua_State *L) {
 	uint32 rplayer = lua_tonumberint(L, 1);
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	uint32 s = lua_tonumberint(L, 2);
-	uint32 o = lua_tonumberint(L, 3);
+	uint32 location1 = lua_tonumberint(L, 2);
+	if(location1 == 1)
+		location1 = LOCATION_MZONE;
+	uint32 location2 = lua_tonumberint(L, 3);
+	if(location2 == 1)
+		location2 = LOCATION_MZONE;
 	duel* pduel = interpreter::get_duel_info(L);
 	field::card_set cset;
-	pduel->game_field->get_linked_cards(rplayer, s, o, &cset);
+	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
 	group* pgroup = pduel->new_group(cset);
 	interpreter::group2value(L, pgroup);
 	return 1;
@@ -1971,11 +1975,15 @@ int32 scriptlib::duel_get_linked_group_count(lua_State *L) {
 	uint32 rplayer = lua_tonumberint(L, 1);
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	uint32 s = lua_tonumberint(L, 2);
-	uint32 o = lua_tonumberint(L, 3);
+	uint32 location1 = lua_tonumberint(L, 2);
+	if(location1 == 1)
+		location1 = LOCATION_MZONE;
+	uint32 location2 = lua_tonumberint(L, 3);
+	if(location2 == 1)
+		location2 = LOCATION_MZONE;
 	duel* pduel = interpreter::get_duel_info(L);
 	field::card_set cset;
-	pduel->game_field->get_linked_cards(rplayer, s, o, &cset);
+	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
