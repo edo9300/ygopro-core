@@ -235,6 +235,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		if(min > max)
 			min = max;
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+			returns.bitvalue.reset();
 			for(uint8 i = 0; i < min; ++i)
 				returns.bitvalue[i + 1] = 1;
 			return TRUE;
@@ -272,9 +273,9 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 		if (core.select_cards.empty() && core.unselect_cards.empty())
 			return TRUE;
 		if ((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.bvalue[0] = 1;
-			for (uint8 i = 0; i < 1; ++i)
-				returns.bvalue[i + 1] = i;
+			returns.bitvalue.reset();
+			for(uint8 i = 0; i < min; ++i)
+				returns.bitvalue[i + 1] = 1;
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_UNSELECT_CARD);
