@@ -2944,10 +2944,12 @@ int32 card::check_summon_procedure(effect* peffect, uint8 playerid, uint8 ignore
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 			int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
 			if(new_min_tribute < (int32)min_tribute)
 				new_min_tribute = min_tribute;
+			if (peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM) && peffect->o_range)
+				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			new_zone &= zone;
 			if(is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
 				return TRUE;
@@ -3024,8 +3026,10 @@ int32 card::check_set_procedure(effect* peffect, uint8 playerid, uint8 ignore_co
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f;
+			int32 new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
 			int32 releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+			if (peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM) && peffect->o_range)
+				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 			if(new_min_tribute < (int32)min_tribute)
 				new_min_tribute = min_tribute;
 			new_zone &= zone;
