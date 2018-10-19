@@ -118,12 +118,20 @@ int32 scriptlib::effect_set_count_limit(lua_State *L) {
 	uint32 code = 0;
 	if(lua_gettop(L) >= 3)
 		code = lua_tointeger(L, 3);
+	int32 flag = 0;
+	if(lua_gettop(L) >= 4)
+		flag = lua_tointeger(L, 4);
+	else {
+		flag = code & 0xf0000000;
+		code &= 0xfffffff;
+	}
 	if(v == 0)
 		v = 1;
 	peffect->flag[0] |= EFFECT_FLAG_COUNT_LIMIT;
 	peffect->count_limit = v;
 	peffect->count_limit_max = v;
 	peffect->count_code = code;
+	peffect->count_flag = flag;
 	return 0;
 }
 int32 scriptlib::effect_set_reset(lua_State *L) {
@@ -319,7 +327,8 @@ int32 scriptlib::effect_get_count_limit(lua_State *L) {
 		lua_pushinteger(L, peffect->count_limit);
 		lua_pushinteger(L, peffect->count_limit_max);
 		lua_pushinteger(L, peffect->count_code);
-		return 3;
+		lua_pushinteger(L, peffect->count_flag);
+		return 4;
 	}
 	return 0;
 }
@@ -561,13 +570,12 @@ int32 scriptlib::effect_use_count_limit(lua_State *L) {
 	uint32 p = lua_tointeger(L, 2);
 	uint32 count = 1;
 	uint32 oath_only = 0;
-	uint32 code = peffect->count_code;
 	if(lua_gettop(L) > 2) {
 		count = lua_tointeger(L, 3);
 		if (lua_gettop(L) > 3)
 			oath_only = lua_toboolean(L, 4);
 	}
-	if (!oath_only || code & EFFECT_COUNT_CODE_OATH)
+	if (!oath_only || peffect->count_flag & EFFECT_COUNT_CODE_OATH)
 		while(count) {
 			peffect->dec_count(p);
 			count--;

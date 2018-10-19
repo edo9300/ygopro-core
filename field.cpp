@@ -1314,24 +1314,23 @@ void field::reset_chain() {
 			(*rm)->handler->remove_effect((*rm));
 	}
 }
-void field::add_effect_code(uint32 code, uint32 playerid) {
-	auto& count_map = (code & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
-	count_map[code + (playerid << 30)]++;
+void field::add_effect_code(uint32 code, uint32 flag, uint32 playerid) {
+	auto& count_map = (flag & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
+	count_map[code][flag + playerid]++;
 }
-uint32 field::get_effect_code(uint32 code, uint32 playerid) {
-	auto& count_map = (code & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
-	auto iter = count_map.find(code + (playerid << 30));
-	if(iter == count_map.end())
+uint32 field::get_effect_code(uint32 code, uint32 flag, uint32 playerid) {
+	auto& count_map = (flag & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
+	auto iter = count_map[code][flag + playerid];
+	if(!iter)
 		return 0;
-	return iter->second;
+	return iter;
 }
-void field::dec_effect_code(uint32 code, uint32 playerid) {
-	auto& count_map = (code & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
-	auto iter = count_map.find(code + (playerid << 30));
-	if(iter == count_map.end())
+void field::dec_effect_code(uint32 code, uint32 flag, uint32 playerid) {
+	auto& count_map = (flag & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
+	auto iter = count_map[code][flag + playerid];
+	if(!iter)
 		return;
-	if(iter->second > 0)
-		iter->second--;
+	count_map[code][flag + playerid]--;
 }
 void field::filter_field_effect(uint32 code, effect_set* eset, uint8 sort) {
 	auto rg = effects.aura_effect.equal_range(code);
