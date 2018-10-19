@@ -248,8 +248,8 @@ struct processor {
 	std::set<effect*> reseted_effects;
 	std::unordered_map<card*, uint32> readjust_map;
 	std::unordered_set<card*> unique_cards[2];
-	std::unordered_map<uint32, uint32> effect_count_code;
-	std::unordered_map<uint32, uint32> effect_count_code_duel;
+	std::unordered_map<uint32, std::unordered_map<uint32, uint32>> effect_count_code;
+	std::unordered_map<uint32, std::unordered_map<uint32, uint32>> effect_count_code_duel;
 	std::unordered_map<uint32, uint32> spsummon_once_map[2];
 	std::unordered_map<uint32, uint32> spsummon_once_map_rst[2];
 	std::multimap<int32, card*, std::greater<int32>> xmaterial_lst;
@@ -401,9 +401,9 @@ public:
 	void remove_oath_effect(effect* reason_effect);
 	void reset_phase(uint32 phase);
 	void reset_chain();
-	void add_effect_code(uint32 code, uint32 playerid);
-	uint32 get_effect_code(uint32 code, uint32 playerid);
-	void dec_effect_code(uint32 code, uint32 playerid);
+	void add_effect_code(uint32 code, uint32 flag, uint32 playerid);
+	uint32 get_effect_code(uint32 code, uint32 flag, uint32 playerid);
+	void dec_effect_code(uint32 code, uint32 flag, uint32 playerid);
 
 	void filter_field_effect(uint32 code, effect_set* eset, uint8 sort = TRUE);
 	void filter_affected_cards(effect* peffect, card_set* cset);

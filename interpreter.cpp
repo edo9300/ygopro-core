@@ -751,6 +751,8 @@ int32 interpreter::load_card_script(uint32 code) {
 	//if script is not loaded, create and load it
 	if (lua_isnil(current_state, -1)) {
 		lua_pop(current_state, 1);
+		lua_pushnumber(current_state, code);
+		lua_setglobal(current_state, "self_code");
 		//create a table & set metatable
 		lua_createtable(current_state, 0, 0);
 		lua_setglobal(current_state, class_name);
@@ -760,11 +762,21 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_pushstring(current_state, "__index");
 		lua_pushvalue(current_state, -2);
 		lua_rawset(current_state, -3);
+		lua_getglobal(current_state, class_name);
+		lua_setglobal(current_state, "self_table");
 		char script_name[64];
 		sprintf(script_name, "./script/c%d.lua", code);
 		if(!load_script(script_name)) {
+			lua_pushnil(current_state);
+			lua_setglobal(current_state, "self_table");
+			lua_pushnil(current_state);
+			lua_setglobal(current_state, "self_code");
 			return OPERATION_FAIL;
 		}
+		lua_pushnil(current_state);
+		lua_setglobal(current_state, "self_table");
+		lua_pushnil(current_state);
+		lua_setglobal(current_state, "self_code");
 	}
 	return OPERATION_SUCCESS;
 }
