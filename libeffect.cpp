@@ -124,6 +124,10 @@ int32 scriptlib::effect_set_count_limit(lua_State *L) {
 	else {
 		flag = code & 0xf0000000;
 		code &= 0xfffffff;
+		if(code == 1) {
+			flag != EFFECT_COUNT_CODE_SINGLE;
+			code = 0;
+		}
 	}
 	if(v == 0)
 		v = 1;
