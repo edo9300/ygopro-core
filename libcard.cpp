@@ -309,13 +309,6 @@ int32 scriptlib::card_get_linked_zone(lua_State *L) {
 		lua_pushinteger(L, zone);
 	return 1;
 }
-int32 scriptlib::card_get_free_linked_zone(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	lua_pushinteger(L, pcard->get_free_linked_zone());
-	return 1;
-}
 int32 scriptlib::card_get_mutual_linked_group(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -1291,13 +1284,14 @@ int32 scriptlib::card_check_remove_overlay_card(lua_State *L) {
 	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	group* pgroup = pcard->pduel->new_group(pcard);
 	int32 playerid = lua_tonumberint(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	int32 count = lua_tonumberint(L, 3);
 	int32 reason = lua_tonumberint(L, 4);
 	duel* pduel = pcard->pduel;
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pcard, 0, 0, count, reason));
+	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pgroup, 0, 0, count, reason));
 	return 1;
 }
 int32 scriptlib::card_remove_overlay_card(lua_State *L) {
@@ -1305,6 +1299,7 @@ int32 scriptlib::card_remove_overlay_card(lua_State *L) {
 	check_param_count(L, 5);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
+	group* pgroup = pcard->pduel->new_group(pcard);
 	int32 playerid = lua_tonumberint(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -1312,7 +1307,7 @@ int32 scriptlib::card_remove_overlay_card(lua_State *L) {
 	int32 max = lua_tonumberint(L, 4);
 	int32 reason = lua_tonumberint(L, 5);
 	duel* pduel = pcard->pduel;
-	pduel->game_field->remove_overlay_card(reason, pcard, playerid, 0, 0, min, max);
+	pduel->game_field->remove_overlay_card(reason, pgroup, playerid, 0, 0, min, max);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::card_get_attacked_group(lua_State *L) {

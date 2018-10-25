@@ -1919,31 +1919,39 @@ void field::get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, g
 		core.xmaterial_lst.erase(core.xmaterial_lst.begin(), iter);
 	}
 }
-void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset) {
-	uint8 c = s;
-	for(int32 p = 0; p < 2; ++p) {
-		if(c) {
-			for(auto& pcard : player[self].list_mzone) {
-				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP) && pcard->xyz_materials.size())
+void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, group* pgroup) {
+	if(pgroup) {
+		for(auto& pcard : pgroup->container) {
+			if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
+				pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
+		}
+		return;
+	}
+	for(int i = 0; i < 2; i++) {
+		if((i == 0 && s) || (i == 1 && o)) {
+			for(auto& pcard : player[self - i].list_mzone) {
+				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 					pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
 			}
 		}
-		self = 1 - self;
-		c = o;
 	}
 }
-int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o) {
-	uint8 c = s;
+int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup) {
 	uint32 count = 0;
-	for(int32 p = 0; p < 2; ++p) {
-		if(c) {
-			for(auto& pcard : player[self].list_mzone) {
+	if(pgroup) {
+		for(auto& pcard : pgroup->container) {
+			if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
+				count += pcard->xyz_materials.size();
+		}
+		return count;
+	}
+	for(int i = 0; i < 2; i++) {
+		if((i == 0 && s) || (i == 1 && o)) {
+			for(auto& pcard : player[self - i].list_mzone) {
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 					count += pcard->xyz_materials.size();
 			}
 		}
-		self = 1 - self;
-		c = o;
 	}
 	return count;
 }
@@ -2765,8 +2773,8 @@ int32 field::is_player_can_remove_counter(uint8 playerid, card * pcard, uint8 s,
 	}
 	return FALSE;
 }
-int32 field::is_player_can_remove_overlay_card(uint8 playerid, card * pcard, uint8 s, uint8 o, uint16 min, uint32 reason) {
-	if((pcard && pcard->xyz_materials.size() >= min) || (!pcard && get_overlay_count(playerid, s, o) >= min))
+int32 field::is_player_can_remove_overlay_card(uint8 playerid, group* pgroup, uint8 s, uint8 o, uint16 min, uint32 reason) {
+	if(get_overlay_count(playerid, s, o, pgroup) >= min)
 		return TRUE;
 	auto pr = effects.continuous_effect.equal_range(EFFECT_OVERLAY_REMOVE_REPLACE);
 	tevent e;
