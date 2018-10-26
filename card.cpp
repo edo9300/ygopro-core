@@ -187,8 +187,10 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignor
 			*p++ = info.position;
 		}
 		else {
-			buf = 0;
-			*(byte*)p += 10;
+			*(byte*)p++ = 0;
+			*(byte*)p++ = 0;
+			*p++ = 0;
+			*p++ = 0;
 		}
 	}
 	if(query_flag & QUERY_EQUIP_CARD) {
