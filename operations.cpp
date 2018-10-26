@@ -103,8 +103,8 @@ void field::change_target_param(uint8 chaincount, int32 param) {
 void field::remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint32 countertype, uint32 count) {
 	add_process(PROCESSOR_REMOVE_COUNTER, 0, NULL, (group*)pcard, (rplayer << 16) + (s << 8) + o, countertype, count, reason);
 }
-void field::remove_overlay_card(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max) {
-	add_process(PROCESSOR_REMOVEOL_S, 0, NULL, (group*)pcard, (rplayer << 16) + (s << 8) + o, (max << 16) + min, reason);
+void field::remove_overlay_card(uint32 reason, group* pgroup, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max) {
+	add_process(PROCESSOR_REMOVEOL_S, 0, NULL, pgroup, (rplayer << 16) + (s << 8) + o, (max << 16) + min, reason);
 }
 void field::get_control(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 playerid, uint32 reset_phase, uint32 reset_count, uint32 zone) {
 	group* ng = pduel->new_group(*targets);
@@ -755,12 +755,12 @@ int32 field::remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplay
 	}
 	return TRUE;
 }
-int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max) {
+int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max) {
 	switch(step) {
 	case 0: {
 		core.select_options.clear();
 		core.select_effects.clear();
-		if((pcard && pcard->xyz_materials.size() >= min) || (!pcard && get_overlay_count(rplayer, s, o) >= min)) {
+		if(get_overlay_count(rplayer, s, o, pgroup) >= min) {
 			core.select_options.push_back(12);
 			core.select_effects.push_back(0);
 		}
@@ -806,15 +806,10 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 
 			return FALSE;
 		}
 		core.select_cards.clear();
-		if(pcard) {
-			for(auto& mcard : pcard->xyz_materials)
-				core.select_cards.push_back(mcard);
-		} else {
-			card_set cset;
-			get_overlay_group(rplayer, s, o, &cset);
-			for(auto& xcard : cset)
-				core.select_cards.push_back(xcard);
-		}
+		card_set cset;
+		get_overlay_group(rplayer, s, o, &cset, pgroup);
+		for(auto& xcard : cset)
+			core.select_cards.push_back(xcard);
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(rplayer);
@@ -4606,7 +4601,7 @@ int32 field::change_position(uint16 step, group * targets, effect * reason_effec
 			uint8 opos = pcard->current.position;
 			uint8 flag = pcard->position_param >> 16;
 			if((pcard->current.location != LOCATION_MZONE && pcard->current.location != LOCATION_SZONE)
-				|| (pcard->data.type & TYPE_LINK)
+				|| ((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER))
 				|| pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)
 				|| !pcard->is_affect_by_effect(reason_effect) || npos == opos
 				|| (!(pcard->data.type & TYPE_TOKEN) && (opos & POS_FACEUP) && (npos & POS_FACEDOWN) && !pcard->is_capable_turn_set(reason_player))

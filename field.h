@@ -248,8 +248,8 @@ struct processor {
 	std::set<effect*> reseted_effects;
 	std::unordered_map<card*, uint32> readjust_map;
 	std::unordered_set<card*> unique_cards[2];
-	std::unordered_map<uint32, uint32> effect_count_code;
-	std::unordered_map<uint32, uint32> effect_count_code_duel;
+	std::unordered_map<uint32, std::unordered_map<uint32, uint32>> effect_count_code;
+	std::unordered_map<uint32, std::unordered_map<uint32, uint32>> effect_count_code_duel;
 	std::unordered_map<uint32, uint32> spsummon_once_map[2];
 	std::unordered_map<uint32, uint32> spsummon_once_map_rst[2];
 	std::multimap<int32, card*, std::greater<int32>> xmaterial_lst;
@@ -384,7 +384,7 @@ public:
 	int32 get_szone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
 	int32 get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint32 uplayer, uint32 reason);
 	uint32 get_linked_zone(int32 playerid);
-	void get_linked_cards(uint8 self, uint8 s, uint8 o, card_set* cset);
+	void get_linked_cards(uint8 self, uint8 location1, uint8 location2, card_set* cset);
 	int32 check_extra_link(int32 playerid);
 	int32 check_extra_link(int32 playerid, card* pcard, int32 sequence);
 	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location);
@@ -401,9 +401,9 @@ public:
 	void remove_oath_effect(effect* reason_effect);
 	void reset_phase(uint32 phase);
 	void reset_chain();
-	void add_effect_code(uint32 code, uint32 playerid);
-	uint32 get_effect_code(uint32 code, uint32 playerid);
-	void dec_effect_code(uint32 code, uint32 playerid);
+	void add_effect_code(uint32 code, uint32 flag, uint32 playerid);
+	uint32 get_effect_code(uint32 code, uint32 flag, uint32 playerid);
+	void dec_effect_code(uint32 code, uint32 flag, uint32 playerid);
 
 	void filter_field_effect(uint32 code, effect_set* eset, uint8 sort = TRUE);
 	void filter_affected_cards(effect* peffect, card_set* cset);
@@ -423,8 +423,8 @@ public:
 	void get_fusion_material(uint8 playerid, card_set* material);
 	void ritual_release(card_set* material);
 	void get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, group* mg, uint32 playerid);
-	void get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset);
-	int32 get_overlay_count(uint8 self, uint8 s, uint8 o);
+	void get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, group* pgroup);
+	int32 get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup);
 	void update_disable_check_list(effect* peffect);
 	void add_to_disable_check_list(card* pcard);
 	void adjust_disable_check_list();
@@ -472,7 +472,7 @@ public:
 	int32 is_player_can_release(uint8 playerid, card* pcard);
 	int32 is_player_can_place_counter(uint8 playerid, card* pcard, uint16 countertype, uint16 count);
 	int32 is_player_can_remove_counter(uint8 playerid, card* pcard, uint8 s, uint8 o, uint16 countertype, uint16 count, uint32 reason);
-	int32 is_player_can_remove_overlay_card(uint8 playerid, card* pcard, uint8 s, uint8 o, uint16 count, uint32 reason);
+	int32 is_player_can_remove_overlay_card(uint8 playerid, group* pcard, uint8 s, uint8 o, uint16 count, uint32 reason);
 	int32 is_player_can_send_to_grave(uint8 playerid, card* pcard);
 	int32 is_player_can_send_to_hand(uint8 playerid, card* pcard);
 	int32 is_player_can_send_to_deck(uint8 playerid, card* pcard);
@@ -529,7 +529,7 @@ public:
 	void change_target_player(uint8 chaincount, uint8 playerid);
 	void change_target_param(uint8 chaincount, int32 param);
 	void remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint32 countertype, uint32 count);
-	void remove_overlay_card(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max);
+	void remove_overlay_card(uint32 reason, group* pgroup, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max);
 	void get_control(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 playerid, uint32 reset_phase, uint32 reset_count, uint32 zone);
 	void get_control(card* target, effect* reason_effect, uint32 reason_player, uint32 playerid, uint32 reset_phase, uint32 reset_count, uint32 zone);
 	void swap_control(effect* reason_effect, uint32 reason_player, card_set* targets1, card_set* targets2, uint32 reset_phase, uint32 reset_count);
@@ -557,7 +557,7 @@ public:
 	void select_tribute_cards(card* target, uint8 playerid, uint8 cancelable, int32 min, int32 max, uint8 toplayer, uint32 zone);
 
 	int32 remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 countertype, uint16 count);
-	int32 remove_overlay_card(uint16 step, uint32 reason, card* pcard, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max);
+	int32 remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint8 rplayer, uint8 s, uint8 o, uint16 min, uint16 max);
 	int32 get_control(uint16 step, effect* reason_effect, uint8 reason_player, group* targets, uint8 playerid, uint16 reset_phase, uint8 reset_count, uint32 zone);
 	int32 swap_control(uint16 step, effect* reason_effect, uint8 reason_player, group* targets1, group* targets2, uint16 reset_phase, uint8 reset_count);
 	int32 control_adjust(uint16 step);

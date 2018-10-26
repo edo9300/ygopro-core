@@ -1957,11 +1957,15 @@ int32 scriptlib::duel_get_linked_group(lua_State *L) {
 	uint32 rplayer = lua_tonumberint(L, 1);
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	uint32 s = lua_tonumberint(L, 2);
-	uint32 o = lua_tonumberint(L, 3);
+	uint32 location1 = lua_tonumberint(L, 2);
+	if(location1 == 1)
+		location1 = LOCATION_MZONE;
+	uint32 location2 = lua_tonumberint(L, 3);
+	if(location2 == 1)
+		location2 = LOCATION_MZONE;
 	duel* pduel = interpreter::get_duel_info(L);
 	field::card_set cset;
-	pduel->game_field->get_linked_cards(rplayer, s, o, &cset);
+	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
 	group* pgroup = pduel->new_group(cset);
 	interpreter::group2value(L, pgroup);
 	return 1;
@@ -1971,11 +1975,15 @@ int32 scriptlib::duel_get_linked_group_count(lua_State *L) {
 	uint32 rplayer = lua_tonumberint(L, 1);
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	uint32 s = lua_tonumberint(L, 2);
-	uint32 o = lua_tonumberint(L, 3);
+	uint32 location1 = lua_tonumberint(L, 2);
+	if(location1 == 1)
+		location1 = LOCATION_MZONE;
+	uint32 location2 = lua_tonumberint(L, 3);
+	if(location2 == 1)
+		location2 = LOCATION_MZONE;
 	duel* pduel = interpreter::get_duel_info(L);
 	field::card_set cset;
-	pduel->game_field->get_linked_cards(rplayer, s, o, &cset);
+	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
@@ -3015,9 +3023,12 @@ int32 scriptlib::duel_get_overlay_group(lua_State *L) {
 		return 0;
 	uint32 s = lua_tonumberint(L, 2);
 	uint32 o = lua_tonumberint(L, 3);
+	group* targetsgroup = 0;
+	if(lua_gettop(L) >= 4 && check_param(L, PARAM_TYPE_GROUP, 4, TRUE))
+		targetsgroup = *(group**)lua_touserdata(L, 4);
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->get_overlay_group(rplayer, s, o, &pgroup->container);
+	pduel->game_field->get_overlay_group(rplayer, s, o, &pgroup->container, targetsgroup);
 	interpreter::group2value(L, pgroup);
 	return 1;
 }
@@ -3028,8 +3039,11 @@ int32 scriptlib::duel_get_overlay_count(lua_State *L) {
 		return 0;
 	uint32 s = lua_tonumberint(L, 2);
 	uint32 o = lua_tonumberint(L, 3);
+	group* pgroup = 0;
+	if(lua_gettop(L) >= 4 && check_param(L, PARAM_TYPE_GROUP, 4, TRUE))
+		pgroup = *(group**)lua_touserdata(L, 4);
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushinteger(L, pduel->game_field->get_overlay_count(rplayer, s, o));
+	lua_pushinteger(L, pduel->game_field->get_overlay_count(rplayer, s, o, pgroup));
 	return 1;
 }
 int32 scriptlib::duel_check_remove_overlay_card(lua_State *L) {
@@ -3041,8 +3055,11 @@ int32 scriptlib::duel_check_remove_overlay_card(lua_State *L) {
 	uint32 o = lua_tonumberint(L, 3);
 	int32 count = lua_tonumberint(L, 4);
 	int32 reason = lua_tonumberint(L, 5);
+	group* pgroup = 0;
+	if(lua_gettop(L) >= 6 && check_param(L, PARAM_TYPE_GROUP, 6, TRUE))
+		pgroup = *(group**)lua_touserdata(L, 6);
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, 0, s, o, count, reason));
+	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pgroup, s, o, count, reason));
 	return 1;
 }
 int32 scriptlib::duel_remove_overlay_card(lua_State *L) {
@@ -3056,8 +3073,11 @@ int32 scriptlib::duel_remove_overlay_card(lua_State *L) {
 	int32 min = lua_tonumberint(L, 4);
 	int32 max = lua_tonumberint(L, 5);
 	int32 reason = lua_tonumberint(L, 6);
+	group* pgroup = 0;
+	if(lua_gettop(L) >= 7 && check_param(L, PARAM_TYPE_GROUP, 7, TRUE))
+		pgroup = *(group**)lua_touserdata(L, 7);
 	duel* pduel = interpreter::get_duel_info(L);
-	pduel->game_field->remove_overlay_card(reason, 0, playerid, s, o, min, max);
+	pduel->game_field->remove_overlay_card(reason, pgroup, playerid, s, o, min, max);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_hint(lua_State * L) {

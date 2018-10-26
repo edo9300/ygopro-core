@@ -1095,7 +1095,7 @@ int32 field::process() {
 		return pduel->bufferlen;
 	}
 	case PROCESSOR_REMOVEOL_S: {
-		if(remove_overlay_card(it->step, it->arg3, (card*)(it->ptarget), it->arg1 >> 16,
+		if(remove_overlay_card(it->step, it->arg3, it->ptarget, it->arg1 >> 16,
 		                       (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
 			pduel->lua->add_param(returns.ivalue[0], PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
@@ -4315,7 +4315,7 @@ int32 field::add_chain(uint16 step) {
 					pduel->lua->add_param(clit.evt.reason_player, PARAM_TYPE_INT);
 					zone = peffect->get_value(7);
 					if(!zone)
-						zone = 0xff;
+						return TRUE;
 				}
 				int32 loc = 0;
 				if(phandler->current.location == LOCATION_HAND) {
@@ -4326,7 +4326,7 @@ int32 field::add_chain(uint16 step) {
 						loc=LOCATION_SZONE;
 					}
 				}
-				if (peffect->value)
+				if (peffect->value && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
 					loc = peffect->value;
 				if (loc>0) {
 					phandler->enable_field_effect(false);
@@ -4491,12 +4491,12 @@ int32 field::add_chain(uint16 step) {
 		}
 		if(peffect->type & EFFECT_TYPE_ACTIVATE) {
 			core.leave_confirmed.insert(phandler);
-			if(!(phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM))
+			if(!(phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM | TYPE_LINK))
 			        && !phandler->is_affected_by_effect(EFFECT_REMAIN_FIELD))
 				phandler->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
 		}
 		if((phandler->get_type() & (TYPE_SPELL | TYPE_TRAP))
-				&& (phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM))
+				&& (phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM | TYPE_LINK))
 				&& phandler->is_has_relation(clit) && phandler->current.location == LOCATION_SZONE
 				&& !peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
 			clit.flag |= CHAIN_CONTINUOUS_CARD;
@@ -4716,8 +4716,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		effect* peffect = cait->triggering_effect;
 		if(cait->flag & CHAIN_DISABLE_ACTIVATE && is_chain_negatable(cait->chain_count)) {
 			remove_oath_effect(peffect);
-			if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_code & EFFECT_COUNT_CODE_OATH)) {
-				dec_effect_code(peffect->count_code, cait->triggering_player);
+			if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_flag & EFFECT_COUNT_CODE_OATH)) {
+				dec_effect_code(peffect->count_code, peffect->count_flag, cait->triggering_player);
 			}
 			check_chain_counter(peffect, cait->triggering_player, cait->chain_count, true);
 			raise_event((card*)0, EVENT_CHAIN_NEGATED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
@@ -5368,7 +5368,7 @@ int32 field::adjust_step(uint16 step) {
 		effect_set eset;
 		for(uint8 p = 0; p < 2; ++p) {
 			for(auto& pcard : player[tp].list_mzone) {
-				if(!pcard || (pcard->data.type & TYPE_LINK) || pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))
+				if(!pcard || ((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER)) || pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))
 					continue;
 				eset.clear();
 				pcard->filter_effect(EFFECT_SET_POSITION, &eset);
