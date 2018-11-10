@@ -99,18 +99,6 @@ card::card(duel* pd) {
 	spsummon_code = 0;
 	current.controler = PLAYER_NONE;
 }
-card::~card() {
-	indexer.clear();
-	relations.clear();
-	counters.clear();
-	equiping_cards.clear();
-	material_cards.clear();
-	single_effect.clear();
-	field_effect.clear();
-	equip_effect.clear();
-	xmaterial_effect.clear();
-	relate_effect.clear();
-}
 uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignore_cache) {
 	int32* p = (int32*)buf;
 	int32 tdata = 0;
@@ -3295,6 +3283,16 @@ int32 card::check_fusion_substitute(card* fcard) {
 		return FALSE;
 	for(int32 i = 0; i < eset.size(); ++i)
 		if(!eset[i]->value || eset[i]->get_value(fcard))
+			return TRUE;
+	return FALSE;
+}
+int32 card::is_not_tuner(card* scard) {
+	if(!(get_synchro_type() & TYPE_TUNER))
+		return TRUE;
+	effect_set eset;
+	filter_effect(EFFECT_NONTUNER, &eset);
+	for(int32 i = 0; i < eset.size(); ++i)
+		if(!eset[i]->value || eset[i]->get_value(scard))
 			return TRUE;
 	return FALSE;
 }

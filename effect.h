@@ -64,7 +64,7 @@ public:
 	int32 operation;
 
 	explicit effect(duel* pd);
-	~effect();
+	~effect() = default;
 
 	int32 is_disable_related();
 	int32 is_can_be_forbidden();

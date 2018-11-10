@@ -195,7 +195,7 @@ public:
 	effect_set_v immune_effect;
 
 	explicit card(duel* pd);
-	~card();
+	~card() = default;
 	static bool card_operation_sort(card* c1, card* c2);
 	const bool is_extra_deck_monster() { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && !!(data.type & TYPE_MONSTER); };
 
@@ -304,6 +304,7 @@ public:
 	int32 fusion_check(group* fusion_m, group* cg, uint32 chkf);
 	void fusion_filter_valid(group* fusion_m, group* cg, uint32 chkf, effect_set* eset);
 	int32 check_fusion_substitute(card* fcard);
+	int32 is_not_tuner(card* scard);
 
 	int32 check_unique_code(card* pcard);
 	void get_unique_target(card_set* cset, int32 controler, card* icard = 0);
