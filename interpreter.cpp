@@ -5,7 +5,6 @@
  *      Author: Argon
  */
 
-#include <stdio.h>
 #include "duel.h"
 #include "group.h"
 #include "card.h"
@@ -611,11 +610,15 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	//Initial
 	luaL_openlibs(lua_state);
 	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "file");
-	lua_pushnil(lua_state);
 	lua_setglobal(lua_state, "io");
 	lua_pushnil(lua_state);
 	lua_setglobal(lua_state, "os");
+	luaL_getsubtable(lua_state, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
+	lua_pushnil(lua_state);
+	lua_setfield(lua_state, -2, "io");
+	lua_pushnil(lua_state);
+	lua_setfield(lua_state, -2, "os");
+	lua_pop(lua_state, 1);
 	//open all libs
 	luaL_newlib(lua_state, cardlib);
 	lua_pushstring(lua_state, "__index");
@@ -736,7 +739,7 @@ int32 interpreter::load_script(char* buffer, int len, char* script_name) {
 	else
 		error = luaL_loadbuffer(current_state, (const char*)buffer2, len, (const char*)buffer) || lua_pcall(current_state, 0, 0, 0);
 	if(error) {
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
 		no_action--;
@@ -878,7 +881,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 	call_depth++;
 	push_param(current_state);
 	if (lua_pcall(current_state, param_count, ret_count, 0)) {
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
 		no_action--;
@@ -920,7 +923,7 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	lua_remove(current_state, -2);
 	push_param(current_state);
 	if (lua_pcall(current_state, param_count, ret_count, 0)) {
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
 		no_action--;
@@ -960,7 +963,7 @@ int32 interpreter::call_code_function(uint32 code, char* f, uint32 param_count, 
 	call_depth++;
 	push_param(current_state);
 	if (lua_pcall(current_state, param_count, ret_count, 0)) {
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
 		no_action--;
@@ -1015,7 +1018,7 @@ int32 interpreter::check_matching(card* pcard, int32 findex, int32 extraargs) {
 	for(int32 i = 0; i < extraargs; ++i)
 		lua_pushvalue(current_state, (int32)(-extraargs - 2));
 	if (lua_pcall(current_state, 1 + extraargs, 1, 0)) {
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
 		no_action--;
@@ -1046,7 +1049,7 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 	for(int32 i = 0; i < extraargs; ++i)
 		lua_pushvalue(current_state, (int32)(-extraargs - 2));
 	if (lua_pcall(current_state, 1 + extraargs, 1, 0)) {
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(current_state, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
 		lua_pop(current_state, 1);
 		no_action--;
@@ -1186,7 +1189,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 		return COROUTINE_YIELD;
 	} else {
 		coroutines.erase(f);
-		interpreter::strcpy(pduel->strbuffer, lua_tostring(rthread, -1));
+		sprintf(pduel->strbuffer, "%s", lua_tostring(rthread, -1));
 		handle_message(pduel, 1);
 		lua_pop(rthread, 1);
 		current_state = lua_state;
