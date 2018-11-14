@@ -3286,8 +3286,8 @@ int32 card::check_fusion_substitute(card* fcard) {
 			return TRUE;
 	return FALSE;
 }
-int32 card::is_not_tuner(card* scard) {
-	if(!(get_synchro_type() & TYPE_TUNER))
+int32 card::is_not_tuner(card* scard, uint8 playerid) {
+	if(!(get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & TYPE_TUNER))
 		return TRUE;
 	effect_set eset;
 	filter_effect(EFFECT_NONTUNER, &eset);

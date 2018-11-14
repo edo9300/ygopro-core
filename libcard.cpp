@@ -1120,8 +1120,7 @@ int32 scriptlib::card_is_not_tuner(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = *(card**)lua_touserdata(L, 2);
 	int32 playerid = lua_tonumberint(L, 3);
-	uint32 type = pcard->get_type(scard, SUMMON_TYPE_SYNCHRO, playerid);
-	lua_pushboolean(L, pcard->is_not_tuner(scard));
+	lua_pushboolean(L, pcard->is_not_tuner(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_set_status(lua_State *L) {

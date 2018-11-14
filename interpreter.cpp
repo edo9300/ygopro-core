@@ -609,15 +609,11 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	//Initial
 	luaL_openlibs(lua_state);
 	lua_pushnil(lua_state);
+	lua_setglobal(lua_state, "file");
+	lua_pushnil(lua_state);
 	lua_setglobal(lua_state, "io");
 	lua_pushnil(lua_state);
 	lua_setglobal(lua_state, "os");
-	luaL_getsubtable(lua_state, LUA_REGISTRYINDEX, LUA_LOADED_TABLE);
-	lua_pushnil(lua_state);
-	lua_setfield(lua_state, -2, "io");
-	lua_pushnil(lua_state);
-	lua_setfield(lua_state, -2, "os");
-	lua_pop(lua_state, 1);
 	//open all libs
 	luaL_newlib(lua_state, cardlib);
 	lua_pushstring(lua_state, "__index");
