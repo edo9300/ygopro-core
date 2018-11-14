@@ -297,7 +297,7 @@ public:
 	int32 fusion_check(group* fusion_m, group* cg, uint32 chkf);
 	void fusion_filter_valid(group* fusion_m, group* cg, uint32 chkf, effect_set* eset);
 	int32 check_fusion_substitute(card* fcard);
-	int32 is_not_tuner(card* scard);
+	int32 is_not_tuner(card* scard, uint8 playerid);
 
 	int32 check_unique_code(card* pcard);
 	void get_unique_target(card_set* cset, int32 controler, card* icard = 0);
