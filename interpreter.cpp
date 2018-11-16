@@ -635,8 +635,8 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	luaL_newlib(lua_state, debuglib);
 	lua_setglobal(lua_state, "Debug");
 	//extra scripts
-	load_script((char*) "./script/constant.lua");
-	load_script((char*) "./script/utility.lua");
+	load_script((char*) "constant.lua");
+	load_script((char*) "utility.lua");
 }
 interpreter::~interpreter() {
 	lua_close(lua_state);
@@ -764,7 +764,7 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_getglobal(current_state, class_name);
 		lua_setglobal(current_state, "self_table");
 		char script_name[64];
-		sprintf(script_name, "./script/c%d.lua", code);
+		sprintf(script_name, "c%d.lua", code);
 		if(!load_script(script_name)) {
 			lua_pushnil(current_state);
 			lua_setglobal(current_state, "self_table");
