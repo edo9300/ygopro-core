@@ -4042,6 +4042,14 @@ int32 card::is_can_be_fusion_material(card* fcard) {
 		if(eset[i]->get_value(fcard))
 			return FALSE;
 	eset.clear();
+	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(SUMMON_TYPE_FUSION, PARAM_TYPE_INT);
+		pduel->lua->add_param(fcard->current.controler, PARAM_TYPE_INT);
+		if(eset[i]->get_value(fcard, 2));
+		return FALSE;
+	}
+	eset.clear();
 	if (fcard) {
 		filter_effect(EFFECT_EXTRA_FUSION_MATERIAL, &eset);
 		if(eset.size()) {
@@ -4075,11 +4083,27 @@ int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner)
 	for(int32 i = 0; i < eset.size(); ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;
+	eset.clear();
+	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(SUMMON_TYPE_SYNCHRO, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if(eset[i]->get_value(scard, 2));
+		return FALSE;
+	}
 	return TRUE;
 }
 int32 card::is_can_be_ritual_material(card* scard) {
 	if(!(get_type() & TYPE_MONSTER))
 		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(SUMMON_TYPE_RITUAL, PARAM_TYPE_INT);
+		pduel->lua->add_param(scard->current.controler, PARAM_TYPE_INT);
+		if(eset[i]->get_value(scard, 2));
+		return FALSE;
+	}
 	if(current.location == LOCATION_GRAVE) {
 		effect_set eset;
 		filter_effect(EFFECT_EXTRA_RITUAL_MATERIAL, &eset);
@@ -4102,6 +4126,14 @@ int32 card::is_can_be_xyz_material(card* scard, uint8 playerid) {
 	for(int32 i = 0; i < eset.size(); ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;
+	eset.clear();
+	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(SUMMON_TYPE_XYZ, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if(eset[i]->get_value(scard, 2));
+		return FALSE;
+	}
 	return TRUE;
 }
 int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
@@ -4114,7 +4146,38 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 	for(int32 i = 0; i < eset.size(); ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;
+	eset.clear();
+	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(SUMMON_TYPE_LINK, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if(eset[i]->get_value(scard, 2));
+		return FALSE;
+	}
 	return TRUE;
+}
+int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
+	if(sumtype == SUMMON_TYPE_FUSION)
+		return is_can_be_fusion_material(scard);
+	if(sumtype == SUMMON_TYPE_SYNCHRO)
+		return is_can_be_synchro_material(scard, playerid);
+	if(sumtype == SUMMON_TYPE_RITUAL)
+		return is_can_be_ritual_material(scard);
+	if(sumtype == SUMMON_TYPE_XYZ)
+		return is_can_be_xyz_material(scard, playerid);
+	if(sumtype == SUMMON_TYPE_LINK)
+		return is_can_be_link_material(scard, playerid);
+	if(is_status(STATUS_FORBIDDEN))
+		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+	for(int32 i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if(eset[i]->get_value(scard, 2));
+		return FALSE;
+	}
+	return int32();
 }
 bool card::recreate(uint32 code) {
 	card_data dat;

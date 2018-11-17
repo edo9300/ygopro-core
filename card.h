@@ -349,6 +349,7 @@ public:
 	int32 is_can_be_ritual_material(card* scard);
 	int32 is_can_be_xyz_material(card* scard, uint8 playerid);
 	int32 is_can_be_link_material(card* scard, uint8 playerid);
+	int32 is_can_be_material(card* scard, uint32 sumtype, uint8 playerid);
 	bool recreate(uint32 code);
 };
 

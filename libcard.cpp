@@ -2708,7 +2708,7 @@ int32 scriptlib::card_is_can_be_xyz_material(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_is_can_be_link_material(lua_State *L) {
-	check_param_count(L, 3);
+	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
@@ -2721,6 +2721,23 @@ int32 scriptlib::card_is_can_be_link_material(lua_State *L) {
 		playerid = lua_tonumberint(L, 3);
 	}
 	lua_pushboolean(L, pcard->is_can_be_link_material(scard, playerid));
+	return 1;
+}
+int32 scriptlib::card_is_can_be_material(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	uint32 sumtype = lua_tonumberint(L, 2);
+	card* scard = 0;
+	if(lua_gettop(L) >= 3) {
+		check_param(L, PARAM_TYPE_CARD, 3);
+		scard = *(card**)lua_touserdata(L, 3);
+	}
+	uint32 playerid = PLAYER_NONE;
+	if(lua_gettop(L) >= 4) {
+		playerid = lua_tonumberint(L, 4);
+	}
+	lua_pushboolean(L, pcard->is_can_be_material(scard, sumtype, playerid));
 	return 1;
 }
 int32 scriptlib::card_check_fusion_material(lua_State *L) {
