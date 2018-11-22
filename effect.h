@@ -47,7 +47,7 @@ public:
 	uint32 reset_flag;
 	uint32 count_code;
 	uint32 count_flag;
-	uint32 category;
+	uint32 category[2];
 	uint32 hint_timing[2];
 	uint32 card_type;
 	uint32 active_type;

@@ -216,8 +216,10 @@ int32 scriptlib::effect_set_category(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_EFFECT, 1);
 	effect* peffect = *(effect**) lua_touserdata(L, 1);
-	uint32 v = lua_tointeger(L, 2);
-	peffect->category = v;
+	uint32 v1 = lua_tointeger(L, 2);
+	uint32 v2 = lua_tointeger(L, 3);
+	peffect->category[0] = v1;
+	peffect->category[1] = v2;
 	return 0;
 }
 int32 scriptlib::effect_set_hint_timing(lua_State *L) {
@@ -400,8 +402,9 @@ int32 scriptlib::effect_get_category(lua_State *L) {
 	check_param(L, PARAM_TYPE_EFFECT, 1);
 	effect* peffect = *(effect**) lua_touserdata(L, 1);
 	if (peffect) {
-		lua_pushinteger(L, peffect->category);
-		return 1;
+		lua_pushinteger(L, peffect->category[0]);
+		lua_pushinteger(L, peffect->category[1]);
+		return 2;
 	}
 	return 0;
 }
@@ -505,8 +508,9 @@ int32 scriptlib::effect_is_has_category(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_EFFECT, 1);
 	effect* peffect = *(effect**) lua_touserdata(L, 1);
-	uint32 tcate = lua_tonumberint(L, 2);
-	if (peffect && (peffect->category & tcate))
+	uint32 tcate1 = lua_tonumberint(L, 2);
+	uint32 tcate2 = lua_tonumberint(L, 3);
+	if (peffect && (!tcate1 || (peffect->category[0] & tcate1) && (!tcate2 || (peffect->category[1] & tcate2)))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
