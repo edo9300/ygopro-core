@@ -3892,14 +3892,9 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 		if(pcard->data.type & TYPE_TOKEN) {
 			pduel->write_buffer8(MSG_MOVE);
 			pduel->write_buffer32(pcard->data.code);
-			pduel->write_buffer8(pcard->current.controler);
-			pduel->write_buffer8(pcard->current.location);
-			pduel->write_buffer8(pcard->current.sequence);
-			pduel->write_buffer8(pcard->current.position);
-			pduel->write_buffer8(0);
-			pduel->write_buffer8(0);
-			pduel->write_buffer8(0);
-			pduel->write_buffer8(0);
+			loc_info tmp_info = pcard->get_info_location();
+			pduel->write_info_location(&tmp_info);
+			pduel->write_info_location();
 			pduel->write_buffer32(pcard->current.reason);
 			pcard->previous.controler = pcard->current.controler;
 			pcard->previous.location = pcard->current.location;
