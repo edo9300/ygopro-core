@@ -5,7 +5,7 @@ project "ocgcore"
 	
 	configuration "windows"
 		links { "lua" }
-		includedirs { "../lua" }
+		includedirs { "lua" }
 	configuration "not vs*"
 		buildoptions { "-std=c++14" }
 	configuration "not windows"
