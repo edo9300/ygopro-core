@@ -1,7 +1,12 @@
 project "ocgcore"
 	kind "StaticLib"
+	filter "*DLL"
+		kind "SharedLib"
+	filter {}
+	
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
-	flags { "ExtraWarnings", "OptimizeSpeed" }
+	warnings "Extra"
+	optimize "Speed"
 	
 	configuration "windows"
 		links { "lua" }
