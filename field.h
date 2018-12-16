@@ -495,11 +495,6 @@ public:
 	int32 check_hand_trigger(chain& ch);
 	int32 check_trigger_effect(const chain& ch) const;
 	int32 check_spself_from_hand_trigger(const chain& ch) const;
-	int32 check_cteffect_hint(effect* peffect, uint8 playerid);
-	int32 check_deck_effect(chain& ch) const;
-	int32 check_hand_trigger(chain& ch);
-	int32 check_trigger_effect(const chain& ch) const;
-	int32 check_spself_from_hand_trigger(const chain& ch) const;
 	int32 is_able_to_enter_bp();
 
 	void add_process(uint16 type, uint16 step, effect* peffect, group* target, ptr arg1, ptr arg2, ptr arg3 = 0, ptr arg4 = 0, void* ptr1 = NULL, void* ptr2 = NULL);

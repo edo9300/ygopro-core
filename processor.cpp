@@ -1484,7 +1484,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 					continue;
 				peffect->id = infos.field_id++;
 				newchain.triggering_effect = peffect;
-				if(check_hint_timing(peffect) || check_cteffect_hint(peffect, priority))
+				if(check_hint_timing(peffect) || check_cteffect_hint(peffect, check_player))
 					core.spe_effect[check_player]++;
 				core.select_chains.push_back(newchain);
 				fc_count++;

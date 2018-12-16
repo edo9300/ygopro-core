@@ -154,7 +154,7 @@ struct card_sort {
 #define REASON_DRAW			0x2000000	//
 #define REASON_REDIRECT		0x4000000	//
 //#define REASON_REVEAL			0x8000000	//
-#define REASON_LINK		
+#define REASON_LINK			0x10000000	//
 
 //Status
 #define STATUS_DISABLED				0x0001	//
