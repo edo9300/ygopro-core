@@ -2155,6 +2155,32 @@ void field::check_card_counter(card* pcard, int32 counter_type, int32 playerid) 
 		}
 	}
 }
+void field::check_card_counter(group* pgroup, int32 counter_type, int32 playerid) {
+	auto& counter_map = (counter_type == 1) ? core.summon_counter :
+						(counter_type == 2) ? core.normalsummon_counter :
+						(counter_type == 3) ? core.spsummon_counter :
+						(counter_type == 4) ? core.flipsummon_counter : core.attack_counter;
+	for(auto& iter : counter_map) {
+		auto& info = iter.second;
+		if((playerid == 0) && (info.second & 0xffff) != 0)
+			continue;
+		if((playerid == 1) && (info.second & 0xffff0000) != 0)
+			continue;
+		if(info.first) {
+			for(auto& pcard : pgroup->container) {
+				pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+				if(!pduel->lua->check_condition(info.first, 1)) {
+					if(playerid == 0)
+						info.second += 0x1;
+					else
+						info.second += 0x10000;
+					break;
+				}
+			}
+		}
+	}
+}
+
 void field::check_chain_counter(effect* peffect, int32 playerid, int32 chainid, bool cancel) {
 	for(auto& iter : core.chain_counter) {
 		auto& info = iter.second;
@@ -2987,6 +3013,192 @@ int32 field::get_cteffect_evt(effect* feffect, int32 playerid, const tevent& e, 
 		newchain.triggering_effect = feffect;
 		core.select_chains.push_back(newchain);
 		core.select_options.push_back(feffect->description);
+	}
+	return TRUE;
+}
+int32 field::check_cteffect_hint(effect* peffect, uint8 playerid) {
+	card* phandler = peffect->get_handler();
+	if(phandler->data.type != (TYPE_TRAP | TYPE_CONTINUOUS))
+		return FALSE;
+	if(!(peffect->type & EFFECT_TYPE_ACTIVATE))
+		return FALSE;
+	if(peffect->code != EVENT_FREE_CHAIN)
+		return FALSE;
+	if(peffect->cost || peffect->target || peffect->operation)
+		return FALSE;
+	for(auto& efit : phandler->field_effect) {
+		effect* feffect = efit.second;
+		if(!(feffect->type & (EFFECT_TYPE_TRIGGER_F | EFFECT_TYPE_TRIGGER_O | EFFECT_TYPE_QUICK_O)))
+			continue;
+		if(!feffect->in_range(phandler))
+			continue;
+		uint32 code = efit.first;
+		if(code == EVENT_FREE_CHAIN || code == EVENT_PHASE + infos.phase) {
+			nil_event.event_code = code;
+			if(get_cteffect_evt(feffect, playerid, nil_event, FALSE)
+				&& (code != EVENT_FREE_CHAIN || check_hint_timing(feffect)))
+				return TRUE;
+		} else {
+			for(const auto& ev : core.point_event) {
+				if(code != ev.event_code)
+					continue;
+				if(get_cteffect_evt(feffect, playerid, ev, FALSE))
+					return TRUE;
+			}
+			for(const auto& ev : core.instant_event) {
+				if(code != ev.event_code)
+					continue;
+				if(get_cteffect_evt(feffect, playerid, ev, FALSE))
+					return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+int32 field::check_deck_effect(chain& ch) const {
+	effect* peffect = ch.triggering_effect;
+	card* phandler = peffect->get_handler();
+	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
+		&& ch.triggering_location == LOCATION_DECK && (phandler->current.location & LOCATION_DECK)) {
+		if((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
+			&& peffect->code == EVENT_TO_DECK || (peffect->range & LOCATION_DECK)) {
+			ch.flag |= CHAIN_DECK_EFFECT;
+		} else
+			return FALSE;
+	}
+	return TRUE;
+}
+int32 field::check_hand_trigger(chain& ch) {
+	effect* peffect = ch.triggering_effect;
+	card* phandler = peffect->get_handler();
+	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
+		&& ((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
+			&& phandler->is_has_relation(ch) && ch.triggering_location == LOCATION_HAND
+			|| (peffect->range & LOCATION_HAND))) {
+		ch.flag |= CHAIN_HAND_TRIGGER;
+		core.new_ochain_h.push_back(ch);
+		if(ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN)
+			|| peffect->range && !peffect->in_range(ch))
+			return FALSE;
+	}
+	return TRUE;
+}
+int32 field::check_trigger_effect(const chain& ch) const {
+	effect* peffect = ch.triggering_effect;
+	card* phandler = peffect->get_handler();
+	if((peffect->type & EFFECT_TYPE_FIELD) && !phandler->is_has_relation(ch))
+		return FALSE;
+	if(peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE)
+		return TRUE;
+	if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
+		&& (ch.triggering_position & POS_FACEDOWN))
+		return TRUE;
+	if(!(phandler->current.location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
+		|| phandler->is_position(POS_FACEUP))
+		return TRUE;
+	return FALSE;
+}
+int32 field::check_spself_from_hand_trigger(const chain& ch) const {
+	effect* peffect = ch.triggering_effect;
+	uint8 tp = ch.triggering_player;
+	if((peffect->status & EFFECT_STATUS_SPSELF) && (ch.flag & CHAIN_HAND_TRIGGER)) {
+		return std::none_of(core.current_chain.begin(), core.current_chain.end(), [tp](chain ch) {
+			return ch.triggering_player == tp
+				&& (ch.triggering_effect->status & EFFECT_STATUS_SPSELF) && (ch.flag & CHAIN_HAND_TRIGGER);
+		});
+	}
+	return TRUE;
+}
+int32 field::check_cteffect_hint(effect* peffect, uint8 playerid) {
+	card* phandler = peffect->get_handler();
+	if(phandler->data.type != (TYPE_TRAP | TYPE_CONTINUOUS))
+		return FALSE;
+	if(!(peffect->type & EFFECT_TYPE_ACTIVATE))
+		return FALSE;
+	if(peffect->code != EVENT_FREE_CHAIN)
+		return FALSE;
+	if(peffect->cost || peffect->target || peffect->operation)
+		return FALSE;
+	for(auto& efit : phandler->field_effect) {
+		effect* feffect = efit.second;
+		if(!(feffect->type & (EFFECT_TYPE_TRIGGER_F | EFFECT_TYPE_TRIGGER_O | EFFECT_TYPE_QUICK_O)))
+			continue;
+		if(!feffect->in_range(phandler))
+			continue;
+		uint32 code = efit.first;
+		if(code == EVENT_FREE_CHAIN || code == EVENT_PHASE + infos.phase) {
+			nil_event.event_code = code;
+			if(get_cteffect_evt(feffect, playerid, nil_event, FALSE)
+				&& (code != EVENT_FREE_CHAIN || check_hint_timing(feffect)))
+				return TRUE;
+		} else {
+			for(const auto& ev : core.point_event) {
+				if(code != ev.event_code)
+					continue;
+				if(get_cteffect_evt(feffect, playerid, ev, FALSE))
+					return TRUE;
+			}
+			for(const auto& ev : core.instant_event) {
+				if(code != ev.event_code)
+					continue;
+				if(get_cteffect_evt(feffect, playerid, ev, FALSE))
+					return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+int32 field::check_deck_effect(chain& ch) const {
+	effect* peffect = ch.triggering_effect;
+	card* phandler = peffect->get_handler();
+	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
+		&& ch.triggering_location == LOCATION_DECK && (phandler->current.location & LOCATION_DECK)) {
+		if((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
+			&& peffect->code == EVENT_TO_DECK || (peffect->range & LOCATION_DECK)) {
+			ch.flag |= CHAIN_DECK_EFFECT;
+		} else
+			return FALSE;
+	}
+	return TRUE;
+}
+int32 field::check_hand_trigger(chain& ch) {
+	effect* peffect = ch.triggering_effect;
+	card* phandler = peffect->get_handler();
+	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
+		&& ((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
+			&& phandler->is_has_relation(ch) && ch.triggering_location == LOCATION_HAND
+			|| (peffect->range & LOCATION_HAND))) {
+		ch.flag |= CHAIN_HAND_TRIGGER;
+		core.new_ochain_h.push_back(ch);
+		if(ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN)
+			|| peffect->range && !peffect->in_range(ch))
+			return FALSE;
+	}
+	return TRUE;
+}
+int32 field::check_trigger_effect(const chain& ch) const {
+	effect* peffect = ch.triggering_effect;
+	card* phandler = peffect->get_handler();
+	if((peffect->type & EFFECT_TYPE_FIELD) && !phandler->is_has_relation(ch))
+		return FALSE;
+	if(peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE)
+		return TRUE;
+	if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
+		&& (ch.triggering_position & POS_FACEDOWN))
+		return TRUE;
+	if(!(phandler->current.location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
+		|| phandler->is_position(POS_FACEUP))
+		return TRUE;
+	return FALSE;
+}
+int32 field::check_spself_from_hand_trigger(const chain& ch) const {
+	effect* peffect = ch.triggering_effect;
+	uint8 tp = ch.triggering_player;
+	if((peffect->status & EFFECT_STATUS_SPSELF) && (ch.flag & CHAIN_HAND_TRIGGER)) {
+		return std::none_of(core.current_chain.begin(), core.current_chain.end(), [tp](chain ch) {
+			return ch.triggering_player == tp
+				&& (ch.triggering_effect->status & EFFECT_STATUS_SPSELF) && (ch.flag & CHAIN_HAND_TRIGGER);
+		});
 	}
 	return TRUE;
 }

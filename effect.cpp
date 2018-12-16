@@ -603,7 +603,8 @@ void effect::dec_count(uint32 playerid) {
 		return;
 	if(count_limit == 0)
 		return;
-	count_limit -= 1;
+	if(count_code == 0 || is_flag(EFFECT_FLAG_NO_TURN_RESET))
+		count_limit -= 1;
 	if(count_code || count_flag) {
 		if(count_flag & EFFECT_COUNT_CODE_SINGLE)
 			pduel->game_field->add_effect_code(get_handler()->fieldid, count_flag, PLAYER_NONE);

@@ -441,6 +441,7 @@ public:
 	effect* check_unique_onfield(card* pcard, uint8 controler, uint8 location, card* icard = 0);
 	int32 check_spsummon_once(card* pcard, uint8 playerid);
 	void check_card_counter(card* pcard, int32 counter_type, int32 playerid);
+	void check_card_counter(group* pgroup, int32 counter_type, int32 playerid);
 	void check_chain_counter(effect* peffect, int32 playerid, int32 chainid, bool cancel = false);
 	void set_spsummon_counter(uint8 playerid, bool add = true, bool chain = false);
 	int32 check_spsummon_counter(uint8 playerid, uint8 ct = 1);
@@ -489,6 +490,16 @@ public:
 	chain* get_chain(uint32 chaincount);
 	int32 get_cteffect(effect* peffect, int32 playerid, int32 store);
 	int32 get_cteffect_evt(effect* feffect, int32 playerid, const tevent& e, int32 store);
+	int32 check_cteffect_hint(effect* peffect, uint8 playerid);
+	int32 check_deck_effect(chain& ch) const;
+	int32 check_hand_trigger(chain& ch);
+	int32 check_trigger_effect(const chain& ch) const;
+	int32 check_spself_from_hand_trigger(const chain& ch) const;
+	int32 check_cteffect_hint(effect* peffect, uint8 playerid);
+	int32 check_deck_effect(chain& ch) const;
+	int32 check_hand_trigger(chain& ch);
+	int32 check_trigger_effect(const chain& ch) const;
+	int32 check_spself_from_hand_trigger(const chain& ch) const;
 	int32 is_able_to_enter_bp();
 
 	void add_process(uint16 type, uint16 step, effect* peffect, group* target, ptr arg1, ptr arg2, ptr arg3 = 0, ptr arg4 = 0, void* ptr1 = NULL, void* ptr2 = NULL);

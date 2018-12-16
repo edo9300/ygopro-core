@@ -641,7 +641,7 @@ int32 field::pay_lp_cost(uint32 step, uint8 playerid, uint32 cost) {
 		if(core.select_options.size() == 1)
 			returns.ivalue[0] = 0;
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, playerid, 0);
+			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, playerid, 218);
 		else
 			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
 		return FALSE;
@@ -705,7 +705,7 @@ int32 field::remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplay
 		if(core.select_options.size() == 1)
 			returns.ivalue[0] = 0;
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 0);
+			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 219);
 		else
 			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
 		return FALSE;
@@ -781,7 +781,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint
 		if(core.select_options.size() == 1)
 			returns.ivalue[0] = 0;
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 0);
+			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 220);
 		else
 			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
 		return FALSE;
@@ -1871,8 +1871,6 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		pduel->write_info_location(&tmp_info);
 		core.summon_state_count[sumplayer]++;
 		core.normalsummon_state_count[sumplayer]++;
-		check_card_counter(target, 1, sumplayer);
-		check_card_counter(target, 2, sumplayer);
 		if (target->material_cards.size()) {
 			for (auto& mcard : target->material_cards)
 				raise_single_event(mcard, 0, EVENT_BE_PRE_MATERIAL, proc, REASON_SUMMON, sumplayer, sumplayer, 0);
@@ -1947,6 +1945,8 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		return FALSE;
 	}
 	case 18: {
+		check_card_counter(target, 1, sumplayer);
+		check_card_counter(target, 2, sumplayer);
 		raise_single_event(target, 0, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
 		process_single_event();
 		raise_event(target, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
@@ -1986,7 +1986,6 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card * target) {
 		target->fieldid = infos.field_id++;
 		core.phase_action = TRUE;
 		core.flipsummon_state_count[sumplayer]++;
-		check_card_counter(target, 4, sumplayer);
 		pduel->write_buffer8(MSG_FLIPSUMMONING);
 		pduel->write_buffer32(target->data.code);
 		loc_info tmp_info = target->get_info_location();
@@ -2020,6 +2019,7 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card * target) {
 	}
 	case 4: {
 		pduel->write_buffer8(MSG_FLIPSUMMONED);
+		check_card_counter(target, 4, sumplayer);
 		adjust_instant();
 		raise_single_event(target, 0, EVENT_FLIP, 0, 0, sumplayer, sumplayer, 0);
 		raise_single_event(target, 0, EVENT_FLIP_SUMMON_SUCCESS, 0, 0, sumplayer, sumplayer, 0);
@@ -2713,7 +2713,6 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		target->current.reason_player = sumplayer;
 		target->summon_player = sumplayer;
 		set_spsummon_counter(sumplayer);
-		check_card_counter(target, 3, sumplayer);
 		if(target->spsummon_code)
 			core.spsummon_once_map[sumplayer][target->spsummon_code]++;
 		break_effect();
@@ -2821,6 +2820,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		return FALSE;
 	}
 	case 17: {
+		check_card_counter(target, 3, sumplayer);
 		raise_single_event(target, 0, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
 		process_single_event();
 		raise_event(target, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
@@ -2884,7 +2884,6 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		pcard->current.reason_player = sumplayer;
 		pcard->summon_player = sumplayer;
 		pcard->summon_info = (peffect->get_value(pcard) & 0xff00ffff) | SUMMON_TYPE_SPECIAL | ((uint32)pcard->current.location << 16);
-		check_card_counter(pcard, 3, sumplayer);
 		effect_set eset;
 		uint8 positions = POS_FACEUP;
 		filter_player_effect(sumplayer, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
@@ -2987,6 +2986,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	case 28: {
 		group* pgroup = core.units.begin()->ptarget;
 		pduel->write_buffer8(MSG_SPSUMMONED);
+		check_card_counter(pgroup, 3, sumplayer);
 		for(auto& pcard : pgroup->container)
 			raise_single_event(pcard, 0, EVENT_SPSUMMON_SUCCESS, pcard->current.reason_effect, 0, pcard->current.reason_player, pcard->summon_player, 0);
 		process_single_event();
@@ -3057,8 +3057,6 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 		if(!targets)
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
-		check_card_counter(target, 3, target->summon_player);
-		uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
 		bool extra = !(zone & 0xff);
 		if(targets && (pduel->game_field->core.duel_options & DUEL_EMZONE)) {
 			uint32 flag1, flag2;
@@ -3081,7 +3079,7 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 					zone &= flag1;
 			}
 		}
-		move_to_field(target, move_player, playerid, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
+		move_to_field(target, move_player, target->summon_player, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		return FALSE;
 	}
 	case 2: {
@@ -3178,6 +3176,7 @@ int32 field::special_summon(uint16 step, effect* reason_effect, uint8 reason_pla
 	case 3: {
 		pduel->write_buffer8(MSG_SPSUMMONED);
 		for(auto& pcard : targets->container) {
+			check_card_counter(pcard, 3, pcard->summon_player);
 			if(!(pcard->current.position & POS_FACEDOWN))
 				raise_single_event(pcard, 0, EVENT_SPSUMMON_SUCCESS, pcard->current.reason_effect, 0, pcard->current.reason_player, pcard->summon_player, 0);
 			int32 summontype = pcard->summon_info & 0xff000000;
