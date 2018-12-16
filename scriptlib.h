@@ -444,6 +444,7 @@ public:
 	static int32 duel_change_attacker(lua_State *L);
 	static int32 duel_change_attack_target(lua_State *L);
 	static int32 duel_attack_cost_paid(lua_State *L);
+	static int32 duel_force_attack(lua_State *L);
 	static int32 duel_calculate_damage(lua_State *L);
 	static int32 duel_get_battle_damage(lua_State *L);
 	static int32 duel_change_battle_damage(lua_State *L);

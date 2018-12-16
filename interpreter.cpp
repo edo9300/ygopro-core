@@ -446,6 +446,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "ChangeAttacker", scriptlib::duel_change_attacker },
 	{ "ChangeAttackTarget", scriptlib::duel_change_attack_target },
 	{ "AttackCostPaid", scriptlib::duel_attack_cost_paid },
+	{ "ForceAttack", scriptlib::duel_force_attack },
 	{ "CalculateDamage", scriptlib::duel_calculate_damage },
 	{ "GetBattleDamage", scriptlib::duel_get_battle_damage },
 	{ "ChangeBattleDamage", scriptlib::duel_change_battle_damage },

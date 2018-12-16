@@ -252,6 +252,13 @@ int32 field::process() {
 			it->step++;
 		return pduel->bufferlen;
 	}
+	case PROCESSOR_FORCED_BATTLE: {
+		if(process_forced_battle(it->step))
+			core.units.pop_front();
+		else
+			it->step++;
+		return pduel->bufferlen;
+	}
 	case PROCESSOR_ADD_CHAIN: {
 		if (add_chain(it->step))
 			core.units.pop_front();
@@ -1662,9 +1669,17 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		core.instant_event.clear();
 		core.point_event.clear();
 		core.full_event.clear();
+		/*if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}*/
 		return TRUE;
 	}
 	}
+	/*if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}*/
 	return TRUE;
 }
 int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_freechain, int32 skip_new) {
@@ -1929,6 +1944,10 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			reset_chain();
 			returns.ivalue[0] = FALSE;
 		}
+		if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}
 		return TRUE;
 	}
 	case 30: {
@@ -1998,6 +2017,10 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		return FALSE;
 	}
 	}
+	if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}
 	return TRUE;
 }
 int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priority) {
@@ -2038,6 +2061,10 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 				add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - core.new_chains.back().triggering_player);
 				infos.priorities[0] = 0;
 				infos.priorities[1] = 0;
+				/*if(core.set_forced_attack) {
+					core.set_forced_attack = false;
+					add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+				}*/
 				return TRUE;
 			}
 			return FALSE;
@@ -2227,14 +2254,25 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 			}
 		}
 		core.select_chains.clear();
+		/*if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}*/
 		return TRUE;
 	}
 	}
+	/*if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}*/
 	return TRUE;
 }
 int32 field::process_instant_event() {
-	if (core.queue_event.size() == 0)
+	if(core.queue_event.size() == 0) {
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return TRUE;
+	}
 	chain newchain;
 	chain_list tp;
 	chain_list ntp;
@@ -2358,11 +2396,20 @@ int32 field::process_instant_event() {
 		add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, 0, 0, 0, 0);
 	}
 	core.instant_event.splice(core.instant_event.end(), core.queue_event);
+	/*if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}*/
 	return TRUE;
 }
 int32 field::process_single_event() {
-	if(core.single_event.size() == 0)
+	if(core.single_event.size() == 0) {
+		/*if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}*/
 		return TRUE;
+	}
 	chain_list tp;
 	chain_list ntp;
 	for(const auto& ev : core.single_event) {
@@ -2393,6 +2440,10 @@ int32 field::process_single_event() {
 		add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, 0, 0, 0, 0);
 	}
 	core.single_event.clear();
+	/*if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}*/
 	return TRUE;
 }
 int32 field::process_single_event(effect* peffect, const tevent& e, chain_list& tp, chain_list& ntp) {
@@ -2471,6 +2522,10 @@ int32 field::process_single_event(effect* peffect, const tevent& e, chain_list& 
 			phandler->add_effect(negeff);
 		}
 	}
+	/*if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}*/
 	return TRUE;
 }
 int32 field::process_idle_command(uint16 step) {
@@ -2481,6 +2536,12 @@ int32 field::process_idle_command(uint16 step) {
 		core.select_chains.clear();
 		chain newchain;
 		nil_event.event_code = EVENT_FREE_CHAIN;
+		if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			core.units.begin()->step = -1;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+			return FALSE;
+		}
 		core.to_bp = TRUE;
 		core.to_ep = TRUE;
 		if((!(core.duel_options & DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1 && !(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP) || core.force_turn_end)
@@ -2679,6 +2740,10 @@ int32 field::process_idle_command(uint16 step) {
 			core.units.begin()->arg1 = ctype;
 			return FALSE;
 		}
+		/*if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}*/
 		return TRUE;
 	}
 	case 2: {
@@ -2765,6 +2830,10 @@ int32 field::process_idle_command(uint16 step) {
 	case 11: {
 		returns.ivalue[0] = core.units.begin()->arg1;
 		infos.can_shuffle = TRUE;
+		/*if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}*/
 		return TRUE;
 	}
 	case 12: {
@@ -2792,6 +2861,10 @@ int32 field::process_idle_command(uint16 step) {
 		return FALSE;
 	}
 	}
+	/*if(core.set_forced_attack) {
+		core.set_forced_attack = false;
+		add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+	}*/
 	return TRUE;
 }
 int32 field::process_battle_command(uint16 step) {
@@ -2925,7 +2998,8 @@ int32 field::process_battle_command(uint16 step) {
 		} else if(ctype == 1) {
 			core.units.begin()->step = 2;
 			core.units.begin()->arg3 = FALSE;
-			core.attacker = core.attackable_cards[sel];
+			if(!core.forced_attack)
+				core.attacker = core.attackable_cards[sel];
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, FALSE);
 			core.attacker->attack_controler = core.attacker->current.controler;
 			core.pre_field[0] = core.attacker->fieldid_r;
@@ -2965,6 +3039,10 @@ int32 field::process_battle_command(uint16 step) {
 			infos.priorities[1 - infos.turn_player] = 0;
 			return FALSE;
 		}
+		/*if(core.set_forced_attack) {
+			core.set_forced_attack = false;
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);
+		}*/
 		return TRUE;
 	}
 	case 2: {
@@ -2986,9 +3064,15 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		//Cancel the attack cost
 		if(core.attack_cost_paid != 1 && !core.attack_cancelable) {
-			core.units.begin()->step = -1;
+			if(core.forced_attack) {
+				returns.ivalue[0] = 2;
+				core.units.begin()->step = 0;
+			} else
+				core.units.begin()->step = -1;
 			return FALSE;
 		}
+		if(core.forced_attack)
+			core.units.begin()->step = 6;
 		return FALSE;
 	}
 	case 4: {
@@ -3068,7 +3152,11 @@ int32 field::process_battle_command(uint16 step) {
 				core.units.begin()->step = 12;
 				return FALSE;
 			}
-			core.units.begin()->step = -1;
+			if(core.forced_attack) {
+				returns.ivalue[0] = 2;
+				core.units.begin()->step = 0;
+			} else
+				core.units.begin()->step = -1;
 			return FALSE;
 		}
 		if(returns.ivalue[0] == -2)
@@ -3100,7 +3188,11 @@ int32 field::process_battle_command(uint16 step) {
 		if(core.units.begin()->arg3) {//attack announce failed
 			core.attacker->announce_count++;
 			core.chain_attack = FALSE;
-			core.units.begin()->step = -1;
+			if(core.forced_attack) {
+				returns.ivalue[0] = 2;
+				core.units.begin()->step = 0;
+			} else
+				core.units.begin()->step = -1;
 		}
 		return FALSE;
 	}
@@ -3210,7 +3302,11 @@ int32 field::process_battle_command(uint16 step) {
 			attack_all_target_check();
 		}
 		core.chain_attack = FALSE;
-		core.units.begin()->step = -1;
+		if(core.forced_attack) {
+			returns.ivalue[0] = 2;
+			core.units.begin()->step = 0;
+		} else
+			core.units.begin()->step = -1;
 		reset_phase(PHASE_DAMAGE);
 		adjust_all();
 		return FALSE;
@@ -3656,7 +3752,11 @@ int32 field::process_battle_command(uint16 step) {
 		core.attacker->set_status(STATUS_OPPO_BATTLE, FALSE);
 		if(core.attack_target)
 			core.attack_target->set_status(STATUS_OPPO_BATTLE, FALSE);
-		core.units.begin()->step = -1;
+		if(core.forced_attack) {
+			returns.ivalue[0] = 2;
+			core.units.begin()->step = 0;
+		} else
+			core.units.begin()->step = -1;
 		infos.phase = PHASE_BATTLE_STEP;
 		pduel->write_buffer8(MSG_DAMAGE_STEP_END);
 		reset_phase(PHASE_DAMAGE);
@@ -3673,7 +3773,8 @@ int32 field::process_battle_command(uint16 step) {
 			for(auto& ch : core.current_chain)
 				ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 			add_process(PROCESSOR_SOLVE_CHAIN, 0, 0, 0, FALSE, 0);
-			core.units.begin()->step = -1;
+			if(!core.forced_attack)
+				core.units.begin()->step = -1;
 			return FALSE;
 		}
 		reset_phase(PHASE_BATTLE_STEP);
@@ -3696,6 +3797,93 @@ int32 field::process_battle_command(uint16 step) {
 		core.attack_target = 0;
 		returns.ivalue[0] = core.units.begin()->arg1;
 		returns.ivalue[1] = core.units.begin()->arg2;
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
+int32 field::process_forced_battle(uint16 step) {
+	switch(step) {
+	case 0: {
+		if (is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP))
+			return TRUE;
+		core.battle_phase_count[infos.turn_player]++;
+		if (is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.force_turn_end) {
+			pduel->write_buffer8(MSG_NEW_PHASE);
+			pduel->write_buffer16(PHASE_BATTLE_START);
+			reset_phase(PHASE_BATTLE_START);
+			reset_phase(PHASE_BATTLE_STEP);
+			reset_phase(PHASE_BATTLE);
+			adjust_all();
+			pduel->write_buffer8(MSG_NEW_PHASE);
+			pduel->write_buffer16(infos.phase);
+			return TRUE;
+		}
+		core.units.begin()->arg1 = infos.phase;
+		auto tmp_attacker = pduel->game_field->core.forced_attacker;
+		auto tmp_attack_target = pduel->game_field->core.forced_attack_target;
+		if(!tmp_attacker->is_capable_attack_announce(infos.turn_player))
+			return TRUE;
+		card_vector cv;
+		get_attack_target(tmp_attacker, &cv);
+		if((cv.size() == 0 && tmp_attacker->direct_attackable == 0) || (tmp_attack_target && std::find(cv.begin(), cv.end(), tmp_attack_target)==cv.end()))
+			return TRUE;
+		core.attacker = tmp_attacker;
+		core.attack_target = tmp_attack_target;
+		for(uint8 p = 0; p < 2; ++p) {
+			for(auto& pcard : player[p].list_mzone) {
+				if(!pcard)
+					continue;
+				pcard->attack_announce_count = 0;
+				pcard->announce_count = 0;
+				pcard->attacked_count = 0;
+				pcard->announced_cards.clear();
+				pcard->attacked_cards.clear();
+				pcard->battled_cards.clear();
+			}
+		}
+		core.forced_attack = true;
+		core.attack_cancelable = TRUE;
+		core.attack_cost_paid = FALSE;
+		core.chain_attacker_id = 0;
+		core.chain_attack_target = 0;
+		returns.ivalue[0] = 1;
+		reset_phase(infos.phase);
+		reset_phase(PHASE_BATTLE_START);
+		infos.phase = PHASE_BATTLE_STEP;
+		core.new_fchain.clear();
+		core.new_ochain.clear();
+		core.quick_f_chain.clear();
+		core.delayed_quick_tmp.clear();
+		pduel->write_buffer8(MSG_NEW_PHASE);
+		pduel->write_buffer16(PHASE_BATTLE_START);
+		add_process(PROCESSOR_BATTLE_COMMAND, 1, 0, 0, 0, 0);
+		return FALSE;
+	}
+	case 1: {
+		reset_phase(infos.phase);
+		core.forced_attack = false;
+		infos.phase = core.units.begin()->arg1;
+		core.new_fchain.clear();
+		core.new_ochain.clear();
+		core.quick_f_chain.clear();
+		core.delayed_quick_tmp.clear();
+		for(uint8 p = 0; p < 2; ++p) {
+			for(auto& pcard : player[p].list_mzone) {
+				if(!pcard)
+					continue;
+				pcard->attack_announce_count = 0;
+				pcard->announce_count = 0;
+				pcard->attacked_count = 0;
+				pcard->announced_cards.clear();
+				pcard->attacked_cards.clear();
+				pcard->battled_cards.clear();
+			}
+		}
+		core.attacker = 0;
+		core.attack_target = 0;
+		pduel->write_buffer8(MSG_NEW_PHASE);
+		pduel->write_buffer16(infos.phase);
 		return TRUE;
 	}
 	}
@@ -4043,6 +4231,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		process_instant_event();
 		if(core.new_fchain.size() || core.new_ochain.size())
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 2: {
@@ -4055,6 +4245,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			}
 		}
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_DRAW, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 3: {
@@ -4079,6 +4271,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		pduel->write_buffer16(infos.phase);
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_STANDBY, 0, 0, 0, turn_player, 0);
 		process_instant_event();
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 5: {
@@ -4086,6 +4280,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		if(core.new_fchain.size() || core.new_ochain.size() || core.instant_event.back().event_code != EVENT_PHASE_START + PHASE_STANDBY)
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_STANDBY, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 6: {
@@ -4095,6 +4291,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_MAIN1, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 7: {
@@ -4108,6 +4306,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		pduel->write_buffer8(MSG_NEW_PHASE);
 		pduel->write_buffer16(infos.phase);
 		add_process(PROCESSOR_IDLE_COMMAND, 0, 0, 0, 0, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 9: {
@@ -4131,15 +4331,21 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			reset_phase(PHASE_BATTLE_STEP);
 			reset_phase(PHASE_BATTLE);
 			adjust_all();
+			/*if(core.set_forced_attack)
+				add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 			return FALSE;
 		}
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_BATTLE_START, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 10: {
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_BATTLE_START, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 11: {
@@ -4151,6 +4357,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.phase_action = FALSE;
 		core.chain_attack = FALSE;
 		add_process(PROCESSOR_BATTLE_COMMAND, 0, 0, 0, 0, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 12: {
@@ -4174,6 +4382,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		if(core.duel_options & SPEED_DUEL) {
 			core.units.begin()->step = 14;
 			adjust_all();
+			/*if(core.set_forced_attack)
+				add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 			return FALSE;
 		}
 		core.skip_m2 = FALSE;
@@ -4186,11 +4396,15 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_MAIN2, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 13: {
 		if(core.new_fchain.size() || core.new_ochain.size())
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 14: {
@@ -4202,6 +4416,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		pduel->write_buffer16(infos.phase);
 		infos.can_shuffle = TRUE;
 		add_process(PROCESSOR_IDLE_COMMAND, 0, 0, 0, 0, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 15: {
@@ -4213,11 +4429,15 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_END, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 16: {
 		if(core.new_fchain.size() || core.new_ochain.size())
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 17: {
@@ -4226,12 +4446,16 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_END, 0);
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 18: {
 		raise_event((card*)0, EVENT_TURN_END, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
+		/*if(core.set_forced_attack)
+			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
 	case 19: {

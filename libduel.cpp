@@ -1602,6 +1602,19 @@ int32 scriptlib::duel_attack_cost_paid(lua_State *L) {
 	pduel->game_field->core.attack_cost_paid = paid;
 	return 0;
 }
+int32 scriptlib::duel_force_attack(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
+	card* attacker = *(card**)lua_touserdata(L, 1);
+	card* attack_target = *(card**)lua_touserdata(L, 2);
+	duel* pduel = attacker->pduel;
+	pduel->game_field->core.set_forced_attack = true;
+	pduel->game_field->core.forced_attacker = attacker;
+	pduel->game_field->core.forced_attack_target = attack_target;
+	return lua_yield(L, 0);
+}
 int32 scriptlib::duel_calculate_damage(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 2);

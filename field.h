@@ -272,6 +272,10 @@ struct processor {
 	uint8 summon_cancelable;
 	card* attacker;
 	card* attack_target;
+	bool set_forced_attack;
+	bool forced_attack;
+	card* forced_attacker;
+	card* forced_attack_target;
 	group* forced_tuner;
 	group* forced_synmat;
 	group* forced_xyzmat;
@@ -506,6 +510,7 @@ public:
 	int32 process_single_event(effect* peffect, const tevent& e, chain_list& tp, chain_list& ntp);
 	int32 process_idle_command(uint16 step);
 	int32 process_battle_command(uint16 step);
+	int32 process_forced_battle(uint16 step);
 	int32 process_damage_step(uint16 step, uint32 new_attack);
 	void calculate_battle_damage(effect** pdamchange, card** preason_card, uint8* battle_destroyed);
 	int32 process_turn(uint16 step, uint8 turn_player);
@@ -714,6 +719,7 @@ public:
 #define PROCESSOR_PHASE_EVENT		33
 #define PROCESSOR_BATTLE_COMMAND	34
 #define PROCESSOR_DAMAGE_STEP		35
+#define PROCESSOR_FORCED_BATTLE		36
 #define PROCESSOR_ADD_CHAIN			40
 #define PROCESSOR_SOLVE_CHAIN		42
 #define PROCESSOR_SOLVE_CONTINUOUS	43
