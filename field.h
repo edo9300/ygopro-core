@@ -158,6 +158,16 @@ union return_value {
 	int64 lvalue[8];
 	return_value() {};
 };
+class return_card {
+public:
+	bool canceled;
+	std::vector<card*> list;
+	return_card():canceled(false) {};
+	void clear() {
+		canceled = false;
+		list.clear();
+	}
+};
 struct processor {
 	typedef std::vector<effect*> effect_vector;
 	typedef std::vector<card*> card_vector;
@@ -363,6 +373,7 @@ public:
 	field_effect effects;
 	processor core;
 	return_value returns;
+	return_card return_cards;
 	tevent nil_event;
 
 	static int32 field_used_count[32];

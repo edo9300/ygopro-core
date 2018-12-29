@@ -225,11 +225,10 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 }
 int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
-		returns.bvalue[0] = 0;
+		return_cards.clear();
+		returns.bitvalue.reset();
 		if(max == 0 || core.select_cards.empty())
 			return TRUE;
-		if(max > 63)
-			max = 63;
 		if(max > core.select_cards.size())
 			max = core.select_cards.size();
 		if(min > max)
@@ -255,32 +254,39 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		}
 		return FALSE;
 	} else {
-		if(cancelable && returns.ivalue[0] == -1)
+		if(cancelable && returns.ivalue[0] == -1) {
+			return_cards.canceled = true;
 			return TRUE;
-		int32 tot = 0;
-		for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			tot+=returns.bitvalue[i + 1];
-		if(tot < min || tot > max) {
+		}
+		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
+			if(returns.bitvalue[i + 1]) {
+				return_cards.list.push_back(core.select_cards[i]);
+			}
+		}
+		if(return_cards.list.size() < min || return_cards.list.size() > max) {
+			return_cards.clear();
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
 	}
 }
-int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 buttonok) {
+int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 finishable) {
 	if (step == 0) {
-		returns.bvalue[0] = 0;
+		return_cards.clear();
+		returns.bitvalue.reset();
 		if (core.select_cards.empty() && core.unselect_cards.empty())
 			return TRUE;
 		if ((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.bitvalue.reset();
-			for(uint8 i = 0; i < min; ++i)
-				returns.bitvalue[i + 1] = 1;
+			if(cancelable)
+				returns.bvalue[0] = -1;
+			else
+				returns.bitvalue[1] = 1;
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_UNSELECT_CARD);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer8(buttonok);
+		pduel->write_buffer8(finishable);
 		pduel->write_buffer8(cancelable);
 		pduel->write_buffer8(min);
 		pduel->write_buffer8(max);
@@ -298,21 +304,27 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 			pduel->write_info_location(&tmp_info);
 		}
 		return FALSE;
-	}
-	else {
+	} else {
 		if(returns.ivalue[0] == -1) {
-			if(cancelable)
+			if(cancelable || finishable) {
+				return_cards.canceled = true;
 				return TRUE;
+			}
+			return_cards.clear();
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
-		int32 tot = 0;
-		for (int32 i = 0; i < (int32)(core.select_cards.size() + core.unselect_cards.size()); i++)
-			tot += returns.bitvalue[i + 1];
-		if(!tot || tot > 1) {
+		if(returns.ivalue[0] == 0 || returns.ivalue[0] > 1) {
+			return_cards.clear();
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
+		int32 max = (int32)(core.select_cards.size() + core.unselect_cards.size());
+		if(returns.ivalue[1] < 0 || returns.ivalue[1] >= max){
+			pduel->write_buffer8(MSG_RETRY);
+			return FALSE;
+		}
+		return_cards.list.push_back((returns.ivalue[1] >= (int32)core.select_cards.size()) ? core.unselect_cards[returns.ivalue[1] - core.select_cards.size()] : core.select_cards[returns.ivalue[1]]);
 		return TRUE;
 	}
 }
@@ -483,7 +495,8 @@ int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 pos
 }
 int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
-		returns.bvalue[0] = 0;
+		returns.bitvalue.reset();
+		return_cards.clear();
 		if(max == 0 || core.select_cards.empty())
 			return TRUE;
 		uint8 tm = 0;
@@ -512,15 +525,21 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		}
 		return FALSE;
 	} else {
-		if(cancelable && returns.ivalue[0] == -1)
+		if(cancelable && returns.ivalue[0] == -1) {
+			return_cards.canceled = true;
 			return TRUE;
-		int32 tot = 0, tt = 0;
-		for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			if (returns.bitvalue[i + 1]) {
-				tot++;
-				tt += core.select_cards[i]->release_param;
+		}
+		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
+			if(returns.bitvalue[i + 1]) {
+				return_cards.list.push_back(core.select_cards[i]);
 			}
+		}
+		int32 tot = (int32)return_cards.list.size();
+		int32 tt = 0;
+		for(auto& pcard : return_cards.list)
+			tt += pcard->release_param;
 		if (tt < min) {
+			return_cards.clear();
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -599,7 +618,8 @@ static int32 select_sum_check1(const int32* oparam, int32 size, int32 index, int
 }
 int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 min, int32 max) {
 	if(step == 0) {
-		returns.bvalue[0] = 0;
+		return_cards.clear();
+		returns.bitvalue.reset();
 		if(core.select_cards.empty())
 			return TRUE;
 		pduel->write_buffer8(MSG_SELECT_SUM);
@@ -633,12 +653,17 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 		return FALSE;
 	} else {
 		int32 tot = 0;
-		for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			tot += returns.bitvalue[i + 1];
+		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
+			if(returns.bitvalue[i + 1]) {
+				tot ++;
+				return_cards.list.push_back(core.select_cards[i]);
+			}
+		}
 		if (max) {
 			int32 oparam[16];
 			int32 mcount = core.must_select_cards.size();
 			if(tot < min + mcount || tot > max + mcount) {
+				return_cards.clear();
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
@@ -651,6 +676,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 				}
 			}
 			if(!select_sum_check1(oparam, tot + mcount, 0, acc)) {
+				return_cards.clear();
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
@@ -684,6 +710,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 				}
 			}
 			if(mx < acc || sum - mn >= acc) {
+				return_cards.clear();
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}

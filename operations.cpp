@@ -813,12 +813,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint
 		return FALSE;
 	}
 	case 2: {
-		card_set cset;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			if(returns.bitvalue[i + 1]) {
-				card* pcard = core.select_cards[i];
-				cset.insert(pcard);
-			}
+		card_set cset(return_cards.list.begin(), return_cards.list.end());
 		send_to(&cset, core.reason_effect, reason, rplayer, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
@@ -880,12 +875,9 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 	}
 	case 1: {
 		card_set* destroy_set = (card_set*)core.units.begin()->ptr1;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			if(returns.bitvalue[i + 1]) {
-				card* pcard = core.select_cards[i];
-				destroy_set->insert(pcard);
-				targets->container.erase(pcard);
-			}
+		destroy_set->insert(return_cards.list.begin(), return_cards.list.end());
+		for(auto& pcard : return_cards.list)
+			targets->container.erase(pcard);
 		return FALSE;
 	}
 	case 2: {
@@ -1201,12 +1193,9 @@ int32 field::control_adjust(uint16 step) {
 	case 1: {
 		card_set* destroy_set = (card_set*)core.units.begin()->peffect;
 		int32 adjp = core.units.begin()->arg1;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			if(returns.bitvalue[i + 1]) {
-				card* pcard = core.select_cards[i];
-				destroy_set->insert(pcard);
-				core.control_adjust_set[adjp].erase(pcard);
-			}
+		destroy_set->insert(return_cards.list.begin(), return_cards.list.end());
+		for(auto& pcard : return_cards.list)
+			core.control_adjust_set[adjp].erase(pcard);
 		return FALSE;
 	}
 	case 2: {
@@ -1639,15 +1628,12 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		else if(proc)
 			core.units.begin()->step = 5;
 		else {
-			if(returns.ivalue[0] == -1) {
+			if(return_cards.canceled) {
 				core.summon_depth--;
 				return TRUE;
 			}
-			if(returns.bvalue[0]) {
-				card_set* tributes = new card_set;
-				for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-					if(returns.bitvalue[i + 1])
-						tributes->insert(core.select_cards[i]);
+			if(return_cards.list.size()) {
+				card_set* tributes = new card_set(return_cards.list.begin(), return_cards.list.end());
 				core.units.begin()->peffect = (effect*)tributes;
 			}
 		}
@@ -2212,14 +2198,11 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		if(proc)
 			core.units.begin()->step = 5;
 		else {
-			if(returns.ivalue[0] == -1) {
+			if(return_cards.canceled) {
 				return TRUE;
 			}
-			if(returns.bvalue[0]) {
-				card_set* tributes = new card_set;
-				for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-					if(returns.bitvalue[i + 1])
-						tributes->insert(core.select_cards[i]);
+			if(return_cards.list.size()) {
+				card_set* tributes = new card_set(return_cards.list.begin(), return_cards.list.end());
 				core.units.begin()->peffect = (effect*)tributes;
 			}
 		}
@@ -4334,7 +4317,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(move_player);
 			pduel->write_buffer64(target->data.code);
-			add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, move_player, flag, 1);
+			add_process(PROCESSOR_SELECT_PLACE, 0, 0, (group*)target, move_player, flag, 1);
 		} else {
 			uint32 flag;
 			uint32 lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
@@ -4990,18 +4973,11 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		return FALSE;
 	}
 	case 1: {
-		int32 count = 0;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1])
-				count++;
-		}
+		int32 count = return_cards.list.size();
 		max -= count;
 		if(max == 0 || core.release_cards.size() + core.release_cards_ex_oneof.size() == 0)
 			return TRUE;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1])
-				core.operated_set.insert(core.select_cards[i]);
-		}
+		core.operated_set.insert(return_cards.list.begin(), return_cards.list.end());
 		min -= count;
 		if(min < 0)
 			min = 0;
@@ -5034,11 +5010,7 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		return FALSE;
 	}
 	case 4: {
-		card* pcard;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1])
-				pcard = core.select_cards[i];
-		}
+		card* pcard = return_cards.list[0];
 		core.operated_set.insert(pcard);
 		effect* peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_NONSUM);
 		core.dec_count_reserve.push_back(peffect);
@@ -5065,18 +5037,12 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		return FALSE;
 	}
 	case 6: {
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1])
-				core.operated_set.insert(core.select_cards[i]);
-		}
+		core.operated_set.insert(return_cards.list.begin(), return_cards.list.end());
 		return FALSE;
 	}
 	case 7: {
-		core.select_cards.clear();
-		returns.bitvalue.reset();
-		std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(core.select_cards));
-		for(int i = 0; i < (int)core.select_cards.size(); i++)
-			returns.bitvalue[i + 1] = 1;
+		return_cards.clear();
+		std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
 		return TRUE;
 	}
 	}
@@ -5224,26 +5190,21 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 		return FALSE;
 	}
 	case 3: {
-		if(returns.ivalue[0] != -1) {
-			for(int32 i = 0; i < (int32)(core.select_cards.size() + core.unselect_cards.size()); i++)
-				if(returns.bitvalue[i + 1]) {
-					if(i < core.select_cards.size()) {
-						card* pcard = core.select_cards[i];
-						core.operated_set.insert(pcard);
-						if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-							core.units.begin()->peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
-						break;
-					} else {
-						card* pcard = core.unselect_cards[i - core.select_cards.size()];
-						core.operated_set.erase(pcard);
-						if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-							core.units.begin()->peffect = nullptr;
-						break;
-					}
-					break;
-				}
+		if(!return_cards.canceled) {
+			card* pcard = return_cards.list[0];
+			if(core.operated_set.find(pcard) == core.operated_set.end()) {
+				core.operated_set.insert(pcard);
+				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
+					core.units.begin()->peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
+				break;
+			} else {
+				core.operated_set.erase(pcard);
+				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
+					core.units.begin()->peffect = nullptr;
+				break;
+			}
 		}
-		if(returns.ivalue[0] == -1 && core.operated_set.empty())
+		if(return_cards.canceled && core.operated_set.empty())
 			return TRUE;
 		uint32 rmin = core.operated_set.size();
 		uint32 rmax = 0;
@@ -5253,12 +5214,9 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 		max -= rmin;
 		min = min > 0 ? min : 0;
 		max = max > 0 ? max : 0;
-		if((returns.ivalue[0] == -1 && min <= 0) || !max) {
-			core.select_cards.clear();
-			returns.bitvalue.reset();
-			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(core.select_cards));
-			for(int i = 0; i < (int)core.select_cards.size(); i++)
-				returns.bitvalue[i + 1] = 1;
+		if((return_cards.canceled && min <= 0) || !max) {
+			return_cards.list.clear();
+			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
 			effect* peffect = core.units.begin()->peffect;
 			if(peffect)
 				peffect->dec_count();

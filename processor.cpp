@@ -689,13 +689,11 @@ int32 field::process() {
 			add_process(PROCESSOR_SELECT_CARD, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
 			it->step++;
 		} else {
-			if (returns.bvalue[0] == -1)
+			if (return_cards.canceled)
 				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			else {
 				group* pgroup = pduel->new_group();
-				for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-					if (returns.bitvalue[i + 1])
-						pgroup->container.insert(core.select_cards[i]);
+				pgroup->container.insert(return_cards.list.begin(), return_cards.list.end());
 				pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			}
 			core.units.pop_front();
@@ -707,19 +705,10 @@ int32 field::process() {
 			add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3);
 			it->step++;
 		} else {
-			if (returns.bvalue[0] == -1)
+			if (return_cards.canceled)
 				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			else {
-				card* pcard = 0;
-				for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-					if(returns.bitvalue[i + 1])
-						pcard = core.select_cards[i];
-				}
-				if(!pcard) {
-					for(int32 i = (int32)core.select_cards.size(); i < (int32)(core.unselect_cards.size() + core.select_cards.size()); i++)
-						if(returns.bitvalue[i + 1])
-							pcard = core.unselect_cards[i - core.select_cards.size()];
-				}
+				card* pcard = return_cards.list[0];
 				pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 			}
 			core.units.pop_front();
@@ -742,9 +731,7 @@ int32 field::process() {
 			it->step++;
 		} else {
 			group* pgroup = pduel->new_group();
-			for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-				if(returns.bitvalue[i + 1])
-					pgroup->container.insert(core.select_cards[i]);
+			pgroup->container.insert(return_cards.list.begin(), return_cards.list.end());
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}
@@ -756,10 +743,8 @@ int32 field::process() {
 			it->step++;
 		} else {
 			group* pgroup = pduel->new_group();
-			if(returns.ivalue[0] != -1)
-				for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-					if(returns.bitvalue[i + 1])
-						pgroup->container.insert(core.select_cards[i]);
+			if(!return_cards.canceled)
+				pgroup->container.insert(return_cards.list.begin(), return_cards.list.end());
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}
@@ -781,29 +766,19 @@ int32 field::process() {
 				}
 				group* tg = ch->target_cards;
 				effect* peffect = ch->triggering_effect;
+				tg->container.insert(return_cards.list.begin(), return_cards.list.end());
 				if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
-					for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-						if (returns.bitvalue[i + 1])
-							tg->container.insert(core.select_cards[i]);
 					pduel->lua->add_param(tg, PARAM_TYPE_GROUP);
 				} else {
 					group* pret = pduel->new_group();
-					int32 tot = 0;
-					for (int32 i = 0; i < (int32)core.select_cards.size(); i++) 
-						if (returns.bitvalue[i + 1]) {
-							tg->container.insert(core.select_cards[i]);
-							pret->container.insert(core.select_cards[i]);
-							tot++;
+					pret->container.insert(return_cards.list.begin(), return_cards.list.end());
+					if(pret->container.size() && peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
+						for(auto& pcard : pret->container) {
+							pduel->write_buffer8(MSG_BECOME_TARGET);
+							pduel->write_buffer8(1);
+							loc_info tmp_info = pcard->get_info_location();
+							pduel->write_info_location(&tmp_info);
 						}
-					if((tot > 0) && peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
-						for(int32 i = 0; i < (int32)core.select_cards.size(); i++)
-							if(returns.bitvalue[i + 1]) {
-								card* pcard = core.select_cards[i];
-								pduel->write_buffer8(MSG_BECOME_TARGET);
-								pduel->write_buffer8(1);
-								loc_info tmp_info = pcard->get_info_location();
-								pduel->write_info_location(&tmp_info);
-							}
 					}
 					for(auto& pcard : pret->container)
 						pcard->create_relation(*ch);
@@ -1032,11 +1007,7 @@ int32 field::process() {
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, it->arg1, it->arg2);
 			it->step++;
 		} else if(it->step == 1) {
-			card_set cset;
-			//card* pcard; // UNUSED VARIABLE
-			for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-				if (returns.bitvalue[i + 1])
-					cset.insert(core.select_cards[i]);
+			card_set cset(return_cards.list.begin(), return_cards.list.end());
 			if(cset.size())
 				send_to(&cset, core.reason_effect, it->arg3, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 			else
@@ -1644,10 +1615,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		return FALSE;
 	}
 	case 21: {
-		card_set cset;
-		for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-			if (returns.bitvalue[i + 1])
-				cset.insert(core.select_cards[i]);
+		card_set cset(return_cards.list.begin(), return_cards.list.end());
 		send_to(&cset, 0, REASON_RULE + REASON_DISCARD + REASON_ADJUST, infos.turn_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
@@ -3084,7 +3052,7 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 6: {
-		if(returns.ivalue[0] == -1) {//cancel attack manually
+		if(return_cards.canceled) {//cancel attack manually
 			if(core.units.begin()->arg1) {
 				core.units.begin()->step = 12;
 				return FALSE;
@@ -3098,13 +3066,8 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		if(returns.ivalue[0] == -2)
 			core.attack_target = 0;
-		else {
-			for (int32 i = 0; i < (int32)core.select_cards.size(); i++)
-				if (returns.bitvalue[i + 1]) {
-					core.attack_target = core.select_cards[i];
-					break;
-				}
-		}
+		else
+			core.attack_target = return_cards.list[0];
 		if(core.attack_target)
 			core.pre_field[1] = core.attack_target->fieldid_r;
 		else
