@@ -4102,8 +4102,8 @@ int32 card::is_can_be_fusion_material(card* fcard) {
 	for(int32 i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_FUSION, PARAM_TYPE_INT);
 		pduel->lua->add_param(fcard->current.controler, PARAM_TYPE_INT);
-		if(eset[i]->get_value(fcard, 2));
-		return FALSE;
+		if(eset[i]->get_value(fcard, 2))
+			return FALSE;
 	}
 	eset.clear();
 	if (fcard) {
@@ -4144,8 +4144,8 @@ int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner)
 	for(int32 i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_SYNCHRO, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(eset[i]->get_value(scard, 2));
-		return FALSE;
+		if(eset[i]->get_value(scard, 2))
+			return FALSE;
 	}
 	return TRUE;
 }
@@ -4157,8 +4157,8 @@ int32 card::is_can_be_ritual_material(card* scard) {
 	for(int32 i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_RITUAL, PARAM_TYPE_INT);
 		pduel->lua->add_param(scard->current.controler, PARAM_TYPE_INT);
-		if(eset[i]->get_value(scard, 2));
-		return FALSE;
+		if(eset[i]->get_value(scard, 2))
+			return FALSE;
 	}
 	if(current.location == LOCATION_GRAVE) {
 		effect_set eset;
@@ -4187,8 +4187,8 @@ int32 card::is_can_be_xyz_material(card* scard, uint8 playerid) {
 	for(int32 i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_XYZ, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(eset[i]->get_value(scard, 2));
-		return FALSE;
+		if(eset[i]->get_value(scard, 2))
+			return FALSE;
 	}
 	return TRUE;
 }
@@ -4207,8 +4207,8 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 	for(int32 i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_LINK, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(eset[i]->get_value(scard, 2));
-		return FALSE;
+		if(eset[i]->get_value(scard, 2))
+			return FALSE;
 	}
 	return TRUE;
 }
@@ -4230,8 +4230,8 @@ int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
 	for(int32 i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(eset[i]->get_value(scard, 2));
-		return FALSE;
+		if(eset[i]->get_value(scard, 2))
+			return FALSE;
 	}
 	return int32();
 }
