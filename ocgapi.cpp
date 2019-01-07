@@ -41,7 +41,7 @@ uint32 handle_message(void* pduel, uint32 msg_type) {
 }
 byte* default_script_reader(const char* script_name, int* slen) {
 	FILE *fp;
-	char sname[256] = "./script";
+	char sname[256] = "./script/";
 	strcat(sname, script_name);//default script name: c%d.lua
 	fp = fopen(sname, "rb");
 	if (!fp)
