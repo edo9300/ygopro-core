@@ -692,8 +692,7 @@ int32 field::process() {
 			if (return_cards.canceled)
 				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
 			else {
-				group* pgroup = pduel->new_group();
-				pgroup->container.insert(return_cards.list.begin(), return_cards.list.end());
+				group* pgroup = pduel->new_group(card_set(return_cards.list.begin(), return_cards.list.end()));
 				pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			}
 			core.units.pop_front();
@@ -730,8 +729,7 @@ int32 field::process() {
 			add_process(PROCESSOR_SELECT_RELEASE, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
 			it->step++;
 		} else {
-			group* pgroup = pduel->new_group();
-			pgroup->container.insert(return_cards.list.begin(), return_cards.list.end());
+			group* pgroup = pduel->new_group(card_set(return_cards.list.begin(), return_cards.list.end()));
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}
@@ -836,14 +834,7 @@ int32 field::process() {
 			add_process(PROCESSOR_SELECT_SUM, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
 			it->step++;
 		} else {
-			group* pgroup = pduel->new_group();
-			//int32 mcount = core.must_select_cards.size(); // UNUSED VARIABLE
-			for (int32 i = 0, j = 0; i < (int32)core.select_cards.size(); i++) {
-				if (returns.bitvalue[i + 1]) {
-					pgroup->container.insert(core.select_cards[i]);
-					j++;
-				}
-			}
+			group* pgroup = pduel->new_group(card_set(return_cards.list.begin(), return_cards.list.end()));
 			core.must_select_cards.clear();
 			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();

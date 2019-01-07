@@ -223,6 +223,32 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 		return TRUE;
 	}
 }
+bool field::parse_response_cards(uint8 cancelable) {
+	int type = returns.ivalue[0];
+	if(cancelable && returns.ivalue[1] == -1) {
+		return_cards.canceled = true;
+		return true;
+	}
+	if(type == 0) {
+		uint32 size = returns.ivalue[1];
+		for(int32 i = 0; i < size; ++i)
+			return_cards.list.push_back(core.select_cards[returns.ivalue[i + 2]]);
+	} else if(type == 1) {
+		uint32 size = returns.svalue[2];
+		for(int32 i = 0; i < size; ++i)
+			return_cards.list.push_back(core.select_cards[returns.svalue[i + 3]]);
+	} else if(type == 2) {
+		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
+			if(returns.bitvalue[i + 1 + (sizeof(int) * 8)])
+				return_cards.list.push_back(core.select_cards[i]);
+		}
+	}
+	std::sort(return_cards.list.begin(), return_cards.list.end());
+	auto ip = std::unique(return_cards.list.begin(), return_cards.list.end());
+	bool res = (ip == return_cards.list.end());
+	return_cards.list.resize(std::distance(return_cards.list.begin(), ip));
+	return res;
+}
 int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
 		return_cards.clear();
@@ -234,9 +260,9 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		if(min > max)
 			min = max;
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.bitvalue.reset();
-			for(uint8 i = 0; i < min; ++i)
-				returns.bitvalue[i + 1] = 1;
+			for(int32 i = 0; i < min; i++) {
+				return_cards.list.push_back(core.select_cards[i]);
+			}
 			return TRUE;
 		}
 		core.units.begin()->arg2 = ((uint32)min) + (((uint32)max) << 16);
@@ -254,15 +280,13 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		}
 		return FALSE;
 	} else {
-		if(cancelable && returns.ivalue[0] == -1) {
-			return_cards.canceled = true;
+		if(!parse_response_cards(cancelable)) {
+			return_cards.clear();
+			pduel->write_buffer8(MSG_RETRY);
+			return FALSE;
+		}
+		if(return_cards.canceled)
 			return TRUE;
-		}
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1]) {
-				return_cards.list.push_back(core.select_cards[i]);
-			}
-		}
 		if(return_cards.list.size() < min || return_cards.list.size() > max) {
 			return_cards.clear();
 			pduel->write_buffer8(MSG_RETRY);
@@ -320,11 +344,12 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 			return FALSE;
 		}
 		int32 max = (int32)(core.select_cards.size() + core.unselect_cards.size());
-		if(returns.ivalue[1] < 0 || returns.ivalue[1] >= max){
+		int retval = returns.ivalue[1];
+		if(retval < 0 || retval >= max){
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
-		return_cards.list.push_back((returns.ivalue[1] >= (int32)core.select_cards.size()) ? core.unselect_cards[returns.ivalue[1] - core.select_cards.size()] : core.select_cards[returns.ivalue[1]]);
+		return_cards.list.push_back((retval >= (int32)core.select_cards.size()) ? core.unselect_cards[retval - core.select_cards.size()] : core.select_cards[retval]);
 		return TRUE;
 	}
 }
@@ -525,15 +550,13 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		}
 		return FALSE;
 	} else {
-		if(cancelable && returns.ivalue[0] == -1) {
-			return_cards.canceled = true;
+		if(!parse_response_cards(cancelable)) {
+			return_cards.clear();
+			pduel->write_buffer8(MSG_RETRY);
+			return FALSE;
+		}
+		if(return_cards.canceled)
 			return TRUE;
-		}
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1]) {
-				return_cards.list.push_back(core.select_cards[i]);
-			}
-		}
 		int32 tot = (int32)return_cards.list.size();
 		int32 tt = 0;
 		for(auto& pcard : return_cards.list)
@@ -652,13 +675,12 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 		}
 		return FALSE;
 	} else {
-		int32 tot = 0;
-		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1]) {
-				tot ++;
-				return_cards.list.push_back(core.select_cards[i]);
-			}
+		if(!parse_response_cards()) {
+			return_cards.clear();
+			pduel->write_buffer8(MSG_RETRY);
+			return FALSE;
 		}
+		int32 tot = return_cards.list.size();
 		if (max) {
 			int32 oparam[16];
 			int32 mcount = core.must_select_cards.size();
@@ -669,11 +691,8 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 			}
 			for(int32 i = 0; i < mcount; ++i)
 				oparam[i] = core.must_select_cards[i]->sum_param;
-			for (int32 i = 0, j = mcount; i < (int32)core.select_cards.size(); i++) {
-				if (returns.bitvalue[i + 1]) {
-					oparam[j] = core.select_cards[i]->sum_param;
-					j++;
-				}
+			for (int32 i = 0; i < (int32)return_cards.list.size(); i++) {
+				oparam[i] = return_cards.list[i]->sum_param;
 			}
 			if(!select_sum_check1(oparam, tot + mcount, 0, acc)) {
 				return_cards.clear();
@@ -694,19 +713,16 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 				if(ms < mn)
 					mn = ms;
 			}
-			for (int32 i = 0, j = 0; i < (int32)core.select_cards.size(); i++) {
-				if (returns.bitvalue[i + 1]) {
-					if (j >= mcount) {
-						int32 op = core.select_cards[i]->sum_param;
-						int32 o1 = op & 0xffff;
-						int32 o2 = op >> 16;
-						int32 ms = (o2 && o2 < o1) ? o2 : o1;
-						sum += ms;
-						mx += (o2 > o1) ? o2 : o1;
-						if (ms < mn)
-							mn = ms;
-					}
-					j++;
+			for(int32 i = 0; i < (int32)return_cards.list.size(); i++) {
+				if(i >= mcount) {
+					int32 op = return_cards.list[i]->sum_param;
+					int32 o1 = op & 0xffff;
+					int32 o2 = op >> 16;
+					int32 ms = (o2 && o2 < o1) ? o2 : o1;
+					sum += ms;
+					mx += (o2 > o1) ? o2 : o1;
+					if(ms < mn)
+						mn = ms;
 				}
 			}
 			if(mx < acc || sum - mn >= acc) {
@@ -721,7 +737,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 }
 int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 	if(step == 0) {
-		returns.bvalue[0] = 0;
+		returns.bitvalue.reset();
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
 			returns.bvalue[0] = -1;
 			return TRUE;
