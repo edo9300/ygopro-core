@@ -10,7 +10,6 @@
 
 #include "common.h"
 #include "field.h"
-#include "effectset.h"
 #include <stdlib.h>
 #include <vector>
 #include <map>
@@ -20,8 +19,6 @@ class duel;
 class group;
 class effect;
 struct tevent;
-struct effect_set;
-struct effect_set_v;
 enum effect_flag : uint32;
 enum effect_flag2 : uint32;
 

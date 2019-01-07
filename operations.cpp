@@ -3740,7 +3740,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 					else
 						pcard->previous.code = pcard->data.code;
 					if(eset.size())
-						pcard->previous.code2 = eset.get_last()->get_value(pcard);
+						pcard->previous.code2 = eset.back()->get_value(pcard);
 					else
 						pcard->previous.code2 = 0;
 					pcard->previous.type = pcard->data.type;
@@ -3754,7 +3754,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				effect_set eset;
 				pcard->filter_effect(EFFECT_ADD_SETCODE, &eset);
 				if(eset.size())
-					pcard->previous.setcode = eset.get_last()->get_value(pcard);
+					pcard->previous.setcode = eset.back()->get_value(pcard);
 				else
 					pcard->previous.setcode = 0;
 			}
@@ -5226,6 +5226,7 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 		return FALSE;
 	}
 	}
+	return TRUE;
 }
 int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player, uint8 playerid, uint8 count) {
 	switch(step) {

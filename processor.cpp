@@ -1598,7 +1598,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		effect_set eset;
 		filter_player_effect(infos.turn_player, EFFECT_HAND_LIMIT, &eset);
 		if(eset.size())
-			limit = eset.get_last()->get_value();
+			limit = eset.back()->get_value();
 		int32 hd = player[infos.turn_player].list_hand.size();
 		if(hd <= limit) {
 			core.units.begin()->step = 24;
@@ -5135,7 +5135,7 @@ int32 field::refresh_location_info(uint16 step) {
 				player[0].disabled_location |= value & 0xff7f;
 				player[1].disabled_location |= (value >> 16) & 0xff7f;
 			} else
-				core.disfield_effects.add_item(eset[i]);
+				core.disfield_effects.push_back(eset[i]);
 		}
 		eset.clear();
 		filter_field_effect(EFFECT_USE_EXTRA_MZONE, &eset);
@@ -5144,7 +5144,7 @@ int32 field::refresh_location_info(uint16 step) {
 			uint32 value = eset[i]->get_value();
 			player[p].disabled_location |= (value >> 16) & 0x1f;
 			if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
-				core.extra_mzone_effects.add_item(eset[i]);
+				core.extra_mzone_effects.push_back(eset[i]);
 		}
 		eset.clear();
 		filter_field_effect(EFFECT_USE_EXTRA_SZONE, &eset);
@@ -5153,7 +5153,7 @@ int32 field::refresh_location_info(uint16 step) {
 			uint32 value = eset[i]->get_value();
 			player[p].disabled_location |= (value >> 8) & 0x1f00;
 			if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
-				core.extra_szone_effects.add_item(eset[i]);
+				core.extra_szone_effects.push_back(eset[i]);
 		}
 		return FALSE;
 	}
@@ -5164,7 +5164,7 @@ int32 field::refresh_location_info(uint16 step) {
 		}
 		effect* peffect = core.disfield_effects[0];
 		core.units.begin()->peffect = peffect;
-		core.disfield_effects.remove_item(0);
+		core.disfield_effects.erase(core.disfield_effects.begin());
 		if(!peffect->operation) {
 			peffect->value = 0x80;
 			core.units.begin()->step = 0;
@@ -5197,7 +5197,7 @@ int32 field::refresh_location_info(uint16 step) {
 		}
 		effect* peffect = core.extra_mzone_effects[0];
 		core.units.begin()->peffect = peffect;
-		core.extra_mzone_effects.remove_item(0);
+		core.extra_mzone_effects.erase(core.extra_mzone_effects.begin());
 		uint32 p = peffect->get_handler_player();
 		uint32 mzone_flag = (player[p].disabled_location | player[p].used_location) & 0x1f;
 		if(mzone_flag == 0x1f) {
@@ -5236,7 +5236,7 @@ int32 field::refresh_location_info(uint16 step) {
 		}
 		effect* peffect = core.extra_szone_effects[0];
 		core.units.begin()->peffect = peffect;
-		core.extra_szone_effects.remove_item(0);
+		core.extra_szone_effects.erase(core.extra_szone_effects.begin());
 		uint32 p = peffect->get_handler_player();
 		uint32 szone_flag = ((player[p].disabled_location | player[p].used_location) >> 8) & 0x1f;
 		if(szone_flag == 0x1f) {
@@ -5489,7 +5489,7 @@ int32 field::adjust_step(uint16 step) {
 				eset.clear();
 				pcard->filter_effect(EFFECT_SET_POSITION, &eset);
 				if(eset.size()) {
-					pos = eset.get_last()->get_value();
+					pos = eset.back()->get_value();
 					if((pos & 0xff) != pcard->current.position) {
 						pos_adjust.insert(pcard);
 						pcard->position_param = pos;

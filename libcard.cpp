@@ -74,7 +74,7 @@ int32 scriptlib::card_get_origin_code_rule(lua_State *L) {
 	else {
 		lua_pushinteger(L, pcard->data.code);
 		if(eset.size()) {
-			uint32 otcode = eset.get_last()->get_value(pcard);
+			uint32 otcode = eset.back()->get_value(pcard);
 			lua_pushinteger(L, otcode);
 			return 2;
 		}

@@ -1327,10 +1327,10 @@ void field::filter_field_effect(uint32 code, effect_set* eset, uint8 sort) {
 		effect* peffect = rg.first->second;
 		++rg.first;
 		if (peffect->is_available())
-			eset->add_item(peffect);
+			eset->push_back(peffect);
 	}
 	if(sort)
-		eset->sort();
+		std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
 void field::filter_affected_cards(effect* peffect, card_set* cset) {
 	if((peffect->type & EFFECT_TYPE_ACTIONS) || !(peffect->type & EFFECT_TYPE_FIELD) || peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET))
@@ -1403,10 +1403,10 @@ void field::filter_player_effect(uint8 playerid, uint32 code, effect_set* eset, 
 	for (; rg.first != rg.second; ++rg.first) {
 		effect* peffect = rg.first->second;
 		if (peffect->is_target_player(playerid) && peffect->is_available())
-			eset->add_item(peffect);
+			eset->push_back(peffect);
 	}
 	if(sort)
-		eset->sort();
+		std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
 int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, uint32 location2, group* pgroup, card* pexception, group* pexgroup, uint32 extraargs, card** pret, int32 fcount, int32 is_target) {
 	if(self != 0 && self != 1)
@@ -1832,7 +1832,7 @@ int32 field::get_draw_count(uint8 playerid) {
 	filter_player_effect(infos.turn_player, EFFECT_DRAW_COUNT, &eset);
 	int32 count = player[playerid].draw_count;
 	if(eset.size())
-		count = eset.get_last()->get_value();
+		count = eset.back()->get_value();
 	return count;
 }
 void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* material) {

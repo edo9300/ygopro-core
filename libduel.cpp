@@ -1091,7 +1091,7 @@ int32 scriptlib::duel_get_environment(lua_State *L) {
 	if(pcard == 0 || pcard->is_position(POS_FACEDOWN) || !pcard->get_status(STATUS_EFFECT_ENABLED)) {
 		pduel->game_field->filter_field_effect(EFFECT_CHANGE_ENVIRONMENT, &eset);
 		if(eset.size()) {
-			effect* peffect = eset.get_last();
+			effect* peffect = eset.back();
 			code = peffect->get_value();
 			p = peffect->get_handler_player();
 		}
@@ -1162,7 +1162,7 @@ int32 scriptlib::duel_is_environment(lua_State *L) {
 		effect_set eset;
 		pduel->game_field->filter_field_effect(EFFECT_CHANGE_ENVIRONMENT, &eset);
 		if(eset.size()) {
-			effect* peffect = eset.get_last();
+			effect* peffect = eset.back();
 			if(code == (uint32)peffect->get_value() && (playerid == peffect->get_handler_player() || playerid == PLAYER_ALL))
 				ret = 1;
 		}
