@@ -12,6 +12,7 @@
 #include "effect.h"
 #include "group.h"
 #include "ocgapi.h"
+#include <functional>
 
 duel::duel() {
 	lua = new interpreter(this);
@@ -155,5 +156,5 @@ void duel::set_responseb(byte* resp) {
 	std::memcpy(game_field->returns.bvalue, resp, 64);
 }
 int32 duel::get_next_integer(int32 l, int32 h) {
-	return (int32) (random.real() * (h - l + 1)) + l;
+	return (std::uniform_int_distribution<>(l, h))(random);
 }

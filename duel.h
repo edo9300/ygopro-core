@@ -9,7 +9,7 @@
 #define DUEL_H_
 
 #include "common.h"
-#include "mtrandom.h"
+#include <random>
 #include <set>
 #include <unordered_set>
 
@@ -29,7 +29,7 @@ public:
 	byte* bufferp;
 	interpreter* lua;
 	field* game_field;
-	mtrandom random;
+	std::mt19937 random;
 	std::unordered_set<card*> cards;
 	std::unordered_set<card*> assumes;
 	std::unordered_set<group*> groups;
