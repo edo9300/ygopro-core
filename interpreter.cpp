@@ -12,9 +12,7 @@
 #include "scriptlib.h"
 #include "ocgapi.h"
 #include "interpreter.h"
-
 #include <cmath>
-
 static const struct luaL_Reg cardlib[] = {
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },
@@ -637,9 +635,6 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	lua_setglobal(lua_state, "Duel");
 	luaL_newlib(lua_state, debuglib);
 	lua_setglobal(lua_state, "Debug");
-	//extra scripts
-	load_script((char*) "constant.lua");
-	load_script((char*) "utility.lua");
 }
 interpreter::~interpreter() {
 	lua_close(lua_state);
