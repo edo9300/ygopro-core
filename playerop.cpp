@@ -691,9 +691,8 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 			}
 			for(int32 i = 0; i < mcount; ++i)
 				oparam[i] = core.must_select_cards[i]->sum_param;
-			for (int32 i = 0; i < (int32)return_cards.list.size(); i++) {
-				oparam[i] = return_cards.list[i]->sum_param;
-			}
+			for (int32 i = 0, j = mcount; i < (int32)return_cards.list.size(); i++, j++)
+				oparam[j] = return_cards.list[i]->sum_param;
 			if(!select_sum_check1(oparam, tot + mcount, 0, acc)) {
 				return_cards.clear();
 				pduel->write_buffer8(MSG_RETRY);
