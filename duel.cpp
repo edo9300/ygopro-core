@@ -12,7 +12,6 @@
 #include "effect.h"
 #include "group.h"
 #include "ocgapi.h"
-#include <functional>
 
 duel::duel() {
 	lua = new interpreter(this);
