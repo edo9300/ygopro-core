@@ -629,7 +629,7 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 	}
 	return TRUE;
 }
-static int32 select_sum_check1(const int32* oparam, int32 size, int32 index, int32 acc) {
+static int32 select_sum_check1(const std::vector<int32>& oparam, int32 size, int32 index, int32 acc) {
 	if(acc == 0 || index == size)
 		return FALSE;
 	int32 o1 = oparam[index] & 0xffff;
@@ -682,17 +682,16 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 		}
 		int32 tot = return_cards.list.size();
 		if (max) {
-			int32 oparam[16];
-			int32 mcount = core.must_select_cards.size();
-			if(tot < min + mcount || tot > max + mcount) {
+			if(tot < min || tot > max) {
 				return_cards.clear();
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
-			for(int32 i = 0; i < mcount; ++i)
-				oparam[i] = core.must_select_cards[i]->sum_param;
-			for (int32 i = 0, j = mcount; i < (int32)return_cards.list.size(); i++, j++)
-				oparam[j] = return_cards.list[i]->sum_param;
+			int32 mcount = core.must_select_cards.size();
+			std::vector<int32> oparam;
+			for(auto& list : { core.must_select_cards , return_cards.list })
+				for(auto& pcard : list)
+					oparam.push_back(pcard->sum_param);
 			if(!select_sum_check1(oparam, tot + mcount, 0, acc)) {
 				return_cards.clear();
 				pduel->write_buffer8(MSG_RETRY);
@@ -702,19 +701,9 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 		} else {
 			int32 mcount = core.must_select_cards.size();
 			int32 sum = 0, mx = 0, mn = 0x7fffffff;
-			for(int32 i = 0; i < mcount; ++i) {
-				int32 op = core.must_select_cards[i]->sum_param;
-				int32 o1 = op & 0xffff;
-				int32 o2 = op >> 16;
-				int32 ms = (o2 && o2 < o1) ? o2 : o1;
-				sum += ms;
-				mx += (o2 > o1) ? o2 : o1;
-				if(ms < mn)
-					mn = ms;
-			}
-			for(int32 i = 0; i < (int32)return_cards.list.size(); i++) {
-				if(i >= mcount) {
-					int32 op = return_cards.list[i]->sum_param;
+			for(auto& list : { core.must_select_cards , return_cards.list }) {
+				for(auto& pcard : list) {
+					int32 op = pcard->sum_param;
 					int32 o1 = op & 0xffff;
 					int32 o2 = op >> 16;
 					int32 ms = (o2 && o2 < o1) ? o2 : o1;
