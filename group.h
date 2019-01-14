@@ -9,6 +9,7 @@
 #define GROUP_H_
 
 #include "common.h"
+#include <algorithm>
 #include <set>
 #include <list>
 
