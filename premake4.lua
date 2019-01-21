@@ -15,6 +15,6 @@ project "ocgcore"
 		buildoptions "-std=c++14"
 
 	configuration "not windows"
-		links "lua5.3++"
+		links "lua5.3-c++"
 		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }
 		includedirs "/usr/include/lua5.3"
