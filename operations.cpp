@@ -1586,7 +1586,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		}
 		uint32 adv = is_player_can_summon(SUMMON_TYPE_ADVANCE, sumplayer, target, sumplayer);
 		if(max == 0 || !adv) {
-			returns.bvalue[0] = 0;
+			return_cards.clear();
 			core.units.begin()->step = 3;
 		} else {
 			core.release_cards.clear();
@@ -1594,7 +1594,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			core.release_cards_ex_oneof.clear();
 			int32 rcount = get_summon_release_list(target, &core.release_cards, &core.release_cards_ex, &core.release_cards_ex_oneof, NULL, 0, releasable);
 			if(rcount == 0) {
-				returns.bvalue[0] = 0;
+				return_cards.clear();
 				core.units.begin()->step = 3;
 			} else {
 				int32 ct = get_tofield_count(target, sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
@@ -1615,7 +1615,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 	}
 	case 3: {
 		if(returns.ivalue[0])
-			returns.bvalue[0] = 0;
+			return_cards.clear();
 		else {
 			int32 max = core.units.begin()->arg2;
 			select_tribute_cards(target, sumplayer, core.summon_cancelable, 1, max, sumplayer, zone);
@@ -2158,7 +2158,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		}
 		uint32 adv = is_player_can_mset(SUMMON_TYPE_ADVANCE, setplayer, target, setplayer);
 		if(max == 0 || !adv) {
-			returns.bvalue[0] = 0;
+			return_cards.clear();
 			core.units.begin()->step = 3;
 		} else {
 			core.release_cards.clear();
@@ -2166,7 +2166,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 			core.release_cards_ex_oneof.clear();
 			int32 rcount = get_summon_release_list(target, &core.release_cards, &core.release_cards_ex, &core.release_cards_ex_oneof, NULL, 0, releasable, POS_FACEDOWN_DEFENSE);
 			if(rcount == 0) {
-				returns.bvalue[0] = 0;
+				return_cards.clear();
 				core.units.begin()->step = 3;
 			} else {
 				int32 ct = get_tofield_count(target, setplayer, LOCATION_MZONE, setplayer, LOCATION_REASON_TOFIELD, zone);
@@ -2187,7 +2187,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 	}
 	case 3: {
 		if(returns.ivalue[0])
-			returns.bvalue[0] = 0;
+			return_cards.clear();
 		else {
 			int32 max = core.units.begin()->arg2;
 			select_tribute_cards(target, setplayer, core.summon_cancelable, 1, max, setplayer, zone);
@@ -4365,7 +4365,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			pduel->write_buffer8(HINT_SELECTMSG);
 			pduel->write_buffer8(move_player);
 			pduel->write_buffer64(target->data.code);
-			add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, move_player, flag, 1);
+			add_process(PROCESSOR_SELECT_PLACE, 0, 0, (group*)target, move_player, flag, 1);
 		}
 		return FALSE;
 	}
