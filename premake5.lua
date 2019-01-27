@@ -3,10 +3,12 @@ project "ocgcore"
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
 	warnings "Extra"
 	optimize "Speed"
-	
+
+	defines "LUA_COMPAT_5_2"
+
 	filter "*DLL"
 		kind "SharedLib"
-	
+
 	filter "system:windows"
 		links "lua"
 		includedirs "../lua"
@@ -18,3 +20,12 @@ project "ocgcore"
 		links "lua5.3-c++"
 		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }
 		includedirs "/usr/include/lua5.3"
+
+	filter "system:bsd"
+		defines "LUA_USE_POSIX"
+
+	filter "system:macosx"
+		defines "LUA_USE_MACOSX"
+
+	filter "system:linux"
+		defines "LUA_USE_LINUX"
