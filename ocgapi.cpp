@@ -14,12 +14,15 @@
 #include "field.h"
 #include "interpreter.h"
 #include <set>
+#include <mutex>
 
 static script_reader sreader = default_script_reader;
 static card_reader creader = default_card_reader;
 static message_handler mhandler = default_message_handler;
 static byte buffer[0x20000];
+
 static std::set<duel*> duel_set;
+static std::mutex duel_set_mutex;
 
 extern "C" DECL_DLLEXPORT void set_script_reader(script_reader f) {
 	sreader = f;
@@ -61,8 +64,9 @@ uint32 default_message_handler(void* pduel, uint32 message_type) {
 }
 extern "C" DECL_DLLEXPORT ptr create_duel(uint32 seed) {
 	duel* pduel = new duel();
-	duel_set.insert(pduel);
 	pduel->random.seed(seed);
+	std::lock_guard<std::mutex> guard(duel_set_mutex);
+	duel_set.insert(pduel);
 	return (ptr)pduel;
 }
 extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
@@ -127,6 +131,7 @@ extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
 }
 extern "C" DECL_DLLEXPORT void end_duel(ptr pduel) {
 	duel* pd = (duel*)pduel;
+	std::lock_guard<std::mutex> guard(duel_set_mutex);
 	if(duel_set.count(pd)) {
 		duel_set.erase(pd);
 		delete pd;
