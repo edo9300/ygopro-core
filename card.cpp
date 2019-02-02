@@ -103,7 +103,7 @@ uint32 card::get_infos(byte* buf, int32 query_flag, int32 use_cache, int32 ignor
 	int32* p = (int32*)buf;
 	int32 tdata = 0;
 	p += 2;
-	query_cache tmp_q_cache;
+	query_cache tmp_q_cache{};
 	if(ignore_cache)
 		tmp_q_cache = q_cache;
 	if(query_flag & QUERY_CODE) *p++ = data.code;
