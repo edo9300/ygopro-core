@@ -1022,7 +1022,7 @@ int32 field::process() {
 	case PROCESSOR_SORT_DECK_S: {
 		uint8 sort_player = it->arg1 & 0xffff;
 		uint8 target_player = it->arg1 >> 16;
-		uint8 count = it->arg2, i = 0;
+		uint32 count = it->arg2, i = 0;
 		if(count > player[target_player].list_main.size())
 			count = player[target_player].list_main.size();
 		if(it->step == 0) {
@@ -1033,7 +1033,7 @@ int32 field::process() {
 			it->step++;
 		} else {
 			if(returns.bvalue[0] != -1) {
-				card* tc[16];
+				card* tc[64];
 				for(i = 0; i < count; ++i)
 					player[target_player].list_main.pop_back();
 				for(i = 0; i < count; ++i)

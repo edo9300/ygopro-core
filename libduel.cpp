@@ -991,7 +991,7 @@ int32 scriptlib::duel_sort_decktop(lua_State *L) {
 		return 0;
 	if(target_player != 0 && target_player != 1)
 		return 0;
-	if(count < 1 || count > 16)
+	if(count < 1 || count > 64)
 		return 0;
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->add_process(PROCESSOR_SORT_DECK_S, 0, 0, 0, sort_player + (target_player << 16), count);
