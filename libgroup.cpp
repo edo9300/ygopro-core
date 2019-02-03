@@ -272,14 +272,14 @@ int32 scriptlib::group_select_unselect(lua_State *L) {
 	uint32 playerid = lua_tointeger(L, 3);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	if(pgroup1->container.size() + pgroup2->container.size() == 0)
+	if(pgroup1->container == pgroup2->container)
 		return 0;
-	for(auto it = pgroup2->container.begin(); it != pgroup2->container.end(); ++it) {
-		card* pcard = *it;
-		for(auto it2 = pgroup1->container.begin(); it2 != pgroup1->container.end(); ++it2) {
-			if((*it2) == pcard) {
+	for(auto& pcard : pgroup2->container) {
+		for(auto& pcard2 : pgroup1->container) {
+			if(pcard2->cardid > pcard->cardid)
+				break;
+			if(pcard2->cardid == pcard->cardid)
 				return 0;
-			}
 		}
 	}
 	uint32 finishable = FALSE;
