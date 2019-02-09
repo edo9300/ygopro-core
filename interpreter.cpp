@@ -779,15 +779,15 @@ int32 interpreter::load_card_script(uint32 code) {
 }
 void interpreter::add_param(void *param, int32 type, bool front) {
 	if(front)
-		params.emplace_front(param, type);
+		params.emplace_front((uintptr_t)param, type);
 	else
-		params.emplace_back(param, type);
+		params.emplace_back((uintptr_t)param, type);
 }
 void interpreter::add_param(uintptr_t param, int32 type, bool front) {
 	if(front)
-		params.emplace_front((void*)param, type);
+		params.emplace_front(param, type);
 	else
-		params.emplace_back((void*)param, type);
+		params.emplace_back(param, type);
 }
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	int32 pushed = 0;
