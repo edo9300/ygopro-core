@@ -3038,138 +3038,30 @@ int32 scriptlib::card_set_spsummon_once(lua_State *L) {
 	pcard->pduel->game_field->core.global_flag |= GLOBALFLAG_SPSUMMON_ONCE;
 	return 0;
 }
-int32 scriptlib::card_code(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.code = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.code);
-	return 1;
+#define CARD_INFO_FUNC(attr) int32 scriptlib::card_##attr(lua_State *L) {\
+	check_param_count(L, 1);\
+	check_param(L, PARAM_TYPE_CARD, 1);\
+	card* pcard = *(card**)lua_touserdata(L, 1);\
+	if(lua_gettop(L) > 1) {\
+		pcard->data.attr = lua_tonumberint(L, 2);\
+		return 0;\
+	} else \
+		lua_pushnumber(L, pcard->data.attr);\
+	return 1;\
 }
-int32 scriptlib::card_alias(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.alias = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.alias);
-	return 1;
-}
-int32 scriptlib::card_setcode(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.setcode = lua_tonumber(L, 2);
-		return 0;
-	} else
-		lua_pushnumber(L, pcard->data.setcode);
-	return 1;
-}
-int32 scriptlib::card_type(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.type = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.type);
-	return 1;
-}
-int32 scriptlib::card_level(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.level = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.level);
-	return 1;
-}
-int32 scriptlib::card_attribute(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.attribute = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.attribute);
-	return 1;
-}
-int32 scriptlib::card_race(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.race = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.race);
-	return 1;
-}
-int32 scriptlib::card_attack(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.attack = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.attack);
-	return 1;
-}
-int32 scriptlib::card_defense(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.defense = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.defense);
-	return 1;
-}
-int32 scriptlib::card_rscale(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.rscale = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.rscale);
-	return 1;
-}
-int32 scriptlib::card_lscale(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.lscale = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.lscale);
-	return 1;
-}
-int32 scriptlib::card_link_marker(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if (lua_gettop(L) > 1) {
-		pcard->data.link_marker = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushinteger(L, pcard->data.link_marker);
-	return 1;
-}
+CARD_INFO_FUNC(code)
+CARD_INFO_FUNC(alias)
+CARD_INFO_FUNC(setcode)
+CARD_INFO_FUNC(type)
+CARD_INFO_FUNC(level)
+CARD_INFO_FUNC(attribute)
+CARD_INFO_FUNC(race)
+CARD_INFO_FUNC(attack)
+CARD_INFO_FUNC(defense)
+CARD_INFO_FUNC(rscale)
+CARD_INFO_FUNC(lscale)
+CARD_INFO_FUNC(link_marker)
+#undef CARD_INFO_FUNC
 int32 scriptlib::card_recreate(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
