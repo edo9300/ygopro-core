@@ -581,6 +581,7 @@ public:
 	static int32 duel_get_battled_count(lua_State *L);
 	static int32 duel_get_random_number(lua_State *L);
 	static int32 duel_assume_reset(lua_State *L);
+	static int32 duel_get_card_from_fieldid(lua_State *L);
 
 	//specific card functions
 	static int32 duel_venom_swamp_check(lua_State *L);
