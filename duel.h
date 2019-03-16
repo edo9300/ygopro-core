@@ -12,6 +12,7 @@
 #include <random>
 #include <set>
 #include <unordered_set>
+#include <vector>
 
 class card;
 class group;
@@ -24,9 +25,8 @@ class duel {
 public:
 	typedef std::set<card*, card_sort> card_set;
 	char strbuffer[256];
-	byte buffer[0x1000];
-	uint32 bufferlen;
-	byte* bufferp;
+	std::vector<uint8_t> buff;
+	std::vector<uint8_t> cached_query;
 	interpreter* lua;
 	field* game_field;
 	std::mt19937 random;
@@ -52,6 +52,7 @@ public:
 	void release_script_group();
 	void restore_assumes();
 	int32 read_buffer(byte* buf);
+	void write_buffer(void* data, size_t size);
 	void write_info_location(loc_info* loc = 0);
 	void write_buffer64(uint64 value);
 	void write_buffer32(uint32 value);

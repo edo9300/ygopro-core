@@ -15,6 +15,9 @@
 #define DECL_DLLEXPORT
 #endif
 
+#define DUEL_API_VERSION_MAJOR 1
+#define DUEL_API_VERSION_MINOR 0
+
 class card;
 struct card_data;
 struct card_info;
@@ -25,6 +28,8 @@ class interpreter;
 typedef byte* (*script_reader)(const char*, int*);
 typedef uint32 (*card_reader)(uint32, card_data*);
 typedef uint32 (*message_handler)(void*, uint32);
+
+extern "C" DECL_DLLEXPORT int get_api_version(int* min);
 
 extern "C" DECL_DLLEXPORT void set_script_reader(script_reader f);
 extern "C" DECL_DLLEXPORT void set_card_reader(card_reader f);
@@ -44,6 +49,7 @@ extern "C" DECL_DLLEXPORT int32 process(ptr pduel);
 extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position);
 extern "C" DECL_DLLEXPORT void new_tag_card(ptr pduel, uint32 code, uint8 owner, uint8 location);
 extern "C" DECL_DLLEXPORT void new_relay_card(ptr pduel, uint32 code, uint8 owner, uint8 location, uint8 playernum);
+extern "C" DECL_DLLEXPORT int32 get_cached_query(ptr pduel, byte* buf);
 extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache = FALSE);
 extern "C" DECL_DLLEXPORT int32 query_field_count(ptr pduel, uint8 playerid, uint8 location);
 extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint8 location, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache = FALSE);
