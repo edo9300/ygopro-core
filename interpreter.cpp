@@ -582,6 +582,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "MajesticCopy", scriptlib::duel_majestic_copy },
 	{ "GetRandomNumber", scriptlib::duel_get_random_number },
 	{ "AssumeReset", scriptlib::duel_assume_reset },
+	{ "GetCardFromFieldID", scriptlib::duel_get_card_from_fieldid },
 	{ NULL, NULL }
 };
 

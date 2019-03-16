@@ -4001,6 +4001,18 @@ int32 scriptlib::duel_assume_reset(lua_State *L) {
 	pduel->restore_assumes();
 	return 1;
 }
+int32 scriptlib::duel_get_card_from_fieldid(lua_State * L) {
+	check_param_count(L, 1);
+	int32 fieldid = lua_tonumber(L, 1);
+	duel* pduel = interpreter::get_duel_info(L);
+	for(auto& pcard : pduel->cards) {
+		if(pcard->fieldid_r == fieldid) {
+			interpreter::card2value(L, pcard);
+			return 1;
+		}
+	}
+	return 0;
+}
 int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 2);
