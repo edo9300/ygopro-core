@@ -2356,11 +2356,13 @@ int32 card::replace_effect(uint32 code, uint32 reset, uint32 count) {
 	read_card(code, &cdata);
 	if(cdata.type & TYPE_NORMAL)
 		return -1;
+	if(is_status(STATUS_EFFECT_REPLACED))
+		set_status(STATUS_EFFECT_REPLACED, FALSE);
 	for(auto i = indexer.begin(); i != indexer.end();) {
 		auto rm = i++;
 		effect* peffect = rm->first;
 		auto it = rm->second;
-		if(peffect->is_flag(EFFECT_FLAG_INITIAL | EFFECT_FLAG_COPY_INHERIT))
+		if (peffect->is_flag(EFFECT_FLAG_INITIAL | EFFECT_FLAG_COPY_INHERIT))
 			remove_effect(peffect, it);
 	}
 	uint32 cr = pduel->game_field->core.copy_reset;
@@ -3245,6 +3247,7 @@ int32 card::get_card_effect(uint32 code) {
 	}
 	return i;
 }
+// return the last control-changing continous effect
 effect* card::check_control_effect() {
 	effect* ret_effect = 0;
 	for (auto& pcard : equiping_cards) {
@@ -3268,7 +3271,7 @@ effect* card::check_control_effect() {
 	auto rg = single_effect.equal_range(EFFECT_SET_CONTROL);
 	for (; rg.first != rg.second; ++rg.first) {
 		effect* peffect = rg.first->second;
-		if(!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+		if(!peffect->is_flag(EFFECT_FLAG_OWNER_RELATE))
 			continue;
 		if(!ret_effect || peffect->id > ret_effect->id)
 			ret_effect = peffect;

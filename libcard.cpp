@@ -1571,12 +1571,35 @@ int32 scriptlib::card_is_has_effect(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 code = lua_tonumberint(L, 2);
-	if(pcard)
-		interpreter::effect2value(L, pcard->is_affected_by_effect(code));
-	else
+	uint32 code = lua_tointeger(L, 2);
+	if(!pcard) {
 		lua_pushnil(L);
-	return 1;
+		return 1;
+	}
+	effect_set eset;
+	pcard->filter_effect(code, &eset);
+	int32 size = eset.size();
+	if(!size) {
+		lua_pushnil(L);
+		return 1;
+	}
+	int32 check_player = PLAYER_NONE;
+	if(lua_gettop(L) >= 3) {
+		check_player = lua_tointeger(L, 3);
+		if(check_player > PLAYER_NONE)
+			check_player = PLAYER_NONE;
+	}
+	for(int32 i = 0; i < eset.size(); ++i) {
+		if(check_player == PLAYER_NONE || eset[i]->check_count_limit(check_player))
+			interpreter::effect2value(L, eset[i]);
+		else
+			size--;
+	}
+	if(!size) {
+		lua_pushnil(L);
+		return 1;
+	}
+	return size;
 }
 int32 scriptlib::card_get_card_effect(lua_State *L) {
 	check_param_count(L, 1);

@@ -1282,25 +1282,60 @@ int32 field::self_destroy(uint16 step, card* ucard, int32 p) {
 			auto cit = cset.begin();
 			ucard->unique_fieldid = (*cit)->fieldid;
 		} else {
-			card* mcard = 0;
+			core.select_cards.clear();
+			uint8 player = p;
 			for(auto& pcard : cset) {
-				if(ucard->unique_fieldid == pcard->fieldid) {
-					mcard = pcard;
-					break;
+				if(pcard->current.controler == player && pcard->unique_fieldid != UINT_MAX)
+					core.select_cards.push_back(pcard);
+			}
+			if(core.select_cards.size() == 0) {
+				player = 1 - p;
+				for(auto& pcard : cset) {
+					if(pcard->current.controler == player && pcard->unique_fieldid != UINT_MAX)
+						core.select_cards.push_back(pcard);
 				}
-				if(!mcard || pcard->fieldid < mcard->fieldid)
-					mcard = pcard;
 			}
-			ucard->unique_fieldid = mcard->fieldid;
-			cset.erase(mcard);
-			for(auto& pcard : cset) {
-				pcard->temp.reason_effect = pcard->current.reason_effect;
-				pcard->temp.reason_player = pcard->current.reason_player;
-				pcard->current.reason_effect = ucard->unique_effect;
-				pcard->current.reason_player = ucard->current.controler;
+			if(core.select_cards.size() == 0) {
+				player = p;
+				for(auto& pcard : cset) {
+					if(pcard->current.controler == player)
+						core.select_cards.push_back(pcard);
+				}
 			}
-			destroy(&cset, 0, REASON_RULE, 5);
+			if(core.select_cards.size() == 0) {
+				player = 1 - p;
+				for(auto& pcard : cset) {
+					if(pcard->current.controler == player)
+						core.select_cards.push_back(pcard);
+				}
+			}
+			if(core.select_cards.size() == 1) {
+				returns.bvalue[1] = 0;
+			}
+			else {
+				pduel->write_buffer8(MSG_HINT);
+				pduel->write_buffer8(HINT_SELECTMSG);
+				pduel->write_buffer8(player);
+				pduel->write_buffer32(534);
+				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, player, 0x10001);
+			}
+			return FALSE;
 		}
+		return TRUE;
+	}
+	case 1: {
+		card_set cset;
+		ucard->get_unique_target(&cset, p);
+		card* mcard = core.select_cards[returns.bvalue[1]];
+		ucard->unique_fieldid = mcard->fieldid;
+		cset.erase(mcard);
+		for(auto& pcard : cset) {
+			pcard->temp.reason_effect = pcard->current.reason_effect;
+			pcard->temp.reason_player = pcard->current.reason_player;
+			pcard->current.reason_effect = ucard->unique_effect;
+			pcard->current.reason_player = ucard->current.controler;
+		}
+		destroy(&cset, 0, REASON_RULE, 5);
 		return TRUE;
 	}
 	case 10: {
@@ -3047,6 +3082,8 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 			int32 ct1 = get_tofield_count(target, playerid, LOCATION_MZONE, target->summon_player, LOCATION_REASON_TOFIELD, zone, &flag1);
 			int32 ct2 = get_spsummonable_count_fromex(target, playerid, target->summon_player, zone, &flag2);
 			for(auto& pcard : targets->container) {
+				if(pcard->current.location == LOCATION_MZONE)
+					continue;
 				if(pcard->current.location != LOCATION_EXTRA)
 					ct1--;
 				else
@@ -4587,6 +4624,8 @@ int32 field::change_position(uint16 step, group * targets, effect * reason_effec
 				core.hint_timing[pcard->current.controler] |= TIMING_POS_CHANGE;
 				if((opos & POS_FACEDOWN) && (npos & POS_FACEUP)) {
 					pcard->fieldid = infos.field_id++;
+					if(check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
+						pcard->unique_fieldid = UINT_MAX;
 					if(pcard->current.location == LOCATION_MZONE) {
 						raise_single_event(pcard, 0, EVENT_FLIP, reason_effect, 0, reason_player, 0, flag);
 						flips.insert(pcard);
@@ -4702,7 +4741,7 @@ int32 field::operation_replace(uint16 step, effect* replace_effect, group* targe
 			target->current.reason_player = target->temp.reason_player;
 			if(is_destroy)
 				core.destroy_canceled.insert(target);
-			replace_effect->dec_count();
+			replace_effect->dec_count(replace_effect->get_handler_player());
 		} else
 			core.units.begin()->step = 2;
 		return FALSE;
@@ -4769,7 +4808,7 @@ int32 field::operation_replace(uint16 step, effect* replace_effect, group* targe
 					targets->container.erase(rm);
 				}
 			}
-			replace_effect->dec_count();
+			replace_effect->dec_count(replace_effect->get_handler_player());
 		} else
 			core.units.begin()->step = 7;
 		return FALSE;
@@ -4831,7 +4870,7 @@ int32 field::operation_replace(uint16 step, effect* replace_effect, group* targe
 			target->current.reason_player = target->temp.reason_player;
 			if(is_destroy)
 				core.destroy_canceled.insert(target);
-			replace_effect->dec_count();
+			replace_effect->dec_count(replace_effect->get_handler_player());
 			core.desrep_chain.push_back(core.continuous_chain.front());
 		}
 		core.continuous_chain.pop_front();
@@ -4880,7 +4919,7 @@ int32 field::operation_replace(uint16 step, effect* replace_effect, group* targe
 					targets->container.erase(rm);
 				}
 			}
-			replace_effect->dec_count();
+			replace_effect->dec_count(replace_effect->get_handler_player());
 			core.desrep_chain.push_back(core.continuous_chain.front());
 		}
 		core.continuous_chain.pop_front();
@@ -4931,7 +4970,7 @@ int32 field::activate_effect(uint16 step, effect* peffect) {
 		newchain.evt.reason_effect = 0;
 		newchain.evt.reason_player = PLAYER_NONE;
 		newchain.triggering_effect = peffect;
-		newchain.set_triggering_place(phandler);
+		newchain.set_triggering_state(phandler);
 		newchain.triggering_player = playerid;
 		core.new_chains.push_back(newchain);
 		phandler->set_status(STATUS_CHAINING, TRUE);
