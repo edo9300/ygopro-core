@@ -151,11 +151,11 @@ struct processor_unit {
 	void* ptr2;
 };
 union return_value {
-	std::bitset<64 * 8> bitvalue;
-	int8 bvalue[64];
-	int16 svalue[32];
-	int32 ivalue[16];
-	int64 lvalue[8];
+	std::bitset<64 * 8 * 6> bitvalue;
+	int8 bvalue[64 * 6];
+	int16 svalue[32 * 6];
+	int32 ivalue[16 * 6];
+	int64 lvalue[8 * 6];
 	return_value() {};
 };
 class return_card {

@@ -234,10 +234,14 @@ bool field::parse_response_cards(uint8 cancelable) {
 		for(int32 i = 0; i < size; ++i)
 			return_cards.list.push_back(core.select_cards[returns.ivalue[i + 2]]);
 	} else if(type == 1) {
-		uint32 size = returns.svalue[2];
+		uint32 size = *(uint32*)&returns.svalue[2];
 		for(int32 i = 0; i < size; ++i)
-			return_cards.list.push_back(core.select_cards[returns.svalue[i + 3]]);
+			return_cards.list.push_back(core.select_cards[returns.svalue[i + 4]]);
 	} else if(type == 2) {
+		uint32 size = *(uint32*)&returns.bvalue[4];
+		for(int32 i = 0; i < size; ++i)
+			return_cards.list.push_back(core.select_cards[returns.bvalue[i + 8]]);
+	} else if(type == 3) {
 		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
 			if(returns.bitvalue[i + 1 + (sizeof(int) * 8)])
 				return_cards.list.push_back(core.select_cards[i]);

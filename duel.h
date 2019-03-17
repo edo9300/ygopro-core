@@ -60,7 +60,7 @@ public:
 	void write_buffer8(uint8 value);
 	void clear_buffer();
 	void set_responsei(uint32 resp);
-	void set_responseb(byte* resp);
+	void set_responseb(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 private:
 	group* register_group(group* pgroup);

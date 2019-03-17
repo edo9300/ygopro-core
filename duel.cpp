@@ -148,8 +148,8 @@ void duel::clear_buffer() {
 void duel::set_responsei(uint32 resp) {
 	game_field->returns.ivalue[0] = resp;
 }
-void duel::set_responseb(byte* resp) {
-	std::memcpy(game_field->returns.bvalue, resp, 64);
+void duel::set_responseb(byte* resp, size_t len) {
+	std::memcpy(game_field->returns.bvalue, resp, std::min(len, sizeof(game_field->returns.bvalue)));
 }
 int32 duel::get_next_integer(int32 l, int32 h) {
 	return (std::uniform_int_distribution<>(l, h))(random);

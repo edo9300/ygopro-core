@@ -16,7 +16,7 @@
 #endif
 
 #define DUEL_API_VERSION_MAJOR 1
-#define DUEL_API_VERSION_MINOR 0
+#define DUEL_API_VERSION_MINOR 1
 
 class card;
 struct card_data;
@@ -55,7 +55,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_count(ptr pduel, uint8 playerid, uin
 extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint8 location, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache = FALSE);
 extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf);
 extern "C" DECL_DLLEXPORT void set_responsei(ptr pduel, int32 value);
-extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf);
+extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf, size_t len);
 extern "C" DECL_DLLEXPORT int32 preload_script(ptr pduel, char* script, int32 len, int32 scriptlen = 0, char* scriptbuff = nullptr);
 byte* default_script_reader(const char* script_name, int* len);
 uint32 default_card_reader(uint32 code, card_data* data);

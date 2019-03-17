@@ -433,8 +433,8 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 extern "C" DECL_DLLEXPORT void set_responsei(ptr pduel, int32 value) {
 	((duel*)pduel)->set_responsei(value);
 }
-extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf) {
-	((duel*)pduel)->set_responseb(buf);
+extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf, size_t len) {
+	((duel*)pduel)->set_responseb(buf, len);
 }
 extern "C" DECL_DLLEXPORT int32 preload_script(ptr pduel, char* script, int32 len, int32 scriptlen, char* scriptbuff) {
 	if(scriptlen)
