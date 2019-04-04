@@ -226,13 +226,14 @@ public:
 	uint32 get_lscale();
 	uint32 get_rscale();
 	uint32 get_link_marker();
-	int32 is_link_marker(uint32 dir);
+	int32 is_link_marker(uint32 dir, uint32 marker = 0);
 	uint32 get_linked_zone();
 	uint32 get_free_linked_zone();
-	void get_linked_cards(card_set* cset);
+	void get_linked_cards(card_set* cset, uint32 zones = 0);
 	uint32 get_mutual_linked_zone();
 	void get_mutual_linked_cards(card_set * cset);
 	int32 is_link_state();
+	int32 is_mutual_linked(card* pcard, uint32 zones = 0);
 	int32 is_extra_link_state();
 	int32 is_position(int32 pos);
 	void set_status(uint32 status, int32 enabled);

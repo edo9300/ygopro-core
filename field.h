@@ -403,7 +403,6 @@ public:
 	int32 get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint32 uplayer, uint32 reason);
 	uint32 get_linked_zone(int32 playerid);
 	void get_linked_cards(uint8 self, uint8 location1, uint8 location2, card_set* cset);
-	int32 check_extra_link(int32 playerid);
 	int32 check_extra_link(int32 playerid, card* pcard, int32 sequence);
 	void get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location);
 	void shuffle(uint8 playerid, uint8 location);

@@ -1235,7 +1235,7 @@ uint32 card::get_rank() {
 	return rank;
 }
 uint32 card::get_link() {
-	if(!(data.type & TYPE_LINK) || (status & STATUS_NO_LEVEL))
+	if(!(get_type() & TYPE_LINK) || (status & STATUS_NO_LEVEL))
 		return 0;
 	if (assume.find(ASSUME_LINK) != assume.end())
 		return assume[ASSUME_LINK];
@@ -1480,7 +1480,7 @@ uint32 card::get_rscale() {
 uint32 card::get_link_marker() {
 	if (assume.find(ASSUME_LINKMARKER) != assume.end())
 		return assume[ASSUME_LINKMARKER];
-	if(!(data.type & TYPE_LINK))
+	if(!(get_type() & TYPE_LINK))
 		return 0;
 	if (temp.link_marker != 0xffffffff)
 		return temp.link_marker;
@@ -1502,63 +1502,67 @@ uint32 card::get_link_marker() {
 	temp.link_marker = 0xffffffff;
 	return link_marker;
 }
-int32 card::is_link_marker(uint32 dir) {
-	return (int32)(get_link_marker() & dir);
+int32 card::is_link_marker(uint32 dir, uint32 marker) {
+	if(marker)
+		return (int32)(marker & dir);
+	else
+		return (int32)(get_link_marker() & dir);
 }
 uint32 card::get_linked_zone() {
-	if(!(data.type & TYPE_LINK))
+	if(!(get_type() & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
 		return 0;
 	int32 zones = 0;
 	int32 s = current.sequence;
 	int32 location = current.location;
+	auto marker = get_link_marker();
 	if(location == LOCATION_MZONE) {
-		if(s > 0 && s <= 4 && is_link_marker(LINK_MARKER_LEFT))
+		if(s > 0 && s <= 4 && is_link_marker(LINK_MARKER_LEFT, marker))
 			zones |= 1u << (s - 1);
-		if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT))
+		if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT, marker))
 			zones |= 1u << (s + 1);
 		if(s < 5) {
-			if(s > 0 && is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+			if(s > 0 && is_link_marker(LINK_MARKER_BOTTOM_LEFT, marker))
 				zones |= 1u << (s + 7);
-			if(s < 4 && is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+			if(s < 4 && is_link_marker(LINK_MARKER_BOTTOM_RIGHT, marker))
 				zones |= 1u << (s + 9);
-			if(is_link_marker(LINK_MARKER_BOTTOM))
+			if(is_link_marker(LINK_MARKER_BOTTOM, marker))
 				zones |= 1u << (s + 8);
 		}
 		if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
-			if((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT))
-				|| (s == 1 && is_link_marker(LINK_MARKER_TOP))
-				|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)))
+			if((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
+				|| (s == 1 && is_link_marker(LINK_MARKER_TOP, marker))
+				|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT, marker)))
 				zones |= (1u << 5) | (1u << (16 + 6));
-			if((s == 2 && is_link_marker(LINK_MARKER_TOP_RIGHT))
-				|| (s == 3 && is_link_marker(LINK_MARKER_TOP))
-				|| (s == 4 && is_link_marker(LINK_MARKER_TOP_LEFT)))
+			if((s == 2 && is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
+				|| (s == 3 && is_link_marker(LINK_MARKER_TOP, marker))
+				|| (s == 4 && is_link_marker(LINK_MARKER_TOP_LEFT, marker)))
 				zones |= (1u << 6) | (1u << (16 + 5));
 			if(s == 5) {
-				if(is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+				if(is_link_marker(LINK_MARKER_BOTTOM_LEFT, marker))
 					zones |= 1u << 0;
-				if(is_link_marker(LINK_MARKER_BOTTOM))
+				if(is_link_marker(LINK_MARKER_BOTTOM, marker))
 					zones |= 1u << 1;
-				if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+				if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT, marker))
 					zones |= 1u << 2;
-				if(is_link_marker(LINK_MARKER_TOP_LEFT))
+				if(is_link_marker(LINK_MARKER_TOP_LEFT, marker))
 					zones |= 1u << (16 + 4);
-				if(is_link_marker(LINK_MARKER_TOP))
+				if(is_link_marker(LINK_MARKER_TOP, marker))
 					zones |= 1u << (16 + 3);
-				if(is_link_marker(LINK_MARKER_TOP_RIGHT))
+				if(is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
 					zones |= 1u << (16 + 2);
 			}
 			if(s == 6) {
-				if(is_link_marker(LINK_MARKER_BOTTOM_LEFT))
+				if(is_link_marker(LINK_MARKER_BOTTOM_LEFT, marker))
 					zones |= 1u << 2;
-				if(is_link_marker(LINK_MARKER_BOTTOM))
+				if(is_link_marker(LINK_MARKER_BOTTOM, marker))
 					zones |= 1u << 3;
-				if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
+				if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT, marker))
 					zones |= 1u << 4;
-				if(is_link_marker(LINK_MARKER_TOP_LEFT))
+				if(is_link_marker(LINK_MARKER_TOP_LEFT, marker))
 					zones |= 1u << (16 + 2);
-				if(is_link_marker(LINK_MARKER_TOP))
+				if(is_link_marker(LINK_MARKER_TOP, marker))
 					zones |= 1u << (16 + 1);
-				if(is_link_marker(LINK_MARKER_TOP_RIGHT))
+				if(is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
 					zones |= 1u << (16 + 0);
 			}
 		}
@@ -1566,224 +1570,94 @@ uint32 card::get_linked_zone() {
 		if(s > 4)
 			return 0;
 		if(s > 0) {
-			if(is_link_marker(LINK_MARKER_LEFT))
+			if(is_link_marker(LINK_MARKER_LEFT, marker))
 				zones |= 1u << (s + 7);
-			if(is_link_marker(LINK_MARKER_TOP_LEFT))
+			if(is_link_marker(LINK_MARKER_TOP_LEFT, marker))
 				zones |= 1u << (s - 1);
 		}
-		if(s <= 3) {
-			if(is_link_marker(LINK_MARKER_RIGHT))
+		if(s < 4) {
+			if(is_link_marker(LINK_MARKER_RIGHT, marker))
 				zones |= 1u << (s + 9);
-			if(is_link_marker(LINK_MARKER_TOP_RIGHT))
+			if(is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
 				zones |= 1u << (s + 1);
 		}
-		if(is_link_marker(LINK_MARKER_TOP))
+		if(is_link_marker(LINK_MARKER_TOP, marker))
 			zones |= 1u << s;
 	}
 	return zones;
 }
 uint32 card::get_free_linked_zone() {
-	if(!(data.type & TYPE_LINK) || current.location != LOCATION_MZONE)
-		return 0;
-	int32 zones = 0;
-	int32 s = current.sequence;
+	auto zones = get_linked_zone();
 	int32 p = current.controler;
-	if(s > 0 && s <= 4 && is_link_marker(LINK_MARKER_LEFT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, s - 1))
-		zones |= 1u << (s - 1);
-	if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, s + 1))
-		zones |= 1u << (s + 1);
-	if (pduel->game_field->core.duel_options & DUEL_EMZONE) {
-		if (((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT))
-			|| (s == 1 && is_link_marker(LINK_MARKER_TOP))
-			|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)))
-			&& pduel->game_field->is_location_useable(p, LOCATION_MZONE, 5))
-			zones |= (1u << 5) | (1u << (16 + 6));
-		if (((s == 2 && is_link_marker(LINK_MARKER_TOP_RIGHT))
-			|| (s == 3 && is_link_marker(LINK_MARKER_TOP))
-			|| (s == 4 && is_link_marker(LINK_MARKER_TOP_LEFT)))
-			&& pduel->game_field->is_location_useable(p, LOCATION_MZONE, 6))
-			zones |= (1u << 6) | (1u << (16 + 5));
-		if (s == 5) {
-			if (is_link_marker(LINK_MARKER_BOTTOM_LEFT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, 0))
-				zones |= 1u << 0;
-			if (is_link_marker(LINK_MARKER_BOTTOM) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, 1))
-				zones |= 1u << 1;
-			if (is_link_marker(LINK_MARKER_BOTTOM_RIGHT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, 2))
-				zones |= 1u << 2;
-			if (is_link_marker(LINK_MARKER_TOP_LEFT) && pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, 4))
-				zones |= 1u << (16 + 4);
-			if (is_link_marker(LINK_MARKER_TOP) && pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, 3))
-				zones |= 1u << (16 + 3);
-			if (is_link_marker(LINK_MARKER_TOP_RIGHT) && pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, 2))
-				zones |= 1u << (16 + 2);
+	for(int i = 0; i < 8; i++) {
+		if(!pduel->game_field->is_location_useable(p, LOCATION_MZONE, i)) {
+			zones &= ~(1 << i);
 		}
-		if (s == 6) {
-			if (is_link_marker(LINK_MARKER_BOTTOM_LEFT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, 2))
-				zones |= 1u << 2;
-			if (is_link_marker(LINK_MARKER_BOTTOM) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, 3))
-				zones |= 1u << 3;
-			if (is_link_marker(LINK_MARKER_BOTTOM_RIGHT) && pduel->game_field->is_location_useable(p, LOCATION_MZONE, 4))
-				zones |= 1u << 4;
-			if (is_link_marker(LINK_MARKER_TOP_LEFT) && pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, 2))
-				zones |= 1u << (16 + 2);
-			if (is_link_marker(LINK_MARKER_TOP) && pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, 1))
-				zones |= 1u << (16 + 1);
-			if (is_link_marker(LINK_MARKER_TOP_RIGHT) && pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, 0))
-				zones |= 1u << (16 + 0);
+	}
+	for(int i = 0; i < 8; i++) {
+		if(!pduel->game_field->is_location_useable(p, LOCATION_SZONE, i)) {
+			zones &= ~(1 << (i + 8));
+		}
+	}
+	for(int i = 0; i < 8; i++) {
+		if(!pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, i + 16)) {
+			zones &= ~(1 << (i + 16));
+		}
+	}
+	for(int i = 0; i < 8; i++) {
+		if(!pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, i + 16)) {
+			zones &= ~(1 << (i + 16));
 		}
 	}
 	return zones;
 }
-void card::get_linked_cards(card_set* cset) {
+void card::get_linked_cards(card_set* cset, uint32 zones) {
 	cset->clear();
-	if(!(data.type & TYPE_LINK))
+	if(!(data.type & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
 		return;
 	int32 p = current.controler;
-	uint32 linked_zone = get_linked_zone();
-	pduel->game_field->get_cards_in_zone(cset, linked_zone, p, LOCATION_MZONE);
-	pduel->game_field->get_cards_in_zone(cset, linked_zone >> 16, 1 - p, LOCATION_MZONE);
+	uint32 linked_zone = (zones) ? zones : get_linked_zone();
+	pduel->game_field->get_cards_in_zone(cset, linked_zone, p, LOCATION_ONFIELD);
+	pduel->game_field->get_cards_in_zone(cset, linked_zone >> 16, 1 - p, LOCATION_ONFIELD);
+	for(auto it = cset->begin(); it != cset->end();) {
+		if((*it)->current.location == LOCATION_SZONE && !((*it)->get_type() & TYPE_LINK)) {
+			it = cset->erase(it);
+			continue;
+		}
+		it++;
+	}
 }
 uint32 card::get_mutual_linked_zone() {
-	if(!(data.type & TYPE_LINK) || current.location != LOCATION_MZONE)
+	uint32 linked_zone = get_linked_zone();
+	if(!linked_zone)
 		return 0;
 	int32 zones = 0;
 	int32 p = current.controler;
 	int32 s = current.sequence;
-	if(s > 0 && s <= 4 && is_link_marker(LINK_MARKER_LEFT)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[s - 1];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_RIGHT))
-			zones |= 1u << (s - 1);
-	}
-	if(s <= 3 && is_link_marker(LINK_MARKER_RIGHT)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[s + 1];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_LEFT))
-			zones |= 1u << (s + 1);
-	}
-	if(s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[5];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_BOTTOM_LEFT))
-			zones |= 1u << 5;
-		pcard = pduel->game_field->player[1 - p].list_mzone[6];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-			zones |= 1u << (16 + 6);
-	}
-	if(s == 1 && is_link_marker(LINK_MARKER_TOP)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[5];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_BOTTOM))
-			zones |= 1u << 5;
-		pcard = pduel->game_field->player[1 - p].list_mzone[6];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_TOP))
-			zones |= 1u << (16 + 6);
-	}
-	if(s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[5];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
-			zones |= 1u << 5;
-		pcard = pduel->game_field->player[1 - p].list_mzone[6];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-			zones |= 1u << (16 + 6);
-	}
-	if(s == 2 && is_link_marker(LINK_MARKER_TOP_RIGHT)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[6];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_BOTTOM_LEFT))
-			zones |= 1u << 6;
-		pcard = pduel->game_field->player[1 - p].list_mzone[5];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-			zones |= 1u << (16 + 5);
-	}
-	if(s == 3 && is_link_marker(LINK_MARKER_TOP)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[6];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_BOTTOM))
-			zones |= 1u << 6;
-		pcard = pduel->game_field->player[1 - p].list_mzone[5];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_TOP))
-			zones |= 1u << (16 + 5);
-	}
-	if(s == 4 && is_link_marker(LINK_MARKER_TOP_LEFT)) {
-		card* pcard = pduel->game_field->player[p].list_mzone[6];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_BOTTOM_RIGHT))
-			zones |= 1u << 6;
-		pcard = pduel->game_field->player[1 - p].list_mzone[5];
-		if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-			zones |= 1u << (16 + 5);
-	}
-	if(s == 5) {
-		if(is_link_marker(LINK_MARKER_BOTTOM_LEFT)) {
-			card* pcard = pduel->game_field->player[p].list_mzone[0];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << 0;
-		}
-		if(is_link_marker(LINK_MARKER_BOTTOM)) {
-			card* pcard = pduel->game_field->player[p].list_mzone[1];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << 1;
-		}
-		if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT)) {
-			card* pcard = pduel->game_field->player[p].list_mzone[2];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << 2;
-		}
-		if(is_link_marker(LINK_MARKER_TOP_LEFT)) {
-			card* pcard = pduel->game_field->player[1 - p].list_mzone[4];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << (16 + 4);
-		}
-		if(is_link_marker(LINK_MARKER_TOP)) {
-			card* pcard = pduel->game_field->player[1 - p].list_mzone[3];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << (16 + 3);
-		}
-		if(is_link_marker(LINK_MARKER_TOP_RIGHT)) {
-			card* pcard = pduel->game_field->player[1 - p].list_mzone[2];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << (16 + 2);
-		}
-	}
-	if(s == 6) {
-		if(is_link_marker(LINK_MARKER_BOTTOM_LEFT)) {
-			card* pcard = pduel->game_field->player[p].list_mzone[2];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << 2;
-		}
-		if(is_link_marker(LINK_MARKER_BOTTOM)) {
-			card* pcard = pduel->game_field->player[p].list_mzone[3];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << 3;
-		}
-		if(is_link_marker(LINK_MARKER_BOTTOM_RIGHT)) {
-			card* pcard = pduel->game_field->player[p].list_mzone[4];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << 4;
-		}
-		if(is_link_marker(LINK_MARKER_TOP_LEFT)) {
-			card* pcard = pduel->game_field->player[1 - p].list_mzone[2];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_LEFT))
-				zones |= 1u << (16 + 2);
-		}
-		if(is_link_marker(LINK_MARKER_TOP)) {
-			card* pcard = pduel->game_field->player[1 - p].list_mzone[1];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP))
-				zones |= 1u << (16 + 1);
-		}
-		if(is_link_marker(LINK_MARKER_TOP_RIGHT)) {
-			card* pcard = pduel->game_field->player[1 - p].list_mzone[0];
-			if(pcard && pcard->is_link_marker(LINK_MARKER_TOP_RIGHT))
-				zones |= 1u << (16 + 0);
+	auto marker = get_link_marker();
+	card_set cset;
+	get_linked_cards(&cset, linked_zone);
+	for(auto& pcard : cset) {
+		auto zone = pcard->get_linked_zone();
+		uint32 is_szone = pcard->current.location == LOCATION_SZONE ? 8 : 0;
+		uint32 is_player = (current.controler == pcard->current.controler) ? 0 : 16;
+		if(!is_mutual_linked(pcard, zone)) {
+			zones |= 1 << (pcard->current.sequence + is_szone + is_player);
 		}
 	}
 	return zones;
 }
 void card::get_mutual_linked_cards(card_set* cset) {
 	cset->clear();
-	if(!(data.type & TYPE_LINK) || current.location != LOCATION_MZONE)
+	if(!(data.type & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
 		return;
 	int32 p = current.controler;
 	uint32 mutual_linked_zone = get_mutual_linked_zone();
-	pduel->game_field->get_cards_in_zone(cset, mutual_linked_zone, p, LOCATION_MZONE);
-	pduel->game_field->get_cards_in_zone(cset, mutual_linked_zone >> 16, 1 - p, LOCATION_MZONE);
+	pduel->game_field->get_cards_in_zone(cset, mutual_linked_zone, p, LOCATION_ONFIELD);
+	pduel->game_field->get_cards_in_zone(cset, mutual_linked_zone >> 16, 1 - p, LOCATION_ONFIELD);
 }
 int32 card::is_link_state() {
-	if(current.location != LOCATION_MZONE)
+	if(!(data.type & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
 		return FALSE;
 	card_set cset;
 	get_linked_cards(&cset);
@@ -1795,13 +1669,29 @@ int32 card::is_link_state() {
 		return TRUE;
 	return FALSE;
 }
+int32 card::is_mutual_linked(card * pcard, uint32 zones) {
+	int32 ret = FALSE;
+	if(!zones)
+		zones = get_linked_zone();
+	uint32 is_szone = pcard->current.location == LOCATION_SZONE ? 8 : 0;
+	uint32 is_player = (current.controler == pcard->current.controler) ? 0 : 16;
+	if(zones & (pcard->current.sequence + is_szone + is_player)) {
+		zones = pcard->get_linked_zone();
+		is_szone = current.location == LOCATION_SZONE ? 8 : 0;
+		is_player = (current.controler == pcard->current.controler) ? 0 : 16;
+		ret = zones & (current.sequence + is_szone + is_player);
+	}
+	return ret;
+}
 int32 card::is_extra_link_state() {
 	if(current.location != LOCATION_MZONE)
 		return FALSE;
-	uint32 checked = 1u << current.sequence;
+	uint32 checked = (current.location == LOCATION_MZONE) ? (1u << current.sequence) : (1u << (current.sequence + 8));
 	uint32 linked_zone = get_mutual_linked_zone();
 	const auto& list_mzone0 = pduel->game_field->player[current.controler].list_mzone;
+	const auto& list_szone0 = pduel->game_field->player[current.controler].list_szone;
 	const auto& list_mzone1 = pduel->game_field->player[1 - current.controler].list_mzone;
+	const auto& list_szone1 = pduel->game_field->player[1 - current.controler].list_szone;
 	while(true) {
 		if(((linked_zone >> 5) | (linked_zone >> (16 + 6))) & ((linked_zone >> 6) | (linked_zone >> (16 + 5))) & 1)
 			return TRUE;
@@ -1811,9 +1701,9 @@ int32 card::is_extra_link_state() {
 		int32 rightmost = checking & (-checking);
 		checked |= (uint32)rightmost;
 		if(rightmost < 0x10000) {
-			for(int32 i = 0; i < 7; ++i) {
+			for(int32 i = 0; i < 16; ++i) {
 				if(rightmost & 1) {
-					card* pcard = list_mzone0[i];
+					card* pcard = (i < 8) ? list_mzone0[i] : list_szone0[i - 8];
 					linked_zone |= pcard->get_mutual_linked_zone();
 					break;
 				}
@@ -1821,11 +1711,11 @@ int32 card::is_extra_link_state() {
 			}
 		} else {
 			rightmost >>= 16;
-			for(int32 i = 0; i < 7; ++i) {
+			for(int32 i = 0; i < 16; ++i) {
 				if(rightmost & 1) {
-					card* pcard = list_mzone1[i];
+					card* pcard = (i < 8) ? list_mzone1[i] : list_szone1[i - 8];
 					uint32 zone = pcard->get_mutual_linked_zone();
-					linked_zone |= (zone << 16) | (zone >> 16);
+					linked_zone |= ((zone & 0xffff) << 16) | (zone >> 16);
 					break;
 				}
 				rightmost >>= 1;

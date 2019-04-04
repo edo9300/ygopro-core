@@ -811,44 +811,6 @@ void field::get_linked_cards(uint8 self, uint8 location1, uint8 location2, card_
 	get_cards_in_zone(cset, get_linked_zone(self), self, location1);
 	get_cards_in_zone(cset, get_linked_zone(1 - self), self, location2);
 }
-int32 field::check_extra_link(int32 playerid) {
-	if(!player[playerid].list_mzone[5] || !player[playerid].list_mzone[6])
-		return FALSE;
-	card* pcard = player[playerid].list_mzone[5];
-	uint32 checked = 1u << 5;
-	uint32 linked_zone = pcard->get_mutual_linked_zone();
-	while(true) {
-		if((linked_zone >> 6) & 1)
-			return TRUE;
-		int32 checking = (int32)(linked_zone & ~checked);
-		if(!checking)
-			return FALSE;
-		int32 rightmost = checking & (-checking);
-		checked |= (uint32)rightmost;
-		if(rightmost < 0x10000) {
-			for(int32 i = 0; i < 7; ++i) {
-				if(rightmost & 1) {
-					pcard = player[playerid].list_mzone[i];
-					linked_zone |= pcard->get_mutual_linked_zone();
-					break;
-				}
-				rightmost >>= 1;
-			}
-		} else {
-			rightmost >>= 16;
-			for(int32 i = 0; i < 7; ++i) {
-				if(rightmost & 1) {
-					pcard = player[1 - playerid].list_mzone[i];
-					uint32 zone = pcard->get_mutual_linked_zone();
-					linked_zone |= (zone << 16) | (zone >> 16);
-					break;
-				}
-				rightmost >>= 1;
-			}
-		}
-	}
-	return FALSE;
-}
 int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 	if(!pcard)
 		return FALSE;
@@ -861,7 +823,7 @@ int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 	pcard->current.controler = playerid;
 	pcard->current.location = LOCATION_MZONE;
 	pcard->current.sequence = sequence;
-	int32 ret = check_extra_link(playerid);
+	int32 ret = pcard->is_extra_link_state();
 	player[playerid].list_mzone[sequence] = 0;
 	pcard->current.controler = cur_controler;
 	pcard->current.location = cur_location;
