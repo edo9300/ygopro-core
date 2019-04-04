@@ -54,8 +54,8 @@ int32 field::select_battle_command(uint16 step, uint8 playerid) {
 			pduel->write_buffer8(0);
 		return FALSE;
 	} else {
-		uint32 t = returns.ivalue[0] & 0xffff;
-		uint32 s = returns.ivalue[0] >> 16;
+		uint32 t = returns.at<int32>(0) & 0xffff;
+		uint32 s = returns.at<int32>(0) >> 16;
 		if(t > 3
 		   || (t == 0 && s >= core.select_chains.size())
 		   || (t == 1 && s >= core.attackable_cards.size())
@@ -141,8 +141,8 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 			pduel->write_buffer8(0);
 		return FALSE;
 	} else {
-		uint32 t = returns.ivalue[0] & 0xffff;
-		uint32 s = returns.ivalue[0] >> 16;
+		uint32 t = returns.at<int32>(0) & 0xffff;
+		uint32 s = returns.at<int32>(0) >> 16;
 		if(t > 8
 		   || (t == 0 && s >= core.summonable_cards.size())
 		   || (t == 1 && s >= core.spsummonable_cards.size())
@@ -162,7 +162,7 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 int32 field::select_effect_yes_no(uint16 step, uint8 playerid, uint64 description, card* pcard) {
 	if(step == 0) {
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.ivalue[0] = 1;
+			returns.at<int32>(0) = 1;
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_EFFECTYN);
@@ -171,10 +171,10 @@ int32 field::select_effect_yes_no(uint16 step, uint8 playerid, uint64 descriptio
 		loc_info tmp_info = pcard->get_info_location();
 		pduel->write_info_location(&tmp_info);
 		pduel->write_buffer64(description);
-		returns.ivalue[0] = -1;
+		returns.at<int32>(0) = -1;
 		return FALSE;
 	} else {
-		if(returns.ivalue[0] != 0 && returns.ivalue[0] != 1) {
+		if(returns.at<int32>(0) != 0 && returns.at<int32>(0) != 1) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -184,16 +184,16 @@ int32 field::select_effect_yes_no(uint16 step, uint8 playerid, uint64 descriptio
 int32 field::select_yes_no(uint16 step, uint8 playerid, uint64 description) {
 	if(step == 0) {
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.ivalue[0] = 1;
+			returns.at<int32>(0) = 1;
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_YESNO);
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer64(description);
-		returns.ivalue[0] = -1;
+		returns.at<int32>(0) = -1;
 		return FALSE;
 	} else {
-		if(returns.ivalue[0] != 0 && returns.ivalue[0] != 1) {
+		if(returns.at<int32>(0) != 0 && returns.at<int32>(0) != 1) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -202,11 +202,11 @@ int32 field::select_yes_no(uint16 step, uint8 playerid, uint64 description) {
 }
 int32 field::select_option(uint16 step, uint8 playerid) {
 	if(step == 0) {
-		returns.ivalue[0] = -1;
+		returns.at<int32>(0) = -1;
 		if(core.select_options.size() == 0)
 			return TRUE;
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.ivalue[0] = 0;
+			returns.at<int32>(0) = 0;
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_OPTION);
@@ -216,7 +216,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 			pduel->write_buffer64(option);
 		return FALSE;
 	} else {
-		if(returns.ivalue[0] < 0 || returns.ivalue[0] >= (int32)core.select_options.size()) {
+		if(returns.at<int32>(0) < 0 || returns.at<int32>(0) >= (int32)core.select_options.size()) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -224,39 +224,41 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 	}
 }
 bool field::parse_response_cards(uint8 cancelable) {
-	int type = returns.ivalue[0];
-	if(cancelable && returns.ivalue[1] == -1) {
-		return_cards.canceled = true;
-		return true;
+	int type = returns.at<int32>(0);
+	if(type == -1) {
+		if(cancelable) {
+			return_cards.canceled = true;
+			return true;
+		}
+		return false;
 	}
-	if(type == 0) {
-		uint32 size = returns.ivalue[1];
-		for(int32 i = 0; i < size; ++i)
-			return_cards.list.push_back(core.select_cards[returns.ivalue[i + 2]]);
-	} else if(type == 1) {
-		uint32 size = *(uint32*)&returns.svalue[2];
-		for(int32 i = 0; i < size; ++i)
-			return_cards.list.push_back(core.select_cards[returns.svalue[i + 4]]);
-	} else if(type == 2) {
-		uint32 size = *(uint32*)&returns.bvalue[4];
-		for(int32 i = 0; i < size; ++i)
-			return_cards.list.push_back(core.select_cards[returns.bvalue[i + 8]]);
-	} else if(type == 3) {
+	auto& list = return_cards.list;
+	if(type == 3) {
 		for(int32 i = 0; i < (int32)core.select_cards.size(); i++) {
-			if(returns.bitvalue[i + 1 + (sizeof(int) * 8)])
-				return_cards.list.push_back(core.select_cards[i]);
+			if(returns.bitGet(i + (sizeof(int) * 8)))
+				list.push_back(core.select_cards[i]);
+		}
+	} else {
+		uint32 size = returns.at<int32>(1);
+		for(int32 i = 0; i < size; ++i) {
+			list.push_back(core.select_cards[
+					(type == 0) ? returns.at<int32>(i + 2) :
+					(type == 1) ? returns.at<int16>(i + 4) :
+					returns.at<int8>(i + 8)
+			]
+			);
 		}
 	}
-	std::sort(return_cards.list.begin(), return_cards.list.end());
-	auto ip = std::unique(return_cards.list.begin(), return_cards.list.end());
-	bool res = (ip == return_cards.list.end());
-	return_cards.list.resize(std::distance(return_cards.list.begin(), ip));
+	std::sort(list.begin(), list.end());
+	auto ip = std::unique(list.begin(), list.end());
+	bool res = (ip == list.end());
+	list.resize(std::distance(list.begin(), ip));
 	return res;
 }
 int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
 		return_cards.clear();
-		returns.bitvalue.reset();
+		returns.clear();
 		if(max == 0 || core.select_cards.empty())
 			return TRUE;
 		if(max > core.select_cards.size())
@@ -302,14 +304,14 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 finishable) {
 	if (step == 0) {
 		return_cards.clear();
-		returns.bitvalue.reset();
+		returns.clear();
 		if (core.select_cards.empty() && core.unselect_cards.empty())
 			return TRUE;
 		if ((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
 			if(cancelable)
-				returns.bvalue[0] = -1;
+				returns.at<int8>(0) = -1;
 			else
-				returns.bitvalue[1] = 1;
+				returns.bitSet(1);
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_UNSELECT_CARD);
@@ -333,7 +335,7 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 		}
 		return FALSE;
 	} else {
-		if(returns.ivalue[0] == -1) {
+		if(returns.at<int32>(0) == -1) {
 			if(cancelable || finishable) {
 				return_cards.canceled = true;
 				return TRUE;
@@ -342,13 +344,13 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
-		if(returns.ivalue[0] == 0 || returns.ivalue[0] > 1) {
+		if(returns.at<int32>(0) == 0 || returns.at<int32>(0) > 1) {
 			return_cards.clear();
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
 		int32 max = (int32)(core.select_cards.size() + core.unselect_cards.size());
-		int retval = returns.ivalue[1];
+		int retval = returns.at<int32>(1);
 		if(retval < 0 || retval >= max){
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
@@ -359,21 +361,21 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 }
 int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 forced) {
 	if(step == 0) {
-		returns.ivalue[0] = -1;
+		returns.at<int32>(0) = -1;
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
 			if(core.select_chains.size() == 0)
-				returns.ivalue[0] = -1;
+				returns.at<int32>(0) = -1;
 			else if(forced)
-				returns.ivalue[0] = 0;
+				returns.at<int32>(0) = 0;
 			else {
 				bool act = true;
 				for(const auto& ch : core.current_chain)
 					if(ch.triggering_player == 1)
 						act = false;
 				if(act)
-					returns.ivalue[0] = 0;
+					returns.at<int32>(0) = 0;
 				else
-					returns.ivalue[0] = -1;
+					returns.at<int32>(0) = -1;
 			}
 			return TRUE;
 		}
@@ -401,9 +403,9 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 		}
 		return FALSE;
 	} else {
-		if(!forced && returns.ivalue[0] == -1)
+		if(!forced && returns.at<int32>(0) == -1)
 			return TRUE;
-		if(returns.ivalue[0] < 0 || returns.ivalue[0] >= (int32)core.select_chains.size()) {
+		if(returns.at<int32>(0) < 0 || returns.at<int32>(0) >= (int32)core.select_chains.size()) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
 		}
@@ -419,43 +421,43 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 			int32 filter;
 			int32 pzone = 0;
 			if(flag & 0x7f) {
-				returns.bvalue[0] = 1;
-				returns.bvalue[1] = LOCATION_MZONE;
+				returns.at<int8>(0) = 1;
+				returns.at<int8>(1) = LOCATION_MZONE;
 				filter = flag & 0x7f;
 			} else if(flag & 0x1f00) {
-				returns.bvalue[0] = 1;
-				returns.bvalue[1] = LOCATION_SZONE;
+				returns.at<int8>(0) = 1;
+				returns.at<int8>(1) = LOCATION_SZONE;
 				filter = (flag >> 8) & 0x1f;
 			} else if(flag & 0xc000) {
-				returns.bvalue[0] = 1;
-				returns.bvalue[1] = LOCATION_SZONE;
+				returns.at<int8>(0) = 1;
+				returns.at<int8>(1) = LOCATION_SZONE;
 				filter = (flag >> 14) & 0x3;
 				pzone = 1;
 			} else if(flag & 0x7f0000) {
-				returns.bvalue[0] = 0;
-				returns.bvalue[1] = LOCATION_MZONE;
+				returns.at<int8>(0) = 0;
+				returns.at<int8>(1) = LOCATION_MZONE;
 				filter = (flag >> 16) & 0x7f;
 			} else if(flag & 0x1f000000) {
-				returns.bvalue[0] = 0;
-				returns.bvalue[1] = LOCATION_SZONE;
+				returns.at<int8>(0) = 0;
+				returns.at<int8>(1) = LOCATION_SZONE;
 				filter = (flag >> 24) & 0x1f;
 			} else {
-				returns.bvalue[0] = 0;
-				returns.bvalue[1] = LOCATION_SZONE;
+				returns.at<int8>(0) = 0;
+				returns.at<int8>(1) = LOCATION_SZONE;
 				filter = (flag >> 30) & 0x3;
 				pzone = 1;
 			}
 			if(!pzone) {
-				if(filter & 0x40) returns.bvalue[2] = 6;
-				else if(filter & 0x20) returns.bvalue[2] = 5;
-				else if(filter & 0x4) returns.bvalue[2] = 2;
-				else if(filter & 0x2) returns.bvalue[2] = 1;
-				else if(filter & 0x8) returns.bvalue[2] = 3;
-				else if(filter & 0x1) returns.bvalue[2] = 0;
-				else if(filter & 0x10) returns.bvalue[2] = 4;
+				if(filter & 0x40) returns.at<int8>(2) = 6;
+				else if(filter & 0x20) returns.at<int8>(2) = 5;
+				else if(filter & 0x4) returns.at<int8>(2) = 2;
+				else if(filter & 0x2) returns.at<int8>(2) = 1;
+				else if(filter & 0x8) returns.at<int8>(2) = 3;
+				else if(filter & 0x1) returns.at<int8>(2) = 0;
+				else if(filter & 0x10) returns.at<int8>(2) = 4;
 			} else {
-				if(filter & 0x1) returns.bvalue[2] = 6;
-				else if(filter & 0x2) returns.bvalue[2] = 7;
+				if(filter & 0x1) returns.at<int8>(2) = 6;
+				else if(filter & 0x2) returns.at<int8>(2) = 7;
 			}
 			return TRUE;
 		}
@@ -466,14 +468,14 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer8(count);
 		pduel->write_buffer32(flag);
-		returns.bvalue[0] = 0;
+		returns.at<int8>(0) = 0;
 		return FALSE;
 	} else {
 		uint8 pt = 0;
 		for(int8 i = 0; i < count; ++i) {
-			uint8 p = returns.bvalue[pt];
-			uint8 l = returns.bvalue[pt + 1];
-			uint8 s = returns.bvalue[pt + 2];
+			uint8 p = returns.at<int8>(pt);
+			uint8 l = returns.at<int8>(pt + 1);
+			uint8 s = returns.at<int8>(pt + 2);
 			if((p != 0 && p != 1)
 					|| ((l != LOCATION_MZONE) && (l != LOCATION_SZONE))
 					|| ((0x1u << s) & (flag >> (((p == playerid) ? 0 : 16) + ((l == LOCATION_MZONE) ? 0 : 8))))) {
@@ -488,33 +490,33 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 positions) {
 	if(step == 0) {
 		if(positions == 0) {
-			returns.ivalue[0] = POS_FACEUP_ATTACK;
+			returns.at<int32>(0) = POS_FACEUP_ATTACK;
 			return TRUE;
 		}
 		positions &= 0xf;
 		if(positions == 0x1 || positions == 0x2 || positions == 0x4 || positions == 0x8) {
-			returns.ivalue[0] = positions;
+			returns.at<int32>(0) = positions;
 			return TRUE;
 		}
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
 			if(positions & 0x4)
-				returns.ivalue[0] = 0x4;
+				returns.at<int32>(0) = 0x4;
 			else if(positions & 0x1)
-				returns.ivalue[0] = 0x1;
+				returns.at<int32>(0) = 0x1;
 			else if(positions & 0x8)
-				returns.ivalue[0] = 0x8;
+				returns.at<int32>(0) = 0x8;
 			else
-				returns.ivalue[0] = 0x2;
+				returns.at<int32>(0) = 0x2;
 			return TRUE;
 		}
 		pduel->write_buffer8(MSG_SELECT_POSITION);
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer32(code);
 		pduel->write_buffer8(positions);
-		returns.ivalue[0] = 0;
+		returns.at<int32>(0) = 0;
 		return FALSE;
 	} else {
-		uint32 pos = returns.ivalue[0];
+		uint32 pos = returns.at<int32>(0);
 		if((pos != 0x1 && pos != 0x2 && pos != 0x4 && pos != 0x8) || !(pos & positions)) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
@@ -524,7 +526,7 @@ int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 pos
 }
 int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
 	if(step == 0) {
-		returns.bitvalue.reset();
+		returns.clear();
 		return_cards.clear();
 		if(max == 0 || core.select_cards.empty())
 			return TRUE;
@@ -620,11 +622,11 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 	} else {
 		uint16 ct = 0;
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
-			if(core.select_cards[i]->get_counter(countertype) < returns.svalue[i]) {
+			if(core.select_cards[i]->get_counter(countertype) < returns.at<int16>(i)) {
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
 			}
-			ct += returns.svalue[i];
+			ct += returns.at<int16>(i);
 		}
 		if(ct != count) {
 			pduel->write_buffer8(MSG_RETRY);
@@ -646,7 +648,7 @@ static int32 select_sum_check1(const std::vector<int32>& oparam, int32 size, int
 int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 min, int32 max) {
 	if(step == 0) {
 		return_cards.clear();
-		returns.bitvalue.reset();
+		returns.clear();
 		if(core.select_cards.empty())
 			return TRUE;
 		pduel->write_buffer8(MSG_SELECT_SUM);
@@ -729,9 +731,9 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 }
 int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 	if(step == 0) {
-		returns.bitvalue.reset();
+		returns.clear();
 		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
-			returns.bvalue[0] = -1;
+			returns.at<int8>(0) = -1;
 			return TRUE;
 		}
 		if(core.select_cards.empty())
@@ -750,12 +752,12 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 		}
 		return FALSE;
 	} else {
-		if(returns.bvalue[0] == -1)
+		if(returns.at<int8>(0) == -1)
 			return TRUE;
 		byte c[64] = {};
 		uint8 m = core.select_cards.size();
 		for(uint8 i = 0; i < m; ++i) {
-			int8 v = returns.bvalue[i];
+			int8 v = returns.at<int8>(i);
 			if(v < 0 || v >= m || c[v]) {
 				pduel->write_buffer8(MSG_RETRY);
 				return FALSE;
@@ -783,7 +785,7 @@ int32 field::announce_race(int16 step, uint8 playerid, int32 count, int32 availa
 		pduel->write_buffer32(available);
 		return FALSE;
 	} else {
-		int32 rc = returns.ivalue[0];
+		int32 rc = returns.at<int32>(0);
 		int32 sel = 0;
 		for(int32 ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(!(ft & rc)) continue;
@@ -800,7 +802,7 @@ int32 field::announce_race(int16 step, uint8 playerid, int32 count, int32 availa
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_RACE);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer64(returns.ivalue[0]);
+		pduel->write_buffer64(returns.at<int32>(0));
 		return TRUE;
 	}
 	return TRUE;
@@ -822,7 +824,7 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 		pduel->write_buffer32(available);
 		return FALSE;
 	} else {
-		int32 rc = returns.ivalue[0];
+		int32 rc = returns.at<int32>(0);
 		int32 sel = 0;
 		for(int32 ft = 0x1; ft != 0x80; ft <<= 1) {
 			if(!(ft & rc)) continue;
@@ -839,7 +841,7 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_ATTRIB);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer64(returns.ivalue[0]);
+		pduel->write_buffer64(returns.at<int32>(0));
 		return TRUE;
 	}
 	return TRUE;
@@ -1001,7 +1003,7 @@ int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
 		}
 		return FALSE;
 	} else {
-		int32 code = returns.ivalue[0];
+		int32 code = returns.at<int32>(0);
 		bool retry = false;
 		card_data data;
 		read_card(code, &data);
@@ -1040,7 +1042,7 @@ int32 field::announce_number(int16 step, uint8 playerid) {
 			pduel->write_buffer64(option);
 		return FALSE;
 	} else {
-		int32 ret = returns.ivalue[0];
+		int32 ret = returns.at<int32>(0);
 		if(ret < 0 || ret >= (int32)core.select_options.size() || ret >= 63) {
 			pduel->write_buffer8(MSG_RETRY);
 			return FALSE;
@@ -1048,7 +1050,7 @@ int32 field::announce_number(int16 step, uint8 playerid) {
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_NUMBER);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer64(core.select_options[returns.ivalue[0]]);
+		pduel->write_buffer64(core.select_options[returns.at<int32>(0)]);
 		return TRUE;
 	}
 }

@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "card.h"
+#include "progressivebuffer.h"
 #include "effectset.h"
 #include <vector>
 #include <set>
@@ -151,14 +152,6 @@ struct processor_unit {
 	int64 arg4;
 	void* ptr1;
 	void* ptr2;
-};
-union return_value {
-	std::bitset<64 * 8 * 6> bitvalue;
-	int8 bvalue[64 * 6];
-	int16 svalue[32 * 6];
-	int32 ivalue[16 * 6];
-	int64 lvalue[8 * 6];
-	return_value() {};
 };
 class return_card {
 public:
@@ -374,7 +367,7 @@ public:
 	//lpcost cost[2];
 	field_effect effects;
 	processor core;
-	return_value returns;
+	ProgressiveBuffer returns;
 	return_card return_cards;
 	tevent nil_event;
 

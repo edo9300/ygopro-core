@@ -119,6 +119,10 @@ void duel::write_buffer(void* data, size_t size) {
 	buff.resize(vec_size + size);
 	std::memcpy(&buff[vec_size], data, size);
 }
+template<typename T>
+void duel::write_buffer(T data) {
+	write_buffer(&data, sizeof(T));
+}
 void duel::write_info_location(loc_info* loc) {
 	if(loc) {
 		write_buffer8(loc->controler);
@@ -131,25 +135,27 @@ void duel::write_info_location(loc_info* loc) {
 	}
 }
 void duel::write_buffer64(uint64 value) {
-	write_buffer(&value, sizeof(value));
+	write_buffer<uint64>(value);
 }
 void duel::write_buffer32(uint32 value) {
-	write_buffer(&value, sizeof(value));
+	write_buffer<uint32>(value);
 }
 void duel::write_buffer16(uint16 value) {
-	write_buffer(&value, sizeof(value));
+	write_buffer<uint16>(value);
 }
 void duel::write_buffer8(uint8 value) {
-	write_buffer(&value, sizeof(value));
+	write_buffer<uint8>(value);
 }
 void duel::clear_buffer() {
 	buff.clear();
 }
 void duel::set_responsei(uint32 resp) {
-	game_field->returns.ivalue[0] = resp;
+	game_field->returns.at<int32>(0) = resp;
 }
 void duel::set_responseb(byte* resp, size_t len) {
-	std::memcpy(game_field->returns.bvalue, resp, std::min(len, sizeof(game_field->returns.bvalue)));
+	game_field->returns.clear();
+	game_field->returns.data.resize(len);
+	std::memcpy(game_field->returns.data.data(), resp, len);
 }
 int32 duel::get_next_integer(int32 l, int32 h) {
 	return (std::uniform_int_distribution<>(l, h))(random);

@@ -53,6 +53,8 @@ public:
 	void restore_assumes();
 	int32 read_buffer(byte* buf);
 	void write_buffer(void* data, size_t size);
+	template<typename T>
+	void write_buffer(T data);
 	void write_info_location(loc_info* loc = 0);
 	void write_buffer64(uint64 value);
 	void write_buffer32(uint32 value);
