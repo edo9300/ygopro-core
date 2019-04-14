@@ -46,7 +46,7 @@ These three function need to be provided to the core so it can get card and data
   ```
   uint32 (uint32 code, card_data* data)
   ```
-  The first parameter is the id card to load, it's structured in this way: `c(id of the card that has to be loaded).lua`, the ` data ` parameter is a pointer to a struct that has to be filled with the various stats of the card.
+  Where the first parameter is the id card to load, the ` data ` parameter is a pointer to a struct that has to be filled with the various stats of the card.
   
   ```cpp
   struct card_data {
