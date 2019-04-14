@@ -8,6 +8,7 @@
 #ifndef PROGRESSIVEBUFFER_H_
 #define PROGRESSIVEBUFFER_H_
 
+#include <cmath>
 #include <vector>
 
 
