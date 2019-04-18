@@ -773,7 +773,7 @@ int32 field::process() {
 					if(pret->container.size() && peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
 						for(auto& pcard : pret->container) {
 							pduel->write_buffer8(MSG_BECOME_TARGET);
-							pduel->write_buffer8(1);
+							pduel->write_buffer32(1);
 							loc_info tmp_info = pcard->get_info_location();
 							pduel->write_info_location(&tmp_info);
 						}
@@ -916,7 +916,7 @@ int32 field::process() {
 		pduel->lua->add_param(newgroup, PARAM_TYPE_GROUP);
 		pduel->write_buffer8(MSG_RANDOM_SELECTED);
 		pduel->write_buffer8(it->arg1);
-		pduel->write_buffer8(count);
+		pduel->write_buffer32(count);
 		loc_info tmp_info;
 		for(auto& pcard : newgroup->container) {
 			tmp_info = pcard->get_info_location();
@@ -3005,7 +3005,7 @@ int32 field::process_battle_command(uint16 step) {
 				returns.at<int8>(1) = 0;
 			else {
 				pduel->write_buffer8(MSG_BECOME_TARGET);
-				pduel->write_buffer8(1);
+				pduel->write_buffer32(1);
 				loc_info tmp_info = core.attacker->get_info_location();
 				pduel->write_info_location(&tmp_info);
 				pduel->write_buffer8(MSG_HINT);
@@ -4469,9 +4469,9 @@ int32 field::add_chain(uint16 step) {
 		pduel->write_info_location(&tmp_info);
 		pduel->write_buffer8(clit.triggering_controler);
 		pduel->write_buffer8((uint8)clit.triggering_location);
-		pduel->write_buffer8(clit.triggering_sequence);
+		pduel->write_buffer32(clit.triggering_sequence);
 		pduel->write_buffer64(peffect->description);
-		pduel->write_buffer8(core.current_chain.size() + 1);
+		pduel->write_buffer32(core.current_chain.size() + 1);
 		break_effect();
 		for(auto& ch_lim : core.chain_limit)
 			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);

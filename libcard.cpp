@@ -2986,7 +2986,7 @@ int32 scriptlib::card_reverse_in_deck(lua_State *L) {
 	if(pcard->current.sequence == pduel->game_field->player[pcard->current.controler].list_main.size() - 1) {
 		pduel->write_buffer8(MSG_DECK_TOP);
 		pduel->write_buffer8(pcard->current.controler);
-		pduel->write_buffer8(0);
+		pduel->write_buffer32(0);
 		pduel->write_buffer32(pcard->data.code | 0x80000000);
 	}
 	return 0;

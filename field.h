@@ -53,7 +53,7 @@ struct chain {
 	uint8 triggering_player;
 	uint8 triggering_controler;
 	uint16 triggering_location;
-	uint8 triggering_sequence;
+	uint32 triggering_sequence;
 	uint8 triggering_position;
 	card_state triggering_state;
 	effect* triggering_effect;

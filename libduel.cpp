@@ -900,7 +900,7 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 			if(pduel->game_field->core.deck_reversed) {
 				pduel->write_buffer8(MSG_DECK_TOP);
 				pduel->write_buffer8(playerid);
-				pduel->write_buffer8(count);
+				pduel->write_buffer32(count);
 				if(pcard->current.position != POS_FACEUP_DEFENSE)
 					pduel->write_buffer32(pcard->data.code);
 				else
@@ -911,7 +911,7 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
 	pduel->write_buffer8(MSG_CONFIRM_DECKTOP);
 	pduel->write_buffer8(playerid);
-	pduel->write_buffer8(count);
+	pduel->write_buffer32(count);
 	for(uint32 i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit) {
 		pduel->write_buffer32((*cit)->data.code);
 		pduel->write_buffer8((*cit)->current.controler);
@@ -933,7 +933,7 @@ int32 scriptlib::duel_confirm_extratop(lua_State *L) {
 	auto cit = pduel->game_field->player[playerid].list_extra.rbegin() + pduel->game_field->player[playerid].extra_p_count;
 	pduel->write_buffer8(MSG_CONFIRM_EXTRATOP);
 	pduel->write_buffer8(playerid);
-	pduel->write_buffer8(count);
+	pduel->write_buffer32(count);
 	for(uint32 i = 0; i < count && cit != pduel->game_field->player[playerid].list_extra.rend(); ++i, ++cit) {
 		pduel->write_buffer32((*cit)->data.code);
 		pduel->write_buffer8((*cit)->current.controler);
@@ -964,13 +964,13 @@ int32 scriptlib::duel_confirm_cards(lua_State *L) {
 	pduel->write_buffer8(MSG_CONFIRM_CARDS);
 	pduel->write_buffer8(playerid);
 	if(pcard) {
-		pduel->write_buffer8(1);
+		pduel->write_buffer32(1);
 		pduel->write_buffer32(pcard->data.code);
 		pduel->write_buffer8(pcard->current.controler);
 		pduel->write_buffer8(pcard->current.location);
 		pduel->write_buffer32(pcard->current.sequence);
 	} else {
-		pduel->write_buffer8(pgroup->container.size());
+		pduel->write_buffer32(pgroup->container.size());
 		for(auto& pcard : pgroup->container) {
 			pduel->write_buffer32(pcard->data.code);
 			pduel->write_buffer8(pcard->current.controler);
@@ -2911,13 +2911,13 @@ int32 scriptlib::duel_set_target_card(lua_State *L) {
 			loc_info tmp_info;
 			if(pcard) {
 				pduel->write_buffer8(MSG_BECOME_TARGET);
-				pduel->write_buffer8(1);
+				pduel->write_buffer32(1);
 				tmp_info = pcard->get_info_location();
 				pduel->write_info_location(&tmp_info);
 			} else {
 				for(auto& pcard : pgroup->container) {
 					pduel->write_buffer8(MSG_BECOME_TARGET);
-					pduel->write_buffer8(1);
+					pduel->write_buffer32(1);
 					tmp_info = pcard->get_info_location();
 					pduel->write_info_location(&tmp_info);
 				}
@@ -3145,7 +3145,7 @@ int32 scriptlib::duel_hint_selection(lua_State *L) {
 	duel* pduel = pgroup->pduel;
 	for(auto& pcard : pgroup->container) {
 		pduel->write_buffer8(MSG_BECOME_TARGET);
-		pduel->write_buffer8(1);
+		pduel->write_buffer32(1);
 		loc_info tmp_info = pcard->get_info_location();
 		pduel->write_info_location(&tmp_info);
 	}

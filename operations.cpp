@@ -77,7 +77,7 @@ void field::change_target(uint8 chaincount, group* targets) {
 		if(te->is_flag(EFFECT_FLAG_CARD_TARGET)) {
 			for(auto& pcard : ot->container) {
 				pduel->write_buffer8(MSG_BECOME_TARGET);
-				pduel->write_buffer8(1);
+				pduel->write_buffer32(1);
 				loc_info tmp_info = pcard->get_info_location();
 				pduel->write_info_location(&tmp_info);
 			}
@@ -425,7 +425,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 						pduel->write_buffer8(MSG_DECK_TOP);
 						pduel->write_buffer8(playerid);
-						pduel->write_buffer8(drawed);
+						pduel->write_buffer32(drawed);
 						if(ptop->current.position != POS_FACEUP_DEFENSE)
 							pduel->write_buffer32(ptop->data.code);
 						else
@@ -435,13 +435,13 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 			}
 			pduel->write_buffer8(MSG_DRAW);
 			pduel->write_buffer8(playerid);
-			pduel->write_buffer8(drawed);
+			pduel->write_buffer32(drawed);
 			for(uint32 i = 0; i < drawed; ++i)
 				pduel->write_buffer32(cv[i]->data.code | (cv[i]->is_position(POS_FACEUP) ? 0x80000000 : 0));
 			if(core.deck_reversed && (public_count < drawed)) {
 				pduel->write_buffer8(MSG_CONFIRM_CARDS);
 				pduel->write_buffer8(1 - playerid);
-				pduel->write_buffer8(drawed_set->size());
+				pduel->write_buffer32(drawed_set->size());
 				for(auto& pcard : *drawed_set) {
 					pduel->write_buffer32(pcard->data.code);
 					pduel->write_buffer8(pcard->current.controler);
@@ -2567,7 +2567,7 @@ int32 field::sset_g(uint16 step, uint8 setplayer, uint8 toplayer, group* ptarget
 		if(confirm) {
 			pduel->write_buffer8(MSG_CONFIRM_CARDS);
 			pduel->write_buffer8(toplayer);
-			pduel->write_buffer8(core.set_group_set.size());
+			pduel->write_buffer32(core.set_group_set.size());
 			for(auto& pcard : core.set_group_set) {
 				pduel->write_buffer32(pcard->data.code);
 				pduel->write_buffer8(pcard->current.controler);

@@ -132,7 +132,7 @@ void field::reload_field_info() {
 			if(pcard) {
 				pduel->write_buffer8(1);
 				pduel->write_buffer8(pcard->current.position);
-				pduel->write_buffer8(pcard->xyz_materials.size());
+				pduel->write_buffer32(pcard->xyz_materials.size());
 			} else {
 				pduel->write_buffer8(0);
 			}
@@ -145,14 +145,14 @@ void field::reload_field_info() {
 				pduel->write_buffer8(0);
 			}
 		}
-		pduel->write_buffer16(player[playerid].list_main.size());
-		pduel->write_buffer16(player[playerid].list_hand.size());
-		pduel->write_buffer16(player[playerid].list_grave.size());
-		pduel->write_buffer16(player[playerid].list_remove.size());
-		pduel->write_buffer16(player[playerid].list_extra.size());
-		pduel->write_buffer8(player[playerid].extra_p_count);
+		pduel->write_buffer32(player[playerid].list_main.size());
+		pduel->write_buffer32(player[playerid].list_hand.size());
+		pduel->write_buffer32(player[playerid].list_grave.size());
+		pduel->write_buffer32(player[playerid].list_remove.size());
+		pduel->write_buffer32(player[playerid].list_extra.size());
+		pduel->write_buffer32(player[playerid].extra_p_count);
 	}
-	pduel->write_buffer8(core.current_chain.size());
+	pduel->write_buffer32(core.current_chain.size());
 	for(const auto& ch : core.current_chain) {
 		effect* peffect = ch.triggering_effect;
 		pduel->write_buffer32(peffect->get_handler()->data.code);
@@ -160,7 +160,7 @@ void field::reload_field_info() {
 		pduel->write_info_location(&tmp_info);
 		pduel->write_buffer8(ch.triggering_controler);
 		pduel->write_buffer8((uint8)ch.triggering_location);
-		pduel->write_buffer8(ch.triggering_sequence);
+		pduel->write_buffer32(ch.triggering_sequence);
 		pduel->write_buffer64(peffect->description);
 	}
 }
@@ -888,7 +888,7 @@ void field::shuffle(uint8 playerid, uint8 location) {
 	if(location == LOCATION_HAND || location == LOCATION_EXTRA) {
 		pduel->write_buffer8((location == LOCATION_HAND) ? MSG_SHUFFLE_HAND : MSG_SHUFFLE_EXTRA);
 		pduel->write_buffer8(playerid);
-		pduel->write_buffer8(svector.size());
+		pduel->write_buffer32(svector.size());
 		for(auto& pcard : svector)
 			pduel->write_buffer32(pcard->data.code);
 		if(location == LOCATION_HAND)
@@ -902,7 +902,7 @@ void field::shuffle(uint8 playerid, uint8 location) {
 			if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 				pduel->write_buffer8(MSG_DECK_TOP);
 				pduel->write_buffer8(playerid);
-				pduel->write_buffer8(0);
+				pduel->write_buffer32(0);
 				if(ptop->current.position != POS_FACEUP_DEFENSE)
 					pduel->write_buffer32(ptop->data.code);
 				else
@@ -1040,10 +1040,10 @@ void field::tag_swap(uint8 playerid) {
 	}
 	pduel->write_buffer8(MSG_TAG_SWAP);
 	pduel->write_buffer8(playerid);
-	pduel->write_buffer8(player[playerid].list_main.size());
-	pduel->write_buffer8(player[playerid].list_extra.size());
-	pduel->write_buffer8(player[playerid].extra_p_count);
-	pduel->write_buffer8(player[playerid].list_hand.size());
+	pduel->write_buffer32(player[playerid].list_main.size());
+	pduel->write_buffer32(player[playerid].list_extra.size());
+	pduel->write_buffer32(player[playerid].extra_p_count);
+	pduel->write_buffer32(player[playerid].list_hand.size());
 	if(core.deck_reversed && player[playerid].list_main.size())
 		pduel->write_buffer32(player[playerid].list_main.back()->data.code);
 	else
@@ -1095,10 +1095,10 @@ void field::next_player(uint8 playerid) {
 	}
 	pduel->write_buffer8(MSG_TAG_SWAP);
 	pduel->write_buffer8(playerid);
-	pduel->write_buffer8(player[playerid].list_main.size());
-	pduel->write_buffer8(player[playerid].list_extra.size());
-	pduel->write_buffer8(player[playerid].extra_p_count);
-	pduel->write_buffer8(player[playerid].list_hand.size());
+	pduel->write_buffer32(player[playerid].list_main.size());
+	pduel->write_buffer32(player[playerid].list_extra.size());
+	pduel->write_buffer32(player[playerid].extra_p_count);
+	pduel->write_buffer32(player[playerid].list_hand.size());
 	if (core.deck_reversed && player[playerid].list_main.size())
 		pduel->write_buffer32(player[playerid].list_main.back()->data.code);
 	else

@@ -388,7 +388,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 			if(pcard) {
 				insert_value<int8_t>(ptduel->cached_query, 1);
 				insert_value<int8_t>(ptduel->cached_query, pcard->current.position);
-				insert_value<int8_t>(ptduel->cached_query, pcard->xyz_materials.size());
+				insert_value<int32_t>(ptduel->cached_query, pcard->xyz_materials.size());
 			} else {
 				insert_value<int8_t>(ptduel->cached_query, 0);
 			}
@@ -402,14 +402,14 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 				insert_value<int8_t>(ptduel->cached_query, 0);
 			}
 		}
-		insert_value<uint16_t>(ptduel->cached_query, player.list_main.size());
-		insert_value<uint16_t>(ptduel->cached_query, player.list_hand.size());
-		insert_value<uint16_t>(ptduel->cached_query, player.list_grave.size());
-		insert_value<uint16_t>(ptduel->cached_query, player.list_remove.size());
-		insert_value<uint16_t>(ptduel->cached_query, player.list_extra.size());
-		insert_value<int8_t>(ptduel->cached_query, player.extra_p_count);
+		insert_value<uint32_t>(ptduel->cached_query, player.list_main.size());
+		insert_value<uint32_t>(ptduel->cached_query, player.list_hand.size());
+		insert_value<uint32_t>(ptduel->cached_query, player.list_grave.size());
+		insert_value<uint32_t>(ptduel->cached_query, player.list_remove.size());
+		insert_value<uint32_t>(ptduel->cached_query, player.list_extra.size());
+		insert_value<uint32_t>(ptduel->cached_query, player.extra_p_count);
 	}
-	insert_value<int8_t>(ptduel->cached_query, ptduel->game_field->core.current_chain.size());
+	insert_value<int32_t>(ptduel->cached_query, ptduel->game_field->core.current_chain.size());
 	for(const auto& ch : ptduel->game_field->core.current_chain) {
 		effect* peffect = ch.triggering_effect;
 		insert_value<int32_t>(ptduel->cached_query, peffect->get_handler()->data.code);
@@ -420,7 +420,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 		insert_value<uint32>(ptduel->cached_query, info.position);
 		insert_value<uint8>(ptduel->cached_query, ch.triggering_controler);
 		insert_value<uint8>(ptduel->cached_query, (uint8)ch.triggering_location);
-		insert_value<uint8>(ptduel->cached_query, ch.triggering_sequence);
+		insert_value<uint32>(ptduel->cached_query, ch.triggering_sequence);
 		insert_value<uint64>(ptduel->cached_query, peffect->description);
 	}
 	int len = ptduel->cached_query.size();
