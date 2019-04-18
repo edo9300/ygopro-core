@@ -119,10 +119,6 @@ void duel::write_buffer(void* data, size_t size) {
 	buff.resize(vec_size + size);
 	std::memcpy(&buff[vec_size], data, size);
 }
-template<typename T>
-void duel::write_buffer(T data) {
-	write_buffer(&data, sizeof(T));
-}
 void duel::write_info_location(loc_info* loc) {
 	if(loc) {
 		write_buffer8(loc->controler);

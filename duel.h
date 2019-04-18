@@ -67,5 +67,9 @@ public:
 private:
 	group* register_group(group* pgroup);
 };
+template<typename T>
+inline void duel::write_buffer(T data) {
+	write_buffer(&data, sizeof(T));
+}
 
 #endif /* DUEL_H_ */
