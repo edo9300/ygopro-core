@@ -2634,8 +2634,8 @@ int32 field::is_player_can_sset(uint8 playerid, card * pcard) {
 int32 field::is_player_can_spsummon(uint8 playerid) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		if(!eset[i]->target)
+	for(auto& eff : eset) {
+		if(!eff->target)
 			return FALSE;
 	}
 	return is_player_can_spsummon_count(playerid, 1);
@@ -2660,19 +2660,34 @@ int32 field::is_player_can_spsummon(effect* peffect, uint32 sumtype, uint8 sumpo
 		sumpos = (sumpos & POS_FACEUP) | ((sumpos & POS_FACEDOWN) >> 1);
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		if(!eset[i]->target)
+	for(auto& eff : eset) {
+		if(!eff->target)
 			return FALSE;
-		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(eff, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
 		pduel->lua->add_param(sumpos, PARAM_TYPE_INT);
 		pduel->lua->add_param(toplayer, PARAM_TYPE_INT);
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
-		if (pduel->lua->check_condition(eset[i]->target, 7))
+		if(pduel->lua->check_condition(eff->target, 7))
 			return FALSE;
-		sumpos &= ~eset[i]->get_value();
+	}
+	eset.clear();
+	filter_player_effect(playerid, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
+	for(auto& eff : eset) {
+		if(eff->target) {
+			pduel->lua->add_param(eff, PARAM_TYPE_EFFECT);
+			pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+			pduel->lua->add_param(sumpos, PARAM_TYPE_INT);
+			pduel->lua->add_param(toplayer, PARAM_TYPE_INT);
+			pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+			if(!pduel->lua->check_condition(eff->target, 7))
+				continue;
+		}
+		sumpos &= eff->get_value();
 		if(sumpos == 0)
 			return FALSE;
 	}

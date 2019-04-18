@@ -157,10 +157,7 @@ void field::special_summon(card_set* target, uint32 sumtype, uint32 sumplayer, u
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	effect_set eset;
-	filter_player_effect(playerid, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		positions &= ~eset[i]->get_value();
-	}
+	filter_player_effect(playerid, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
 	for(auto& pcard : *target) {
 		pcard->temp.reason = pcard->current.reason;
 		pcard->temp.reason_effect = pcard->current.reason_effect;
@@ -170,7 +167,22 @@ void field::special_summon(card_set* target, uint32 sumtype, uint32 sumplayer, u
 		pcard->current.reason = REASON_SPSUMMON;
 		pcard->current.reason_effect = core.reason_effect;
 		pcard->current.reason_player = core.reason_player;
-		pcard->spsummon_param = (playerid << 24) + (nocheck << 16) + (nolimit << 8) + positions;
+		int pos = positions;
+		for(auto& eff : eset) {
+			if(eff->target) {
+				pduel->lua->add_param(eff, PARAM_TYPE_EFFECT);
+				pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+				pduel->lua->add_param(core.reason_player, PARAM_TYPE_INT);
+				pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
+				pduel->lua->add_param(pos, PARAM_TYPE_INT);
+				pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+				pduel->lua->add_param(core.reason_effect, PARAM_TYPE_EFFECT);
+				if(!pduel->lua->check_condition(eff->target, 7))
+					continue;
+			}
+			pos &= eff->get_value();
+		}
+		pcard->spsummon_param = (playerid << 24) + (nocheck << 16) + (nolimit << 8) + pos;
 	}
 	group* pgroup = pduel->new_group(*target);
 	pgroup->is_readonly = TRUE;
@@ -180,10 +192,7 @@ void field::special_summon_step(card* target, uint32 sumtype, uint32 sumplayer, 
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	effect_set eset;
-	filter_player_effect(playerid, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
-		positions &= ~eset[i]->get_value();
-	}
+	filter_player_effect(playerid, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
 	target->temp.reason = target->current.reason;
 	target->temp.reason_effect = target->current.reason_effect;
 	target->temp.reason_player = target->current.reason_player;
@@ -192,6 +201,20 @@ void field::special_summon_step(card* target, uint32 sumtype, uint32 sumplayer, 
 	target->current.reason = REASON_SPSUMMON;
 	target->current.reason_effect = core.reason_effect;
 	target->current.reason_player = core.reason_player;
+	for(auto& eff : eset) {
+		if(eff->target) {
+			pduel->lua->add_param(eff, PARAM_TYPE_EFFECT);
+			pduel->lua->add_param(target, PARAM_TYPE_CARD);
+			pduel->lua->add_param(core.reason_player, PARAM_TYPE_INT);
+			pduel->lua->add_param((sumtype & 0xf00ffff) | SUMMON_TYPE_SPECIAL, PARAM_TYPE_INT);
+			pduel->lua->add_param(positions, PARAM_TYPE_INT);
+			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+			pduel->lua->add_param(core.reason_effect, PARAM_TYPE_EFFECT);
+			if(!pduel->lua->check_condition(eff->target, 7))
+				continue;
+		}
+		positions &= eff->get_value();
+	}
 	target->spsummon_param = (playerid << 24) + (nocheck << 16) + (nolimit << 8) + positions;
 	add_process(PROCESSOR_SPSUMMON_STEP, 0, core.reason_effect, NULL, zone, 0, 0, 0, target);
 }
@@ -2714,17 +2737,28 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		}
 		if(positions == 0)
 			positions = POS_FACEUP_ATTACK;
-		effect_set eset;
-		filter_player_effect(sumplayer, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
-			positions &= ~eset[i]->get_value();
-		}
 		std::vector<int32> retval;
 		peffect->get_value(target, 0, &retval);
 		uint32 summon_info = retval.size() > 0 ? retval[0] : 0;
 		uint32 zone = retval.size() > 1 ? retval[1] : 0xff;
 		target->summon_info = (summon_info & 0xf00ffff) | SUMMON_TYPE_SPECIAL | ((uint32)target->current.location << 16);
 		target->enable_field_effect(false);
+		effect_set eset;
+		filter_player_effect(sumplayer, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
+		for(auto& eff : eset) {
+			if(eff->target) {
+				pduel->lua->add_param(eff, PARAM_TYPE_EFFECT);
+				pduel->lua->add_param(target, PARAM_TYPE_CARD);
+				pduel->lua->add_param(sumplayer, PARAM_TYPE_INT);
+				pduel->lua->add_param((summon_info & 0xf00ffff) | SUMMON_TYPE_SPECIAL, PARAM_TYPE_INT);
+				pduel->lua->add_param(positions, PARAM_TYPE_INT);
+				pduel->lua->add_param(targetplayer, PARAM_TYPE_INT);
+				pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+				if(pduel->lua->check_condition(eff->target, 7))
+					continue;
+			}
+			positions &= eff->get_value();
+		}
 		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		target->current.reason = REASON_SPSUMMON;
 		target->current.reason_effect = peffect;
@@ -2901,12 +2935,24 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		pcard->current.reason_effect = peffect;
 		pcard->current.reason_player = sumplayer;
 		pcard->summon_player = sumplayer;
-		pcard->summon_info = (peffect->get_value(pcard) & 0xff00ffff) | SUMMON_TYPE_SPECIAL | ((uint32)pcard->current.location << 16);
+		auto summon_type = (peffect->get_value(pcard) & 0xff00ffff) | SUMMON_TYPE_SPECIAL;
+		pcard->summon_info = summon_type | ((uint32)pcard->current.location << 16);
 		effect_set eset;
 		uint8 positions = POS_FACEUP;
-		filter_player_effect(sumplayer, EFFECT_CANNOT_SPECIAL_SUMMON, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
-			positions &= ~eset[i]->get_value();
+		filter_player_effect(sumplayer, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
+		for(auto& eff : eset) {
+			if(eff->target) {
+				pduel->lua->add_param(eff, PARAM_TYPE_EFFECT);
+				pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+				pduel->lua->add_param(sumplayer, PARAM_TYPE_INT);
+				pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
+				pduel->lua->add_param(positions, PARAM_TYPE_INT);
+				pduel->lua->add_param(sumplayer, PARAM_TYPE_INT);
+				pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
+				if(!pduel->lua->check_condition(eff->target, 7))
+					continue;
+			}
+			positions &= eff->get_value();
 		}
 		uint32 zone = 0xff;
 		uint32 flag1, flag2;
