@@ -5184,6 +5184,7 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 					core.select_cards.push_back(pcard);
 			}
 			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
+			delete must_choose_one;
 			return TRUE;
 		}
 		bool force = !must_choose_one->empty();
@@ -5281,16 +5282,18 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 				core.operated_set.insert(pcard);
 				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
 					core.units.begin()->peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
-				break;
 			} else {
 				core.operated_set.erase(pcard);
 				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
 					core.units.begin()->peffect = nullptr;
-				break;
 			}
 		}
-		if(return_cards.canceled && core.operated_set.empty())
+		if(return_cards.canceled && core.operated_set.empty()) {
+			card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
+			if(must_choose_one)
+				delete must_choose_one;
 			return TRUE;
+		}
 		uint32 rmin = core.operated_set.size();
 		uint32 rmax = 0;
 		for(auto& pcard : core.operated_set)
@@ -5305,6 +5308,9 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 			effect* peffect = core.units.begin()->peffect;
 			if(peffect)
 				peffect->dec_count();
+			card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
+			if(must_choose_one)
+				delete must_choose_one;
 			return TRUE;
 		}
 		core.units.begin()->step = 1;
