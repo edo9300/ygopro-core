@@ -219,7 +219,7 @@ uint32 card::get_infos(int32 query_flag, int32 use_cache, int32 ignore_cache) {
 	}
 	if(query_flag & QUERY_EQUIP_CARD) {
 		if(equiping_target) {
-			loc_info info = current.reason_card->get_info_location();
+			loc_info info = equiping_target->get_info_location();
 			insert_value<uint8>(query, info.controler);
 			insert_value<uint8>(query, info.location);
 			insert_value<uint32>(query, info.sequence);
