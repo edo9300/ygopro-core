@@ -4037,6 +4037,15 @@ int32 scriptlib::duel_get_card_from_fieldid(lua_State * L) {
 	}
 	return 0;
 }
+int32 scriptlib::duel_load_script(lua_State * L) {
+	duel* pduel = interpreter::get_duel_info(L);
+	lua_getglobal(L, "tostring");
+	lua_pushvalue(L, -2);
+	lua_pcall(L, 1, 1, 0);
+	char strbuffer[256];
+	interpreter::sprintf(strbuffer, "%s", lua_tostring(L, -1));
+	return pduel->lua->load_script(strbuffer);
+}
 int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 2);
