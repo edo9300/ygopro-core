@@ -47,8 +47,12 @@ int32 scriptlib::effect_reset(lua_State *L) {
 		return 0;
 	if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
 		peffect->pduel->game_field->remove_effect(peffect);
-	else
-		peffect->handler->remove_effect(peffect);
+	else {
+		if(peffect->handler)
+			peffect->handler->remove_effect(peffect);
+		else
+			peffect->pduel->game_field->core.reseted_effects.insert(peffect);
+	}
 	return 0;
 }
 int32 scriptlib::effect_get_field_id(lua_State *L) {
