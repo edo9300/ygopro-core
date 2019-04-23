@@ -5265,17 +5265,24 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 					if(core.operated_set.find(pcard) == core.operated_set.end())
 						core.select_cards.push_back(pcard);
 		}
-		uint8 canc = (uint8)((min <= 0 && !force && !exsize) || (rmin==0 && cancelable));
+		uint8 canc = (rmin == 0 && cancelable);
+		uint8 finishable = (min <= 0 && !force && !exsize) ? TRUE : FALSE;
 		for(auto& pcard : core.operated_set)
 			core.unselect_cards.push_back(pcard);
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer64(500);
-		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, ((uint32)canc << 16) + playerid, message_count);
+		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, (canc << 16) + playerid, message_count, finishable);
 		return FALSE;
 	}
 	case 3: {
+		if(return_cards.canceled && core.operated_set.empty()) {
+			card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
+			if(must_choose_one)
+				delete must_choose_one;
+			return TRUE;
+		}
 		if(!return_cards.canceled) {
 			card* pcard = return_cards.list[0];
 			if(core.operated_set.find(pcard) == core.operated_set.end()) {
@@ -5287,12 +5294,6 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
 					core.units.begin()->peffect = nullptr;
 			}
-		}
-		if(return_cards.canceled && core.operated_set.empty()) {
-			card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
-			if(must_choose_one)
-				delete must_choose_one;
-			return TRUE;
 		}
 		uint32 rmin = core.operated_set.size();
 		uint32 rmax = 0;
