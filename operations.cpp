@@ -3146,7 +3146,7 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 					zone &= flag1;
 			}
 		}
-		move_to_field(target, move_player, target->summon_player, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
+		move_to_field(target, target->summon_player, playerid, LOCATION_MZONE, positions, FALSE, 0, FALSE, zone);
 		return FALSE;
 	}
 	case 2: {
