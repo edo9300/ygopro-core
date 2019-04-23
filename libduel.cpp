@@ -4044,7 +4044,8 @@ int32 scriptlib::duel_load_script(lua_State * L) {
 	lua_pcall(L, 1, 1, 0);
 	char strbuffer[256];
 	interpreter::sprintf(strbuffer, "%s", lua_tostring(L, -1));
-	return pduel->lua->load_script(strbuffer);
+	lua_pushboolean(L, pduel->lua->load_script(strbuffer));
+	return 1;
 }
 int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
 	check_param_count(L, 2);
