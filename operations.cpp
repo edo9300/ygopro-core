@@ -1333,7 +1333,8 @@ int32 field::self_destroy(uint16 step, card* ucard, int32 p) {
 				}
 			}
 			if(core.select_cards.size() == 1) {
-				returns.at<int32>(1) = 0;
+				return_cards.clear();
+				return_cards.list.push_back(core.select_cards.front());
 			}
 			else {
 				pduel->write_buffer8(MSG_HINT);
