@@ -1349,7 +1349,7 @@ int32 field::self_destroy(uint16 step, card* ucard, int32 p) {
 	case 1: {
 		card_set cset;
 		ucard->get_unique_target(&cset, p);
-		card* mcard = core.select_cards[returns.at<int32>(1)];
+		card* mcard = return_cards.list.front();
 		ucard->unique_fieldid = mcard->fieldid;
 		cset.erase(mcard);
 		for(auto& pcard : cset) {
