@@ -3821,7 +3821,7 @@ int32 card::is_capable_send_to_deck(uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_capable_send_to_extra(uint8 playerid) {
-	if(!is_extra_deck_monster())
+	if(!is_extra_deck_monster() && !(data.type & TYPE_PENDULUM))
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_DECK))
 		return FALSE;
