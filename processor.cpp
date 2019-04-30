@@ -4441,20 +4441,20 @@ int32 field::add_chain(uint16 step) {
 					if(!zone)
 						return TRUE;
 				}
-				int32 loc = 0;
+				int32 loc = LOCATION_SZONE;
 				if(phandler->current.location == LOCATION_HAND) {
 					phandler->set_status(STATUS_ACT_FROM_HAND, TRUE);
-					if (phandler->data.type & TYPE_PENDULUM) {
-						loc=LOCATION_PZONE;
+					if(phandler->data.type & TYPE_PENDULUM) {
+						loc = LOCATION_PZONE;
 					} else {
-						loc=LOCATION_SZONE;
+						loc = LOCATION_SZONE;
 					}
 				}
-				if (peffect->value && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
+				if(peffect->value && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
 					loc = peffect->value;
-				if (loc>0) {
+				if(loc > 0) {
 					phandler->enable_field_effect(false);
-					if (loc==LOCATION_MZONE) {
+					if(loc == LOCATION_MZONE) {
 						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP_ATTACK);
 					} else {
 						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP, FALSE, 0, FALSE, zone);
