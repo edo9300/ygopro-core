@@ -1478,6 +1478,8 @@ uint32 card::get_rscale() {
 	return rscale;
 }
 uint32 card::get_link_marker() {
+	if(!(current.position & POS_FACEUP))
+		return 0;
 	if (assume.find(ASSUME_LINKMARKER) != assume.end())
 		return assume[ASSUME_LINKMARKER];
 	if(!(get_type() & TYPE_LINK))
@@ -1528,7 +1530,7 @@ uint32 card::get_linked_zone() {
 			if(is_link_marker(LINK_MARKER_BOTTOM, marker))
 				zones |= 1u << (s + 8);
 		}
-		if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
+		if(pduel->game_field->is_flag(DUEL_EMZONE)) {
 			if((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
 				|| (s == 1 && is_link_marker(LINK_MARKER_TOP, marker))
 				|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT, marker)))
@@ -1641,7 +1643,7 @@ uint32 card::get_mutual_linked_zone() {
 		auto zone = pcard->get_linked_zone();
 		uint32 is_szone = pcard->current.location == LOCATION_SZONE ? 8 : 0;
 		uint32 is_player = (current.controler == pcard->current.controler) ? 0 : 16;
-		if(!is_mutual_linked(pcard, zone)) {
+		if(is_mutual_linked(pcard, linked_zone, zone)) {
 			zones |= 1 << (pcard->current.sequence + is_szone + is_player);
 		}
 	}
@@ -1664,22 +1666,23 @@ int32 card::is_link_state() {
 	if(cset.size())
 		return TRUE;
 	int32 p = current.controler;
+	uint32 is_szone = current.location == LOCATION_SZONE ? 8 : 0;
 	uint32 linked_zone = pduel->game_field->get_linked_zone(p);
-	if((linked_zone >> current.sequence) & 1)
+	if((linked_zone >> (current.sequence + is_szone)) & 1)
 		return TRUE;
 	return FALSE;
 }
-int32 card::is_mutual_linked(card * pcard, uint32 zones) {
+int32 card::is_mutual_linked(card * pcard, uint32 zones1, uint32 zones2) {
 	int32 ret = FALSE;
-	if(!zones)
-		zones = get_linked_zone();
+	if(!zones1)
+		zones1 = get_linked_zone();
 	uint32 is_szone = pcard->current.location == LOCATION_SZONE ? 8 : 0;
 	uint32 is_player = (current.controler == pcard->current.controler) ? 0 : 16;
-	if(zones & (pcard->current.sequence + is_szone + is_player)) {
-		zones = pcard->get_linked_zone();
+	if(zones1 & (1 << (pcard->current.sequence + is_szone + is_player))) {
+		zones2 = zones2 ? zones2 : pcard->get_linked_zone();
 		is_szone = current.location == LOCATION_SZONE ? 8 : 0;
 		is_player = (current.controler == pcard->current.controler) ? 0 : 16;
-		ret = zones & (current.sequence + is_szone + is_player);
+		ret = zones2 & (1 << (current.sequence + is_szone + is_player));
 	}
 	return ret;
 }
@@ -1791,16 +1794,14 @@ int32 card::is_all_column() {
 	card_set cset;
 	get_column_cards(&cset, 0, 0);
 	uint32 full = 4;
-	if(pduel->game_field->core.duel_options & DUEL_EMZONE){
+	if(pduel->game_field->is_flag(DUEL_EMZONE)){
 		int32 cs = current.sequence;
 		if (current.location == LOCATION_MZONE && (cs == 1 || cs == 3 || cs > 5))
 			full++;
 		else if (current.location == LOCATION_SZONE) {
-			int32 left_pzone = pduel->game_field->core.duel_options & SPEED_DUEL ? 1 : 0;
-			int32 right_pzone = pduel->game_field->core.duel_options & SPEED_DUEL ? 3 : 4;
 			if (cs == 1 || cs == 3)
 				full++;
-			else if ((cs == 6 || cs == 7) && (pduel->game_field->core.duel_options & DUEL_PZONE && !(pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE)))
+			else if ((cs == 6 || cs == 7) && (pduel->game_field->is_flag(DUEL_PZONE) && !(pduel->game_field->is_flag(DUEL_SEPARATE_PZONE)))
 				full++;
 		}
 	}

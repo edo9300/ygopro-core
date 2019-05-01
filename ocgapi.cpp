@@ -379,7 +379,7 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 	ptduel->cached_query.clear();
 	//byte* p = buf;
 	insert_value<int8_t>(ptduel->cached_query, MSG_RELOAD_FIELD);
-	insert_value<int8_t>(ptduel->cached_query, ptduel->game_field->core.duel_rule + (((ptduel->game_field->core.duel_options & SPEED_DUEL) ? 1 : 0) << 4));
+	insert_value<int8_t>(ptduel->cached_query, ptduel->game_field->core.duel_rule + ((ptduel->game_field->is_flag(SPEED_DUEL) ? 1 : 0) << 4));
 	for(int playerid = 0; playerid < 2; ++playerid) {
 		auto& player = ptduel->game_field->player[playerid];
 		insert_value<int32_t>(ptduel->cached_query, player.lp);

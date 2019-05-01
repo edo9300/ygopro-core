@@ -406,6 +406,11 @@ public:
 	bool relay_check(uint8 playerid);
 	void next_player(uint8 playerid);
 
+	bool is_flag(int32 flag) {
+		return core.duel_options & flag;
+	}
+	int32 get_pzone_index(uint8 seq);
+
 	void add_effect(effect* peffect, uint8 owner_player = 2);
 	void remove_effect(effect* peffect);
 	void remove_oath_effect(effect* reason_effect);
