@@ -1792,7 +1792,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		return FALSE;
 	}
 	case 8: {
-		if(!(core.duel_options & DUEL_OBSOLETE_IGNITION) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
+		if(!is_flag(DUEL_OBSOLETE_IGNITION) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
 			return FALSE;
 		// Obsolete ignition effect ruling
 		tevent e;
@@ -2442,7 +2442,7 @@ int32 field::process_idle_command(uint16 step) {
 		}
 		core.to_bp = TRUE;
 		core.to_ep = TRUE;
-		if((!(core.duel_options & DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1 && !(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP) || core.force_turn_end)
+		if((!is_flag(DUEL_ATTACK_FIRST_TURN) && infos.turn_id == 1 && !(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_FIRST_TURN))) || infos.phase == PHASE_MAIN2 || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP) || core.force_turn_end)
 			core.to_bp = FALSE;
 		if(infos.phase == PHASE_MAIN1) {
 			for(auto& pcard : player[infos.turn_player].list_mzone) {
@@ -2848,7 +2848,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(first_attack.size())
 				core.attackable_cards = first_attack;
 		}
-		core.to_m2 = (core.duel_options & SPEED_DUEL) ? FALSE : TRUE;
+		core.to_m2 = is_flag(SPEED_DUEL) ? FALSE : TRUE;
 		core.to_ep = TRUE;
 		if(must_attack.size() || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_M2) || core.force_turn_end)
 			core.to_m2 = FALSE;
@@ -4091,7 +4091,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		infos.turn_player = turn_player;
 		pduel->write_buffer8(MSG_NEW_TURN);
 		pduel->write_buffer8(turn_player);
-		if((core.duel_options & DUEL_TAG_MODE) && infos.turn_id != 1)
+		if(is_flag(DUEL_TAG_MODE) && infos.turn_id != 1)
 			tag_swap(turn_player);
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_TURN)) {
 			core.units.begin()->step = 17;
@@ -4130,7 +4130,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 	}
 	case 2: {
 		// Draw, new ruling
-		if((core.duel_options & DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
+		if(is_flag(DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
 			int32 count = get_draw_count(infos.turn_player);
 			if(count > 0) {
 				draw(0, REASON_RULE, turn_player, turn_player, count);
@@ -4272,7 +4272,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			}
 			return FALSE;
 		}
-		if(core.duel_options & SPEED_DUEL) {
+		if(is_flag(SPEED_DUEL)) {
 			core.units.begin()->step = 14;
 			adjust_all();
 			/*if(core.set_forced_attack)
@@ -4863,7 +4863,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		card* pcard = peffect->get_handler();
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) && pcard->is_has_relation(*cait)) {
 			pcard->enable_field_effect(true);
-			if((core.duel_options & DUEL_1_FIELD)) {
+			if(is_flag(DUEL_1_FIELD)) {
 				if(pcard->data.type & TYPE_FIELD) {
 					card* fscard = player[1 - pcard->current.controler].list_szone[5];
 					if(fscard && fscard->is_position(POS_FACEUP))
@@ -4980,7 +4980,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if((pcard->data.type & TYPE_EQUIP) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 			&& !pcard->equiping_target && pcard->is_has_relation(*cait))
 			destroy(pcard, 0, REASON_RULE, PLAYER_NONE);
-		if((core.duel_options & DUEL_1_FIELD)) {
+		if(is_flag(DUEL_1_FIELD)) {
 			if((pcard->data.type & TYPE_FIELD) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 					&& !pcard->is_status(STATUS_LEAVE_CONFIRMED) && pcard->is_has_relation(*cait)) {
 				card* fscard = player[1 - pcard->current.controler].list_szone[5];
@@ -5117,7 +5117,7 @@ int32 field::refresh_location_info(uint16 step) {
 	switch(step) {
 	case 0: {
 		effect_set eset;
-		if (core.duel_options & SPEED_DUEL) {
+		if (is_flag(SPEED_DUEL)) {
 			player[0].used_location |= 0x1111;
 			player[1].used_location |= 0x1111;
 		}
@@ -5324,7 +5324,7 @@ int32 field::adjust_step(uint16 step) {
 					winp = PLAYER_NONE;
 				rea = 2;
 			}
-			if (core.duel_options & DUEL_RELAY_MODE) {
+			if (is_flag(DUEL_RELAY_MODE)) {
 				if (winp == PLAYER_NONE) {
 					bool p1 = relay_check(0);
 					bool p2 = relay_check(1);

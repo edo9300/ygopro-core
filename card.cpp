@@ -1530,7 +1530,7 @@ uint32 card::get_linked_zone() {
 			if(is_link_marker(LINK_MARKER_BOTTOM, marker))
 				zones |= 1u << (s + 8);
 		}
-		if(pduel->game_field->core.duel_options & DUEL_EMZONE) {
+		if(pduel->game_field->is_flag(DUEL_EMZONE)) {
 			if((s == 0 && is_link_marker(LINK_MARKER_TOP_RIGHT, marker))
 				|| (s == 1 && is_link_marker(LINK_MARKER_TOP, marker))
 				|| (s == 2 && is_link_marker(LINK_MARKER_TOP_LEFT, marker)))
@@ -1819,7 +1819,7 @@ int32 card::is_all_column() {
 	card_set cset;
 	get_column_cards(&cset, 0, 0);
 	uint32 full = 3;
-	if((pduel->game_field->core.duel_options & DUEL_EMZONE) && (current.sequence == 1 || current.sequence == 3))
+	if(pduel->game_field->is_flag(DUEL_EMZONE) && (current.sequence == 1 || current.sequence == 3))
 		full++;
 	if(cset.size() == full)
 		return TRUE;

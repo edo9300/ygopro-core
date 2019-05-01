@@ -161,7 +161,7 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 }
 int32 field::select_effect_yes_no(uint16 step, uint8 playerid, uint64 description, card* pcard) {
 	if(step == 0) {
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.at<int32>(0) = 1;
 			return TRUE;
 		}
@@ -183,7 +183,7 @@ int32 field::select_effect_yes_no(uint16 step, uint8 playerid, uint64 descriptio
 }
 int32 field::select_yes_no(uint16 step, uint8 playerid, uint64 description) {
 	if(step == 0) {
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.at<int32>(0) = 1;
 			return TRUE;
 		}
@@ -205,7 +205,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 		returns.at<int32>(0) = -1;
 		if(core.select_options.size() == 0)
 			return TRUE;
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.at<int32>(0) = 0;
 			return TRUE;
 		}
@@ -265,7 +265,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 			max = core.select_cards.size();
 		if(min > max)
 			min = max;
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			for(int32 i = 0; i < min; i++) {
 				return_cards.list.push_back(core.select_cards[i]);
 			}
@@ -307,7 +307,7 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 		returns.clear();
 		if (core.select_cards.empty() && core.unselect_cards.empty())
 			return TRUE;
-		if ((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if ((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			if(cancelable)
 				returns.at<int8>(0) = -1;
 			else
@@ -362,7 +362,7 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 forced) {
 	if(step == 0) {
 		returns.at<int32>(0) = -1;
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			if(core.select_chains.size() == 0)
 				returns.at<int32>(0) = -1;
 			else if(forced)
@@ -416,7 +416,7 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 	if(step == 0) {
 		if(count == 0)
 			return TRUE;
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			flag = ~flag;
 			int32 filter;
 			int32 pzone = 0;
@@ -498,7 +498,7 @@ int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 pos
 			returns.at<int32>(0) = positions;
 			return TRUE;
 		}
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			if(positions & 0x4)
 				returns.at<int32>(0) = 0x4;
 			else if(positions & 0x1)
@@ -732,7 +732,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 	if(step == 0) {
 		returns.clear();
-		if((playerid == 1) && (core.duel_options & DUEL_SIMPLE_AI)) {
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.at<int8>(0) = -1;
 			return TRUE;
 		}
