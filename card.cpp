@@ -1752,20 +1752,18 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 	int32 seq = current.sequence;
 	if(!(loc1 & LOCATION_ONFIELD) || !(loc2 & LOCATION_ONFIELD) || left < 0 || right < 0)
 		return 0;
-	else if(loc2 & LOCATION_SZONE && (seq == 5 || (seq > 5 && pduel->game_field->core.duel_options & DUEL_SEPARATE_PZONE)))
+	else if(loc2 & LOCATION_SZONE && (seq == 5 || (seq > 5 && pduel->game_field->is_flag(DUEL_SEPARATE_PZONE)))
 		return 0;
-	int32 left_pzone = pduel->game_field->core.duel_options & SPEED_DUEL ? 1 : 0;
-	int32 right_pzone = pduel->game_field->core.duel_options & SPEED_DUEL ? 3 : 4;
 	if (loc2 & LOCATION_MZONE && (seq == 5 || seq == 6))
 		seq = seq == 5 ? 1 : 3;
 	else if (loc2 & LOCATION_SZONE && (seq == 6 || seq == 7))
-		seq = seq == 6 ? left_pzone : right_pzone;
+		seq = seq == 6 ? pduel->game_field->get_pzone_index(0) : pduel->game_field->get_pzone_index(1);
 	int32 seq1 = seq - left < 0 ? 0 : seq - left;
 	int32 seq2 = seq + right > 4 ? 4 : seq + right;
 	if (loc1 & LOCATION_MZONE) {
 		for (int32 s = seq1; s <= seq2; s++) {
 			zones |= (1u << s) | (1u << (16 + (4 - s)));
-			if (pduel->game_field->core.duel_options & DUEL_EMZONE) {
+			if (pduel->game_field->is_flag(DUEL_EMZONE)) {
 				if (s == 1)
 					zones |= (1u << 5) | (1u << (16 + 6));
 				else if (s == 3)
@@ -1801,7 +1799,7 @@ int32 card::is_all_column() {
 		else if (current.location == LOCATION_SZONE) {
 			if (cs == 1 || cs == 3)
 				full++;
-			else if ((cs == 6 || cs == 7) && (pduel->game_field->is_flag(DUEL_PZONE) && !(pduel->game_field->is_flag(DUEL_SEPARATE_PZONE)))
+			else if ((cs == 6 || cs == 7) && pduel->game_field->is_flag(DUEL_PZONE) && !pduel->game_field->is_flag(DUEL_SEPARATE_PZONE) && pduel->game_field->is_flag(SPEED_DUEL))
 				full++;
 		}
 	}
