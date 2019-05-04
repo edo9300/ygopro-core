@@ -1065,6 +1065,48 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 	}
 	return result;
 }
+int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result) {
+	if(!findex || lua_isnil(current_state, findex))
+		return 0;
+	no_action++;
+	call_depth++;
+	lua_pushvalue(current_state, findex);
+	int32 stack_top = lua_gettop(current_state);
+	lua_rawgeti(current_state, LUA_REGISTRYINDEX, (pcard->ref_handle));
+	for(int32 i = 0; i < extraargs; ++i)
+		lua_pushvalue(current_state, (int32)(-extraargs - 2));
+	no_action++;
+	call_depth++;
+	if(lua_pcall(current_state, extraargs, LUA_MULTRET, 0)) {
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
+		handle_message(pduel, 1);
+		lua_pop(current_state, 1);
+		no_action--;
+		call_depth--;
+		if(call_depth == 0) {
+			pduel->release_script_group();
+			pduel->restore_assumes();
+		}
+		return OPERATION_FAIL;
+	}
+	int32 stack_newtop = lua_gettop(current_state);
+	for(int32 index = stack_top + 1; index <= stack_newtop; ++index) {
+		int32 return_value = 0;
+		if(lua_isboolean(current_state, index))
+			return_value = lua_toboolean(current_state, index);
+		else
+			return_value = std::round(lua_tonumber(current_state, index));
+		result->push_back(return_value);
+	}
+	lua_settop(current_state, stack_top);
+	no_action--;
+	call_depth--;
+	if(call_depth == 0) {
+		pduel->release_script_group();
+		pduel->restore_assumes();
+	}
+	return OPERATION_SUCCESS;
+}
 int32 interpreter::get_function_value(int32 f, uint32 param_count) {
 	if(!f) {
 		params.clear();

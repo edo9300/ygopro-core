@@ -60,6 +60,7 @@ public:
 	int32 check_condition(int32 f, uint32 param_count);
 	int32 check_matching(card* pcard, int32 findex, int32 extraargs);
 	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs);
+	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result);
 	int32 get_function_value(int32 f, uint32 param_count);
 	int32 get_function_value(int32 f, uint32 param_count, std::vector<int32>* result);
 	int32 call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step);
