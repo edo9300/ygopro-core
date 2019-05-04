@@ -1399,8 +1399,8 @@ void field::filter_player_effect(uint8 playerid, uint32 code, effect_set* eset, 
 								return TRUE;\
 							if(pgroup)\
 								pgroup->container.insert(pcard);\
-						}}while(0);
-#define CHECKL(list, extra)do { for(auto& pcard : list)	CHECKC(extra)}while(0);
+						}}while(0)
+#define CHECKL(list, extra)do { for(auto& pcard : list)	CHECKC(extra);}while(0)
 
 int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, uint32 location2, group* pgroup, card* pexception, group* pexgroup, uint32 extraargs, card** pret, int32 fcount, int32 is_target) {
 	if(self != 0 && self != 1)
