@@ -3341,6 +3341,9 @@ int32 card::is_spsummonable(effect* peffect) {
 	} else if (pduel->game_field->core.forced_linkmat) {
 		pduel->lua->add_param(pduel->game_field->core.forced_linkmat, PARAM_TYPE_GROUP);
 		param_count++;
+	} else {
+		pduel->lua->add_param(nullptr, PARAM_TYPE_GROUP);
+		param_count++;
 	}
 	if(pduel->game_field->core.forced_summon_minc) {
 		pduel->lua->add_param(pduel->game_field->core.forced_summon_minc, PARAM_TYPE_INT);

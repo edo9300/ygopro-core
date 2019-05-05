@@ -2672,6 +2672,8 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				pduel->lua->add_param(core.forced_xyzmat, PARAM_TYPE_GROUP);
 			else if(core.forced_linkmat)
 				pduel->lua->add_param(core.forced_linkmat, PARAM_TYPE_GROUP);
+			else
+				pduel->lua->add_param(nullptr, PARAM_TYPE_GROUP);
 			if(core.forced_summon_minc) {
 				pduel->lua->add_param(core.forced_summon_minc, PARAM_TYPE_INT);
 				pduel->lua->add_param(core.forced_summon_maxc, PARAM_TYPE_INT);
@@ -2704,15 +2706,14 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				pduel->lua->add_param(core.forced_synmat, PARAM_TYPE_GROUP);
 				core.forced_tuner = 0;
 				core.forced_synmat = 0;
-			}
-			if(core.forced_xyzmat) {
+			} else if(core.forced_xyzmat) {
 				pduel->lua->add_param(core.forced_xyzmat, PARAM_TYPE_GROUP);
 				core.forced_xyzmat = 0;
-			}
-			if(core.forced_linkmat) {
+			} else if(core.forced_linkmat) {
 				pduel->lua->add_param(core.forced_linkmat, PARAM_TYPE_GROUP);
 				core.forced_linkmat = 0;
-			}
+			} else
+				pduel->lua->add_param(nullptr, PARAM_TYPE_GROUP);
 			if(core.forced_summon_minc) {
 				pduel->lua->add_param(core.forced_summon_minc, PARAM_TYPE_INT);
 				pduel->lua->add_param(core.forced_summon_maxc, PARAM_TYPE_INT);
