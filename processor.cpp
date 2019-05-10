@@ -676,10 +676,12 @@ int32 field::process() {
 			it->step++;
 		} else {
 			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_OPSELECTED);
-			pduel->write_buffer8(it->arg1);
-			pduel->write_buffer64(core.select_options[returns.at<int32>(0)]);
+			if(it->arg2) {
+				pduel->write_buffer8(MSG_HINT);
+				pduel->write_buffer8(HINT_OPSELECTED);
+				pduel->write_buffer8(it->arg1);
+				pduel->write_buffer64(core.select_options[returns.at<int32>(0)]);
+			}
 			core.units.pop_front();
 		}
 		return PROCESSOR_FLAG_NONE;

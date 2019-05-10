@@ -3186,11 +3186,17 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 	int32 playerid = lua_tonumberint(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
+	uint32 sel_hint = TRUE;
+	uint32 i = 0;
+	if(lua_isboolean(L, 2)) {
+		sel_hint = lua_toboolean(L, 2);
+		i++;
+	}
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_options.clear();
-	for(uint32 i = 0; i < count; ++i)
+	for(; i < count; ++i)
 		pduel->game_field->core.select_options.push_back(lua_tonumber(L, i + 2));
-	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION_S, 0, 0, 0, playerid, 0);
+	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION_S, 0, 0, 0, playerid, sel_hint);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_select_sequence(lua_State * L) {
