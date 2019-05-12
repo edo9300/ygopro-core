@@ -1441,12 +1441,14 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 	if(self != 0 && self != 1)
 		return 0;
 	uint32 location = location1;
+	uint32 count = 0;
 	for(uint32 p = 0; p < 2; ++p, location = location2, self = 1 - self) {
 		if(location & LOCATION_MZONE) {
 			for(auto& pcard : player[self].list_mzone) {
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)) {
 					if(pgroup)
 						pgroup->container.insert(pcard);
+					count++;
 				}
 			}
 		}
@@ -1455,6 +1457,7 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 				if(pcard) {
 					if(pgroup)
 						pgroup->container.insert(pcard);
+					count++;
 				}
 			}
 		}
@@ -1463,6 +1466,7 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 			if(pcard) {
 				if(pgroup)
 					pgroup->container.insert(pcard);
+				count++;
 			}
 		}
 		if(location & LOCATION_PZONE) {
@@ -1471,31 +1475,37 @@ int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, g
 				if(pcard && pcard->current.pzone) {
 					if(pgroup)
 						pgroup->container.insert(pcard);
+					count++;
 				}
 			}
 		}
 		if(location & LOCATION_HAND) {
 			if(pgroup)
 				pgroup->container.insert(player[self].list_hand.begin(), player[self].list_hand.end());
+			count += player[self].list_hand.size();
 		}
 		if(location & LOCATION_DECK) {
 			if(pgroup)
 				pgroup->container.insert(player[self].list_main.rbegin(), player[self].list_main.rend());
+			count += player[self].list_main.size();
 		}
 		if(location & LOCATION_EXTRA) {
 			if(pgroup)
 				pgroup->container.insert(player[self].list_extra.rbegin(), player[self].list_extra.rend());
+			count += player[self].list_extra.size();
 		}
 		if(location & LOCATION_GRAVE) {
 			if(pgroup)
 				pgroup->container.insert(player[self].list_grave.rbegin(), player[self].list_grave.rend());
+			count += player[self].list_grave.size();
 		}
 		if(location & LOCATION_REMOVED) {
 			if(pgroup)
 				pgroup->container.insert(player[self].list_remove.rbegin(), player[self].list_remove.rend());
+			count += player[self].list_remove.size();
 		}
 	}
-	return pgroup->container.size();
+	return count;
 }
 effect* field::is_player_affected_by_effect(uint8 playerid, uint32 code) {
 	auto rg = effects.aura_effect.equal_range(code);
