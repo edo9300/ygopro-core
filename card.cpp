@@ -1752,7 +1752,7 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 	int32 seq = current.sequence;
 	if(!(loc1 & LOCATION_ONFIELD) || !(loc2 & LOCATION_ONFIELD) || left < 0 || right < 0)
 		return 0;
-	else if(loc2 & LOCATION_SZONE && (seq == 5 || (seq > 5 && pduel->game_field->is_flag(DUEL_SEPARATE_PZONE)))
+	else if(loc2 & LOCATION_SZONE && (seq == 5 || (seq > 5 && pduel->game_field->is_flag(DUEL_SEPARATE_PZONE))))
 		return 0;
 	if (loc2 & LOCATION_MZONE && (seq == 5 || seq == 6))
 		seq = seq == 5 ? 1 : 3;
