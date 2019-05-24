@@ -2979,6 +2979,7 @@ int32 field::process_battle_command(uint16 step) {
 		// select attack target(replay start point)
 		core.attack_player = FALSE;
 		core.select_cards.clear();
+		return_cards.clear();
 		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
 		// only self targets aviable
 		if (core.select_cards.size() && core.attacker->direct_attackable) {
