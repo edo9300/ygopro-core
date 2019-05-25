@@ -848,94 +848,42 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 }
 #define CARD_MARINE_DOLPHIN	78734254
 #define CARD_TWINKLE_MOSS	13857930
+
+#define BINARY_OP(opcode,op) case opcode: {\
+								if (stack.size() >= 2) {\
+									int32 rhs = stack.top();\
+									stack.pop();\
+									int32 lhs = stack.top();\
+									stack.pop();\
+									stack.push(lhs op rhs);\
+								}\
+								break;\
+							}
+#define UNARY_OP(opcode,op) case opcode: {\
+								if (stack.size() >= 1) {\
+									int32 val = stack.top();\
+									stack.pop();\
+									stack.push(op##val);\
+								}\
+								break;\
+							}
+#define UNARY_EQ_OP(opcode,val) UNARY_OP(opcode,cd.val == )
 static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcode) {
 	std::stack<int32> stack;
 	for(auto& it : opcode) {
 		switch(it) {
-		case OPCODE_ADD: {
-			if(stack.size() >= 2) {
-				int32 rhs = stack.top();
-				stack.pop();
-				int32 lhs = stack.top();
-				stack.pop();
-				stack.push(lhs + rhs);
-			}
-			break;
-		}
-		case OPCODE_SUB: {
-			if(stack.size() >= 2) {
-				int32 rhs = stack.top();
-				stack.pop();
-				int32 lhs = stack.top();
-				stack.pop();
-				stack.push(lhs - rhs);
-			}
-			break;
-		}
-		case OPCODE_MUL: {
-			if(stack.size() >= 2) {
-				int32 rhs = stack.top();
-				stack.pop();
-				int32 lhs = stack.top();
-				stack.pop();
-				stack.push(lhs * rhs);
-			}
-			break;
-		}
-		case OPCODE_DIV: {
-			if(stack.size() >= 2) {
-				int32 rhs = stack.top();
-				stack.pop();
-				int32 lhs = stack.top();
-				stack.pop();
-				stack.push(lhs / rhs);
-			}
-			break;
-		}
-		case OPCODE_AND: {
-			if(stack.size() >= 2) {
-				int32 rhs = stack.top();
-				stack.pop();
-				int32 lhs = stack.top();
-				stack.pop();
-				stack.push(lhs && rhs);
-			}
-			break;
-		}
-		case OPCODE_OR: {
-			if(stack.size() >= 2) {
-				int32 rhs = stack.top();
-				stack.pop();
-				int32 lhs = stack.top();
-				stack.pop();
-				stack.push(lhs || rhs);
-			}
-			break;
-		}
-		case OPCODE_NEG: {
-			if(stack.size() >= 1) {
-				int32 val = stack.top();
-				stack.pop();
-				stack.push(-val);
-			}
-			break;
-		}
-		case OPCODE_NOT: {
-			if(stack.size() >= 1) {
-				int32 val = stack.top();
-				stack.pop();
-				stack.push(!val);
-			}
-			break;
-		}
-		case OPCODE_ISCODE: {
-			if(stack.size() >= 1) {
-				uint32 code = stack.top();
-				stack.pop();
-				stack.push(cd.code == code);
-			}
-			break;
-		}
+		BINARY_OP(OPCODE_ADD, +);
+		BINARY_OP(OPCODE_SUB, -);
+		BINARY_OP(OPCODE_MUL, *);
+		BINARY_OP(OPCODE_DIV, /);
+		BINARY_OP(OPCODE_AND, &&);
+		BINARY_OP(OPCODE_OR, ||);
+		UNARY_OP(OPCODE_NEG, -);
+		UNARY_OP(OPCODE_NOT, !);
+		UNARY_EQ_OP(OPCODE_ISCODE, code);
+		UNARY_EQ_OP(OPCODE_ISTYPE, type);
+		UNARY_EQ_OP(OPCODE_ISRACE, race);
+		UNARY_EQ_OP(OPCODE_ISATTRIBUTE, attribute);
 		case OPCODE_ISSETCARD: {
 			if(stack.size() >= 1) {
 				int32 set_code = stack.top();
@@ -953,30 +901,6 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 			}
 			break;
 		}
-		case OPCODE_ISTYPE: {
-			if(stack.size() >= 1) {
-				int32 val = stack.top();
-				stack.pop();
-				stack.push(cd.type & val);
-			}
-			break;
-		}
-		case OPCODE_ISRACE: {
-			if(stack.size() >= 1) {
-				int32 race = stack.top();
-				stack.pop();
-				stack.push(cd.race & race);
-			}
-			break;
-		}
-		case OPCODE_ISATTRIBUTE: {
-			if(stack.size() >= 1) {
-				int32 attribute = stack.top();
-				stack.pop();
-				stack.push(cd.attribute & attribute);
-			}
-			break;
-		}
 		default: {
 			stack.push(it);
 			break;
@@ -988,6 +912,9 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 	return cd.code == CARD_MARINE_DOLPHIN || cd.code == CARD_TWINKLE_MOSS
 		|| (!cd.alias && (cd.type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN));
 }
+#undef BINARY_OP
+#undef UNARY_OP
+#undef UNARY_EQ_OP
 int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
 	if(step == 0) {
 		if(core.select_options.size() == 0) {
