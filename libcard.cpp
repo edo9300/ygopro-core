@@ -782,6 +782,37 @@ int32 scriptlib::card_get_fieldidr(lua_State *L) {
 	lua_pushinteger(L, pcard->fieldid_r);
 	return 1;
 }
+int32 scriptlib::card_is_origin_code_rule(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	uint32 code1 = 0;
+	uint32 code2 = 0;
+	effect_set eset;
+	pcard->filter_effect(EFFECT_ADD_CODE, &eset);
+	if(pcard->data.alias && !eset.size()){
+		code1 = pcard->data.alias;
+		code2 = 0;
+	}
+	else {
+		code1 = pcard->data.code;
+		if(eset.size())
+			code2 = eset.get_last()->get_value(pcard);
+	}
+	uint32 count = lua_gettop(L) - 1;
+	uint32 result = FALSE;
+	for(uint32 i = 0; i < count; ++i) {
+		if(lua_isnil(L, i + 2))
+			continue;
+		uint32 tcode = lua_tointeger(L, i + 2);
+		if(code1 == tcode || (code2 && code2 == tcode)) {
+			result = TRUE;
+			break;
+		}
+	}
+	lua_pushboolean(L, result);
+	return 1;
+}
 int32 scriptlib::card_is_code(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -2611,6 +2642,8 @@ int32 scriptlib::card_enable_counter_permit(lua_State *L) {
 	peffect->type = EFFECT_TYPE_SINGLE;
 	peffect->code = EFFECT_COUNTER_PERMIT | countertype;
 	peffect->value = prange;
+	if(lua_gettop(L) > 3 && lua_isfunction(L, 4))
+		peffect->target = interpreter::get_function_handle(L, 4);
 	pcard->add_effect(peffect);
 	return 0;
 }
@@ -2642,11 +2675,13 @@ int32 scriptlib::card_is_can_turn_set(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::card_is_can_add_counter(lua_State *L) {
-	check_param_count(L, 3);
+	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
-	uint32 countertype = lua_tonumberint(L, 2);
-	uint32 count = lua_tonumberint(L, 3);
+	uint32 countertype = lua_tointeger(L, 2);
+	uint32 count = 0;
+	if(lua_gettop(L) > 2)
+		count = lua_tointeger(L, 3);
 	uint8 singly = FALSE;
 	if(lua_gettop(L) > 3)
 		singly = lua_toboolean(L, 4);
@@ -2678,7 +2713,10 @@ int32 scriptlib::card_is_can_be_fusion_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		fcard = *(card**)lua_touserdata(L, 2);
 	}
-	lua_pushboolean(L, pcard->is_can_be_fusion_material(fcard));
+	uint32 summon_type = SUMMON_TYPE_FUSION;
+	if(lua_gettop(L) >= 3)
+		summon_type = lua_tointeger(L, 3);
+	lua_pushboolean(L, pcard->is_can_be_fusion_material(fcard, summon_type));
 	return 1;
 }
 int32 scriptlib::card_is_can_be_synchro_material(lua_State *L) {

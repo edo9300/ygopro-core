@@ -645,18 +645,23 @@ int32 scriptlib::duel_get_operated_group(lua_State *L) {
 	return 1;
 }
 int32 scriptlib::duel_is_can_add_counter(lua_State *L) {
-	check_param_count(L, 4);
-	int32 playerid = lua_tonumberint(L, 1);
-	int32 countertype = lua_tonumberint(L, 2);
-	int32 count = lua_tonumberint(L, 3);
-	check_param(L, PARAM_TYPE_CARD, 4);
-	card* pcard = *(card**)lua_touserdata(L, 4);
+	check_param_count(L, 1);
+	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_PLACE_COUNTER));
+	else {
+		check_param_count(L, 4);
+		int32 countertype = lua_tointeger(L, 2);
+		int32 count = lua_tointeger(L, 3);
+		check_param(L, PARAM_TYPE_CARD, 4);
+		card* pcard = *(card**) lua_touserdata(L, 4);
+		lua_pushboolean(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
+	}
 	return 1;
 }
 int32 scriptlib::duel_remove_counter(lua_State *L) {
@@ -3623,7 +3628,7 @@ int32 scriptlib::duel_is_player_can_summon(lua_State * L) {
 	}
 	duel* pduel = interpreter::get_duel_info(L);
 	if(lua_gettop(L) == 1)
-		lua_pushboolean(L, pduel->game_field->is_player_can_summon(playerid));
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_SUMMON));
 	else {
 		check_param_count(L, 3);
 		check_param(L, PARAM_TYPE_CARD, 3);
@@ -3655,16 +3660,21 @@ int32 scriptlib::duel_is_player_can_spsummon(lua_State * L) {
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_flipsummon(lua_State * L) {
-	check_param_count(L, 2);
-	int32 playerid = lua_tonumberint(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	card* pcard = *(card**) lua_touserdata(L, 2);
+	check_param_count(L, 1);
+	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_flipsummon(playerid, pcard));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_FLIP_SUMMON));
+	else {
+		check_param_count(L, 2);
+		check_param(L, PARAM_TYPE_CARD, 2);
+		card* pcard = *(card**) lua_touserdata(L, 2);
+		lua_pushboolean(L, pduel->game_field->is_player_can_flipsummon(playerid, pcard));
+	}
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State * L) {
@@ -3719,29 +3729,39 @@ int32 scriptlib::duel_is_player_can_spsummon_count(lua_State * L) {
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_release(lua_State * L) {
-	check_param_count(L, 2);
-	int32 playerid = lua_tonumberint(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	card* pcard = *(card**) lua_touserdata(L, 2);
+	check_param_count(L, 1);
+	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_release(playerid, pcard));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_RELEASE));
+	else {
+		check_param_count(L, 2);
+		check_param(L, PARAM_TYPE_CARD, 2);
+		card* pcard = *(card**) lua_touserdata(L, 2);
+		lua_pushboolean(L, pduel->game_field->is_player_can_release(playerid, pcard));
+	}
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_remove(lua_State * L) {
-	check_param_count(L, 2);
-	int32 playerid = lua_tonumberint(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	card* pcard = *(card**) lua_touserdata(L, 2);
+	check_param_count(L, 1);
+	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove(playerid, pcard));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_REMOVE));
+	else {
+		check_param_count(L, 2);
+		check_param(L, PARAM_TYPE_CARD, 2);
+		card* pcard = *(card**) lua_touserdata(L, 2);
+		lua_pushboolean(L, pduel->game_field->is_player_can_remove(playerid, pcard));
+	}
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_send_to_hand(lua_State * L) {
@@ -3754,7 +3774,14 @@ int32 scriptlib::duel_is_player_can_send_to_hand(lua_State * L) {
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_send_to_hand(playerid, pcard));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_HAND));
+	else {
+		check_param_count(L, 2);
+		check_param(L, PARAM_TYPE_CARD, 2);
+		card* pcard = *(card**) lua_touserdata(L, 2);
+		lua_pushboolean(L, pduel->game_field->is_player_can_send_to_hand(playerid, pcard));
+	}
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_send_to_grave(lua_State * L) {
@@ -3767,7 +3794,14 @@ int32 scriptlib::duel_is_player_can_send_to_grave(lua_State * L) {
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_send_to_grave(playerid, pcard));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_GRAVE));
+	else {
+		check_param_count(L, 2);
+		check_param(L, PARAM_TYPE_CARD, 2);
+		card* pcard = *(card**) lua_touserdata(L, 2);
+		lua_pushboolean(L, pduel->game_field->is_player_can_send_to_grave(playerid, pcard));
+	}
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_send_to_deck(lua_State * L) {
@@ -3780,7 +3814,14 @@ int32 scriptlib::duel_is_player_can_send_to_deck(lua_State * L) {
 		return 1;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushboolean(L, pduel->game_field->is_player_can_send_to_deck(playerid, pcard));
+	if(lua_gettop(L) == 1)
+		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_DECK));
+	else {
+		check_param_count(L, 2);
+		check_param(L, PARAM_TYPE_CARD, 2);
+		card* pcard = *(card**) lua_touserdata(L, 2);
+		lua_pushboolean(L, pduel->game_field->is_player_can_send_to_deck(playerid, pcard));
+	}
 	return 1;
 }
 int32 scriptlib::duel_is_player_can_additional_summon(lua_State * L) {

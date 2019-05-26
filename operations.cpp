@@ -728,7 +728,7 @@ int32 field::remove_counter(uint16 step, uint32 reason, card* pcard, uint8 rplay
 		if(core.select_options.size() == 1)
 			returns.at<int32>(0) = 0;
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 219);
+			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 220);
 		else
 			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
 		return FALSE;
@@ -804,7 +804,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint
 		if(core.select_options.size() == 1)
 			returns.at<int32>(0) = 0;
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 220);
+			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 219);
 		else
 			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
 		return FALSE;
@@ -4433,6 +4433,10 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 						return FALSE;
 					}
 				}
+			}
+			if(ret == 2) {
+				returns.bvalue[2] = target->previous.sequence;
+				return FALSE;
 			}
 			if(move_player == playerid) {
 				if(location == LOCATION_SZONE)

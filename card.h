@@ -199,6 +199,7 @@ public:
 
 	uint32 get_infos(int32 query_flag, int32 use_cache = TRUE, int32 ignore_cache = FALSE);
 	loc_info get_info_location();
+	uint32 second_code(uint32 code);
 	uint32 get_code();
 	uint32 get_another_code();
 	uint32 get_summon_code(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 2);
@@ -348,7 +349,7 @@ public:
 	int32 is_control_can_be_changed(int32 ignore_mzone, uint32 zone);
 	int32 is_capable_be_battle_target(card* pcard);
 	int32 is_capable_be_effect_target(effect* peffect, uint8 playerid);
-	int32 is_can_be_fusion_material(card* fcard);
+	int32 is_can_be_fusion_material(card* fcard, uint32 summon_type);
 	int32 is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner = 0);
 	int32 is_can_be_ritual_material(card* scard);
 	int32 is_can_be_xyz_material(card* scard, uint8 playerid);
@@ -383,5 +384,9 @@ public:
 #define ASSUME_DEFENSE		8
 #define ASSUME_LINK         9
 #define ASSUME_LINKMARKER   10
+
+//double-name cards
+#define CARD_MARINE_DOLPHIN	78734254
+#define CARD_TWINKLE_MOSS	13857930
 
 #endif /* CARD_H_ */
