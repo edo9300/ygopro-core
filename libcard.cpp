@@ -797,7 +797,7 @@ int32 scriptlib::card_is_origin_code_rule(lua_State *L) {
 	else {
 		code1 = pcard->data.code;
 		if(eset.size())
-			code2 = eset.get_last()->get_value(pcard);
+			code2 = eset.back()->get_value(pcard);
 	}
 	uint32 count = lua_gettop(L) - 1;
 	uint32 result = FALSE;

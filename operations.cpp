@@ -4435,7 +4435,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 				}
 			}
 			if(ret == 2) {
-				returns.bvalue[2] = target->previous.sequence;
+				returns.at<int8>(2) = target->previous.sequence;
 				return FALSE;
 			}
 			if(move_player == playerid) {

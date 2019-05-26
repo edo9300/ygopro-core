@@ -4169,7 +4169,7 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 }
 int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
 	if(sumtype == SUMMON_TYPE_FUSION)
-		return is_can_be_fusion_material(scard);
+		return is_can_be_fusion_material(scard, SUMMON_TYPE_FUSION);
 	if(sumtype == SUMMON_TYPE_SYNCHRO)
 		return is_can_be_synchro_material(scard, playerid);
 	if(sumtype == SUMMON_TYPE_RITUAL)
