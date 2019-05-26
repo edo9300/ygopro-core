@@ -867,11 +867,15 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 								}\
 								break;\
 							}
-#define UNARY_EQ_OP(opcode,val) UNARY_OP(opcode,cd.val == )
-static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcode) {
+#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd.val##op)
+#define GET_OP(opcode,val) case opcode: {\
+								stack.push(cd.val);\
+								break;\
+							}
+static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcodes) {
 	std::stack<int32> stack;
-	for(auto& it : opcode) {
-		switch(it) {
+	for(auto& opcode : opcodes) {
+		switch(opcode) {
 		BINARY_OP(OPCODE_ADD, +);
 		BINARY_OP(OPCODE_SUB, -);
 		BINARY_OP(OPCODE_MUL, *);
@@ -880,10 +884,21 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 		BINARY_OP(OPCODE_OR, ||);
 		UNARY_OP(OPCODE_NEG, -);
 		UNARY_OP(OPCODE_NOT, !);
-		UNARY_EQ_OP(OPCODE_ISCODE, code);
-		UNARY_EQ_OP(OPCODE_ISTYPE, type);
-		UNARY_EQ_OP(OPCODE_ISRACE, race);
-		UNARY_EQ_OP(OPCODE_ISATTRIBUTE, attribute);
+		BINARY_OP(OPCODE_BAND, &);
+		BINARY_OP(OPCODE_BOR, | );
+		BINARY_OP(OPCODE_BXOR, ^);
+		UNARY_OP(OPCODE_BNOT, ~);
+		BINARY_OP(OPCODE_LSHIFT, <<);
+		BINARY_OP(OPCODE_RSHIFT, >>);
+		UNARY_OP_OP(OPCODE_ISCODE, code, == );
+		UNARY_OP_OP(OPCODE_ISTYPE, type, &);
+		UNARY_OP_OP(OPCODE_ISRACE, race, &);
+		UNARY_OP_OP(OPCODE_ISATTRIBUTE, attribute, &);
+		GET_OP(OPCODE_GETCODE, code);
+		GET_OP(OPCODE_GETTYPE, type);
+		GET_OP(OPCODE_GETRACE, race);
+		GET_OP(OPCODE_GETATTRIBUTE, attribute);
+		GET_OP(OPCODE_GETSETCARD, setcode);
 		case OPCODE_ISSETCARD: {
 			if(stack.size() >= 1) {
 				int32 set_code = stack.top();
@@ -902,7 +917,7 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 			break;
 		}
 		default: {
-			stack.push(it);
+			stack.push(opcode);
 			break;
 		}
 		}
@@ -914,20 +929,19 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 }
 #undef BINARY_OP
 #undef UNARY_OP
-#undef UNARY_EQ_OP
+#undef UNARY_OP_OP
+#undef GET_OP
 int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
 	if(step == 0) {
-		if(core.select_options.size() == 0) {
-			pduel->write_buffer8(MSG_ANNOUNCE_CARD);
-			pduel->write_buffer8(playerid);
-			pduel->write_buffer32(ttype);
-		} else {
-			pduel->write_buffer8(MSG_ANNOUNCE_CARD_FILTER);
-			pduel->write_buffer8(playerid);
-			pduel->write_buffer8(core.select_options.size());
-			for(auto& option : core.select_options)
-				pduel->write_buffer64(option);
+		if(core.select_options.size() == 0 && ttype) {
+			core.select_options.push_back(ttype);
+			core.select_options.push_back(OPCODE_ISTYPE);
 		}
+		pduel->write_buffer8(MSG_ANNOUNCE_CARD_FILTER);
+		pduel->write_buffer8(playerid);
+		pduel->write_buffer8(core.select_options.size());
+		for(auto& option : core.select_options)
+			pduel->write_buffer64(option);
 		return FALSE;
 	} else {
 		int32 code = returns.at<int32>(0);
@@ -936,10 +950,6 @@ int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
 		read_card(code, &data);
 		if(!data.code) {
 			retry = true;
-		} else if(core.select_options.size() == 0) {
-			if(!(data.type & ttype)) {
-				retry = true;
-			}
 		} else {
 			if(!is_declarable(data, core.select_options)) {
 				retry = true;
