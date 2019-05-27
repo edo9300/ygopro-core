@@ -5564,9 +5564,10 @@ int32 field::adjust_step(uint16 step) {
 		card* attacker = core.attacker;
 		if(!attacker)
 			return FALSE;
-		if(!attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)){
+		if(!attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)) {
 			if(attacker->is_status(STATUS_ATTACK_CANCELED))
 				return FALSE;
+		}
 		if(infos.phase != PHASE_DAMAGE && infos.phase != PHASE_DAMAGE_CAL) {
 			if(!core.attacker->is_capable_attack()
 				|| core.attacker->current.controler != core.attacker->attack_controler
