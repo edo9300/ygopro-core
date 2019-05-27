@@ -5372,7 +5372,7 @@ int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player,
 	}
 	case 2: {
 		for(uint8 i = 0; i < 5; ++i)
-			core.coin_result[i] = (returns.ivalue[0] >> (i * 4)) & 0xf;
+			core.coin_result[i] = (returns.at<int32>(0) >> (i * 4)) & 0xf;
 		return TRUE;
 	}
 	}
@@ -5433,7 +5433,7 @@ int32 field::toss_dice(uint16 step, effect * reason_effect, uint8 reason_player,
 	}
 	case 2: {
 		for(uint8 i = 0; i < 5; ++i)
-			core.dice_result[i] = (returns.ivalue[0] >> (i * 4)) & 0xf;
+			core.dice_result[i] = (returns.at<int32>(0) >> (i * 4)) & 0xf;
 		return TRUE;
 	}
 	}
