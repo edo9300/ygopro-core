@@ -1646,7 +1646,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 	}*/
 	return TRUE;
 }
-// core.tmp_chains: used in step 8 (obsolete ignition effect ruling)
+// core.ignition_priority_chains: used in step 8 (obsolete ignition effect ruling)
 int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_freechain, int32 skip_new) {
 	switch(step) {
 	case 0: {
@@ -1824,7 +1824,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 					newchain.triggering_effect = peffect;
 					newchain.set_triggering_state(phandler);
 					newchain.triggering_player = infos.turn_player;
-					core.tmp_chains.push_back(newchain);
+					core.ignition_priority_chains.push_back(newchain);
 				}
 			}
 		}
@@ -1995,8 +1995,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 	}
 	case 2: {
 		chain newchain;
-		if(core.tmp_chains.size())
-			core.select_chains.swap(core.tmp_chains);
+		if(core.ignition_priority_chains.size())
+			core.select_chains.swap(core.ignition_priority_chains);
 		for(auto& event : { core.point_event , core.instant_event }) {
 			for(auto evit = event.begin(); evit != event.end(); ++evit) {
 				auto pr = effects.activate_effect.equal_range(evit->event_code);

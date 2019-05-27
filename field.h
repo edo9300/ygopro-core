@@ -208,7 +208,7 @@ struct processor {
 	chain_array current_chain;
 	chain_list tpchain;
 	chain_list ntpchain;
-	chain_array tmp_chains;
+	chain_array ignition_priority_chains;
 	chain_list continuous_chain;
 	chain_list solving_continuous;
 	chain_list sub_solving_continuous;
