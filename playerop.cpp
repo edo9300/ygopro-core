@@ -928,13 +928,9 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 #undef UNARY_OP
 #undef UNARY_OP_OP
 #undef GET_OP
-int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
+int32 field::announce_card(int16 step, uint8 playerid) {
 	if(step == 0) {
-		if(core.select_options.size() == 0 && ttype) {
-			core.select_options.push_back(ttype);
-			core.select_options.push_back(OPCODE_ISTYPE);
-		}
-		pduel->write_buffer8(MSG_ANNOUNCE_CARD_FILTER);
+		pduel->write_buffer8(MSG_ANNOUNCE_CARD);
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer8(core.select_options.size());
 		for(auto& option : core.select_options)
@@ -957,7 +953,7 @@ int32 field::announce_card(int16 step, uint8 playerid, uint32 ttype) {
 			pduel->write_buffer8(HINT_MESSAGE);
 			pduel->write_buffer8(playerid);
 			pduel->write_buffer64(1421);
-			return announce_card(0, playerid, ttype);
+			return announce_card(0, playerid);
 		}
 		pduel->write_buffer8(MSG_HINT);
 		pduel->write_buffer8(HINT_CODE);
