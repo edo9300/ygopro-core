@@ -860,11 +860,11 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 								if (stack.size() >= 1) {\
 									int32 val = stack.top();\
 									stack.pop();\
-									stack.push(op##val);\
+									stack.push(op val);\
 								}\
 								break;\
 							}
-#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd.val##op)
+#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd.val op)
 #define GET_OP(opcode,val) case opcode: {\
 								stack.push(cd.val);\
 								break;\
