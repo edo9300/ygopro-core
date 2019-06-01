@@ -96,7 +96,8 @@ void duel::delete_effect(effect* peffect) {
 }
 int32 duel::read_buffer(byte* buf) {
 	if(buf != nullptr)
-		std::memcpy(buf, buff.data(), buff.size());
+		if(buff.size())
+			std::memcpy(buf, buff.data(), buff.size());
 	return buff.size();
 }
 void duel::release_script_group() {
@@ -117,7 +118,8 @@ void duel::restore_assumes() {
 void duel::write_buffer(void* data, size_t size) {
 	const auto vec_size = buff.size();
 	buff.resize(vec_size + size);
-	std::memcpy(&buff[vec_size], data, size);
+	if(size)
+		std::memcpy(&buff[vec_size], data, size);
 }
 void duel::write_info_location(loc_info* loc) {
 	if(loc) {
@@ -151,7 +153,8 @@ void duel::set_responsei(uint32 resp) {
 void duel::set_responseb(byte* resp, size_t len) {
 	game_field->returns.clear();
 	game_field->returns.data.resize(len);
-	std::memcpy(game_field->returns.data.data(), resp, len);
+	if(len)
+		std::memcpy(game_field->returns.data.data(), resp, len);
 }
 int32 duel::get_next_integer(int32 l, int32 h) {
 	return (std::uniform_int_distribution<>(l, h))(random);
