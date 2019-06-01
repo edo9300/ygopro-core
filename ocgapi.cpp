@@ -250,7 +250,8 @@ void insert_value(std::vector<uint8_t>& vec, T val) {
 extern "C" DECL_DLLEXPORT int32 get_cached_query(ptr pduel, byte * buf) {
 	duel* ptduel = (duel*)pduel;
 	int len = ptduel->cached_query.size();
-	memcpy(buf, ptduel->cached_query.data(), len);
+	if(len)
+		memcpy(buf, ptduel->cached_query.data(), len);
 	ptduel->cached_query.clear();
 	return len;
 }
@@ -284,7 +285,8 @@ extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 loca
 	if(pcard) {
 		auto len = pcard->get_infos(query_flag, use_cache, ignore_cache);
 		if(buf != nullptr) {
-			memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
+			if(len)
+				memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
 			ptduel->cached_query.clear();
 		}
 		return len;
@@ -369,7 +371,8 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 	}
 	int len = ptduel->cached_query.size();
 	if(buf != nullptr) {
-		memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
+		if(len)
+			memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
 		ptduel->cached_query.clear();
 	}
 	return len;
@@ -425,7 +428,8 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 	}
 	int len = ptduel->cached_query.size();
 	if(buf != nullptr) {
-		memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
+		if(len)
+			memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
 		ptduel->cached_query.clear();
 	}
 	return len;
