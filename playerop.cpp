@@ -609,7 +609,7 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer16(countertype);
 		pduel->write_buffer16(count);
-		pduel->write_buffer8(core.select_cards.size());
+		pduel->write_buffer32(core.select_cards.size());
 		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(auto& pcard : core.select_cards) {
 			pduel->write_buffer32(pcard->data.code);
