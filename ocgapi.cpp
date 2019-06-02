@@ -105,32 +105,21 @@ extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
 		pd->game_field->draw(0, REASON_RULE, PLAYER_NONE, 0, pd->game_field->player[0].start_count);
 	if(pd->game_field->player[1].start_count > 0)
 		pd->game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, pd->game_field->player[1].start_count);
-	if(options & DUEL_TAG_MODE) {
-		for(int p = 0; p < 2; p++)
-			for(int i = 0; i < pd->game_field->player[p].start_count && pd->game_field->player[p].tag_list_main.size(); ++i) {
-				card* pcard = pd->game_field->player[p].tag_list_main.back();
-				pd->game_field->player[p].tag_list_main.pop_back();
-				pd->game_field->player[p].tag_list_hand.push_back(pcard);
+	for(int p = 0; p < 2; p++) {
+		for(size_t l = 0; l < pd->game_field->player[p].extra_lists_main.size(); l++) {
+			auto& main = pd->game_field->player[p].extra_lists_main[l];
+			auto& hand = pd->game_field->player[p].extra_lists_hand[l];
+			for(int i = 0; i < pd->game_field->player[p].start_count && main.size(); ++i) {
+				card* pcard = main.back();
+				main.pop_back();
+				hand.push_back(pcard);
 				pcard->current.controler = p;
 				pcard->current.location = LOCATION_HAND;
-				pcard->current.sequence = pd->game_field->player[p].tag_list_hand.size() - 1;
+				pcard->current.sequence = hand.size() - 1;
 				pcard->current.position = POS_FACEDOWN;
 			}
-	}
-	if (options & DUEL_RELAY_MODE) {
-		for (int p = 0; p < 2; p++)
-			for (size_t l = 0; l < pd->game_field->player[p].relay_list_main.size(); l++)
-				for (size_t i = 0; i < (size_t)pd->game_field->player[p].start_count && pd->game_field->player[p].relay_list_main[l].size(); ++i) {
-					if (pd->game_field->player[p].relay_list_hand.size() == l)
-						pd->game_field->player[p].relay_list_hand.push_back(std::vector<card*>());
-					card* pcard = pd->game_field->player[p].relay_list_main[l].back();
-					pd->game_field->player[p].relay_list_main[l].pop_back();
-					pd->game_field->player[p].relay_list_hand[l].push_back(pcard);
-					pcard->current.controler = p;
-					pcard->current.location = LOCATION_HAND;
-					pcard->current.sequence = pd->game_field->player[p].relay_list_hand[l].size() - 1;
-					pcard->current.position = POS_FACEDOWN;
-				}
+
+		}
 	}
 	pd->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);
 }
@@ -169,75 +158,55 @@ extern "C" DECL_DLLEXPORT int32 process(ptr pduel) {
 		flag = pd->game_field->process();
 	return flag;
 }
-extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position) {
+extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position, int32 duelist) {
 	duel* ptduel = (duel*)pduel;
-	if(ptduel->game_field->is_location_useable(playerid, location, sequence)) {
+	if(duelist == 0) {
+		if(ptduel->game_field->is_location_useable(playerid, location, sequence)) {
+			card* pcard = ptduel->new_card(code);
+			pcard->owner = owner;
+			ptduel->game_field->add_card(playerid, pcard, location, sequence);
+			pcard->current.position = position;
+			if(!(location & LOCATION_ONFIELD) || (position & POS_FACEUP)) {
+				pcard->enable_field_effect(true);
+				ptduel->game_field->adjust_instant();
+			}
+			if(location & LOCATION_ONFIELD) {
+				if(location == LOCATION_MZONE)
+					pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
+			}
+		}
+	} else {
+		if(owner > 1 || !(location & 0x41))
+			return;
+		duelist--;
 		card* pcard = ptduel->new_card(code);
-		pcard->owner = owner;
-		ptduel->game_field->add_card(playerid, pcard, location, sequence);
-		pcard->current.position = position;
-		if(!(location & LOCATION_ONFIELD) || (position & POS_FACEUP)) {
-			pcard->enable_field_effect(true);
-			ptduel->game_field->adjust_instant();
+		auto& player = ptduel->game_field->player[owner];
+		if(duelist >= player.extra_lists_main.size()) {
+			player.extra_lists_main.resize(duelist + 1);
+			player.extra_lists_extra.resize(duelist + 1);
+			player.extra_lists_hand.resize(duelist + 1);
+			player.extra_extra_p_count.resize(duelist + 1);
 		}
-		if(location & LOCATION_ONFIELD) {
-			if(location == LOCATION_MZONE)
-				pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
+		switch(location) {
+			case LOCATION_DECK:
+				player.extra_lists_main[duelist].push_back(pcard);
+				pcard->owner = owner;
+				pcard->current.controler = owner;
+				pcard->current.location = LOCATION_DECK;
+				pcard->current.sequence = player.extra_lists_main[duelist].size() - 1;
+				pcard->current.position = POS_FACEDOWN_DEFENSE;
+				break;
+			case LOCATION_EXTRA:
+				player.extra_lists_extra[duelist].push_back(pcard);
+				pcard->owner = owner;
+				pcard->current.controler = owner;
+				pcard->current.location = LOCATION_EXTRA;
+				pcard->current.sequence = player.extra_lists_extra[duelist].size() - 1;
+				pcard->current.position = POS_FACEDOWN_DEFENSE;
+				break;
 		}
-	}
-}
-extern "C" DECL_DLLEXPORT void new_tag_card(ptr pduel, uint32 code, uint8 owner, uint8 location) {
-	duel* ptduel = (duel*)pduel;
-	if(owner > 1 || !(location & 0x41))
-		return;
-	card* pcard = ptduel->new_card(code);
-	switch(location) {
-	case LOCATION_DECK:
-		ptduel->game_field->player[owner].tag_list_main.push_back(pcard);
-		pcard->owner = owner;
-		pcard->current.controler = owner;
-		pcard->current.location = LOCATION_DECK;
-		pcard->current.sequence = ptduel->game_field->player[owner].tag_list_main.size() - 1;
-		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		break;
-	case LOCATION_EXTRA:
-		ptduel->game_field->player[owner].tag_list_extra.push_back(pcard);
-		pcard->owner = owner;
-		pcard->current.controler = owner;
-		pcard->current.location = LOCATION_EXTRA;
-		pcard->current.sequence = ptduel->game_field->player[owner].tag_list_extra.size() - 1;
-		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		break;
-	}
-}
-extern "C" DECL_DLLEXPORT void new_relay_card(ptr pduel, uint32 code, uint8 owner, uint8 location, uint8 playernum) {
-	duel* ptduel = (duel*)pduel;
-	if (owner > 1 || !(location & 0x41))
-		return;
-	card* pcard = ptduel->new_card(code);
-	switch (location) {
-	case LOCATION_DECK:
-		if (ptduel->game_field->player[owner].relay_list_main.size() < playernum)
-			ptduel->game_field->player[owner].relay_list_main.push_back(std::vector<card*>());
-		ptduel->game_field->player[owner].relay_list_main[playernum - 1].push_back(pcard);
-		pcard->owner = owner;
-		pcard->current.controler = owner;
-		pcard->current.location = LOCATION_DECK;
-		pcard->current.sequence = ptduel->game_field->player[owner].relay_list_main[playernum - 1].size() - 1;
-		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		break;
-	case LOCATION_EXTRA:
-		if (ptduel->game_field->player[owner].relay_list_extra.size() < playernum) {
-			ptduel->game_field->player[owner].relay_list_extra.push_back(std::vector<card*>());
-			ptduel->game_field->player[owner].relay_extra_p_count.push_back(0);
-		}
-		ptduel->game_field->player[owner].relay_list_extra[playernum - 1].push_back(pcard);
-		pcard->owner = owner;
-		pcard->current.controler = owner;
-		pcard->current.location = LOCATION_EXTRA;
-		pcard->current.sequence = ptduel->game_field->player[owner].relay_list_extra[playernum - 1].size() - 1;
-		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		break;
+
+
 	}
 }
 template<typename T>

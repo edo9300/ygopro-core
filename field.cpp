@@ -61,8 +61,8 @@ field::field(duel* pduel) {
 		player[i].disabled_location = 0;
 		player[i].used_location = 0;
 		player[i].extra_p_count = 0;
-		player[i].tag_extra_p_count = 0;
 		player[i].exchanges = 0;
+		player[i].tag_index = 0;
 		player[i].recharge = false;
 		player[i].list_mzone.resize(7, 0);
 		player[i].list_szone.resize(8, 0);
@@ -999,12 +999,15 @@ void field::reverse_deck(uint8 playerid) {
 	}
 }
 void field::tag_swap(uint8 playerid) {
+	if(player[playerid].extra_lists_main.empty())
+		return;
+
 	//main
 	for(auto& pcard : player[playerid].list_main) {
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 	}
-	std::swap(player[playerid].list_main, player[playerid].tag_list_main);
+	std::swap(player[playerid].list_main, player[playerid].extra_lists_main[player[playerid].tag_index]);
 	for(auto& pcard : player[playerid].list_main) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
@@ -1014,7 +1017,7 @@ void field::tag_swap(uint8 playerid) {
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 	}
-	std::swap(player[playerid].list_hand, player[playerid].tag_list_hand);
+	std::swap(player[playerid].list_hand, player[playerid].extra_lists_hand[player[playerid].tag_index]);
 	for(auto& pcard : player[playerid].list_hand) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
@@ -1024,8 +1027,8 @@ void field::tag_swap(uint8 playerid) {
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 	}
-	std::swap(player[playerid].list_extra, player[playerid].tag_list_extra);
-	std::swap(player[playerid].extra_p_count, player[playerid].tag_extra_p_count);
+	std::swap(player[playerid].list_extra, player[playerid].extra_lists_extra[player[playerid].tag_index]);
+	std::swap(player[playerid].extra_p_count, player[playerid].extra_extra_p_count[player[playerid].tag_index]);
 	for(auto& pcard : player[playerid].list_extra) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
@@ -1044,9 +1047,10 @@ void field::tag_swap(uint8 playerid) {
 		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
 	for(auto& pcard : player[playerid].list_extra)
 		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+	player[playerid].tag_index = (player[playerid].tag_index + 1) % player[playerid].extra_lists_main.size();
 }
 bool field::relay_check(uint8 playerid) {
-	if (player[playerid].exchanges >= player[playerid].relay_list_main.size())
+	if (player[playerid].exchanges >= player[playerid].extra_lists_main.size())
 		return false;
 	player[playerid].exchanges++;
 	core.force_turn_end = true;
@@ -1059,7 +1063,7 @@ void field::next_player(uint8 playerid) {
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 	}
-	std::swap(player[playerid].list_main, player[playerid].relay_list_main[player[playerid].exchanges - 1]);
+	std::swap(player[playerid].list_main, player[playerid].extra_lists_main[player[playerid].exchanges - 1]);
 	for(auto& pcard : player[playerid].list_main) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
@@ -1069,7 +1073,7 @@ void field::next_player(uint8 playerid) {
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 	}
-	std::swap(player[playerid].list_hand, player[playerid].relay_list_hand[player[playerid].exchanges - 1]);
+	std::swap(player[playerid].list_hand, player[playerid].extra_lists_hand[player[playerid].exchanges - 1]);
 	for(auto& pcard : player[playerid].list_hand) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
@@ -1079,8 +1083,8 @@ void field::next_player(uint8 playerid) {
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 	}
-	std::swap(player[playerid].list_extra, player[playerid].relay_list_extra[player[playerid].exchanges - 1]);
-	std::swap(player[playerid].extra_p_count, player[playerid].relay_extra_p_count[player[playerid].exchanges - 1]);
+	std::swap(player[playerid].list_extra, player[playerid].extra_lists_extra[player[playerid].exchanges - 1]);
+	std::swap(player[playerid].extra_p_count, player[playerid].extra_extra_p_count[player[playerid].exchanges - 1]);
 	for(auto& pcard : player[playerid].list_extra) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);

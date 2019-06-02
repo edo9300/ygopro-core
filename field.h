@@ -79,9 +79,8 @@ struct player_info {
 	uint32 used_location;
 	uint32 disabled_location;
 	uint32 extra_p_count;
-	uint32 tag_extra_p_count;
-	std::vector<uint32> relay_extra_p_count;
 	uint32 exchanges;
+	uint32 tag_index;
 	bool recharge;
 	card_vector list_mzone;
 	card_vector list_szone;
@@ -90,12 +89,10 @@ struct player_info {
 	card_vector list_hand;
 	card_vector list_remove;
 	card_vector list_extra;
-	card_vector tag_list_main;
-	card_vector tag_list_hand;
-	card_vector tag_list_extra;
-	std::vector<card_vector> relay_list_main;
-	std::vector<card_vector> relay_list_hand;
-	std::vector<card_vector> relay_list_extra;
+	std::vector<card_vector> extra_lists_main;
+	std::vector<card_vector> extra_lists_hand;
+	std::vector<card_vector> extra_lists_extra;
+	std::vector<uint32> extra_extra_p_count;
 };
 struct field_effect {
 	typedef std::multimap<uint32, effect*> effect_container;

@@ -46,9 +46,7 @@ extern "C" DECL_DLLEXPORT void set_player_info(ptr pduel, int32 playerid, int32 
 extern "C" DECL_DLLEXPORT void get_log_message(ptr pduel, byte* buf);
 extern "C" DECL_DLLEXPORT int32 get_message(ptr pduel, byte* buf);
 extern "C" DECL_DLLEXPORT int32 process(ptr pduel);
-extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position);
-extern "C" DECL_DLLEXPORT void new_tag_card(ptr pduel, uint32 code, uint8 owner, uint8 location);
-extern "C" DECL_DLLEXPORT void new_relay_card(ptr pduel, uint32 code, uint8 owner, uint8 location, uint8 playernum);
+extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position, int32 duelist);
 extern "C" DECL_DLLEXPORT int32 get_cached_query(ptr pduel, byte* buf);
 extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache = FALSE);
 extern "C" DECL_DLLEXPORT int32 query_field_count(ptr pduel, uint8 playerid, uint8 location);
