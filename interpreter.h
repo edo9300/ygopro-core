@@ -8,7 +8,11 @@
 #ifndef INTERPRETER_H_
 #define INTERPRETER_H_
 
+#if defined(_WIN32) || defined(__APPLE__)
+#include <lua.hpp>
+#else
 #include <lua.h>
+#endif
 #include <lauxlib.h>
 #include <lualib.h>
 
