@@ -26,6 +26,7 @@ project "ocgcore"
 
 	filter "system:macosx"
 		defines "LUA_USE_MACOSX"
+		includedirs "/usr/local/include/lua5.3"
 
 	filter "system:linux"
 		defines "LUA_USE_LINUX"
