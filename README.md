@@ -1,9 +1,11 @@
 # YGOPro script engine.
 
-## Introduction
-The core logic and lua script processor of YGOPro. This library can be made external of the project and used to power server technologies. It maintains a state engine that is manipulated by Lua scripts using manipulation functions it exposes.
+A bleeding-edge fork of [YGOPro core](https://github.com/Fluorohydride/ygopro) with updates to accommodate for new cards and features. It is incompatible with forks not derived from this one.
 
-## [Compiling](https://github.com/edo9300/ygopro/wiki/Building-EDOPro)
+This is the core logic and lua script processor of YGOPro. It maintains a state engine with an exposed API for Lua scripts. This library can be built independently of YGOPro clients and power server technologies.
+
+## Compiling
+See the [main EDOPro wiki](https://github.com/edo9300/ygopro/wiki/) for details.
 
 ## Exposed Functions
 
