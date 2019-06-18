@@ -858,7 +858,7 @@ int32 scriptlib::card_is_summon_code(lua_State *L) {
 	codes.insert(code1);
 	if (code2)
 		codes.insert(code2);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if (!eset[i]->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
@@ -1620,7 +1620,7 @@ int32 scriptlib::card_is_has_effect(lua_State *L) {
 		if(check_player > PLAYER_NONE)
 			check_player = PLAYER_NONE;
 	}
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if(check_player == PLAYER_NONE || eset[i]->check_count_limit(check_player))
 			interpreter::effect2value(L, eset[i]);
 		else

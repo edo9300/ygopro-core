@@ -375,7 +375,7 @@ uint32 card::get_summon_code(card* scard, uint32 sumtype, uint8 playerid) {
 	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
 	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
 	filter_effect(EFFECT_CHANGE_CODE, &eset);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if (!eset[i]->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
@@ -425,7 +425,7 @@ int32 card::is_set_card(uint32 set_code) {
 	//add set code
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		uint32 value = eset[i]->get_value(this);
 		if ((value & 0xfff) == settype && (value & 0xf000 & setsubtype) == setsubtype)
 			return TRUE;
@@ -505,7 +505,7 @@ int32 card::is_sumon_set_card(uint32 set_code, card * scard, uint32 sumtype, uin
 	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
 	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
 	filter_effect(EFFECT_CHANGE_CODE, &eset);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if (!eset[i]->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
@@ -538,7 +538,7 @@ int32 card::is_sumon_set_card(uint32 set_code, card * scard, uint32 sumtype, uin
 	eset.clear();
 	filter_effect(EFFECT_ADD_SETCODE, &eset, FALSE);
 	filter_effect(EFFECT_CHANGE_SETCODE, &eset);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if (!eset[i]->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
@@ -576,7 +576,7 @@ uint32 card::get_set_card() {
 	//add set code
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		uint32 value = eset[i]->get_value(this);
 		for (; value > 0; count++, value = value >> 16)
 			lua_pushinteger(pduel->lua->current_state, value & 0xffff);
@@ -631,7 +631,7 @@ uint32 card::get_summon_set_card(card* scard, uint32 sumtype, uint8 playerid) {
 	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
 	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
 	filter_effect(EFFECT_CHANGE_CODE, &eset);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if (!eset[i]->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
@@ -664,7 +664,7 @@ uint32 card::get_summon_set_card(card* scard, uint32 sumtype, uint8 playerid) {
 	eset.clear();
 	filter_effect(EFFECT_ADD_SETCODE, &eset, FALSE);
 	filter_effect(EFFECT_CHANGE_SETCODE, &eset);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if (!eset[i]->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
@@ -702,7 +702,7 @@ uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
 	filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_TYPE, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_TYPE, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		if (effects[i]->operation && !sumtype)
 			continue;
 		if (effects[i]->operation) {
@@ -764,7 +764,7 @@ int32 card::get_base_attack() {
 		filter_effect(EFFECT_SET_BASE_DEFENSE, &eset, FALSE);
 	std::sort(eset.begin(), eset.end(), effect_sort_id);
 	// calculate continuous effects of this first
-	for(int32 i = 0; i < eset.size();) {
+	for(effect_set::size_type i = 0; i < eset.size();) {
 		if((eset[i]->type & EFFECT_TYPE_SINGLE) && eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE)) {
 			switch(eset[i]->code) {
 			case EFFECT_SET_BASE_ATTACK:
@@ -784,7 +784,7 @@ int32 card::get_base_attack() {
 		}
 		++i;
 	}
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		switch(eset[i]->code) {
 		case EFFECT_SET_BASE_ATTACK:
 			batk = eset[i]->get_value(this);
@@ -841,7 +841,7 @@ int32 card::get_attack() {
 	if(is_affected_by_effect(EFFECT_REVERSE_UPDATE))
 		rev = TRUE;
 	effect_set effects_atk, effects_atk_r;
-	for(int32 i = 0; i < eset.size();) {
+	for(effect_set::size_type i = 0; i < eset.size();) {
 		if((eset[i]->type & EFFECT_TYPE_SINGLE) && eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE)) {
 			switch(eset[i]->code) {
 			case EFFECT_SET_BASE_ATTACK:
@@ -862,7 +862,7 @@ int32 card::get_attack() {
 		++i;
 	}
 	temp.attack = batk;
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		switch(eset[i]->code) {
 		case EFFECT_UPDATE_ATTACK:
 			if((eset[i]->type & EFFECT_TYPE_SINGLE) && !eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
@@ -919,13 +919,13 @@ int32 card::get_attack() {
 		if(temp.attack < 0)
 			temp.attack = 0;
 	}
-	for(int32 i = 0; i < effects_atk.size(); ++i)
+	for(effect_set::size_type i = 0; i < effects_atk.size(); ++i)
 		temp.attack = effects_atk[i]->get_value(this);
 	if(temp.defense == -1) {
 		if(swap_final) {
 			temp.attack = get_defense();
 		}
-		for(int32 i = 0; i < effects_atk_r.size(); ++i) {
+		for(effect_set::size_type i = 0; i < effects_atk_r.size(); ++i) {
 			temp.attack = effects_atk_r[i]->get_value(this);
 			if(effects_atk_r[i]->is_flag(EFFECT_FLAG_REPEAT))
 				temp.attack = effects_atk_r[i]->get_value(this);
@@ -961,7 +961,7 @@ int32 card::get_base_defense() {
 	if(swap)
 		filter_effect(EFFECT_SET_BASE_ATTACK, &eset, FALSE);
 	std::sort(eset.begin(), eset.end(), effect_sort_id);
-	for(int32 i = 0; i < eset.size();) {
+	for(effect_set::size_type i = 0; i < eset.size();) {
 		if((eset[i]->type & EFFECT_TYPE_SINGLE) && eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE)) {
 			switch(eset[i]->code) {
 			case EFFECT_SET_BASE_ATTACK:
@@ -981,7 +981,7 @@ int32 card::get_base_defense() {
 		}
 		++i;
 	}
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		switch(eset[i]->code) {
 		case EFFECT_SET_BASE_ATTACK:
 			batk = eset[i]->get_value(this);
@@ -1038,7 +1038,7 @@ int32 card::get_defense() {
 	if(is_affected_by_effect(EFFECT_REVERSE_UPDATE))
 		rev = TRUE;
 	effect_set effects_def, effects_def_r;
-	for(int32 i = 0; i < eset.size();) {
+	for(effect_set::size_type i = 0; i < eset.size();) {
 		if((eset[i]->type & EFFECT_TYPE_SINGLE) && eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE)) {
 			switch(eset[i]->code) {
 			case EFFECT_SET_BASE_ATTACK:
@@ -1059,7 +1059,7 @@ int32 card::get_defense() {
 		++i;
 	}
 	temp.defense = bdef;
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		switch(eset[i]->code) {
 		case EFFECT_UPDATE_DEFENSE:
 			if((eset[i]->type & EFFECT_TYPE_SINGLE) && !eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
@@ -1116,13 +1116,13 @@ int32 card::get_defense() {
 		if(temp.defense < 0)
 			temp.defense = 0;
 	}
-	for(int32 i = 0; i < effects_def.size(); ++i)
+	for(effect_set::size_type i = 0; i < effects_def.size(); ++i)
 		temp.defense = effects_def[i]->get_value(this);
 	if(temp.attack == -1) {
 		if(swap_final) {
 			temp.defense = get_attack();
 		}
-		for(int32 i = 0; i < effects_def_r.size(); ++i) {
+		for(effect_set::size_type i = 0; i < effects_def_r.size(); ++i) {
 			temp.defense = effects_def_r[i]->get_value(this);
 			if(effects_def_r[i]->is_flag(EFFECT_FLAG_REPEAT))
 				temp.defense = effects_def_r[i]->get_value(this);
@@ -1165,7 +1165,7 @@ uint32 card::get_level() {
 		filter_effect(EFFECT_CHANGE_LEVEL, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_LEVEL_FINAL, &effects);
 	}
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
 		case EFFECT_UPDATE_RANK:
 		case EFFECT_UPDATE_LEVEL:
@@ -1221,7 +1221,7 @@ uint32 card::get_rank() {
 		filter_effect(EFFECT_CHANGE_RANK, &effects, FALSE);
 		filter_effect(EFFECT_CHANGE_RANK_FINAL, &effects, FALSE);
 	}
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
 		case EFFECT_UPDATE_RANK:
 		case EFFECT_UPDATE_LEVEL:
@@ -1266,7 +1266,7 @@ uint32 card::get_link() {
 	filter_effect(EFFECT_UPDATE_LINK, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_LINK, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_LINK_FINAL, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		switch (effects[i]->code) {
 		case EFFECT_UPDATE_LINK:
 			if ((effects[i]->type & EFFECT_TYPE_SINGLE) && !effects[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
@@ -1354,7 +1354,7 @@ uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 	filter_effect(EFFECT_ADD_ATTRIBUTE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_ATTRIBUTE, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_ATTRIBUTE, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		if (effects[i]->operation && !sumtype)
 			continue;
 		if (effects[i]->operation) {
@@ -1404,7 +1404,7 @@ uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
 	filter_effect(EFFECT_ADD_RACE, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_RACE, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_RACE, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		if (effects[i]->operation && !sumtype)
 			continue;
 		if (effects[i]->operation) {
@@ -1450,7 +1450,7 @@ uint32 card::get_lscale() {
 	int32 up = 0, upc = 0;
 	filter_effect(EFFECT_UPDATE_LSCALE, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_LSCALE, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		if (effects[i]->code == EFFECT_UPDATE_LSCALE) {
 			if ((effects[i]->type & EFFECT_TYPE_SINGLE) && !effects[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 				up += effects[i]->get_value(this);
@@ -1477,7 +1477,7 @@ uint32 card::get_rscale() {
 	int32 up = 0, upc = 0;
 	filter_effect(EFFECT_UPDATE_RSCALE, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_RSCALE, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		if (effects[i]->code == EFFECT_UPDATE_RSCALE) {
 			if ((effects[i]->type & EFFECT_TYPE_SINGLE) && !effects[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 				up += effects[i]->get_value(this);
@@ -1508,7 +1508,7 @@ uint32 card::get_link_marker() {
 	filter_effect(EFFECT_ADD_LINKMARKER, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_LINKMARKER, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_LINKMARKER, &effects);
-	for (int32 i = 0; i < effects.size(); ++i) {
+	for (effect_set::size_type i = 0; i < effects.size(); ++i) {
 		if (effects[i]->code == EFFECT_ADD_LINKMARKER)
 			link_marker |= effects[i]->get_value(this);
 		else if (effects[i]->code == EFFECT_REMOVE_LINKMARKER)
@@ -2479,7 +2479,7 @@ int32 card::leave_field_redirect(uint32 reason) {
 	if(data.type & TYPE_TOKEN)
 		return 0;
 	filter_effect(EFFECT_LEAVE_FIELD_REDIRECT, &es);
-	for(int32 i = 0; i < es.size(); ++i) {
+	for(effect_set::size_type i = 0; i < es.size(); ++i) {
 		redirect = es[i]->get_value(this, 0);
 		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(es[i]->get_handler_player(), this))
 			return redirect;
@@ -2505,7 +2505,7 @@ int32 card::destination_redirect(uint8 destination, uint32 reason) {
 		filter_effect(EFFECT_REMOVE_REDIRECT, &es);
 	else
 		return 0;
-	for(int32 i = 0; i < es.size(); ++i) {
+	for(effect_set::size_type i = 0; i < es.size(); ++i) {
 		redirect = es[i]->get_value(this, 0);
 		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(es[i]->get_handler_player(), this))
 			return redirect;
@@ -2535,7 +2535,7 @@ int32 card::add_counter(uint8 playerid, uint16 countertype, uint16 count, uint8 
 		effect_set eset;
 		uint16 limit = 0;
 		filter_effect(EFFECT_COUNTER_LIMIT + cttype, &eset);
-		for(int32 i = 0; i < eset.size(); ++i)
+		for(effect_set::size_type i = 0; i < eset.size(); ++i)
 			limit = eset[i]->get_value();
 		if(limit) {
 			uint16 mcount = limit - get_counter(cttype);
@@ -2592,7 +2592,7 @@ int32 card::is_can_add_counter(uint8 playerid, uint16 countertype, uint16 count,
 	uint32 check = countertype & COUNTER_WITHOUT_PERMIT;
 	if(!check) {
 		filter_effect(EFFECT_COUNTER_PERMIT + (countertype & 0xffff), &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			uint32 prange = eset[i]->get_value();
 			if(loc)
 				check = loc & prange;
@@ -2620,7 +2620,7 @@ int32 card::is_can_add_counter(uint8 playerid, uint16 countertype, uint16 count,
 	if(cmit != counters.end())
 		cur = cmit->second[0] + cmit->second[1];
 	filter_effect(EFFECT_COUNTER_LIMIT + cttype, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		limit = eset[i]->get_value();
 	if(limit > 0 && (cur + (singly ? 1 : count) > limit))
 		return FALSE;
@@ -2642,7 +2642,7 @@ void card::set_material(card_set* materials) {
 		pcard->current.reason_card = this;
 	effect_set eset;
 	filter_effect(EFFECT_MATERIAL_CHECK, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		eset[i]->get_value(this);
 	}
 }
@@ -2812,7 +2812,7 @@ int32 card::filter_summon_procedure(uint8 playerid, effect_set* peset, uint8 ign
 	effect_set eset;
 	filter_effect(EFFECT_LIMIT_SUMMON_PROC, &eset);
 	if(eset.size()) {
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			if(check_summon_procedure(eset[i], playerid, ignore_count, min_tribute, zone))
 				peset->push_back(eset[i]);
 		}
@@ -2822,7 +2822,7 @@ int32 card::filter_summon_procedure(uint8 playerid, effect_set* peset, uint8 ign
 	}
 	eset.clear();
 	filter_effect(EFFECT_SUMMON_PROC, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if(check_summon_procedure(eset[i], playerid, ignore_count, min_tribute, zone))
 			peset->push_back(eset[i]);
 	}
@@ -2844,7 +2844,7 @@ int32 card::filter_summon_procedure(uint8 playerid, effect_set* peset, uint8 ign
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
 		eset.clear();
 		filter_effect(EFFECT_EXTRA_SUMMON_COUNT, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min = retval.size() > 0 ? retval[0] : 0;
@@ -2877,7 +2877,7 @@ int32 card::check_summon_procedure(effect* peffect, uint8 playerid, uint8 ignore
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
 		effect_set eset;
 		filter_effect(EFFECT_EXTRA_SUMMON_COUNT, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
@@ -2900,7 +2900,7 @@ int32 card::filter_set_procedure(uint8 playerid, effect_set* peset, uint8 ignore
 	effect_set eset;
 	filter_effect(EFFECT_LIMIT_SET_PROC, &eset);
 	if(eset.size()) {
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			if(check_set_procedure(eset[i], playerid, ignore_count, min_tribute, zone))
 				peset->push_back(eset[i]);
 		}
@@ -2910,7 +2910,7 @@ int32 card::filter_set_procedure(uint8 playerid, effect_set* peset, uint8 ignore
 	}
 	eset.clear();
 	filter_effect(EFFECT_SET_PROC, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if(check_set_procedure(eset[i], playerid, ignore_count, min_tribute, zone))
 			peset->push_back(eset[i]);
 	}
@@ -2929,7 +2929,7 @@ int32 card::filter_set_procedure(uint8 playerid, effect_set* peset, uint8 ignore
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
 		effect_set eset;
 		filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min = retval.size() > 0 ? retval[0] : 0;
@@ -2959,7 +2959,7 @@ int32 card::check_set_procedure(effect* peffect, uint8 playerid, uint8 ignore_co
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
 		effect_set eset;
 		filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			std::vector<int32> retval;
 			eset[i]->get_value(this, 0, &retval);
 			int32 new_min_tribute = retval.size() > 0 ? retval[0] : 0;
@@ -3229,7 +3229,7 @@ int32 card::check_fusion_substitute(card* fcard) {
 	filter_effect(EFFECT_FUSION_SUBSTITUTE, &eset);
 	if(eset.size() == 0)
 		return FALSE;
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		if(!eset[i]->value || eset[i]->get_value(fcard))
 			return TRUE;
 	return FALSE;
@@ -3239,7 +3239,7 @@ int32 card::is_not_tuner(card* scard, uint8 playerid) {
 		return TRUE;
 	effect_set eset;
 	filter_effect(EFFECT_NONTUNER, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		if(!eset[i]->value || eset[i]->get_value(scard))
 			return TRUE;
 	return FALSE;
@@ -3282,7 +3282,7 @@ int32 card::check_cost_condition(int32 ecode, int32 playerid) {
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, ecode, &eset, FALSE);
 	filter_effect(ecode, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(this, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
@@ -3295,7 +3295,7 @@ int32 card::check_cost_condition(int32 ecode, int32 playerid, int32 sumtype) {
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, ecode, &eset, FALSE);
 	filter_effect(ecode, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(this, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
@@ -3317,7 +3317,7 @@ int32 card::is_fusion_summonable_card(uint32 summon_type) {
 	summon_type |= SUMMON_TYPE_FUSION;
 	effect_set eset;
 	filter_effect(EFFECT_SPSUMMON_CONDITION, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param((void*)0, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param((void*)0, PARAM_TYPE_INT);
 		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
@@ -3448,7 +3448,7 @@ int32 card::get_summon_tribute_count() {
 		min = max = 2;
 	effect_set eset;
 	filter_effect(EFFECT_DECREASE_TRIBUTE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		int32 dec = eset[i]->get_value(this);
 		if(!eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
 			if(minul < (dec & 0xffff))
@@ -3579,7 +3579,7 @@ int32 card::is_can_be_special_summoned(effect* reason_effect, uint32 sumtype, ui
 			return FALSE;
 		}
 		filter_effect(EFFECT_SPSUMMON_CONDITION, &eset);
-		for(int32 i = 0; i < eset.size(); ++i) {
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 			pduel->lua->add_param(reason_effect, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(sumplayer, PARAM_TYPE_INT);
 			pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
@@ -3674,7 +3674,7 @@ effect* card::check_indestructable_by_effect(effect* peffect, uint8 playerid) {
 		return 0;
 	effect_set eset;
 	filter_effect(EFFECT_INDESTRUCTABLE_EFFECT, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		pduel->lua->add_param(this, PARAM_TYPE_CARD);
@@ -3691,7 +3691,7 @@ int32 card::is_destructable_by_effect(effect* peffect, uint8 playerid) {
 	effect_set eset;
 	eset.clear();
 	filter_effect(EFFECT_INDESTRUCTABLE, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(REASON_EFFECT, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
@@ -3702,7 +3702,7 @@ int32 card::is_destructable_by_effect(effect* peffect, uint8 playerid) {
 	}
 	eset.clear();
 	filter_effect(EFFECT_INDESTRUCTABLE_COUNT, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
 			if(eset[i]->count_limit == 0)
 				continue;
@@ -3794,7 +3794,7 @@ int32 card::is_releasable_by_effect(uint8 playerid, effect* peffect) {
 		return TRUE;
 	effect_set eset;
 	filter_effect(EFFECT_UNRELEASABLE_EFFECT, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		pduel->lua->add_param(this, PARAM_TYPE_CARD);
@@ -4028,14 +4028,14 @@ int32 card::is_capable_be_effect_target(effect* peffect, uint8 playerid) {
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_EFFECT_TARGET, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(peffect, 1))
 			return FALSE;
 	}
 	eset.clear();
 	peffect->get_handler()->filter_effect(EFFECT_CANNOT_SELECT_EFFECT_TARGET, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(this, PARAM_TYPE_CARD);
 		if(eset[i]->get_value(peffect, 1))
 			return FALSE;
@@ -4047,14 +4047,14 @@ int32 card::is_can_be_fusion_material(card* fcard, uint32 summon_type) {
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_FUSION_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
 		if(eset[i]->get_value(fcard, 1))
 			return FALSE;
 	}
 	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_FUSION, PARAM_TYPE_INT);
 		pduel->lua->add_param(fcard->current.controler, PARAM_TYPE_INT);
 		if(eset[i]->get_value(fcard, 2))
@@ -4064,7 +4064,7 @@ int32 card::is_can_be_fusion_material(card* fcard, uint32 summon_type) {
 	if (fcard) {
 		filter_effect(EFFECT_EXTRA_FUSION_MATERIAL, &eset);
 		if(eset.size()) {
-			for(int32 i = 0; i < eset.size(); ++i)
+			for(effect_set::size_type i = 0; i < eset.size(); ++i)
 				if(eset[i]->get_value(fcard))
 					return TRUE;
 			return FALSE;
@@ -4091,12 +4091,12 @@ int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner)
 	}
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;
 	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_SYNCHRO, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(scard, 2))
@@ -4109,7 +4109,7 @@ int32 card::is_can_be_ritual_material(card* scard) {
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_RITUAL, PARAM_TYPE_INT);
 		pduel->lua->add_param(scard->current.controler, PARAM_TYPE_INT);
 		if(eset[i]->get_value(scard, 2))
@@ -4118,7 +4118,7 @@ int32 card::is_can_be_ritual_material(card* scard) {
 	if(current.location == LOCATION_GRAVE) {
 		eset.clear();
 		filter_effect(EFFECT_EXTRA_RITUAL_MATERIAL, &eset);
-		for(int32 i = 0; i < eset.size(); ++i)
+		for(effect_set::size_type i = 0; i < eset.size(); ++i)
 			if(eset[i]->get_value(scard))
 				return TRUE;
 		return FALSE;
@@ -4134,12 +4134,12 @@ int32 card::is_can_be_xyz_material(card* scard, uint8 playerid) {
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_XYZ_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;
 	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_XYZ, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(scard, 2))
@@ -4154,12 +4154,12 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_LINK_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		if(eset[i]->get_value(scard))
 			return FALSE;
 	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_LINK, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(scard, 2))
@@ -4182,7 +4182,7 @@ int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(int32 i = 0; i < eset.size(); ++i) {
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(scard, 2))

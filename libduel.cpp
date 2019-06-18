@@ -172,7 +172,7 @@ int32 scriptlib::duel_get_flag_effect_label(lua_State *L) {
 		lua_pushnil(L);
 		return 1;
 	}
-	for(int32 i = 0; i < eset.size(); ++i)
+	for(effect_set::size_type i = 0; i < eset.size(); ++i)
 		lua_pushinteger(L, eset[i]->label);
 	return eset.size();
 }
@@ -4109,7 +4109,7 @@ int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
 	pcard->filter_effect(EFFECT_UPDATE_ATTACK, &eset, FALSE);
 	pcard->filter_effect(EFFECT_SET_ATTACK, &eset, FALSE);
 	pcard->filter_effect(EFFECT_SET_ATTACK_FINAL, &eset);
-	for (int32 i = 0; i < eset.size(); ++i) {
+	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 		switch (eset[i]->code) {
 		case EFFECT_UPDATE_ATTACK: {
 			if (eset[i]->type & EFFECT_TYPE_SINGLE && !eset[i]->is_flag(EFFECT_FLAG_SINGLE_RANGE))
