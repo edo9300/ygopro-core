@@ -4756,7 +4756,8 @@ int32 field::solve_continuous(uint16 step) {
 	case 3: {
 		auto& clit = core.solving_continuous.front();
 		effect* peffect = clit.triggering_effect;
-		uint8 triggering_player = clit.triggering_player;
+		// UNUSED VARIABLE
+		// uint8 triggering_player = clit.triggering_player;
 		core.reason_effect = (effect*)core.units.begin()->ptarget;
 		core.reason_player = core.units.begin()->arg2;
 		if(core.continuous_chain.back().target_cards)

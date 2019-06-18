@@ -3123,7 +3123,8 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 		if(!targets)
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
-		uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
+		// UNUSED VARIABLE	
+		// uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
 		bool extra = !(zone & 0xff);
 		if(targets && pduel->game_field->is_flag(DUEL_EMZONE)) {
 			uint32 flag1, flag2;

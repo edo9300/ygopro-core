@@ -3764,7 +3764,8 @@ int32 scriptlib::duel_is_player_can_send_to_hand(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	card* pcard = *(card**) lua_touserdata(L, 2);
+	// UNUSED VARIABLE
+	// card* pcard = *(card**) lua_touserdata(L, 2);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
@@ -3784,7 +3785,8 @@ int32 scriptlib::duel_is_player_can_send_to_grave(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	card* pcard = *(card**) lua_touserdata(L, 2);
+	// UNUSED VARIABLE
+	// card* pcard = *(card**) lua_touserdata(L, 2);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
@@ -3804,7 +3806,8 @@ int32 scriptlib::duel_is_player_can_send_to_deck(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	card* pcard = *(card**) lua_touserdata(L, 2);
+	// UNUSED VARIABLE
+	// card* pcard = *(card**) lua_touserdata(L, 2);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;

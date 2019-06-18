@@ -1650,9 +1650,10 @@ uint32 card::get_mutual_linked_zone() {
 	if(!linked_zone)
 		return 0;
 	int32 zones = 0;
-	int32 p = current.controler;
-	int32 s = current.sequence;
-	auto marker = get_link_marker();
+	// UNUSED VARIABLES
+	// int32 p = current.controler;
+	// int32 s = current.sequence;
+	// auto marker = get_link_marker();
 	card_set cset;
 	get_linked_cards(&cset, linked_zone);
 	for(auto& pcard : cset) {
