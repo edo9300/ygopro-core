@@ -42,7 +42,6 @@ effect::effect(duel* pd) {
 	count_code = 0;
 	count_flag = 0;
 	category = 0;
-	label = 0;
 	label_object = 0;
 	hint_timing[0] = 0;
 	hint_timing[1] = 0;
