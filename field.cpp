@@ -451,6 +451,10 @@ void field::swap_card(card* pcard1, card* pcard2) {
 	remove_card(pcard2);
 	add_card(p2, pcard1, l2, s2);
 	add_card(p1, pcard2, l1, s1);
+	for (auto& pmatcard : pcard1->xyz_materials)
+		pmatcard->current.controler = p2;
+	for (auto& pmatcard : pcard2->xyz_materials)
+		pmatcard->current.controler = p1;
 	pduel->write_buffer8(MSG_SWAP);
 	pduel->write_buffer32(pcard1->data.code);
 	tmp_info = pcard2->get_info_location();
