@@ -3379,8 +3379,12 @@ int32 card::is_summonable(effect* peffect, uint8 min_tribute, uint32 zone, uint3
 	pduel->lua->add_param(zone, PARAM_TYPE_INT);
 	pduel->lua->add_param(releasable, PARAM_TYPE_INT);
 	pduel->lua->add_param(exeffect, PARAM_TYPE_EFFECT);
+	pduel->game_field->core.limit_extra_summon_zone = zone;
+	pduel->game_field->core.limit_extra_summon_releasable = releasable;
 	if(pduel->lua->check_condition(peffect->condition, 6))
 		result = TRUE;
+	pduel->game_field->core.limit_extra_summon_zone = 0;
+	pduel->game_field->core.limit_extra_summon_releasable = 0;
 	pduel->game_field->restore_lp_cost();
 	pduel->game_field->core.reason_effect = oreason;
 	pduel->game_field->core.reason_player = op;
