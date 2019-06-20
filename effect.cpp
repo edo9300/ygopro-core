@@ -730,8 +730,7 @@ effect* effect::clone(int32 majestic) {
 	if(majestic && is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) {
 		if(value && !is_flag(EFFECT_FLAG_FUNC_VALUE))
 			ceffect->value = value;
-		if(label)
-			ceffect->label = label;
+		ceffect->label = label;
 		if(label_object)
 			ceffect->label_object = label_object;
 		if(s_range)

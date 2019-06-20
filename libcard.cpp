@@ -1673,7 +1673,7 @@ int32 scriptlib::card_register_flag_effect(lua_State *L) {
 	int32 reset = lua_tonumberint(L, 3);
 	int32 flag = lua_tonumberint(L, 4);
 	int32 count = lua_tonumberint(L, 5);
-	int32 lab = 0;
+	uint32 lab = 0;
 	int64 desc = 0;
 	if(lua_gettop(L) >= 6)
 		lab = lua_tonumberint(L, 6);
@@ -1719,7 +1719,7 @@ int32 scriptlib::card_set_flag_effect_label(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 code = (lua_tounsigned(L, 2) & 0xfffffff) | 0x10000000;
-	int32 lab = lua_tonumberint(L, 3);
+	uint32 lab = lua_tonumberint(L, 3);
 	auto eit = pcard->single_effect.find(code);
 	if(eit == pcard->single_effect.end())
 		lua_pushboolean(L, FALSE);
