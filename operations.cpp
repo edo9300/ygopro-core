@@ -1497,7 +1497,7 @@ int32 field::equip(uint16 step, uint8 equip_player, card * equip_card, card * ta
 int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, uint8 ignore_count, uint8 min_tribute, uint32 zone) {
 	switch(step) {
 	case 0: {
-		if(!(target->data.type & TYPE_MONSTER))
+		if(!target->is_summonable_card())
 			return TRUE;
 		if(check_unique_onfield(target, sumplayer, LOCATION_MZONE))
 			return TRUE;
