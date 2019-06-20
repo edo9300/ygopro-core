@@ -12,9 +12,10 @@
 #include <lua.hpp>
 #else
 #include <lua.h>
-#endif
 #include <lauxlib.h>
 #include <lualib.h>
+#endif
+
 
 #include "common.h"
 #include <unordered_map>
