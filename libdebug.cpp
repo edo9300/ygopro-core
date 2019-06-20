@@ -63,7 +63,7 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 		card* fcard = pduel->game_field->get_field_card(playerid, location, sequence);
 		fcard->xyz_materials.push_back(pcard);
 		pcard->overlay_target = fcard;
-		pcard->current.controler = PLAYER_NONE;
+		pcard->current.controler = playerid;
 		pcard->current.location = LOCATION_OVERLAY;
 		pcard->current.sequence = fcard->xyz_materials.size() - 1;
 		for(auto& eit : pcard->xmaterial_effect) {

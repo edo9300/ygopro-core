@@ -1928,7 +1928,7 @@ void card::xyz_add(card* mat, card_set* des) {
 		(*rm)->unequip();
 	}
 	mat->overlay_target = this;
-	mat->current.controler = PLAYER_NONE;
+	mat->current.controler = this->current.controler;
 	mat->current.location = LOCATION_OVERLAY;
 	mat->current.sequence = xyz_materials.size() - 1;
 	mat->current.reason = REASON_XYZ + REASON_MATERIAL;
@@ -1946,7 +1946,6 @@ void card::xyz_remove(card* mat) {
 	mat->previous.location = mat->current.location;
 	mat->previous.sequence = mat->current.sequence;
 	mat->previous.pzone = mat->current.pzone;
-	mat->current.controler = PLAYER_NONE;
 	mat->current.location = 0;
 	mat->current.sequence = 0;
 	mat->overlay_target = 0;
