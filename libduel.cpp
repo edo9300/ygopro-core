@@ -326,8 +326,16 @@ int32 scriptlib::duel_synchro_summon(lua_State *L) {
 			mg = *(group**) lua_touserdata(L, 4);
 		}
 	}
+	int32 minc = 0;
+	if(lua_gettop(L) >= 5)
+		minc = lua_tonumberint(L, 5);
+	int32 maxc = 0;
+	if(lua_gettop(L) >= 6)
+		maxc = lua_tonumberint(L, 6);
 	pduel->game_field->core.forced_tuner = tuner;
 	pduel->game_field->core.forced_synmat = mg;
+	pduel->game_field->core.forced_summon_minc = minc;
+	pduel->game_field->core.forced_summon_maxc = maxc;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_SYNCHRO);
 	return lua_yield(L, 0);
@@ -3764,8 +3772,6 @@ int32 scriptlib::duel_is_player_can_send_to_hand(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	// UNUSED VARIABLE
-	// card* pcard = *(card**) lua_touserdata(L, 2);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
@@ -3785,8 +3791,6 @@ int32 scriptlib::duel_is_player_can_send_to_grave(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	// UNUSED VARIABLE
-	// card* pcard = *(card**) lua_touserdata(L, 2);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
@@ -3806,8 +3810,6 @@ int32 scriptlib::duel_is_player_can_send_to_deck(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tonumberint(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	// UNUSED VARIABLE
-	// card* pcard = *(card**) lua_touserdata(L, 2);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
