@@ -240,7 +240,7 @@ bool field::parse_response_cards(uint8 cancelable) {
 		}
 	} else {
 		uint32 size = returns.at<int32>(1);
-		for(int32 i = 0; i < size; ++i) {
+		for(uint32 i = 0; i < size; ++i) {
 			list.push_back(core.select_cards[
 					(type == 0) ? returns.at<int32>(i + 2) :
 					(type == 1) ? returns.at<int16>(i + 4) :
@@ -563,7 +563,8 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		}
 		if(return_cards.canceled)
 			return TRUE;
-		int32 tot = (int32)return_cards.list.size();
+		// UNUSED VARIABLES
+		// int32 tot = (int32)return_cards.list.size();
 		int32 tt = 0;
 		for(auto& pcard : return_cards.list)
 			tt += pcard->release_param;
@@ -705,7 +706,8 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 			}
 			return TRUE;
 		} else {
-			int32 mcount = core.must_select_cards.size();
+			// UNUSED VARIABLE
+			// int32 mcount = core.must_select_cards.size();
 			int32 sum = 0, mx = 0, mn = 0x7fffffff;
 			for(auto& list : { core.must_select_cards , return_cards.list }) {
 				for(auto& pcard : list) {

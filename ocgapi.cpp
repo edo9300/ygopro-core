@@ -106,7 +106,7 @@ extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
 	if(pd->game_field->player[1].start_count > 0)
 		pd->game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, pd->game_field->player[1].start_count);
 	for(int p = 0; p < 2; p++) {
-		for(size_t l = 0; l < pd->game_field->player[p].extra_lists_main.size(); l++) {
+		for(std::vector<card*>::size_type l = 0; l < pd->game_field->player[p].extra_lists_main.size(); l++) {
 			auto& main = pd->game_field->player[p].extra_lists_main[l];
 			auto& hand = pd->game_field->player[p].extra_lists_hand[l];
 			for(int i = 0; i < pd->game_field->player[p].start_count && main.size(); ++i) {
