@@ -17,9 +17,7 @@ project "ocgcore"
         buildoptions "-std=c++14"
 
 	filter "system:not windows"
-		links "lua5.3-c++"
-		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }
-		includedirs "/usr/include/lua5.3"
+		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }		
 
 	filter "system:bsd"
 		defines "LUA_USE_POSIX"
@@ -29,3 +27,5 @@ project "ocgcore"
 
 	filter "system:linux"
 		defines "LUA_USE_LINUX"
+		includedirs "/usr/include/lua5.3"
+		links "lua5.3-c++"
