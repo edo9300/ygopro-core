@@ -3,15 +3,10 @@ project "ocgcore"
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
 	warnings "Extra"
 	optimize "Speed"
-
 	defines "LUA_COMPAT_5_2"
 
 	filter "*DLL"
 		kind "SharedLib"
-
-	filter "system:windows"
-		links "lua"
-		includedirs "../lua"
 
 	filter "action:not vs*"
         buildoptions "-std=c++14"
