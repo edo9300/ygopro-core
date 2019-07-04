@@ -8,6 +8,9 @@ project "ocgcore"
 	filter "*DLL"
 		kind "SharedLib"
 
+	filter { "*DLL", "system:macosx" }
+		links "lua"
+	
 	filter "action:not vs*"
         buildoptions "-std=c++14"
 
