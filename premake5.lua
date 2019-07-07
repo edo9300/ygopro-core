@@ -65,6 +65,19 @@ if not subproject then
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
+	
+	local function vcpkgStaticTriplet(prj)
+		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'Win32\'">x86-windows-static</VcpkgTriplet>')
+		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'x64\'">x64-windows-static</VcpkgTriplet>')
+	end
+	
+	require('vstudio')
+	
+	premake.override(premake.vstudio.vc2010.elements, "globals", function(base, prj)
+		local calls = base(prj)
+		table.insertafter(calls, premake.vstudio.vc2010.targetPlatformVersionGlobal, vcpkgStaticTriplet)
+		return calls
+	end)
 end
 
 project "ocgcore"
@@ -74,6 +87,7 @@ project "ocgcore"
 project "ocgcoreshared"
 	kind "SharedLib"
 	targetname "ocgcore"
+	staticruntime "on"
 	ocgcore_config()
 	
 	filter "system:linux or system:bsd"
