@@ -1,0 +1,76 @@
+language: cpp
+sudo: required
+dist: xenial
+git:
+  depth: 1
+  submodules: false
+env:
+  global:
+  - BUILD_CONFIG=release
+  - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
+addons:
+  apt:
+    update: true
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-9
+    - liblua5.3-dev 
+matrix:
+  include:
+  - name: "Windows 10"
+    os: windows
+  - name: "High Sierra"
+    os: osx
+    osx_image: xcode9.4
+  - name: "Mojave"
+    os: osx
+    osx_image: xcode10.2
+  - name: "Sierra"
+    os: osx
+    osx_image: xcode9.2
+  - name: "Xenial GCC9"
+    os: linux
+    compiler: gcc  
+    env: MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"  
+  - name: "Xenial GCC5.4"
+    os: linux
+    compiler: gcc
+before_install:
+- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
+    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-windows.zip;
+    unzip -uo premake-5.0.0-alpha14-windows.zip;
+  fi  
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
+    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz;
+    tar xf premake-5.0.0-alpha14-linux.tar.gz;
+  fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-macosx.tar.gz;
+    tar xf premake-5.0.0-alpha14-macosx.tar.gz;
+  fi  
+install:
+- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
+    git clone --depth=1 https://github.com/Microsoft/vcpkg.git /c/vcpkg;
+    cd /c/vcpkg;
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& '.\bootstrap-vcpkg.bat'";
+    ./vcpkg.exe integrate install;
+    ./vcpkg.exe install lua[cpp]:x86-windows-static;
+    cd -;
+  fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    cd /tmp;
+    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz;
+    tar xf lua-5.3.5.tar.gz;
+    cd lua-5.3.5;
+    make macosx CC=g++;
+    sudo make install;
+  fi
+script:
+- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
+    ./premake5 vs2017;
+    "$MSBUILD_PATH/msbuild.exe" -m -p:Configuration=$BUILD_CONFIG ./build/ocgcore.sln;
+  else
+    ./premake5 gmake2;
+    make -Cbuild config=$BUILD_CONFIG;
+  fi
