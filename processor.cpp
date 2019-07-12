@@ -425,7 +425,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_SSET_G: {
 		if (sset_g(it->step, it->arg1, it->arg2, it->ptarget, it->arg3, it->peffect)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else
 			it->step++;
@@ -511,7 +510,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_REMOVE_COUNTER: {
 		if (remove_counter(it->step, it->arg4, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2, it->arg3)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
 		} else
 			it->step++;
@@ -527,7 +525,6 @@ int32 field::process() {
 			        || !attacker->is_affect_by_effect(core.reason_effect)
 					|| attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)) {
 				returns.at<int32>(0) = 0;
-				pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
 				core.units.pop_front();
 			} else {
 				effect* peffect = pduel->new_effect();
@@ -541,54 +538,12 @@ int32 field::process() {
 			}
 		} else {
 			returns.at<int32>(0) = 1;
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_DESTROY_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_DESTROY, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_RELEASE_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_RELEASE, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SENDTO_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SENDTO, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_CHANGEPOS_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_CHANGEPOS, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		}
 		return PROCESSOR_FLAG_NONE;
 	}
 	case PROCESSOR_ANNOUNCE_RACE: {
 		if(announce_race(it->step, it->arg1 & 0xffff, it->arg1 >> 16, it->arg2)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else {
 			it->step++;
@@ -597,7 +552,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_ANNOUNCE_ATTRIB: {
 		if(announce_attribute(it->step, it->arg1 & 0xffff, it->arg1 >> 16, it->arg2)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else {
 			it->step++;
@@ -606,7 +560,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_ANNOUNCE_CARD: {
 		if(announce_card(it->step, it->arg1)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else {
 			if(it->step == 0)
@@ -616,8 +569,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_ANNOUNCE_NUMBER: {
 		if(announce_number(it->step, it->arg1)) {
-			pduel->lua->add_param(core.select_options[returns.at<int32>(0)], PARAM_TYPE_INT);
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else {
 			it->step++;
@@ -626,8 +577,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_TOSS_DICE: {
 		if(toss_dice(it->step, it->peffect, it->arg1 >> 16, it->arg1 & 0xff, it->arg2 & 0xff, it->arg2 >> 16)) {
-			for(int32 i = 0; i < (it->arg2 & 0xff) + (it->arg2 >> 16); ++i)
-				pduel->lua->add_param(core.dice_result[i], PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else
 			it->step++;
@@ -635,8 +584,6 @@ int32 field::process() {
 	}
 	case PROCESSOR_TOSS_COIN: {
 		if (toss_coin(it->step, it->peffect, (it->arg1 >> 16), it->arg1 & 0xff, it->arg2)) {
-			for(int32 i = 0; i < it->arg2; ++i)
-				pduel->lua->add_param(core.coin_result[i], PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else
 			it->step++;
@@ -644,149 +591,9 @@ int32 field::process() {
 	}
 	case PROCESSOR_ROCK_PAPER_SCISSORS: {
 		if (rock_paper_scissors(it->step, it->arg1)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_EFFECTYN_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_YESNO_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_YESNO, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_OPTION_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_OPTION, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			if(it->arg2) {
-				pduel->write_buffer8(MSG_HINT);
-				pduel->write_buffer8(HINT_OPSELECTED);
-				pduel->write_buffer8(it->arg1);
-				pduel->write_buffer64(core.select_options[returns.at<int32>(0)]);
-			}
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_CARD_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_CARD, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			if (return_cards.canceled)
-				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
-			else {
-				group* pgroup = pduel->new_group(card_set(return_cards.list.begin(), return_cards.list.end()));
-				pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
-			}
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_UNSELECT_CARD_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3);
-			it->step++;
-		} else {
-			if (return_cards.canceled)
-				pduel->lua->add_param((void*)0, PARAM_TYPE_GROUP);
-			else {
-				card* pcard = return_cards.list[0];
-				pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-			}
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_POSITION_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_POSITION, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_RELEASE_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_RELEASE, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			group* pgroup = pduel->new_group(card_set(return_cards.list.begin(), return_cards.list.end()));
-			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_TRIBUTE_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_TRIBUTE, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4);
-			it->step++;
-		} else {
-			group* pgroup = pduel->new_group();
-			if(!return_cards.canceled)
-				pgroup->container.insert(return_cards.list.begin(), return_cards.list.end());
-			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SORT_CARDS_S:
-		core.units.pop_front();
-		break;
-	case PROCESSOR_SELECT_TARGET: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_CARD, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			chain* ch = get_chain(0);
-			if(ch) {
-				if(!ch->target_cards) {
-					ch->target_cards = pduel->new_group();
-					ch->target_cards->is_readonly = TRUE;
-				}
-				group* tg = ch->target_cards;
-				effect* peffect = ch->triggering_effect;
-				tg->container.insert(return_cards.list.begin(), return_cards.list.end());
-				if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
-					pduel->lua->add_param(tg, PARAM_TYPE_GROUP);
-				} else {
-					group* pret = pduel->new_group();
-					pret->container.insert(return_cards.list.begin(), return_cards.list.end());
-					if(pret->container.size() && peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
-						for(auto& pcard : pret->container) {
-							pduel->write_buffer8(MSG_BECOME_TARGET);
-							pduel->write_buffer32(1);
-							loc_info tmp_info = pcard->get_info_location();
-							pduel->write_info_location(&tmp_info);
-						}
-					}
-					for(auto& pcard : pret->container)
-						pcard->create_relation(*ch);
-					pduel->lua->add_param(pret, PARAM_TYPE_GROUP);
-				}
-			}
-			core.units.pop_front();
-		}
 		return PROCESSOR_FLAG_NONE;
 	}
 	case PROCESSOR_SELECT_FUSION: {
@@ -825,169 +632,11 @@ int32 field::process() {
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.select_effects[returns.at<int32>(0)], 0, it->arg1 & 0xffff, 0);
 			it->step++;
 		} else {
-			group* pgroup = pduel->new_group(core.fusion_materials);
-			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
 			core.units.pop_front();
 		}
 		return PROCESSOR_FLAG_NONE;
 	}
-	case PROCESSOR_SELECT_SUM_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_SUM, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			group* pgroup = pduel->new_group(card_set(return_cards.list.begin(), return_cards.list.end()));
-			core.must_select_cards.clear();
-			pduel->lua->add_param(pgroup, PARAM_TYPE_GROUP);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SELECT_DISFIELD_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SELECT_DISFIELD, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3);
-			it->step++;
-		} else {
-			int32 playerid = it->arg1;
-			int32 count = it->arg3;
-			int32 dfflag = 0;
-			uint8 pa = 0;
-			for(int32 i = 0; i < count; ++i) {
-				uint8 p = returns.at<int8>(pa);
-				uint8 l = returns.at<int8>(pa + 1);
-				uint8 s = returns.at<int8>(pa + 2);
-				dfflag |= 0x1u << (s + (p == playerid ? 0 : 16) + (l == LOCATION_MZONE ? 0 : 8));
-				pa += 3;
-			}
-			pduel->lua->add_param(dfflag, PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SPSUMMON_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SPSUMMON, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SPSUMMON_STEP_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SPSUMMON_STEP, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4, it->ptr1);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SPSUMMON_COMP_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SPSUMMON, 1, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_RANDOM_SELECT_S: {
-		uint32 count = it->arg2;
-		group* pgroup = it->ptarget;
-		group* newgroup = pduel->new_group();
-		if(count > pgroup->container.size())
-			count = pgroup->container.size();
-		if(count == 0) {
-			pduel->lua->add_param(newgroup, PARAM_TYPE_GROUP);
-			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
-		}
-		if(count == pgroup->container.size())
-			newgroup->container = pgroup->container;
-		else {
-			while(newgroup->container.size() < count) {
-				int32 i = pduel->get_next_integer(0, pgroup->container.size() - 1);
-				auto cit = pgroup->container.begin();
-				std::advance(cit, i);
-				newgroup->container.insert(*cit);
-			}
-		}
-		pduel->lua->add_param(newgroup, PARAM_TYPE_GROUP);
-		pduel->write_buffer8(MSG_RANDOM_SELECTED);
-		pduel->write_buffer8(it->arg1);
-		pduel->write_buffer32(count);
-		loc_info tmp_info;
-		for(auto& pcard : newgroup->container) {
-			tmp_info = pcard->get_info_location();
-			pduel->write_info_location(&tmp_info);
-		}
-		core.units.pop_front();
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_DRAW_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_DRAW, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_DAMAGE_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_DAMAGE, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_RECOVER_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_RECOVER, 0, it->peffect, it->ptarget, it->arg1, it->arg2);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_EQUIP_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_EQUIP, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4, it->ptr1);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_GET_CONTROL_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_GET_CONTROL, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_SWAP_CONTROL_S: {
-		if(it->step == 0) {
-			add_process(PROCESSOR_SWAP_CONTROL, 0, it->peffect, it->ptarget, it->arg1, it->arg2, it->arg3, it->arg4, it->ptr1);
-			it->step++;
-		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_DISCARD_HAND_S: {
+	case PROCESSOR_DISCARD_HAND: {
 		if(it->step == 0) {
 			pduel->write_buffer8(MSG_HINT);
 			pduel->write_buffer8(HINT_SELECTMSG);
@@ -1006,21 +655,19 @@ int32 field::process() {
 				returns.at<int32>(0) = 0;
 			it->step++;
 		} else {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		}
 		return PROCESSOR_FLAG_NONE;
 	}
-	case PROCESSOR_DISCARD_DECK_S: {
+	case PROCESSOR_DISCARD_DECK: {
 		if(discard_deck(it->step, it->arg1 & 0xff, it->arg1 >> 16, it->arg2)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_INT);
 			core.units.pop_front();
 		} else {
 			it->step++;
 		}
 		return PROCESSOR_FLAG_NONE;
 	}
-	case PROCESSOR_SORT_DECK_S: {
+	case PROCESSOR_SORT_DECK: {
 		uint8 sort_player = it->arg1 & 0xffff;
 		uint8 target_player = it->arg1 >> 16;
 		uint32 count = it->arg2, i = 0;
@@ -1062,22 +709,13 @@ int32 field::process() {
 		}
 		return PROCESSOR_FLAG_NONE;
 	}
-	case PROCESSOR_REMOVEOL_S: {
+	case PROCESSOR_REMOVE_OVERLAY: {
 		if(remove_overlay_card(it->step, it->arg3, it->ptarget, it->arg1 >> 16,
 		                       (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
 			core.units.pop_front();
 		} else {
 			it->step++;
 		}
-		return PROCESSOR_FLAG_NONE;
-	}
-	case PROCESSOR_MOVETOFIELD_S: {
-		if (move_to_field(it->step, (card*)it->ptarget, it->arg1, it->arg2 & 0xff, (it->arg2 >> 8) & 0xff, it->arg3 & 0xff, (it->arg3 >> 8) & 0xff, (it->arg3 >> 16) & 0xff, it->arg4)) {
-			pduel->lua->add_param(returns.at<int32>(0), PARAM_TYPE_BOOLEAN);
-			core.units.pop_front();
-		} else
-			it->step++;
 		return PROCESSOR_FLAG_NONE;
 	}
 	}

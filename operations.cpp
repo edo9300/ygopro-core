@@ -102,7 +102,7 @@ void field::remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint32 s,
 	add_process(PROCESSOR_REMOVE_COUNTER, 0, NULL, (group*)pcard, (rplayer << 16) + (s << 8) + o, countertype, count, reason);
 }
 void field::remove_overlay_card(uint32 reason, group* pgroup, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max) {
-	add_process(PROCESSOR_REMOVEOL_S, 0, NULL, pgroup, (rplayer << 16) + (s << 8) + o, (max << 16) + min, reason);
+	add_process(PROCESSOR_REMOVE_OVERLAY, 0, NULL, pgroup, (rplayer << 16) + (s << 8) + o, (max << 16) + min, reason);
 }
 void field::get_control(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 playerid, uint32 reset_phase, uint32 reset_count, uint32 zone) {
 	group* ng = pduel->new_group(*targets);
@@ -225,7 +225,7 @@ void field::special_summon_complete(effect* reason_effect, uint8 reason_player) 
 	ng->container.swap(core.special_summoning);
 	ng->is_readonly = TRUE;
 	//core.special_summoning.clear();
-	add_process(PROCESSOR_SPSUMMON_COMP_S, 0, reason_effect, ng, reason_player, 0);
+	add_process(PROCESSOR_SPSUMMON, 1, reason_effect, ng, reason_player, 0);
 }
 void field::destroy(card_set* targets, effect* reason_effect, uint32 reason, uint32 reason_player, uint32 playerid, uint32 destination, uint32 sequence) {
 	for(auto cit = targets->begin(); cit != targets->end();) {
@@ -820,8 +820,23 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint
 			e.reason_effect = core.reason_effect;
 			e.reason_player = rplayer;
 			solve_continuous(rplayer, peffect, e);
-			core.units.begin()->step = 3;
-			return FALSE;
+			core.units.begin()->peffect = peffect;
+		}
+		return FALSE;
+	}
+	case 2: {
+		uint16 cancelable = FALSE;
+		if(core.units.begin()->peffect) {
+			int32 replace_count = returns.at<int32>(0);
+			if(replace_count >= max)
+				return TRUE;
+			min -= replace_count;
+			max -= replace_count;
+			if(min <= 0) {
+				cancelable = TRUE;
+				min = 0;
+			}
+			core.units.begin()->arg4 = replace_count;
 		}
 		core.select_cards.clear();
 		card_set cset;
@@ -832,19 +847,16 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint
 		pduel->write_buffer8(HINT_SELECTMSG);
 		pduel->write_buffer8(rplayer);
 		pduel->write_buffer64(519);
-		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, rplayer, min + (max << 16));
+		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, rplayer + (cancelable << 16), min + (max << 16));
 		return FALSE;
 	}
-	case 2: {
+	case 3: {
 		card_set cset(return_cards.list.begin(), return_cards.list.end());
 		send_to(&cset, core.reason_effect, reason, rplayer, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
-	case 3: {
-		return FALSE;
-	}
 	case 4: {
-		returns.at<int32>(0) = 1;
+		returns.at<int32>(0) += core.units.begin()->arg4;
 		return TRUE;
 	}
 	}
