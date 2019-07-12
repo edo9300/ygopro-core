@@ -237,8 +237,7 @@ int32 scriptlib::group_filter_select(lua_State *L) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
+			interpreter::card2value(L, pduel->game_field->return_cards.list[0]);
 		}
 		return 1;
 	});
