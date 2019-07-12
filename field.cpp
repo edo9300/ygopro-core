@@ -894,7 +894,7 @@ void field::shuffle(uint8 playerid, uint8 location) {
 					effect* peffect = i.first;
 					if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 						pduel->write_buffer8(MSG_CARD_HINT);
-						tmp_info = pcard->get_info_location();
+						loc_info tmp_info = pcard->get_info_location();
 						pduel->write_info_location(&tmp_info);
 						pduel->write_buffer8(CHINT_DESC_ADD);
 						pduel->write_buffer64(peffect->description);
