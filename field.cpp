@@ -887,8 +887,21 @@ void field::shuffle(uint8 playerid, uint8 location) {
 		pduel->write_buffer32(svector.size());
 		for(auto& pcard : svector)
 			pduel->write_buffer32(pcard->data.code);
-		if(location == LOCATION_HAND)
+		if(location == LOCATION_HAND) {
 			core.shuffle_hand_check[playerid] = FALSE;
+			for(auto& pcard : svector) {
+				for(auto& i : pcard->indexer) {
+					effect* peffect = i.first;
+					if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
+						pduel->write_buffer8(MSG_CARD_HINT);
+						loc_info tmp_info = pcard->get_info_location();
+						pduel->write_info_location(&tmp_info);
+						pduel->write_buffer8(CHINT_DESC_ADD);
+						pduel->write_buffer64(peffect->description);
+					}
+				}
+			}
+		}
 	} else {
 		pduel->write_buffer8(MSG_SHUFFLE_DECK);
 		pduel->write_buffer8(playerid);
@@ -2960,6 +2973,8 @@ int32 field::check_trigger_effect(const chain& ch) const {
 		return FALSE;
 	if(peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE)
 		return TRUE;
+	if((phandler->current.location & LOCATION_DECK) && !(ch.flag & CHAIN_DECK_EFFECT))
+		return FALSE;
 	if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
 		&& (ch.triggering_position & POS_FACEDOWN))
 		return TRUE;
