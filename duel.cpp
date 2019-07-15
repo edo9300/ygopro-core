@@ -95,10 +95,17 @@ void duel::delete_effect(effect* peffect) {
 	delete peffect;
 }
 int32 duel::read_buffer(byte* buf) {
+	generate_buffer();
 	if(buf != nullptr)
 		if(buff.size())
 			std::memcpy(buf, buff.data(), buff.size());
 	return buff.size();
+}
+void duel::generate_buffer() {
+	for(auto& message : messages) {
+		write_buffer(message.data.data(), message.data.size());
+	}
+	messages.clear();
 }
 void duel::release_script_group() {
 	for(auto& pgroup : sgroups) {
@@ -121,29 +128,6 @@ void duel::write_buffer(void* data, size_t size) {
 	if(size)
 		std::memcpy(&buff[vec_size], data, size);
 }
-void duel::write_info_location(loc_info* loc) {
-	if(loc) {
-		write_buffer8(loc->controler);
-		write_buffer8(loc->location);
-		write_buffer32(loc->sequence);
-		write_buffer32(loc->position);
-	} else {
-		write_buffer16(0);
-		write_buffer64(0);
-	}
-}
-void duel::write_buffer64(uint64 value) {
-	write_buffer<uint64>(value);
-}
-void duel::write_buffer32(uint32 value) {
-	write_buffer<uint32>(value);
-}
-void duel::write_buffer16(uint16 value) {
-	write_buffer<uint16>(value);
-}
-void duel::write_buffer8(uint8 value) {
-	write_buffer<uint8>(value);
-}
 void duel::clear_buffer() {
 	buff.clear();
 }
@@ -158,4 +142,23 @@ void duel::set_responseb(byte* resp, size_t len) {
 }
 int32 duel::get_next_integer(int32 l, int32 h) {
 	return (std::uniform_int_distribution<>(l, h))(random);
+}
+duel::duel_message* duel::new_message(uint32_t message) {
+	messages.emplace_back(message);
+	return &(*messages.rbegin());
+}
+duel::duel_message::duel_message(uint8_t _message) :message(_message) {
+	write(message);
+}
+void duel::duel_message::write(void* buff, size_t size) {
+	const auto vec_size = data.size();
+	data.resize(vec_size + size);
+	if(size)
+		std::memcpy(&data[vec_size], buff, size);
+}
+void duel::duel_message::write(loc_info loc) {
+	write<uint8_t>(loc.controler);
+	write<uint8_t>(loc.location);
+	write<uint32_t>(loc.sequence);
+	write<uint32_t>(loc.position);
 }

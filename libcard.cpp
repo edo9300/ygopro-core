@@ -2612,12 +2612,12 @@ int32 scriptlib::card_remove_counter(lua_State *L) {
 	if(countertype == 0) {
 		// c38834303: remove all counters
 		for(const auto& cmit : pcard->counters) {
-			pduel->write_buffer8(MSG_REMOVE_COUNTER);
-			pduel->write_buffer16(cmit.first);
-			pduel->write_buffer8(pcard->current.controler);
-			pduel->write_buffer8(pcard->current.location);
-			pduel->write_buffer8(pcard->current.sequence);
-			pduel->write_buffer16(cmit.second[0] + cmit.second[1]);
+			auto message = pduel->new_message(MSG_REMOVE_COUNTER);
+			message->write<uint16>(cmit.first);
+			message->write<uint8>(pcard->current.controler);
+			message->write<uint8>(pcard->current.location);
+			message->write<uint8>(pcard->current.sequence);
+			message->write<uint16>(cmit.second[0] + cmit.second[1]);
 		}
 		pcard->counters.clear();
 		return 0;
@@ -3021,11 +3021,10 @@ int32 scriptlib::card_set_hint(lua_State *L) {
 	uint32 value = lua_tonumberint(L, 3);
 	if(type >= CHINT_DESC_ADD)
 		return 0;
-	pduel->write_buffer8(MSG_CARD_HINT);
-	loc_info tmp_info = pcard->get_info_location();
-	pduel->write_info_location(&tmp_info);
-	pduel->write_buffer8(type);
-	pduel->write_buffer32(value);
+	auto message = pduel->new_message(MSG_CARD_HINT);
+	message->write(pcard->get_info_location());
+	message->write<uint8>(type);
+	message->write<uint32>(value);
 	return 0;
 }
 int32 scriptlib::card_reverse_in_deck(lua_State *L) {
@@ -3037,10 +3036,10 @@ int32 scriptlib::card_reverse_in_deck(lua_State *L) {
 	pcard->current.position = POS_FACEUP_DEFENSE;
 	duel* pduel = pcard->pduel;
 	if(pcard->current.sequence == pduel->game_field->player[pcard->current.controler].list_main.size() - 1) {
-		pduel->write_buffer8(MSG_DECK_TOP);
-		pduel->write_buffer8(pcard->current.controler);
-		pduel->write_buffer32(0);
-		pduel->write_buffer32(pcard->data.code | 0x80000000);
+		auto message = pduel->new_message(MSG_DECK_TOP);
+		message->write<uint8>(pcard->current.controler);
+		message->write<uint32>(0);
+		message->write<uint32>(pcard->data.code | 0x80000000);
 	}
 	return 0;
 }

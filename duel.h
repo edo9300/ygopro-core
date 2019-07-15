@@ -13,6 +13,7 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
+#include <deque>
 
 class card;
 class group;
@@ -23,6 +24,19 @@ struct loc_info;
 
 class duel {
 public:
+	class duel_message {
+	public:
+		std::vector<uint8_t> data;
+		uint8_t message;
+		duel_message() :message(0) {};
+		duel_message(uint8_t _message);
+		void write(void* buff, size_t size);
+		void write(loc_info loc);
+		template<typename T>
+		void write(T data) {
+			write(&data, sizeof(T));
+		}
+	};
 	typedef std::set<card*, card_sort> card_set;
 	char strbuffer[256];
 	std::vector<uint8_t> buff;
@@ -52,24 +66,16 @@ public:
 	void release_script_group();
 	void restore_assumes();
 	int32 read_buffer(byte* buf);
+	void generate_buffer();
 	void write_buffer(void* data, size_t size);
-	template<typename T>
-	void write_buffer(T data);
-	void write_info_location(loc_info* loc = 0);
-	void write_buffer64(uint64 value);
-	void write_buffer32(uint32 value);
-	void write_buffer16(uint16 value);
-	void write_buffer8(uint8 value);
 	void clear_buffer();
 	void set_responsei(uint32 resp);
 	void set_responseb(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
+	duel_message* new_message(uint32_t message);
 private:
+	std::deque<duel_message> messages;
 	group* register_group(group* pgroup);
 };
-template<typename T>
-inline void duel::write_buffer(T data) {
-	write_buffer(&data, sizeof(T));
-}
 
 #endif /* DUEL_H_ */

@@ -124,44 +124,43 @@ field::field(duel* pduel) {
 	nil_event.reason_player = PLAYER_NONE;
 }
 void field::reload_field_info() {
-	pduel->write_buffer8(MSG_RELOAD_FIELD);
-	pduel->write_buffer8(core.duel_rule + ((is_flag(SPEED_DUEL) ? 1 : 0) << 4));
+	auto message = pduel->new_message(MSG_RELOAD_FIELD);
+	message->write<uint8>(core.duel_rule + ((is_flag(SPEED_DUEL) ? 1 : 0) << 4));
 	for(int32 playerid = 0; playerid < 2; ++playerid) {
-		pduel->write_buffer32(player[playerid].lp);
+		message->write<uint32>(player[playerid].lp);
 		for(auto& pcard : player[playerid].list_mzone) {
 			if(pcard) {
-				pduel->write_buffer8(1);
-				pduel->write_buffer8(pcard->current.position);
-				pduel->write_buffer32(pcard->xyz_materials.size());
+				message->write<uint8>(1);
+				message->write<uint8>(pcard->current.position);
+				message->write<uint32>(pcard->xyz_materials.size());
 			} else {
-				pduel->write_buffer8(0);
+				message->write<uint8>(0);
 			}
 		}
 		for(auto& pcard : player[playerid].list_szone) {
 			if(pcard) {
-				pduel->write_buffer8(1);
-				pduel->write_buffer8(pcard->current.position);
+				message->write<uint8>(1);
+				message->write<uint8>(pcard->current.position);
 			} else {
-				pduel->write_buffer8(0);
+				message->write<uint8>(0);
 			}
 		}
-		pduel->write_buffer32(player[playerid].list_main.size());
-		pduel->write_buffer32(player[playerid].list_hand.size());
-		pduel->write_buffer32(player[playerid].list_grave.size());
-		pduel->write_buffer32(player[playerid].list_remove.size());
-		pduel->write_buffer32(player[playerid].list_extra.size());
-		pduel->write_buffer32(player[playerid].extra_p_count);
+		message->write<uint32>(player[playerid].list_main.size());
+		message->write<uint32>(player[playerid].list_hand.size());
+		message->write<uint32>(player[playerid].list_grave.size());
+		message->write<uint32>(player[playerid].list_remove.size());
+		message->write<uint32>(player[playerid].list_extra.size());
+		message->write<uint32>(player[playerid].extra_p_count);
 	}
-	pduel->write_buffer32(core.current_chain.size());
+	message->write<uint32>(core.current_chain.size());
 	for(const auto& ch : core.current_chain) {
 		effect* peffect = ch.triggering_effect;
-		pduel->write_buffer32(peffect->get_handler()->data.code);
-		loc_info tmp_info = peffect->get_handler()->get_info_location();
-		pduel->write_info_location(&tmp_info);
-		pduel->write_buffer8(ch.triggering_controler);
-		pduel->write_buffer8((uint8)ch.triggering_location);
-		pduel->write_buffer32(ch.triggering_sequence);
-		pduel->write_buffer64(peffect->description);
+		message->write<uint32>(peffect->get_handler()->data.code);
+		message->write(peffect->get_handler()->get_info_location());
+		message->write<uint8>(ch.triggering_controler);
+		message->write<uint8>((uint8)ch.triggering_location);
+		message->write<uint32>(ch.triggering_sequence);
+		message->write<uint64>(peffect->description);
 	}
 }
 // The core of moving cards, and Debug.AddCard() will call this function directly.
@@ -305,7 +304,6 @@ void field::remove_card(card* pcard) {
 // 5. move_card()
 // check Fusion/S/X monster redirection by the rule
 void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence, uint8 pzone) {
-	loc_info tmp_info;
 	if (!is_location_useable(playerid, location, sequence))
 		return;
 	uint8 preplayer = pcard->current.controler;
@@ -318,10 +316,9 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 		if (pcard->current.location == location) {
 			if (pcard->current.location == LOCATION_DECK) {
 				if(preplayer == playerid) {
-					pduel->write_buffer8(MSG_MOVE);
-					pduel->write_buffer32(pcard->data.code);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
+					auto message = pduel->new_message(MSG_MOVE);
+					message->write<uint32>(pcard->data.code);
+					message->write(pcard->get_info_location());
 					player[preplayer].list_main.erase(player[preplayer].list_main.begin() + pcard->current.sequence);
 					if (sequence == 0) {		//deck top
 						player[playerid].list_main.push_back(pcard);
@@ -335,9 +332,8 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					reset_sequence(playerid, LOCATION_DECK);
 					pcard->previous.controler = preplayer;
 					pcard->current.controler = playerid;
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
-					pduel->write_buffer32(pcard->current.reason);
+					message->write(pcard->get_info_location());
+					message->write<uint32>(pcard->current.reason);
 					return;
 				} else
 					remove_card(pcard);
@@ -351,11 +347,11 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					if(sequence >= player[playerid].list_szone.size() || player[playerid].list_szone[sequence])
 						return;
 				}
+				duel::duel_message* message = nullptr;
 				if(preplayer == playerid) {
-					pduel->write_buffer8(MSG_MOVE);
-					pduel->write_buffer32(pcard->data.code);
-					loc_info tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
+					message = pduel->new_message(MSG_MOVE);
+					message->write<uint32>(pcard->data.code);
+					message->write(pcard->get_info_location());
 				}
 				pcard->previous.controler = pcard->current.controler;
 				pcard->previous.location = pcard->current.location;
@@ -377,10 +373,9 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 					pcard->current.controler = playerid;
 					pcard->current.sequence = sequence;
 				}
-				if(preplayer == playerid) {
-					loc_info tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
-					pduel->write_buffer32(pcard->current.reason);
+				if(message) {
+					message->write(pcard->get_info_location());
+					message->write<uint32>(pcard->current.reason);
 				} else
 					pcard->fieldid = infos.field_id++;
 				return;
@@ -392,40 +387,34 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 				if(location == LOCATION_GRAVE) {
 					if(pcard->current.sequence == player[pcard->current.controler].list_grave.size() - 1)
 						return;
-					pduel->write_buffer8(MSG_MOVE);
-					pduel->write_buffer32(pcard->data.code);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
+					auto message = pduel->new_message(MSG_MOVE);
+					message->write<uint32>(pcard->data.code);
+					message->write(pcard->get_info_location());
 					player[pcard->current.controler].list_grave.erase(player[pcard->current.controler].list_grave.begin() + pcard->current.sequence);
 					player[pcard->current.controler].list_grave.push_back(pcard);
 					reset_sequence(pcard->current.controler, LOCATION_GRAVE);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
-					pduel->write_buffer32(pcard->current.reason);
+					message->write(pcard->get_info_location());
+					message->write<uint32>(pcard->current.reason);
 				} else if(location == LOCATION_REMOVED) {
 					if(pcard->current.sequence == player[pcard->current.controler].list_remove.size() - 1)
 						return;
-					pduel->write_buffer8(MSG_MOVE);
-					pduel->write_buffer32(pcard->data.code);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
+					auto message = pduel->new_message(MSG_MOVE);
+					message->write<uint32>(pcard->data.code);
+					message->write(pcard->get_info_location());
 					player[pcard->current.controler].list_remove.erase(player[pcard->current.controler].list_remove.begin() + pcard->current.sequence);
 					player[pcard->current.controler].list_remove.push_back(pcard);
 					reset_sequence(pcard->current.controler, LOCATION_REMOVED);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
-					pduel->write_buffer32(pcard->current.reason);
+					message->write(pcard->get_info_location());
+					message->write<uint32>(pcard->current.reason);
 				} else {
-					pduel->write_buffer8(MSG_MOVE);
-					pduel->write_buffer32(pcard->data.code);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
+					auto message = pduel->new_message(MSG_MOVE);
+					message->write<uint32>(pcard->data.code);
+					message->write(pcard->get_info_location());
 					player[pcard->current.controler].list_extra.erase(player[pcard->current.controler].list_extra.begin() + pcard->current.sequence);
 					player[pcard->current.controler].list_extra.push_back(pcard);
 					reset_sequence(pcard->current.controler, LOCATION_EXTRA);
-					tmp_info = pcard->get_info_location();
-					pduel->write_info_location(&tmp_info);
-					pduel->write_buffer32(pcard->current.reason);
+					message->write(pcard->get_info_location());
+					message->write<uint32>(pcard->current.reason);
 				}
 				return;
 			}
@@ -443,7 +432,6 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 	add_card(playerid, pcard, location, sequence, pzone);
 }
 void field::swap_card(card* pcard1, card* pcard2) {
-	loc_info tmp_info;
 	uint8 p1 = pcard1->current.controler, p2 = pcard2->current.controler;
 	uint8 l1 = pcard1->current.location, l2 = pcard2->current.location;
 	uint8 s1 = pcard1->current.sequence, s2 = pcard2->current.sequence;
@@ -455,13 +443,11 @@ void field::swap_card(card* pcard1, card* pcard2) {
 		pmatcard->current.controler = p2;
 	for (auto& pmatcard : pcard2->xyz_materials)
 		pmatcard->current.controler = p1;
-	pduel->write_buffer8(MSG_SWAP);
-	pduel->write_buffer32(pcard1->data.code);
-	tmp_info = pcard2->get_info_location();
-	pduel->write_info_location(&tmp_info);
-	pduel->write_buffer32(pcard2->data.code);
-	tmp_info = pcard1->get_info_location();
-	pduel->write_info_location(&tmp_info);
+	auto message = pduel->new_message(MSG_SWAP);
+	message->write<uint32>(pcard1->data.code);
+	message->write(pcard2->get_info_location());
+	message->write<uint32>(pcard2->data.code);
+	message->write(pcard1->get_info_location());
 }
 // add EFFECT_SET_CONTROL
 void field::set_control(card* pcard, uint8 playerid, uint16 reset_phase, uint8 reset_count) {
@@ -882,40 +868,39 @@ void field::shuffle(uint8 playerid, uint8 location) {
 		}
 	}
 	if(location == LOCATION_HAND || location == LOCATION_EXTRA) {
-		pduel->write_buffer8((location == LOCATION_HAND) ? MSG_SHUFFLE_HAND : MSG_SHUFFLE_EXTRA);
-		pduel->write_buffer8(playerid);
-		pduel->write_buffer32(svector.size());
+		auto message = pduel->new_message((location == LOCATION_HAND) ? MSG_SHUFFLE_HAND : MSG_SHUFFLE_EXTRA);
+		message->write<uint8>(playerid);
+		message->write<uint32>(svector.size());
 		for(auto& pcard : svector)
-			pduel->write_buffer32(pcard->data.code);
+			message->write<uint32>(pcard->data.code);
 		if(location == LOCATION_HAND) {
 			core.shuffle_hand_check[playerid] = FALSE;
 			for(auto& pcard : svector) {
 				for(auto& i : pcard->indexer) {
 					effect* peffect = i.first;
 					if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
-						pduel->write_buffer8(MSG_CARD_HINT);
-						loc_info tmp_info = pcard->get_info_location();
-						pduel->write_info_location(&tmp_info);
-						pduel->write_buffer8(CHINT_DESC_ADD);
-						pduel->write_buffer64(peffect->description);
+						auto message = pduel->new_message(MSG_CARD_HINT);
+						message->write(pcard->get_info_location());
+						message->write<uint8>(CHINT_DESC_ADD);
+						message->write<uint64>(peffect->description);
 					}
 				}
 			}
 		}
 	} else {
-		pduel->write_buffer8(MSG_SHUFFLE_DECK);
-		pduel->write_buffer8(playerid);
+		auto message = pduel->new_message(MSG_SHUFFLE_DECK);
+		message->write<uint8>(playerid);
 		core.shuffle_deck_check[playerid] = FALSE;
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
 			card* ptop = svector.back();
 			if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
-				pduel->write_buffer8(MSG_DECK_TOP);
-				pduel->write_buffer8(playerid);
-				pduel->write_buffer32(0);
+				auto message = pduel->new_message(MSG_DECK_TOP);
+				message->write<uint8>(playerid);
+				message->write<uint32>(0);
 				if(ptop->current.position != POS_FACEUP_DEFENSE)
-					pduel->write_buffer32(ptop->data.code);
+					message->write<uint32>(ptop->data.code);
 				else
-					pduel->write_buffer32(ptop->data.code | 0x80000000);
+					message->write<uint32>(ptop->data.code | 0x80000000);
 			}
 		}
 	}
@@ -999,8 +984,8 @@ void field::swap_deck_and_grave(uint8 playerid) {
 	player[playerid].list_extra.insert(player[playerid].list_extra.end(), ex.begin(), ex.end());
 	reset_sequence(playerid, LOCATION_GRAVE);
 	reset_sequence(playerid, LOCATION_EXTRA);
-	pduel->write_buffer8(MSG_SWAP_GRAVE_DECK);
-	pduel->write_buffer8(playerid);
+	auto message = pduel->new_message(MSG_SWAP_GRAVE_DECK);
+	message->write<uint8>(playerid);
 	shuffle(playerid, LOCATION_DECK);
 }
 void field::reverse_deck(uint8 playerid) {
@@ -1050,20 +1035,20 @@ void field::tag_swap(uint8 playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 	}
-	pduel->write_buffer8(MSG_TAG_SWAP);
-	pduel->write_buffer8(playerid);
-	pduel->write_buffer32(player[playerid].list_main.size());
-	pduel->write_buffer32(player[playerid].list_extra.size());
-	pduel->write_buffer32(player[playerid].extra_p_count);
-	pduel->write_buffer32(player[playerid].list_hand.size());
+	auto message = pduel->new_message(MSG_TAG_SWAP);
+	message->write<uint8>(playerid);
+	message->write<uint32>(player[playerid].list_main.size());
+	message->write<uint32>(player[playerid].list_extra.size());
+	message->write<uint32>(player[playerid].extra_p_count);
+	message->write<uint32>(player[playerid].list_hand.size());
 	if(core.deck_reversed && player[playerid].list_main.size())
-		pduel->write_buffer32(player[playerid].list_main.back()->data.code);
+		message->write<uint32>(player[playerid].list_main.back()->data.code);
 	else
-		pduel->write_buffer32(0);
+		message->write<uint32>(0);
 	for(auto& pcard : player[playerid].list_hand)
-		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
 	for(auto& pcard : player[playerid].list_extra)
-		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
 	player[playerid].tag_index = (player[playerid].tag_index + 1) % player[playerid].extra_lists_main.size();
 }
 bool field::relay_check(uint8 playerid) {
@@ -1106,24 +1091,24 @@ void field::next_player(uint8 playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 	}
-	pduel->write_buffer8(MSG_TAG_SWAP);
-	pduel->write_buffer8(playerid);
-	pduel->write_buffer32(player[playerid].list_main.size());
-	pduel->write_buffer32(player[playerid].list_extra.size());
-	pduel->write_buffer32(player[playerid].extra_p_count);
-	pduel->write_buffer32(player[playerid].list_hand.size());
+	auto message = pduel->new_message(MSG_TAG_SWAP);
+	message->write<uint8>(playerid);
+	message->write<uint32>(player[playerid].list_main.size());
+	message->write<uint32>(player[playerid].list_extra.size());
+	message->write<uint32>(player[playerid].extra_p_count);
+	message->write<uint32>(player[playerid].list_hand.size());
 	if (core.deck_reversed && player[playerid].list_main.size())
-		pduel->write_buffer32(player[playerid].list_main.back()->data.code);
+		message->write<uint32>(player[playerid].list_main.back()->data.code);
 	else
-		pduel->write_buffer32(0);
+		message->write<uint32>(0);
 	for(auto& pcard : player[playerid].list_hand)
-		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
 	for(auto& pcard : player[playerid].list_extra)
-		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
 	player[playerid].lp = player[playerid].start_lp;
-	pduel->write_buffer8(MSG_LPUPDATE);
-	pduel->write_buffer8(playerid);
-	pduel->write_buffer32(player[playerid].start_lp);
+	message = pduel->new_message(MSG_LPUPDATE);
+	message->write<uint8>(playerid);
+	message->write<uint32>(player[playerid].start_lp);
 	player[playerid].recharge = false;
 }
 int32 field::get_pzone_index(uint8 seq) {
@@ -1189,16 +1174,16 @@ void field::add_effect(effect* peffect, uint8 owner_player) {
 			if(peffect->o_range)
 				target_player[1 - owner_player] = true;
 			if(target_player[0]) {
-				pduel->write_buffer8(MSG_PLAYER_HINT);
-				pduel->write_buffer8(0);
-				pduel->write_buffer8(PHINT_DESC_ADD);
-				pduel->write_buffer64(peffect->description);
+				auto message = pduel->new_message(MSG_PLAYER_HINT);
+				message->write<uint8>(0);
+				message->write<uint8>(PHINT_DESC_ADD);
+				message->write<uint64>(peffect->description);
 			}
 			if(target_player[1]) {
-				pduel->write_buffer8(MSG_PLAYER_HINT);
-				pduel->write_buffer8(1);
-				pduel->write_buffer8(PHINT_DESC_ADD);
-				pduel->write_buffer64(peffect->description);
+				auto message = pduel->new_message(MSG_PLAYER_HINT);
+				message->write<uint8>(1);
+				message->write<uint8>(PHINT_DESC_ADD);
+				message->write<uint64>(peffect->description);
 			}
 		}
 	}
@@ -1250,16 +1235,16 @@ void field::remove_effect(effect* peffect) {
 			if(peffect->o_range)
 				target_player[1 - peffect->effect_owner] = true;
 			if(target_player[0]) {
-				pduel->write_buffer8(MSG_PLAYER_HINT);
-				pduel->write_buffer8(0);
-				pduel->write_buffer8(PHINT_DESC_REMOVE);
-				pduel->write_buffer64(peffect->description);
+				auto message = pduel->new_message(MSG_PLAYER_HINT);
+				message->write<uint8>(0);
+				message->write<uint8>(PHINT_DESC_REMOVE);
+				message->write<uint64>(peffect->description);
 			}
 			if(target_player[1]) {
-				pduel->write_buffer8(MSG_PLAYER_HINT);
-				pduel->write_buffer8(1);
-				pduel->write_buffer8(PHINT_DESC_REMOVE);
-				pduel->write_buffer64(peffect->description);
+				auto message = pduel->new_message(MSG_PLAYER_HINT);
+				message->write<uint8>(1);
+				message->write<uint8>(PHINT_DESC_REMOVE);
+				message->write<uint64>(peffect->description);
 			}
 		}
 	}

@@ -361,13 +361,11 @@ int32 scriptlib::group_random_select(lua_State *L) {
 			newgroup->container.insert(*cit);
 		}
 	}
-	pduel->write_buffer8(MSG_RANDOM_SELECTED);
-	pduel->write_buffer8(playerid);
-	pduel->write_buffer32(count);
-	loc_info tmp_info;
+	auto message = pduel->new_message(MSG_RANDOM_SELECTED);
+	message->write<uint8>(playerid);
+	message->write<uint32>(count);
 	for(auto& pcard : newgroup->container) {
-		tmp_info = pcard->get_info_location();
-		pduel->write_info_location(&tmp_info);
+		message->write(pcard->get_info_location());
 	}
 	interpreter::group2value(L, newgroup);
 	return 1;

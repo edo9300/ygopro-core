@@ -303,19 +303,11 @@ uint32 card::get_infos(int32 query_flag, int32 use_cache, int32 ignore_cache) {
 	return (uint32)size;
 }
 loc_info card::get_info_location() {
-	loc_info info;
 	if(overlay_target) {
-		info.controler = overlay_target->current.controler;
-		info.location = overlay_target->current.location | LOCATION_OVERLAY;
-		info.sequence = overlay_target->current.sequence;
-		info.position = current.sequence;
+		return { overlay_target->current.controler, (uint8)(overlay_target->current.location | LOCATION_OVERLAY & 0xff), overlay_target->current.sequence, current.sequence };
 	} else {
-		info.controler = current.controler;
-		info.location = current.location;
-		info.sequence = current.sequence;
-		info.position = current.position;
+		return { current.controler, current.location , current.sequence, current.position };
 	}
-	return info;
 }
 // mapping of double-name cards
 uint32 card::second_code(uint32 code){
@@ -1836,11 +1828,9 @@ void card::equip(card *target, uint32 send_msg) {
 			pduel->game_field->add_to_disable_check_list(equiping_target);
 	}
 	if(send_msg) {
-		pduel->write_buffer8(MSG_EQUIP);
-		loc_info tmp_info = get_info_location();
-		pduel->write_info_location(&tmp_info);
-		tmp_info = target->get_info_location();
-		pduel->write_info_location(&tmp_info);
+		auto message = pduel->new_message(MSG_EQUIP);
+		message->write(get_info_location());
+		message->write(target->get_info_location());
 	}
 	return;
 }
@@ -1908,10 +1898,10 @@ void card::xyz_overlay(card_set* materials) {
 void card::xyz_add(card* mat, card_set* des) {
 	if(mat->overlay_target == this)
 		return;
-	pduel->write_buffer8(MSG_MOVE);
-	pduel->write_buffer32(mat->data.code);
-	loc_info tmp_info = mat->get_info_location();
-	pduel->write_info_location(&tmp_info);
+	auto message = pduel->new_message(MSG_MOVE);
+	message->write<uint32>(mat->data.code);
+	message->write<uint32>(mat->data.code);
+	message->write(mat->get_info_location());
 	if(mat->overlay_target) {
 		mat->overlay_target->xyz_remove(mat);
 	} else {
@@ -1919,11 +1909,11 @@ void card::xyz_add(card* mat, card_set* des) {
 		pduel->game_field->remove_card(mat);
 		pduel->game_field->add_to_disable_check_list(mat);
 	}
-	pduel->write_buffer8(current.controler);
-	pduel->write_buffer8(current.location | LOCATION_OVERLAY);
-	pduel->write_buffer32(current.sequence);
-	pduel->write_buffer32(current.position);
-	pduel->write_buffer32(REASON_XYZ + REASON_MATERIAL);
+	message->write<uint8>(current.controler);
+	message->write<uint8>(current.location | LOCATION_OVERLAY);
+	message->write<uint32>(current.sequence);
+	message->write<uint32>(current.position);
+	message->write<uint32>(REASON_XYZ + REASON_MATERIAL);
 	xyz_materials.push_back(mat);
 	for(auto cit = mat->equiping_cards.begin(); cit != mat->equiping_cards.end();) {
 		auto rm = cit++;
@@ -2114,11 +2104,10 @@ int32 card::add_effect(effect* peffect) {
 	if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT))
 		pduel->game_field->effects.rechargeable.insert(peffect);
 	if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT)) {
-		pduel->write_buffer8(MSG_CARD_HINT);
-		loc_info tmp_info = get_info_location();
-		pduel->write_info_location(&tmp_info);
-		pduel->write_buffer8(CHINT_DESC_ADD);
-		pduel->write_buffer64(peffect->description);
+		auto message = pduel->new_message(MSG_CARD_HINT);
+		message->write(get_info_location());
+		message->write<uint8>(CHINT_DESC_ADD);
+		message->write<uint64>(peffect->description);
 	}
 	if(peffect->type & EFFECT_TYPE_SINGLE && peffect->code == EFFECT_UPDATE_LEVEL && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)) {
 		int32 val = peffect->get_value(this);
@@ -2185,21 +2174,20 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 	if(((peffect->code & 0xf0000) == EFFECT_COUNTER_PERMIT) && (peffect->type & EFFECT_TYPE_SINGLE)) {
 		auto cmit = counters.find(peffect->code & 0xffff);
 		if(cmit != counters.end()) {
-			pduel->write_buffer8(MSG_REMOVE_COUNTER);
-			pduel->write_buffer16(cmit->first);
-			pduel->write_buffer8(current.controler);
-			pduel->write_buffer8(current.location);
-			pduel->write_buffer8(current.sequence);
-			pduel->write_buffer16(cmit->second[0] + cmit->second[1]);
+			auto message = pduel->new_message(MSG_REMOVE_COUNTER);
+			message->write<uint16>(cmit->first);
+			message->write<uint8>(current.controler);
+			message->write<uint8>(current.location);
+			message->write<uint8>(current.sequence);
+			message->write<uint16>(cmit->second[0] + cmit->second[1]);
 			counters.erase(cmit);
 		}
 	}
 	if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT)) {
-		pduel->write_buffer8(MSG_CARD_HINT);
-		loc_info tmp_info = get_info_location();
-		pduel->write_info_location(&tmp_info);
-		pduel->write_buffer8(CHINT_DESC_REMOVE);
-		pduel->write_buffer64(peffect->description);
+		auto message = pduel->new_message(MSG_CARD_HINT);
+		message->write(get_info_location());
+		message->write<uint8>(CHINT_DESC_REMOVE);
+		message->write<uint64>(peffect->description);
 	}
 	if(peffect->code == EFFECT_UNIQUE_CHECK) {
 		pduel->game_field->remove_unique_card(this);
@@ -2332,12 +2320,12 @@ void card::reset(uint32 id, uint32 reset_type) {
 			for(auto cmit = counters.begin(); cmit != counters.end();) {
 				auto rm = cmit++;
 				if(rm->second[1] > 0) {
-					pduel->write_buffer8(MSG_REMOVE_COUNTER);
-					pduel->write_buffer16(rm->first);
-					pduel->write_buffer8(current.controler);
-					pduel->write_buffer8(current.location);
-					pduel->write_buffer8(current.sequence);
-					pduel->write_buffer16(rm->second[1]);
+					auto message = pduel->new_message(MSG_REMOVE_COUNTER);
+					message->write<uint16>(rm->first);
+					message->write<uint8>(current.controler);
+					message->write<uint8>(current.location);
+					message->write<uint8>(current.sequence);
+					message->write<uint16>(rm->second[1]);
 					rm->second[1] = 0;
 					if(rm->second[0] == 0)
 						counters.erase(rm);
@@ -2415,11 +2403,10 @@ uint8 card::refresh_control_status() {
 }
 void card::count_turn(uint16 ct) {
 	turn_counter = ct;
-	pduel->write_buffer8(MSG_CARD_HINT);
-	loc_info tmp_info = get_info_location();
-	pduel->write_info_location(&tmp_info);
-	pduel->write_buffer8(CHINT_TURN);
-	pduel->write_buffer32(ct);
+	auto message = pduel->new_message(MSG_CARD_HINT);
+	message->write(get_info_location());
+	message->write<uint8>(CHINT_TURN);
+	message->write<uint32>(ct);
 }
 void card::create_relation(card* target, uint32 reset) {
 	if (relations.find(target) != relations.end())
@@ -2549,12 +2536,12 @@ int32 card::add_counter(uint8 playerid, uint16 countertype, uint16 count, uint8 
 		cmit->second[0] += pcount;
 	else
 		cmit->second[1] += pcount;
-	pduel->write_buffer8(MSG_ADD_COUNTER);
-	pduel->write_buffer16(cttype);
-	pduel->write_buffer8(current.controler);
-	pduel->write_buffer8(current.location);
-	pduel->write_buffer8(current.sequence);
-	pduel->write_buffer16(pcount);
+	auto message = pduel->new_message(MSG_ADD_COUNTER);
+	message->write<uint16>(cttype);
+	message->write<uint8>(current.controler);
+	message->write<uint8>(current.location);
+	message->write<uint8>(current.sequence);
+	message->write<uint16>(pcount);
 	pduel->game_field->raise_single_event(this, 0, EVENT_ADD_COUNTER + countertype, pduel->game_field->core.reason_effect, REASON_EFFECT, playerid, playerid, pcount);
 	pduel->game_field->process_single_event();
 	return TRUE;
@@ -2573,12 +2560,12 @@ int32 card::remove_counter(uint16 countertype, uint16 count) {
 	} else {
 		cmit->second[1] -= count;
 	}
-	pduel->write_buffer8(MSG_REMOVE_COUNTER);
-	pduel->write_buffer16(countertype);
-	pduel->write_buffer8(current.controler);
-	pduel->write_buffer8(current.location);
-	pduel->write_buffer8(current.sequence);
-	pduel->write_buffer16(count);
+	auto message = pduel->new_message(MSG_REMOVE_COUNTER);
+	message->write<uint16>(countertype);
+	message->write<uint8>(current.controler);
+	message->write<uint8>(current.location);
+	message->write<uint8>(current.sequence);
+	message->write<uint16>(count);
 	return TRUE;
 }
 int32 card::is_can_add_counter(uint8 playerid, uint16 countertype, uint16 count, uint8 singly, uint32 loc) {
@@ -2651,22 +2638,18 @@ void card::set_material(card_set* materials) {
 void card::add_card_target(card* pcard) {
 	effect_target_cards.insert(pcard);
 	pcard->effect_target_owner.insert(this);
-	pduel->write_buffer8(MSG_CARD_TARGET);
-	loc_info tmp_info = get_info_location();
-	pduel->write_info_location(&tmp_info);
-	tmp_info = pcard->get_info_location();
-	pduel->write_info_location(&tmp_info);
+	auto message = pduel->new_message(MSG_CARD_TARGET);
+	message->write(get_info_location());
+	message->write(pcard->get_info_location());
 }
 void card::cancel_card_target(card* pcard) {
 	auto cit = effect_target_cards.find(pcard);
 	if(cit != effect_target_cards.end()) {
 		effect_target_cards.erase(cit);
 		pcard->effect_target_owner.erase(this);
-		pduel->write_buffer8(MSG_CANCEL_TARGET);
-		loc_info tmp_info = get_info_location();
-		pduel->write_info_location(&tmp_info);
-		tmp_info = pcard->get_info_location();
-		pduel->write_info_location(&tmp_info);
+		auto message = pduel->new_message(MSG_CANCEL_TARGET);
+		message->write(get_info_location());
+		message->write(pcard->get_info_location());
 	}
 }
 void card::clear_card_target() {

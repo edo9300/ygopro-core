@@ -638,13 +638,13 @@ int32 field::process() {
 	}
 	case PROCESSOR_DISCARD_HAND: {
 		if(it->step == 0) {
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_SELECTMSG);
-			pduel->write_buffer8(it->arg1);
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(it->arg1);
 			if(it->arg3 & REASON_DISCARD)
-				pduel->write_buffer64(501);
+				message->write<uint64>(501);
 			else
-				pduel->write_buffer64(504);
+				message->write<uint64>(504);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, it->arg1, it->arg2);
 			it->step++;
 		} else if(it->step == 1) {
@@ -695,13 +695,13 @@ int32 field::process() {
 				if(count > 0) {
 					card* ptop = player[target_player].list_main.back();
 					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
-						pduel->write_buffer8(MSG_DECK_TOP);
-						pduel->write_buffer8(target_player);
-						pduel->write_buffer8(0);
+						auto message = pduel->new_message(MSG_DECK_TOP);
+						message->write<uint8>(target_player);
+						message->write<uint8>(0);
 						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							pduel->write_buffer32(ptop->data.code);
+							message->write<uint32>(ptop->data.code);
 						else
-							pduel->write_buffer32(ptop->data.code | 0x80000000);
+							message->write<uint32>(ptop->data.code | 0x80000000);
 					}
 				}
 			}
@@ -1129,19 +1129,19 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			core.units.begin()->step = 1;
 			return FALSE;
 		} else {
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_EVENT);
-			pduel->write_buffer8(check_player);
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(check_player);
 			if(infos.phase == PHASE_DRAW)
-				pduel->write_buffer64(20);
+				message->write<uint64>(20);
 			else if(infos.phase == PHASE_STANDBY)
-				pduel->write_buffer64(21);
+				message->write<uint64>(21);
 			else if(infos.phase == PHASE_BATTLE_START)
-				pduel->write_buffer64(28);
+				message->write<uint64>(28);
 			else if(infos.phase == PHASE_BATTLE)
-				pduel->write_buffer64(25);
+				message->write<uint64>(25);
 			else
-				pduel->write_buffer64(26);
+				message->write<uint64>(26);
 			if(tf_count == 0 && to_count == 1 && fc_count == 0 && cn_count == 0) {
 				add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains[0].triggering_effect->get_handler(), check_player, 0);
 				return FALSE;
@@ -1241,10 +1241,10 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		core.select_cards.clear();
 		for(auto& pcard : player[infos.turn_player].list_hand)
 			core.select_cards.push_back(pcard);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_SELECTMSG);
-		pduel->write_buffer8(infos.turn_player);
-		pduel->write_buffer64(501);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_SELECTMSG);
+		message->write<uint8>(infos.turn_player);
+		message->write<uint64>(501);
 		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player, hd - limit + ((hd - limit) << 16));
 		return FALSE;
 	}
@@ -2268,10 +2268,10 @@ int32 field::process_idle_command(uint16 step) {
 			return FALSE;
 		} else {
 			core.units.begin()->step = 9;
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_EVENT);
-			pduel->write_buffer8(1 - infos.turn_player);
-			pduel->write_buffer64(23);
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(1 - infos.turn_player);
+			message->write<uint64>(23);
 			core.select_chains.clear();
 			core.hint_timing[infos.turn_player] = TIMING_MAIN_END;
 			add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - infos.turn_player);
@@ -2568,10 +2568,10 @@ int32 field::process_battle_command(uint16 step) {
 		} else {
 			core.units.begin()->step = 39;
 			core.units.begin()->arg1 = ctype;
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_EVENT);
-			pduel->write_buffer8(1 - infos.turn_player);
-			pduel->write_buffer64(29);
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(1 - infos.turn_player);
+			message->write<uint64>(29);
 			core.select_chains.clear();
 			core.hint_timing[infos.turn_player] = TIMING_BATTLE_STEP_END;
 			add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - infos.turn_player);
@@ -2649,21 +2649,20 @@ int32 field::process_battle_command(uint16 step) {
 			if(core.select_cards.size() == 1)
 				returns.at<int8>(1) = 0;
 			else {
-				pduel->write_buffer8(MSG_BECOME_TARGET);
-				pduel->write_buffer32(1);
-				loc_info tmp_info = core.attacker->get_info_location();
-				pduel->write_info_location(&tmp_info);
-				pduel->write_buffer8(MSG_HINT);
-				pduel->write_buffer8(HINT_SELECTMSG);
-				pduel->write_buffer8(1 - infos.turn_player);
-				pduel->write_buffer64(549);
+				auto message = pduel->new_message(MSG_BECOME_TARGET);
+				message->write<uint32>(1);
+				message->write(core.attacker->get_info_location());
+				message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_SELECTMSG);
+				message->write<uint8>(1 - infos.turn_player);
+				message->write<uint64>(549);
 				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, 1 - infos.turn_player, 0x10001);
 			}
 		} else {
-			pduel->write_buffer8(MSG_HINT);
-			pduel->write_buffer8(HINT_SELECTMSG);
-			pduel->write_buffer8(infos.turn_player);
-			pduel->write_buffer64(549);
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(infos.turn_player);
+			message->write<uint64>(549);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + (core.attack_cancelable ? 0x20000 : 0), 0x10001);
 		}
 		core.units.begin()->step = 5;
@@ -2675,10 +2674,10 @@ int32 field::process_battle_command(uint16 step) {
 			returns.at<int32>(0) = -2;
 		} else {
 			if(core.select_cards.size()) {
-				pduel->write_buffer8(MSG_HINT);
-				pduel->write_buffer8(HINT_SELECTMSG);
-				pduel->write_buffer8(infos.turn_player);
-				pduel->write_buffer64(549);
+				auto message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_SELECTMSG);
+				message->write<uint8>(infos.turn_player);
+				message->write<uint64>(549);
 				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, infos.turn_player + (core.attack_cancelable ? 0x20000 : 0), 0x10001);
 			} else {
 				core.units.begin()->arg3 = TRUE;
@@ -2733,16 +2732,15 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 8: {
-		pduel->write_buffer8(MSG_ATTACK);
-		loc_info tmp_info = core.attacker->get_info_location();
-		pduel->write_info_location(&tmp_info);
+		auto message = pduel->new_message(MSG_ATTACK);
+		message->write(core.attacker->get_info_location());
 		if(core.attack_target) {
 			raise_single_event(core.attack_target, 0, EVENT_BE_BATTLE_TARGET, 0, 0, 0, 1 - infos.turn_player, 0);
 			raise_event(core.attack_target, EVENT_BE_BATTLE_TARGET, 0, 0, 0, 1 - infos.turn_player, 0);
-			tmp_info = core.attack_target->get_info_location();
-			pduel->write_info_location(&tmp_info);
-		} else
-			pduel->write_info_location();
+			message->write(core.attack_target->get_info_location());
+		} else {
+			message->write(loc_info{ 0 });
+		}
 		core.attack_rollback = FALSE;
 		core.opp_mzone.clear();
 		for(auto& pcard : player[1 - infos.turn_player].list_mzone) {
@@ -2768,14 +2766,14 @@ int32 field::process_battle_command(uint16 step) {
 			core.units.begin()->step = 10;
 			return FALSE;
 		}
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(0);
-		pduel->write_buffer64(24);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(1);
-		pduel->write_buffer64(24);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(24);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(24);
 		core.hint_timing[0] = TIMING_BATTLE_PHASE;
 		core.hint_timing[1] = TIMING_BATTLE_PHASE;
 		add_process(PROCESSOR_POINT_EVENT, 30, 0, 0, 0, 0);
@@ -2791,7 +2789,7 @@ int32 field::process_battle_command(uint16 step) {
 	case 11: {
 		if(core.attacker->is_affected_by_effect(EFFECT_ATTACK_DISABLED)) {
 			core.attacker->reset(EFFECT_ATTACK_DISABLED, RESET_CODE);
-			pduel->write_buffer8(MSG_ATTACK_DISABLED);
+			auto message = pduel->new_message(MSG_ATTACK_DISABLED);
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		}
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP)
@@ -2879,7 +2877,7 @@ int32 field::process_battle_command(uint16 step) {
 	}
 	case 20: {
 		// start of PHASE_DAMAGE;
-		pduel->write_buffer8(MSG_DAMAGE_STEP_START);
+		auto message = pduel->new_message(MSG_DAMAGE_STEP_START);
 		raise_single_event(core.attacker, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		if(core.attack_target) {
 			raise_single_event(core.attack_target, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 1);
@@ -2887,14 +2885,14 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(0);
-		pduel->write_buffer64(40);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(1);
-		pduel->write_buffer64(40);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(40);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(40);
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		return FALSE;
 	}
@@ -2924,14 +2922,14 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(0);
-		pduel->write_buffer64(41);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(1);
-		pduel->write_buffer64(41);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(41);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(41);
 		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		return FALSE;
@@ -2954,14 +2952,14 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_PRE_DAMAGE_CALCULATE, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(0);
-		pduel->write_buffer64(42);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(1);
-		pduel->write_buffer64(42);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(42);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(42);
 		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		return FALSE;
@@ -3005,10 +3003,10 @@ int32 field::process_battle_command(uint16 step) {
 		if(bd[0]) {
 			effect* indestructable_effect = core.attacker->is_affected_by_effect(EFFECT_INDESTRUCTABLE_BATTLE, core.attack_target);
 			if(indestructable_effect) {
-				pduel->write_buffer8(MSG_HINT);
-				pduel->write_buffer8(HINT_CARD);
-				pduel->write_buffer8(0);
-				pduel->write_buffer64(indestructable_effect->owner->data.code);
+				auto message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_CARD);
+				message->write<uint8>(0);
+				message->write<uint64>(indestructable_effect->owner->data.code);
 				bd[0] = FALSE;
 			} else
 				core.attacker->set_status(STATUS_BATTLE_RESULT, TRUE);
@@ -3016,31 +3014,29 @@ int32 field::process_battle_command(uint16 step) {
 		if(bd[1]) {
 			effect* indestructable_effect = core.attack_target->is_affected_by_effect(EFFECT_INDESTRUCTABLE_BATTLE, core.attacker);
 			if(indestructable_effect) {
-				pduel->write_buffer8(MSG_HINT);
-				pduel->write_buffer8(HINT_CARD);
-				pduel->write_buffer8(0);
-				pduel->write_buffer64(indestructable_effect->owner->data.code);
+				auto message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_CARD);
+				message->write<uint8>(0);
+				message->write<uint64>(indestructable_effect->owner->data.code);
 				bd[1] = FALSE;
 			} else
 				core.attack_target->set_status(STATUS_BATTLE_RESULT, TRUE);
 		}
-		pduel->write_buffer8(MSG_BATTLE);
-		loc_info tmp_info = core.attacker->get_info_location();
-		pduel->write_info_location(&tmp_info);
-		pduel->write_buffer32(aa);
-		pduel->write_buffer32(ad);
-		pduel->write_buffer8(bd[0]);
+		auto message = pduel->new_message(MSG_BATTLE);
+		message->write(core.attacker->get_info_location());
+		message->write<uint32>(aa);
+		message->write<uint32>(ad);
+		message->write<uint8>(bd[0]);
 		if(core.attack_target) {
-			tmp_info = core.attack_target->get_info_location();
-			pduel->write_info_location(&tmp_info);
-			pduel->write_buffer32(da);
-			pduel->write_buffer32(dd);
-			pduel->write_buffer8(bd[1]);
+			message->write(core.attack_target->get_info_location());
+			message->write<uint32>(da);
+			message->write<uint32>(dd);
+			message->write<uint8>(bd[1]);
 		} else {
-			pduel->write_info_location();
-			pduel->write_buffer32(0);
-			pduel->write_buffer32(0);
-			pduel->write_buffer8(0);
+			message->write(loc_info{ 0 });
+			message->write<uint32>(0);
+			message->write<uint32>(0);
+			message->write<uint8>(0);
 		}
 		core.units.begin()->peffect = damchange;
 		if(reason_card)
@@ -3192,14 +3188,14 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLED, 0, 0, PLAYER_NONE, 0, 0);
 		process_single_event();
 		process_instant_event();
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(0);
-		pduel->write_buffer64(43);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(1);
-		pduel->write_buffer64(43);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(43);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(43);
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		return FALSE;
 	}
@@ -3255,14 +3251,14 @@ int32 field::process_battle_command(uint16 step) {
 			core.attack_target->set_status(STATUS_BATTLE_DESTROYED, FALSE);
 		process_single_event();
 		process_instant_event();
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(0);
-		pduel->write_buffer64(44);
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_EVENT);
-		pduel->write_buffer8(1);
-		pduel->write_buffer64(44);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(44);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(44);
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		core.units.begin()->step = 38;
 		return FALSE;
@@ -3281,7 +3277,7 @@ int32 field::process_battle_command(uint16 step) {
 		} else
 			core.units.begin()->step = -1;
 		infos.phase = PHASE_BATTLE_STEP;
-		pduel->write_buffer8(MSG_DAMAGE_STEP_END);
+		auto message = pduel->new_message(MSG_DAMAGE_STEP_END);
 		reset_phase(PHASE_DAMAGE);
 		adjust_all();
 		if(core.effect_damage_step)
@@ -3332,14 +3328,14 @@ int32 field::process_forced_battle(uint16 step) {
 			return TRUE;
 		core.battle_phase_count[infos.turn_player]++;
 		if (is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.force_turn_end) {
-			pduel->write_buffer8(MSG_NEW_PHASE);
-			pduel->write_buffer16(PHASE_BATTLE_START);
+			auto message = pduel->new_message(MSG_NEW_PHASE);
+			message->write<uint16>(PHASE_BATTLE_START);
 			reset_phase(PHASE_BATTLE_START);
 			reset_phase(PHASE_BATTLE_STEP);
 			reset_phase(PHASE_BATTLE);
 			adjust_all();
-			pduel->write_buffer8(MSG_NEW_PHASE);
-			pduel->write_buffer16(infos.phase);
+			message = pduel->new_message(MSG_NEW_PHASE);
+			message->write<uint16>(infos.phase);
 			return TRUE;
 		}
 		core.units.begin()->arg1 = infos.phase;
@@ -3378,8 +3374,8 @@ int32 field::process_forced_battle(uint16 step) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(PHASE_BATTLE_START);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(PHASE_BATTLE_START);
 		add_process(PROCESSOR_BATTLE_COMMAND, 1, 0, 0, 0, 0);
 		return FALSE;
 	}
@@ -3405,8 +3401,8 @@ int32 field::process_forced_battle(uint16 step) {
 		}
 		core.attacker = 0;
 		core.attack_target = 0;
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		return TRUE;
 	}
 	}
@@ -3436,17 +3432,15 @@ int32 field::process_damage_step(uint16 step, uint32 new_attack) {
 		}
 		core.attacker->announced_cards.addcard(core.attack_target);
 		attack_all_target_check();
-		pduel->write_buffer8(MSG_ATTACK);
-		loc_info tmp_info = core.attacker->get_info_location();
-		pduel->write_info_location(&tmp_info);
+		auto message = pduel->new_message(MSG_ATTACK);
+		message->write(core.attacker->get_info_location());
 		if(core.attack_target) {
-			tmp_info = core.attack_target->get_info_location();
-			pduel->write_info_location(&tmp_info);
+			message->write(core.attack_target->get_info_location());
 		} else {
-			pduel->write_info_location();
+			message->write(loc_info{ 0 });
 		}
 		infos.phase = PHASE_DAMAGE;
-		pduel->write_buffer8(MSG_DAMAGE_STEP_START);
+		message = pduel->new_message(MSG_DAMAGE_STEP_START);
 		core.pre_field[0] = core.attacker->fieldid_r;
 		core.attacker->attacked_count++;
 		if(core.attack_target) {
@@ -3719,8 +3713,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		infos.turn_id++;
 		infos.turn_id_by_player[turn_player]++;
 		infos.turn_player = turn_player;
-		pduel->write_buffer8(MSG_NEW_TURN);
-		pduel->write_buffer8(turn_player);
+		auto message = pduel->new_message(MSG_NEW_TURN);
+		message->write<uint8>(turn_player);
 		if(!is_flag(DUEL_RELAY_MODE) && infos.turn_id != 1)
 			tag_swap(turn_player);
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_TURN)) {
@@ -3748,8 +3742,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			adjust_all();
 			return FALSE;
 		}
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		raise_event((card*)0, EVENT_PREDRAW, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		if(core.new_fchain.size() || core.new_ochain.size())
@@ -3790,8 +3784,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			adjust_all();
 			return FALSE;
 		}
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_STANDBY, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		/*if(core.set_forced_attack)
@@ -3826,8 +3820,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		add_process(PROCESSOR_IDLE_COMMAND, 0, 0, 0, 0, 0);
 		/*if(core.set_forced_attack)
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
@@ -3845,8 +3839,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.delayed_quick_tmp.clear();
 		core.phase_action = FALSE;
 		core.battle_phase_count[infos.turn_player]++;
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		// Show the texts to indicate that BP is entered and skipped
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.force_turn_end) {
 			core.units.begin()->step = 14;
@@ -3935,8 +3929,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		infos.can_shuffle = TRUE;
 		add_process(PROCESSOR_IDLE_COMMAND, 0, 0, 0, 0, 0);
 		/*if(core.set_forced_attack)
@@ -3953,8 +3947,8 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			adjust_all();
 			return FALSE;
 		}
-		pduel->write_buffer8(MSG_NEW_PHASE);
-		pduel->write_buffer16(infos.phase);
+		auto message = pduel->new_message(MSG_NEW_PHASE);
+		message->write<uint16>(infos.phase);
 		raise_event((card*)0, EVENT_PHASE_START + PHASE_END, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
@@ -4101,15 +4095,14 @@ int32 field::add_chain(uint16 step) {
 		if(peffect->type & EFFECT_TYPE_ACTIVATE) {
 			clit.set_triggering_state(phandler);
 		}
-		pduel->write_buffer8(MSG_CHAINING);
-		pduel->write_buffer32(phandler->data.code);
-		loc_info tmp_info = phandler->get_info_location();
-		pduel->write_info_location(&tmp_info);
-		pduel->write_buffer8(clit.triggering_controler);
-		pduel->write_buffer8((uint8)clit.triggering_location);
-		pduel->write_buffer32(clit.triggering_sequence);
-		pduel->write_buffer64(peffect->description);
-		pduel->write_buffer32(core.current_chain.size() + 1);
+		auto message = pduel->new_message(MSG_CHAINING);
+		message->write<uint32>(phandler->data.code);
+		message->write(phandler->get_info_location());
+		message->write<uint8>(clit.triggering_controler);
+		message->write<uint8>((uint8)clit.triggering_location);
+		message->write<uint32>(clit.triggering_sequence);
+		message->write<uint64>(peffect->description);
+		message->write<uint32>(core.current_chain.size() + 1);
 		break_effect();
 		for(auto& ch_lim : core.chain_limit)
 			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
@@ -4185,10 +4178,10 @@ int32 field::add_chain(uint16 step) {
 		int32 playerid = clit.triggering_player;
 		effect* peffect = ch.triggering_effect;
 		card* phandler = peffect->get_handler();
-		pduel->write_buffer8(MSG_HINT);
-		pduel->write_buffer8(HINT_OPSELECTED);
-		pduel->write_buffer8(playerid);
-		pduel->write_buffer64(core.select_options[returns.at<int32>(0)]);
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_OPSELECTED);
+		message->write<uint8>(playerid);
+		message->write<uint64>(core.select_options[returns.at<int32>(0)]);
 		clit.triggering_effect = peffect;
 		clit.evt = ch.evt;
 		phandler->create_relation(clit);
@@ -4290,8 +4283,8 @@ int32 field::add_chain(uint16 step) {
 				}
 			}
 		}
-		pduel->write_buffer8(MSG_CHAINED);
-		pduel->write_buffer8(clit.chain_count);
+		auto message = pduel->new_message(MSG_CHAINED);
+		message->write<uint8>(clit.chain_count);
 		raise_event(phandler, EVENT_CHAINING, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
 		process_instant_event();
 		if(core.new_chains.size())
@@ -4460,8 +4453,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			}
 			core.spsummon_rst = false;
 		}
-		pduel->write_buffer8(MSG_CHAIN_SOLVING);
-		pduel->write_buffer8(cait->chain_count);
+		auto message = pduel->new_message(MSG_CHAIN_SOLVING);
+		message->write<uint8>(cait->chain_count);
 		add_to_disable_check_list(cait->triggering_effect->get_handler());
 		adjust_instant();
 		raise_event((card*)0, EVENT_CHAIN_ACTIVATING, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
@@ -4511,8 +4504,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if(is_chain_disablable(cait->chain_count) && (!peffect->is_flag(EFFECT_FLAG_CONTINUOUS_TARGET) || cait->replace_op)) {
 			if(is_chain_disabled(cait->chain_count) || (pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN) && pcard->is_has_relation(*cait))) {
 				if(!(cait->flag & CHAIN_DISABLE_EFFECT)) {
-					pduel->write_buffer8(MSG_CHAIN_DISABLED);
-					pduel->write_buffer8(cait->chain_count);
+					auto message = pduel->new_message(MSG_CHAIN_DISABLED);
+					message->write<uint8>(cait->chain_count);
 				}
 				raise_event((card*)0, EVENT_CHAIN_DISABLED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 				process_instant_event();
@@ -4595,8 +4588,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, 0, 0, 0, 0);
 		} else
 			core.conti_player = PLAYER_NONE;
-		pduel->write_buffer8(MSG_CHAIN_SOLVED);
-		pduel->write_buffer8(cait->chain_count);
+		auto message = pduel->new_message(MSG_CHAIN_SOLVED);
+		message->write<uint8>(cait->chain_count);
 		raise_event((card*)0, EVENT_CHAIN_SOLVED, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 		adjust_disable_check_list();
 		process_instant_event();
@@ -4662,7 +4655,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	}
 	case 12: {
 		core.used_event.splice(core.used_event.end(), core.point_event);
-		pduel->write_buffer8(MSG_CHAIN_END);
+		auto message = pduel->new_message(MSG_CHAIN_END);
 		for(auto& ch_lim_p : core.chain_limit_p)
 			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 		core.chain_limit_p.clear();
@@ -4695,10 +4688,9 @@ int32 field::break_effect() {
 		if (!peffect->is_flag(EFFECT_FLAG_DELAY)) {
 			if (peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
 			        || !(peffect->type & EFFECT_TYPE_FIELD) || peffect->in_range(*rm)) {
-				pduel->write_buffer8(MSG_MISSED_EFFECT);
-				loc_info tmp_info = peffect->get_handler()->get_info_location();
-				pduel->write_info_location(&tmp_info);
-				pduel->write_buffer32(peffect->get_handler()->data.code);
+				auto message = pduel->new_message(MSG_MISSED_EFFECT);
+				message->write(peffect->get_handler()->get_info_location());
+				message->write<uint32>(peffect->get_handler()->data.code);
 			}
 			core.new_ochain.erase(rm);
 		}
@@ -4746,8 +4738,8 @@ void field::refresh_location_info_instant() {
 	player[1].disabled_location |= (((player[0].disabled_location >> 5) & 1) << 6) | (((player[0].disabled_location >> 6) & 1) << 5);
 	uint32 dis2 = player[0].disabled_location | (player[1].disabled_location << 16);
 	if(dis1 != dis2) {
-		pduel->write_buffer8(MSG_FIELD_DISABLED);
-		pduel->write_buffer32(dis2);
+		auto message = pduel->new_message(MSG_FIELD_DISABLED);
+		message->write<uint32>(dis2);
 	}
 }
 int32 field::refresh_location_info(uint16 step) {
@@ -4909,8 +4901,8 @@ int32 field::refresh_location_info(uint16 step) {
 		player[1].disabled_location |= (((player[0].disabled_location >> 5) & 1) << 6) | (((player[0].disabled_location >> 6) & 1) << 5);
 		uint32 dis = player[0].disabled_location | (player[1].disabled_location << 16);
 		if(dis != (uint32)core.units.begin()->arg2) {
-			pduel->write_buffer8(MSG_FIELD_DISABLED);
-			pduel->write_buffer32(dis);
+			auto message = pduel->new_message(MSG_FIELD_DISABLED);
+			message->write<uint32>(dis);
 		}
 		return TRUE;
 	}
@@ -4980,16 +4972,16 @@ int32 field::adjust_step(uint16 step) {
 					}
 			}
 			if(winp != 5) {
-				pduel->write_buffer8(MSG_WIN);
-				pduel->write_buffer8(winp);
-				pduel->write_buffer8(rea);
+				auto message = pduel->new_message(MSG_WIN);
+				message->write<uint8>(winp);
+				message->write<uint8>(rea);
 				core.overdraw[0] = core.overdraw[1] = FALSE;
 				core.win_player = 5;
 				core.win_reason = 0;
 			} else if(core.win_player != 5) {
-				pduel->write_buffer8(MSG_WIN);
-				pduel->write_buffer8(core.win_player);
-				pduel->write_buffer8(core.win_reason);
+				auto message = pduel->new_message(MSG_WIN);
+				message->write<uint8>(core.win_player);
+				message->write<uint8>(core.win_reason);
 				core.win_player = 5;
 				core.win_reason = 0;
 				core.overdraw[0] = core.overdraw[1] = FALSE;
@@ -5178,27 +5170,27 @@ int32 field::adjust_step(uint16 step) {
 			if(core.deck_reversed ^ res) {
 				reverse_deck(0);
 				reverse_deck(1);
-				pduel->write_buffer8(MSG_REVERSE_DECK);
+				auto message = pduel->new_message(MSG_REVERSE_DECK);
 				if(res) {
 					if(player[0].list_main.size()) {
 						card* ptop = player[0].list_main.back();
-						pduel->write_buffer8(MSG_DECK_TOP);
-						pduel->write_buffer8(0);
-						pduel->write_buffer8(0);
+						auto message = pduel->new_message(MSG_DECK_TOP);
+						message->write<uint8>(0);
+						message->write<uint8>(0);
 						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							pduel->write_buffer32(ptop->data.code);
+							message->write<uint32>(ptop->data.code);
 						else
-							pduel->write_buffer32(ptop->data.code | 0x80000000);
+							message->write<uint32>(ptop->data.code | 0x80000000);
 					}
 					if(player[1].list_main.size()) {
 						card* ptop = player[1].list_main.back();
-						pduel->write_buffer8(MSG_DECK_TOP);
-						pduel->write_buffer8(1);
-						pduel->write_buffer8(0);
+						auto message = pduel->new_message(MSG_DECK_TOP);
+						message->write<uint8>(1);
+						message->write<uint8>(0);
 						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							pduel->write_buffer32(ptop->data.code);
+							message->write<uint32>(ptop->data.code);
 						else
-							pduel->write_buffer32(ptop->data.code | 0x80000000);
+							message->write<uint32>(ptop->data.code | 0x80000000);
 					}
 				}
 			}
