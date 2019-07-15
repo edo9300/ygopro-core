@@ -153,9 +153,11 @@ extern "C" DECL_DLLEXPORT int32 get_message(ptr pduel, byte* buf) {
 }
 extern "C" DECL_DLLEXPORT int32 process(ptr pduel) {
 	duel* pd = (duel*)pduel;
-	int flag = pd->game_field->process();
-	while(pd->buff.size() == 0 && flag == 0)
-		flag = pd->game_field->process();
+	int flag = 0;
+	do {
+		int flag = pd->game_field->process();
+		pd->generate_buffer();
+	} while(pd->buff.size() == 0 && flag == 0);
 	return flag;
 }
 extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uint8 playerid, uint8 location, uint8 sequence, uint8 position, int32 duelist) {
