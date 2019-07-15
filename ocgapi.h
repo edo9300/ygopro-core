@@ -16,7 +16,7 @@
 #endif
 
 #define DUEL_API_VERSION_MAJOR 3
-#define DUEL_API_VERSION_MINOR 0
+#define DUEL_API_VERSION_MINOR 1
 
 class card;
 struct card_data;
