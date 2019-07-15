@@ -2902,11 +2902,10 @@ int32 scriptlib::duel_select_target(lua_State *L) {
 				ch->target_cards = pduel->new_group();
 				ch->target_cards->is_readonly = TRUE;
 			}
+			ch->target_cards->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
 			effect* peffect = ch->triggering_effect;
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
-				group* tg = ch->target_cards;
-				tg->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
-				interpreter::group2value(L, tg);
+				interpreter::group2value(L, ch->target_cards);
 			} else {
 				group* pret = pduel->new_group();
 				pret->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
@@ -3618,9 +3617,17 @@ int32 scriptlib::duel_announce_card(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_options.clear();
 	uint32 ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
-	if(lua_gettop(L) >= 2)
-		ttype = lua_tointeger(L, 2);
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_CARD, 0, 0, 0, playerid, ttype);
+	if(lua_gettop(L) <= 2) {
+		uint32 ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
+		if(lua_gettop(L) == 2)
+			ttype = lua_tointeger(L, 1);
+		pduel->game_field->core.select_options.push_back(ttype);
+		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
+	} else {
+		for(int32 i = 2; i <= lua_gettop(L); ++i)
+			pduel->game_field->core.select_options.push_back(lua_tonumberint(L, i));
+	}
+	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_CARD, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));
