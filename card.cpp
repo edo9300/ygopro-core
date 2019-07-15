@@ -257,6 +257,8 @@ uint32 card::get_infos(int32 query_flag, int32 use_cache, int32 ignore_cache) {
 		} else
 			query_flag &= ~QUERY_STATUS;
 	}
+	if(query_flag & QUERY_IS_PUBLIC)
+		insert_value<uint32>(query, is_position(POS_FACEUP) ? 1 : 0);
 	if(!use_cache) {
 		if(query_flag & QUERY_LSCALE) {
 			q_cache.lscale = get_lscale();

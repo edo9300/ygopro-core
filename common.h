@@ -211,6 +211,7 @@ struct card_sort {
 #define QUERY_COUNTERS		0x20000
 #define QUERY_OWNER			0x40000
 #define QUERY_STATUS		0x80000
+#define QUERY_IS_PUBLIC		0x100000
 #define QUERY_LSCALE		0x200000
 #define QUERY_RSCALE		0x400000
 #define QUERY_LINK			0x800000

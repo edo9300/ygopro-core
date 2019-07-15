@@ -977,7 +977,7 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 		pduel->write_buffer32((*cit)->data.code);
 		pduel->write_buffer8((*cit)->current.controler);
 		pduel->write_buffer8((*cit)->current.location);
-		pduel->write_buffer8((*cit)->current.sequence);
+		pduel->write_buffer32((*cit)->current.sequence);
 	}
 	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
@@ -999,7 +999,7 @@ int32 scriptlib::duel_confirm_extratop(lua_State *L) {
 		pduel->write_buffer32((*cit)->data.code);
 		pduel->write_buffer8((*cit)->current.controler);
 		pduel->write_buffer8((*cit)->current.location);
-		pduel->write_buffer8((*cit)->current.sequence);
+		pduel->write_buffer32((*cit)->current.sequence);
 	}
 	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
