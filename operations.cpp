@@ -2997,10 +2997,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		card* pcard = *pgroup->it++;
 		auto message = pduel->new_message(MSG_SPSUMMONING);
 		message->write<uint32>(pcard->data.code);
-		message->write<uint8>(pcard->current.controler);
-		message->write<uint8>(pcard->current.location);
-		message->write<uint8>(pcard->current.sequence);
-		message->write<uint8>(pcard->current.position);
+		message->write(pcard->get_info_location());
 		set_control(pcard, pcard->current.controler, 0, 0);
 		if(pgroup->it != pgroup->container.end())
 			core.units.begin()->step = 22;
