@@ -1900,7 +1900,6 @@ void card::xyz_add(card* mat, card_set* des) {
 		return;
 	auto message = pduel->new_message(MSG_MOVE);
 	message->write<uint32>(mat->data.code);
-	message->write<uint32>(mat->data.code);
 	message->write(mat->get_info_location());
 	if(mat->overlay_target) {
 		mat->overlay_target->xyz_remove(mat);
