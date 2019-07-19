@@ -20,8 +20,6 @@ matrix:
   include:
   - name: "Windows 10"
     os: windows
-    env:
-    - PRODUCT=ocgcore.dll
   - name: "High Sierra"
     os: osx
     osx_image: xcode9.4
@@ -29,8 +27,6 @@ matrix:
   - name: "Mojave"
     os: osx
     osx_image: xcode10.2
-    env:
-    - PRODUCT=libocgcore.dylib
   - name: "Sierra"
     os: osx
     osx_image: xcode9.2
@@ -44,7 +40,6 @@ matrix:
     compiler: gcc  
     env: 
     - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"  
-    - PRODUCT=libocgcore.so
   - name: "Xenial GCC5.4"
     os: linux
     compiler: gcc
@@ -90,13 +85,19 @@ script:
 deploy:
 - provider: releases
   api_key: $OAUTH_TOKEN
-  file: bin/release/$PRODUCT
+  file:
+  - bin/release/ocgcore.dll
+  - bin/release/libocgcore.dylib
+  - bin/release/libocgcore.so
   skip_cleanup: true
   draft: true
   overwrite: true
 - provider: releases
   api_key: $OAUTH_TOKEN
-  file: bin/release/$PRODUCT
+  file:
+  - bin/release/ocgcore.dll
+  - bin/release/libocgcore.dylib
+  - bin/release/libocgcore.so
   skip_cleanup: true
   on:
     tags: true
