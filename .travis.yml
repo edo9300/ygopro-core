@@ -20,22 +20,35 @@ matrix:
   include:
   - name: "Windows 10"
     os: windows
+    env:
+    - PRODUCT=ocgcore.dll
   - name: "High Sierra"
     os: osx
     osx_image: xcode9.4
+    deploy: false
   - name: "Mojave"
     os: osx
     osx_image: xcode10.2
+    env:
+    - PRODUCT=libocgcore.dylib
   - name: "Sierra"
     os: osx
     osx_image: xcode9.2
+    deploy: false
+  - name: "El Capitan"
+    os: osx
+    osx_image: xcode8
+    deploy: false
   - name: "Xenial GCC9"
     os: linux
     compiler: gcc  
-    env: MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"  
+    env: 
+    - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"  
+    - PRODUCT=libocgcore.so
   - name: "Xenial GCC5.4"
     os: linux
     compiler: gcc
+    deploy: false
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
     curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-windows.zip;
@@ -74,3 +87,16 @@ script:
     ./premake5 gmake2;
     make -Cbuild config=$BUILD_CONFIG;
   fi
+deploy:
+- provider: releases
+  api_key: $OAUTH_TOKEN
+  file: bin/release/$PRODUCT
+  skip_cleanup: true
+  draft: true
+  overwrite: true
+- provider: releases
+  api_key: $OAUTH_TOKEN
+  file: bin/release/$PRODUCT
+  skip_cleanup: true
+  on:
+    tags: true
