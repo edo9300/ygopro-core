@@ -82,22 +82,22 @@ script:
     ./premake5 gmake2;
     make -Cbuild config=$BUILD_CONFIG;
   fi
-deploy:
-- provider: releases
-  api_key: $OAUTH_TOKEN
-  file:
-  - bin/release/ocgcore.dll
-  - bin/release/libocgcore.dylib
-  - bin/release/libocgcore.so
-  skip_cleanup: true
-  draft: true
-  overwrite: true
-- provider: releases
-  api_key: $OAUTH_TOKEN
-  file:
-  - bin/release/ocgcore.dll
-  - bin/release/libocgcore.dylib
-  - bin/release/libocgcore.so
-  skip_cleanup: true
-  on:
-    tags: true
+#deploy:
+#- provider: releases
+#  api_key: $OAUTH_TOKEN
+#  file:
+#  - bin/release/ocgcore.dll
+#  - bin/release/libocgcore.dylib
+#  - bin/release/libocgcore.so
+#  skip_cleanup: true
+#  draft: true
+#  overwrite: true
+#- provider: releases
+#  api_key: $OAUTH_TOKEN
+#  file:
+#  - bin/release/ocgcore.dll
+#  - bin/release/libocgcore.dylib
+#  - bin/release/libocgcore.so
+#  skip_cleanup: true
+#  on:
+#    tags: true
