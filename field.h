@@ -274,8 +274,6 @@ struct processor {
 	uint8 summon_cancelable;
 	card* attacker;
 	card* attack_target;
-	uint32 limit_extra_summon_zone;
-	uint32 limit_extra_summon_releasable;
 	bool set_forced_attack;
 	bool forced_attack;
 	card* forced_attacker;

@@ -2747,17 +2747,12 @@ int32 scriptlib::duel_check_tribute(lua_State *L) {
 	}
 	uint8 toplayer = target->current.controler;
 	if(lua_gettop(L) >= 5 && !lua_isnil(L, 5))
-		toplayer = lua_tointeger(L, 5);
-	duel* pduel = target->pduel;
+		toplayer = lua_tonumberint(L, 5);
 	uint32 zone = 0x1f;
-	if(pduel->game_field->core.limit_extra_summon_zone)
-		zone = pduel->game_field->core.limit_extra_summon_zone;
 	if(lua_gettop(L) >= 6 && !lua_isnil(L, 6))
-		zone = lua_tointeger(L, 6);
-	uint32 releasable = 0xff00ff;
-	if(pduel->game_field->core.limit_extra_summon_releasable)
-		releasable = pduel->game_field->core.limit_extra_summon_releasable;
-	lua_pushboolean(L, pduel->game_field->check_tribute(target, min, max, mg, toplayer, zone, releasable));
+		zone = lua_tonumberint(L, 6);
+	duel* pduel = target->pduel;
+	lua_pushboolean(L, pduel->game_field->check_tribute(target, min, max, mg, toplayer, zone));
 	return 1;
 }
 int32 scriptlib::duel_select_tribute(lua_State *L) {
@@ -2784,21 +2779,16 @@ int32 scriptlib::duel_select_tribute(lua_State *L) {
 	if(toplayer != playerid)
 		ex = TRUE;
 	uint32 zone = 0x1f;
-	duel* pduel = interpreter::get_duel_info(L);
-	if(pduel->game_field->core.limit_extra_summon_zone)
-		zone = pduel->game_field->core.limit_extra_summon_zone;
 	if (lua_gettop(L) >= 7 && !lua_isnil(L, 7))
 		zone = lua_tonumberint(L, 7);
 	uint8 cancelable = FALSE;
 	if(lua_gettop(L) >= 8)
 		cancelable = lua_toboolean(L, 8);
-	uint32 releasable = 0xff00ff;
-	if(pduel->game_field->core.limit_extra_summon_releasable)
-		releasable = pduel->game_field->core.limit_extra_summon_releasable;
+	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
-	pduel->game_field->get_summon_release_list(target, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, mg, ex, releasable);
+	pduel->game_field->get_summon_release_list(target, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, mg, ex);
 	pduel->game_field->select_tribute_cards(0, playerid, cancelable, min, max, toplayer, zone);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
