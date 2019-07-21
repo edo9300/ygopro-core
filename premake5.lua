@@ -1,4 +1,4 @@
-local stuff=function()
+local ocgcore_config=function()
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
 	warnings "Extra"
 	optimize "Speed"
@@ -20,7 +20,6 @@ local stuff=function()
 	filter "system:linux"
 		defines "LUA_USE_LINUX"
 		includedirs "/usr/include/lua5.3"
-
 end
 
 if not subproject then
@@ -38,8 +37,9 @@ if not subproject then
 		libdirs "/usr/local/lib"
 	
 	filter "system:macosx"
-		includedirs "/opt/local/include"
-		libdirs "/opt/local/lib"
+		toolset "clang"
+		includedirs "/usr/local/include"
+		libdirs "/usr/local/lib"
 	
 	filter "action:vs*"
 		vectorextensions "SSE2"
@@ -56,6 +56,7 @@ if not subproject then
 		symbols "On"
 		defines "_DEBUG"
 		targetdir "bin/debug"
+		runtime "Debug"
 	
 	filter { "configurations:Release" , "action:not vs*" }
 		symbols "On"
@@ -65,16 +66,30 @@ if not subproject then
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
+	
+	local function vcpkgStaticTriplet(prj)
+		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'Win32\'">x86-windows-static</VcpkgTriplet>')
+		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'x64\'">x64-windows-static</VcpkgTriplet>')
+	end
+	
+	require('vstudio')
+	
+	premake.override(premake.vstudio.vc2010.elements, "globals", function(base, prj)
+		local calls = base(prj)
+		table.insertafter(calls, premake.vstudio.vc2010.targetPlatformVersionGlobal, vcpkgStaticTriplet)
+		return calls
+	end)
 end
 
 project "ocgcore"
 	kind "StaticLib"
-	stuff()
+	ocgcore_config()
 
 project "ocgcoreshared"
 	kind "SharedLib"
 	targetname "ocgcore"
-	stuff()
+	staticruntime "on"
+	ocgcore_config()
 	
 	filter "system:linux or system:bsd"
 		links "lua5.3-c++" 
