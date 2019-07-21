@@ -61,7 +61,7 @@ int32 field::select_battle_command(uint16 step, uint8 playerid) {
 		   || (t == 1 && s >= core.attackable_cards.size())
 		   || (t == 2 && !core.to_m2)
 		   || (t == 3 && !core.to_ep)) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -153,7 +153,7 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 		   || (t == 6 && (infos.phase != PHASE_MAIN1 || !core.to_bp))
 		   || (t == 7 && !core.to_ep)
 		   || (t == 8 && !(infos.can_shuffle && player[playerid].list_hand.size() > 1))) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -174,7 +174,7 @@ int32 field::select_effect_yes_no(uint16 step, uint8 playerid, uint64 descriptio
 		return FALSE;
 	} else {
 		if(returns.at<int32>(0) != 0 && returns.at<int32>(0) != 1) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -193,7 +193,7 @@ int32 field::select_yes_no(uint16 step, uint8 playerid, uint64 description) {
 		return FALSE;
 	} else {
 		if(returns.at<int32>(0) != 0 && returns.at<int32>(0) != 1) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -216,7 +216,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 		return FALSE;
 	} else {
 		if(returns.at<int32>(0) < 0 || returns.at<int32>(0) >= (int32)core.select_options.size()) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -286,14 +286,14 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 	} else {
 		if(!parse_response_cards(cancelable)) {
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		if(return_cards.canceled)
 			return TRUE;
 		if(return_cards.list.size() < min || return_cards.list.size() > max) {
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -337,18 +337,18 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 				return TRUE;
 			}
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		if(returns.at<int32>(0) == 0 || returns.at<int32>(0) > 1) {
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		int32 max = (int32)(core.select_cards.size() + core.unselect_cards.size());
 		int retval = returns.at<int32>(1);
 		if(retval < 0 || retval >= max){
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return_cards.list.push_back((retval >= (int32)core.select_cards.size()) ? core.unselect_cards[retval - core.select_cards.size()] : core.select_cards[retval]);
@@ -401,7 +401,7 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 		if(!forced && returns.at<int32>(0) == -1)
 			return TRUE;
 		if(returns.at<int32>(0) < 0 || returns.at<int32>(0) >= (int32)core.select_chains.size()) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -471,7 +471,7 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 			if((p != 0 && p != 1)
 					|| ((l != LOCATION_MZONE) && (l != LOCATION_SZONE))
 					|| ((0x1u << s) & (flag >> (((p == playerid) ? 0 : 16) + ((l == LOCATION_MZONE) ? 0 : 8))))) {
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			pt += 3;
@@ -510,7 +510,7 @@ int32 field::select_position(uint16 step, uint8 playerid, uint32 code, uint8 pos
 	} else {
 		uint32 pos = returns.at<int32>(0);
 		if((pos != 0x1 && pos != 0x2 && pos != 0x4 && pos != 0x8) || !(pos & positions)) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -550,7 +550,7 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 	} else {
 		if(!parse_response_cards(cancelable)) {
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		if(return_cards.canceled)
@@ -562,7 +562,7 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 			tt += pcard->release_param;
 		if (tt < min) {
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		return TRUE;
@@ -595,7 +595,7 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 			avail = o;
 		}
 		if(count > total) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		auto message = pduel->new_message(MSG_SELECT_COUNTER);
@@ -616,13 +616,13 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 		uint16 ct = 0;
 		for(uint32 i = 0; i < core.select_cards.size(); ++i) {
 			if(core.select_cards[i]->get_counter(countertype) < returns.at<int16>(i)) {
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			ct += returns.at<int16>(i);
 		}
 		if(ct != count) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 	}
@@ -676,14 +676,14 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 	} else {
 		if(!parse_response_cards()) {
 			return_cards.clear();
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		int32 tot = return_cards.list.size();
 		if (max) {
 			if(tot < min || tot > max) {
 				return_cards.clear();
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			int32 mcount = core.must_select_cards.size();
@@ -693,7 +693,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 					oparam.push_back(pcard->sum_param);
 			if(!select_sum_check1(oparam, tot + mcount, 0, acc)) {
 				return_cards.clear();
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			return TRUE;
@@ -715,7 +715,7 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 			}
 			if(mx < acc || sum - mn >= acc) {
 				return_cards.clear();
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			return TRUE;
@@ -750,7 +750,7 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 		for(uint8 i = 0; i < m; ++i) {
 			int8 v = returns.at<int8>(i);
 			if(v < 0 || v >= m || c[v]) {
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			c[v] = 1;
@@ -781,13 +781,13 @@ int32 field::announce_race(int16 step, uint8 playerid, int32 count, int32 availa
 		for(int32 ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(!(ft & rc)) continue;
 			if(!(ft & available)) {
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			sel++;
 		}
 		if(sel != count) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		auto message = pduel->new_message(MSG_HINT);
@@ -820,13 +820,13 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 		for(int32 ft = 0x1; ft != 0x80; ft <<= 1) {
 			if(!(ft & rc)) continue;
 			if(!(ft & available)) {
-				auto message = pduel->new_message(MSG_RETRY);
+				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
 			sel++;
 		}
 		if(sel != count) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		auto message = pduel->new_message(MSG_HINT);
@@ -965,7 +965,7 @@ int32 field::announce_number(int16 step, uint8 playerid) {
 	} else {
 		int32 ret = returns.at<int32>(0);
 		if(ret < 0 || ret >= (int32)core.select_options.size() || ret >= 63) {
-			auto message = pduel->new_message(MSG_RETRY);
+			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
 		auto message = pduel->new_message(MSG_HINT);

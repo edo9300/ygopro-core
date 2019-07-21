@@ -3277,7 +3277,7 @@ int32 field::process_battle_command(uint16 step) {
 		} else
 			core.units.begin()->step = -1;
 		infos.phase = PHASE_BATTLE_STEP;
-		auto message = pduel->new_message(MSG_DAMAGE_STEP_END);
+		pduel->new_message(MSG_DAMAGE_STEP_END);
 		reset_phase(PHASE_DAMAGE);
 		adjust_all();
 		if(core.effect_damage_step)
@@ -4655,7 +4655,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	}
 	case 12: {
 		core.used_event.splice(core.used_event.end(), core.point_event);
-		auto message = pduel->new_message(MSG_CHAIN_END);
+		pduel->new_message(MSG_CHAIN_END);
 		for(auto& ch_lim_p : core.chain_limit_p)
 			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 		core.chain_limit_p.clear();
@@ -5170,7 +5170,7 @@ int32 field::adjust_step(uint16 step) {
 			if(core.deck_reversed ^ res) {
 				reverse_deck(0);
 				reverse_deck(1);
-				auto message = pduel->new_message(MSG_REVERSE_DECK);
+				pduel->new_message(MSG_REVERSE_DECK);
 				if(res) {
 					if(player[0].list_main.size()) {
 						card* ptop = player[0].list_main.back();

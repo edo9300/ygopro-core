@@ -1991,7 +1991,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		return FALSE;
 	}
 	case 17: {
-		auto message = pduel->new_message(MSG_SUMMONED);
+		pduel->new_message(MSG_SUMMONED);
 		adjust_instant();
 		if(target->material_cards.size()) {
 			for(auto& mcard : target->material_cards)
@@ -2075,7 +2075,7 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card * target) {
 		return FALSE;
 	}
 	case 4: {
-		auto message = pduel->new_message(MSG_FLIPSUMMONED);
+		pduel->new_message(MSG_FLIPSUMMONED);
 		check_card_counter(target, 4, sumplayer);
 		adjust_instant();
 		raise_single_event(target, 0, EVENT_FLIP, 0, 0, sumplayer, sumplayer, 0);
@@ -2861,7 +2861,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		return FALSE;
 	}
 	case 16: {
-		auto message = pduel->new_message(MSG_SPSUMMONED);
+		pduel->new_message(MSG_SPSUMMONED);
 		adjust_instant();
 		effect* proc = core.units.begin()->peffect;
 		int32 matreason = REASON_SPSUMMON;
@@ -3055,7 +3055,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	}
 	case 28: {
 		group* pgroup = core.units.begin()->ptarget;
-		auto message = pduel->new_message(MSG_SPSUMMONED);
+		pduel->new_message(MSG_SPSUMMONED);
 		check_card_counter(pgroup, 3, sumplayer);
 		for(auto& pcard : pgroup->container)
 			raise_single_event(pcard, 0, EVENT_SPSUMMON_SUCCESS, pcard->current.reason_effect, 0, pcard->current.reason_player, pcard->summon_player, 0);
@@ -3247,7 +3247,7 @@ int32 field::special_summon(uint16 step, effect* reason_effect, uint8 reason_pla
 		return FALSE;
 	}
 	case 3: {
-		auto message = pduel->new_message(MSG_SPSUMMONED);
+		pduel->new_message(MSG_SPSUMMONED);
 		for(auto& pcard : targets->container) {
 			check_card_counter(pcard, 3, pcard->summon_player);
 			if(!(pcard->current.position & POS_FACEDOWN))
