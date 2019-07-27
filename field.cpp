@@ -2267,7 +2267,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, 
 					continue;
 				if(atype >= 2 && atarget->is_affected_by_effect(EFFECT_IGNORE_BATTLE_TARGET))
 					continue;
-				if(select_target && atype == 4) {
+				if(select_target && (atype == 2 || atype == 4)) {
 					if(atarget->is_affected_by_effect(EFFECT_CANNOT_BE_BATTLE_TARGET, pcard))
 						continue;
 					if(pcard->is_affected_by_effect(EFFECT_CANNOT_SELECT_BATTLE_TARGET, atarget))
@@ -2289,7 +2289,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, 
 			mcount++;
 		if(chain_attack && core.chain_attack_target && atarget != core.chain_attack_target)
 			continue;
-		if(select_target && atype == 4) {
+		if(select_target && (atype == 2 || atype == 4)) {
 			if(atarget->is_affected_by_effect(EFFECT_CANNOT_BE_BATTLE_TARGET, pcard))
 				continue;
 			if(pcard->is_affected_by_effect(EFFECT_CANNOT_SELECT_BATTLE_TARGET, atarget))
