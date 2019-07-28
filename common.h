@@ -45,138 +45,145 @@ struct card_sort {
 };
 
 //Locations
-#define LOCATION_DECK		0x01		//
-#define LOCATION_HAND		0x02		//
-#define LOCATION_MZONE		0x04		//
-#define LOCATION_SZONE		0x08		//
-#define LOCATION_GRAVE		0x10		//
-#define LOCATION_REMOVED	0x20		//
-#define LOCATION_EXTRA		0x40		//
-#define LOCATION_OVERLAY	0x80		//
-#define LOCATION_ONFIELD	0x0c		//
-#define LOCATION_FZONE		0x100		//
-#define LOCATION_PZONE		0x200		//
+#define LOCATION_DECK    0x01
+#define LOCATION_HAND    0x02
+#define LOCATION_MZONE   0x04
+#define LOCATION_SZONE   0x08
+#define LOCATION_GRAVE   0x10
+#define LOCATION_REMOVED 0x20
+#define LOCATION_EXTRA   0x40
+#define LOCATION_OVERLAY 0x80
+#define LOCATION_ONFIELD 0x0c
+#define LOCATION_FZONE   0x100
+#define LOCATION_PZONE   0x200
+#define LOCATION_ALL     0x3ff
+
 //Positions
-#define POS_FACEUP_ATTACK		0x1
-#define POS_FACEDOWN_ATTACK		0x2
-#define POS_FACEUP_DEFENSE		0x4
-#define POS_FACEDOWN_DEFENSE	0x8
-#define POS_FACEUP				0x5
-#define POS_FACEDOWN			0xa
-#define POS_ATTACK				0x3
-#define POS_DEFENSE				0xc
+#define POS_FACEUP_ATTACK    0x1
+#define POS_FACEDOWN_ATTACK  0x2
+#define POS_FACEUP_DEFENSE   0x4
+#define POS_FACEDOWN_DEFENSE 0x8
+#define POS_FACEUP           0x5
+#define POS_FACEDOWN         0xa
+#define POS_ATTACK           0x3
+#define POS_DEFENSE          0xc
+
 //Flip effect flags
-#define NO_FLIP_EFFECT			0x10000
-#define FLIP_SET_AVAILABLE		0x20000
-//Types
-#define TYPE_MONSTER		0x1			//
-#define TYPE_SPELL			0x2			//
-#define TYPE_TRAP			0x4			//
-#define TYPE_NORMAL			0x10		//
-#define TYPE_EFFECT			0x20		//
-#define TYPE_FUSION			0x40		//
-#define TYPE_RITUAL			0x80		//
-#define TYPE_TRAPMONSTER	0x100		//
-#define TYPE_SPIRIT			0x200		//
-#define TYPE_UNION			0x400		//
-#define TYPE_DUAL			0x800		//
-#define TYPE_TUNER			0x1000		//
-#define TYPE_SYNCHRO		0x2000		//
-#define TYPE_TOKEN			0x4000		//
-#define TYPE_QUICKPLAY		0x10000		//
-#define TYPE_CONTINUOUS		0x20000		//
-#define TYPE_EQUIP			0x40000		//
-#define TYPE_FIELD			0x80000		//
-#define TYPE_COUNTER		0x100000	//
-#define TYPE_FLIP			0x200000	//
-#define TYPE_TOON			0x400000	//
-#define TYPE_XYZ			0x800000	//
-#define TYPE_PENDULUM		0x1000000	//
-#define TYPE_SPSUMMON		0x2000000	//
-#define TYPE_LINK			0x4000000	//
+#define NO_FLIP_EFFECT     0x10000
+#define FLIP_SET_AVAILABLE 0x20000
+
+//Types of cards
+#define TYPE_MONSTER     0x1
+#define TYPE_SPELL       0x2
+#define TYPE_TRAP        0x4
+#define TYPE_NORMAL      0x10
+#define TYPE_EFFECT      0x20
+#define TYPE_FUSION      0x40
+#define TYPE_RITUAL      0x80
+#define TYPE_TRAPMONSTER 0x100
+#define TYPE_SPIRIT      0x200
+#define TYPE_UNION       0x400
+#define TYPE_GEMINI      0x800
+#define TYPE_TUNER       0x1000
+#define TYPE_SYNCHRO     0x2000
+#define TYPE_TOKEN       0x4000
+#define TYPE_QUICKPLAY   0x10000
+#define TYPE_CONTINUOUS  0x20000
+#define TYPE_EQUIP       0x40000
+#define TYPE_FIELD       0x80000
+#define TYPE_COUNTER     0x100000
+#define TYPE_FLIP        0x200000
+#define TYPE_TOON        0x400000
+#define TYPE_XYZ         0x800000
+#define TYPE_PENDULUM    0x1000000
+#define TYPE_SPSUMMON    0x2000000
+#define TYPE_LINK        0x4000000
+
 //Attributes
-#define ATTRIBUTE_EARTH		0x01		//
-#define ATTRIBUTE_WATER		0x02		//
-#define ATTRIBUTE_FIRE		0x04		//
-#define ATTRIBUTE_WIND		0x08		//
-#define ATTRIBUTE_LIGHT		0x10		//
-#define ATTRIBUTE_DARK		0x20		//
-#define ATTRIBUTE_DEVINE	0x40		//
+#define ATTRIBUTE_EARTH  0x01
+#define ATTRIBUTE_WATER  0x02
+#define ATTRIBUTE_FIRE   0x04
+#define ATTRIBUTE_WIND   0x08
+#define ATTRIBUTE_LIGHT  0x10
+#define ATTRIBUTE_DARK   0x20
+#define ATTRIBUTE_DIVINE 0x40
+
 //Races
-#define RACE_WARRIOR		0x1			//
-#define RACE_SPELLCASTER	0x2			//
-#define RACE_FAIRY			0x4			//
-#define RACE_FIEND			0x8			//
-#define RACE_ZOMBIE			0x10		//
-#define RACE_MACHINE		0x20		//
-#define RACE_AQUA			0x40		//
-#define RACE_PYRO			0x80		//
-#define RACE_ROCK			0x100		//
-#define RACE_WINDBEAST		0x200		//
-#define RACE_PLANT			0x400		//
-#define RACE_INSECT			0x800		//
-#define RACE_THUNDER		0x1000		//
-#define RACE_DRAGON			0x2000		//
-#define RACE_BEAST			0x4000		//
-#define RACE_BEASTWARRIOR	0x8000		//
-#define RACE_DINOSAUR		0x10000		//
-#define RACE_FISH			0x20000		//
-#define RACE_SEASERPENT		0x40000		//
-#define RACE_REPTILE		0x80000		//
-#define RACE_PSYCHO			0x100000	//
-#define RACE_DEVINE			0x200000	//
-#define RACE_CREATORGOD		0x400000	//
-#define RACE_WYRM			0x800000	//
-#define RACE_CYBERSE		0x1000000	//
-//Reason
-#define REASON_DESTROY		0x1		//
-#define REASON_RELEASE		0x2		//
-#define REASON_TEMPORARY	0x4		//
-#define REASON_MATERIAL		0x8		//
-#define REASON_SUMMON		0x10	//
-#define REASON_BATTLE		0x20	//
-#define REASON_EFFECT		0x40	//
-#define REASON_COST			0x80	//
-#define REASON_ADJUST		0x100	//
-#define REASON_LOST_TARGET	0x200	//
-#define REASON_RULE			0x400	//
-#define REASON_SPSUMMON		0x800	//
-#define REASON_DISSUMMON	0x1000	//
-#define REASON_FLIP			0x2000	//
-#define REASON_DISCARD		0x4000	//
-#define REASON_RDAMAGE		0x8000	//
-#define REASON_RRECOVER		0x10000	//
-#define REASON_RETURN		0x20000	//
-#define REASON_FUSION		0x40000	//
-#define REASON_SYNCHRO		0x80000	//
-#define REASON_RITUAL		0x100000	//
-#define REASON_XYZ			0x200000	//
-#define REASON_REPLACE		0x1000000	//
-#define REASON_DRAW			0x2000000	//
-#define REASON_REDIRECT		0x4000000	//
-//#define REASON_REVEAL			0x8000000	//
-#define REASON_LINK			0x10000000	//
+#define RACE_WARRIOR		0x1
+#define RACE_SPELLCASTER	0x2
+#define RACE_FAIRY			0x4
+#define RACE_FIEND			0x8
+#define RACE_ZOMBIE			0x10
+#define RACE_MACHINE		0x20
+#define RACE_AQUA			0x40
+#define RACE_PYRO			0x80
+#define RACE_ROCK			0x100
+#define RACE_WINGEDBEAST    0x200
+#define RACE_PLANT			0x400
+#define RACE_INSECT			0x800
+#define RACE_THUNDER		0x1000
+#define RACE_DRAGON			0x2000
+#define RACE_BEAST			0x4000
+#define RACE_BEASTWARRIOR	0x8000
+#define RACE_DINOSAUR		0x10000
+#define RACE_FISH			0x20000
+#define RACE_SEASERPENT		0x40000
+#define RACE_REPTILE		0x80000
+#define RACE_PSYCHIC		0x100000
+#define RACE_DIVINE			0x200000
+#define RACE_CREATORGOD		0x400000
+#define RACE_WYRM			0x800000
+#define RACE_CYBERSE		0x1000000
+
+//Reasons
+#define REASON_DESTROY		0x1
+#define REASON_RELEASE		0x2
+#define REASON_TEMPORARY	0x4
+#define REASON_MATERIAL		0x8
+#define REASON_SUMMON		0x10
+#define REASON_BATTLE		0x20
+#define REASON_EFFECT		0x40
+#define REASON_COST			0x80
+#define REASON_ADJUST		0x100
+#define REASON_LOST_TARGET	0x200
+#define REASON_RULE			0x400
+#define REASON_SPSUMMON		0x800
+#define REASON_DISSUMMON	0x1000
+#define REASON_FLIP			0x2000
+#define REASON_DISCARD		0x4000
+#define REASON_RDAMAGE		0x8000
+#define REASON_RRECOVER		0x10000
+#define REASON_RETURN		0x20000
+#define REASON_FUSION		0x40000
+#define REASON_SYNCHRO		0x80000
+#define REASON_RITUAL		0x100000
+#define REASON_XYZ			0x200000
+#define REASON_REPLACE		0x1000000
+#define REASON_DRAW			0x2000000
+#define REASON_REDIRECT		0x4000000
+//#define REASON_REVEAL			0x8000000
+#define REASON_LINK			0x10000000
 
 //Status
-#define STATUS_DISABLED				0x0001	//
-#define STATUS_TO_ENABLE			0x0002	//
-#define STATUS_TO_DISABLE			0x0004	//
-#define STATUS_PROC_COMPLETE		0x0008	//
-#define STATUS_SET_TURN				0x0010	//
-#define STATUS_NO_LEVEL				0x0020	//
-#define STATUS_BATTLE_RESULT		0x0040	//
-#define STATUS_SPSUMMON_STEP		0x0080	//
-#define STATUS_FORM_CHANGED			0x0100	//
-#define STATUS_SUMMONING			0x0200	//
-#define STATUS_EFFECT_ENABLED		0x0400	//
-#define STATUS_SUMMON_TURN			0x0800	//
-#define STATUS_DESTROY_CONFIRMED	0x1000	//
-#define STATUS_LEAVE_CONFIRMED		0x2000	//
-#define STATUS_BATTLE_DESTROYED		0x4000	//
-#define STATUS_COPYING_EFFECT		0x8000	//
-#define STATUS_CHAINING				0x10000	//
-#define STATUS_SUMMON_DISABLED		0x20000	//
-#define STATUS_ACTIVATE_DISABLED	0x40000	//
+#define STATUS_DISABLED				0x0001
+#define STATUS_TO_ENABLE			0x0002
+#define STATUS_TO_DISABLE			0x0004
+#define STATUS_PROC_COMPLETE		0x0008
+#define STATUS_SET_TURN				0x0010
+#define STATUS_NO_LEVEL				0x0020
+#define STATUS_BATTLE_RESULT		0x0040
+#define STATUS_SPSUMMON_STEP		0x0080
+#define STATUS_FORM_CHANGED			0x0100
+#define STATUS_SUMMONING			0x0200
+#define STATUS_EFFECT_ENABLED		0x0400
+#define STATUS_SUMMON_TURN			0x0800
+#define STATUS_DESTROY_CONFIRMED	0x1000
+#define STATUS_LEAVE_CONFIRMED		0x2000
+#define STATUS_BATTLE_DESTROYED		0x4000
+#define STATUS_COPYING_EFFECT		0x8000
+#define STATUS_CHAINING				0x10000
+#define STATUS_SUMMON_DISABLED		0x20000
+#define STATUS_ACTIVATE_DISABLED	0x40000
 #define STATUS_EFFECT_REPLACED		0x80000
 #define STATUS_FUTURE_FUSION		0x100000
 #define STATUS_ATTACK_CANCELED		0x200000
@@ -215,6 +222,7 @@ struct card_sort {
 #define QUERY_LSCALE		0x200000
 #define QUERY_RSCALE		0x400000
 #define QUERY_LINK			0x800000
+
 //Link markers
 #define LINK_MARKER_BOTTOM_LEFT		0001
 #define LINK_MARKER_BOTTOM			0002
@@ -224,6 +232,7 @@ struct card_sort {
 #define LINK_MARKER_TOP_LEFT		0100
 #define LINK_MARKER_TOP				0200
 #define LINK_MARKER_TOP_RIGHT		0400
+
 //Messages
 #define MSG_RETRY				1
 #define MSG_HINT				2
@@ -321,6 +330,7 @@ struct card_sort {
 #define MSG_CUSTOM_MSG			180
 
 #define OLD_REPLAY_MODE			231
+
 //Hints
 #define HINT_EVENT				1
 #define HINT_MESSAGE			2
@@ -332,7 +342,8 @@ struct card_sort {
 #define HINT_CODE				8
 #define HINT_NUMBER				9
 #define HINT_CARD				10
-//
+
+
 #define CHINT_TURN				1
 #define CHINT_CARD				2
 #define CHINT_RACE				3
@@ -371,10 +382,12 @@ struct card_sort {
 #define OPCODE_GETTYPE			0x40000107
 #define OPCODE_GETRACE			0x40000108
 #define OPCODE_GETATTRIBUTE		0x40000109
+
 //Player
-#define PLAYER_NONE		2	//
-#define PLAYER_ALL		3	//
-//Phase
+#define PLAYER_NONE		2
+#define PLAYER_ALL		3
+
+//Phases
 #define PHASE_DRAW			0x01
 #define PHASE_STANDBY		0x02
 #define PHASE_MAIN1			0x04
