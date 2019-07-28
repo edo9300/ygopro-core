@@ -165,37 +165,37 @@ struct card_sort {
 #define REASON_LINK        0x10000000
 
 //Status
-#define STATUS_DISABLED          = 0x0001
-#define STATUS_TO_ENABLE         = 0x0002
-#define STATUS_TO_DISABLE        = 0x0004
-#define STATUS_PROC_COMPLETE     = 0x0008
-#define STATUS_SET_TURN          = 0x0010
-#define STATUS_NO_LEVEL          = 0x0020
-#define STATUS_BATTLE_RESULT     = 0x0040
-#define STATUS_SPSUMMON_STEP     = 0x0080
-#define STATUS_FORM_CHANGED      = 0x0100
-#define STATUS_SUMMONING         = 0x0200
-#define STATUS_EFFECT_ENABLED    = 0x0400
-#define STATUS_SUMMON_TURN       = 0x0800
-#define STATUS_DESTROY_CONFIRMED = 0x1000
-#define STATUS_LEAVE_CONFIRMED   = 0x2000
-#define STATUS_BATTLE_DESTROYED  = 0x4000
-#define STATUS_COPYING_EFFECT    = 0x8000
-#define STATUS_CHAINING          = 0x10000
-#define STATUS_SUMMON_DISABLED   = 0x20000
-#define STATUS_ACTIVATE_DISABLED = 0x40000
-#define STATUS_EFFECT_REPLACED   = 0x80000
-#define STATUS_FUTURE_FUSION     = 0x100000
-#define STATUS_ATTACK_CANCELED   = 0x200000
-#define STATUS_INITIALIZING      = 0x400000
-//#define STATUS_ACTIVATED         = 0x800000
-#define STATUS_JUST_POS          = 0x1000000
-#define STATUS_CONTINUOUS_POS    = 0x2000000
-#define STATUS_FORBIDDEN         = 0x4000000
-#define STATUS_ACT_FROM_HAND     = 0x8000000
-#define STATUS_OPPO_BATTLE       = 0x10000000
-#define STATUS_FLIP_SUMMON_TURN  = 0x20000000
-#define STATUS_SPSUMMON_TURN     = 0x40000000
+#define STATUS_DISABLED           0x0001
+#define STATUS_TO_ENABLE          0x0002
+#define STATUS_TO_DISABLE         0x0004
+#define STATUS_PROC_COMPLETE      0x0008
+#define STATUS_SET_TURN           0x0010
+#define STATUS_NO_LEVEL           0x0020
+#define STATUS_BATTLE_RESULT      0x0040
+#define STATUS_SPSUMMON_STEP      0x0080
+#define STATUS_FORM_CHANGED       0x0100
+#define STATUS_SUMMONING          0x0200
+#define STATUS_EFFECT_ENABLED     0x0400
+#define STATUS_SUMMON_TURN        0x0800
+#define STATUS_DESTROY_CONFIRMED  0x1000
+#define STATUS_LEAVE_CONFIRMED    0x2000
+#define STATUS_BATTLE_DESTROYED   0x4000
+#define STATUS_COPYING_EFFECT     0x8000
+#define STATUS_CHAINING           0x10000
+#define STATUS_SUMMON_DISABLED    0x20000
+#define STATUS_ACTIVATE_DISABLED  0x40000
+#define STATUS_EFFECT_REPLACED    0x80000
+#define STATUS_FUTURE_FUSION      0x100000
+#define STATUS_ATTACK_CANCELED    0x200000
+#define STATUS_INITIALIZING       0x400000
+//#define STATUS_ACTIVATED          0x800000
+#define STATUS_JUST_POS           0x1000000
+#define STATUS_CONTINUOUS_POS     0x2000000
+#define STATUS_FORBIDDEN          0x4000000
+#define STATUS_ACT_FROM_HAND      0x8000000
+#define STATUS_OPPO_BATTLE        0x10000000
+#define STATUS_FLIP_SUMMON_TURN   0x20000000
+#define STATUS_SPSUMMON_TURN      0x40000000
 
 //Query list
 #define QUERY_CODE			0x1
@@ -388,16 +388,16 @@ struct card_sort {
 #define PLAYER_ALL		3
 
 //Phases
-#define PHASE_DRAW         = 0x01
-#define PHASE_STANDBY      = 0x02
-#define PHASE_MAIN1        = 0x04
-#define PHASE_BATTLE_START = 0x08
-#define PHASE_BATTLE_STEP  = 0x10
-#define PHASE_DAMAGE       = 0x20
-#define PHASE_DAMAGE_CAL   = 0x40
-#define PHASE_BATTLE       = 0x80
-#define PHASE_MAIN2        = 0x100
-#define PHASE_END          = 0x200
+#define PHASE_DRAW          0x01
+#define PHASE_STANDBY       0x02
+#define PHASE_MAIN1         0x04
+#define PHASE_BATTLE_START  0x08
+#define PHASE_BATTLE_STEP   0x10
+#define PHASE_DAMAGE        0x20
+#define PHASE_DAMAGE_CAL    0x40
+#define PHASE_BATTLE        0x80
+#define PHASE_MAIN2         0x100
+#define PHASE_END           0x200
 
 //Options
 #define DUEL_TEST_MODE         0x01
