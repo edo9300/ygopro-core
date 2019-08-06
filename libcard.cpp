@@ -1165,7 +1165,7 @@ int32 scriptlib::card_set_status(lua_State *L) {
 	pcard->set_status(tstatus, enable);
 	return 0;
 }
-int32 scriptlib::card_is_dual_state(lua_State *L) {
+int32 scriptlib::card_is_gemini_state(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
@@ -1177,7 +1177,7 @@ int32 scriptlib::card_is_dual_state(lua_State *L) {
 	lua_pushboolean(L, ret);
 	return 1;
 }
-int32 scriptlib::card_enable_dual_state(lua_State *L) {
+int32 scriptlib::card_enable_gemini_state(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
