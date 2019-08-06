@@ -1515,11 +1515,11 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			if(!ignore_count && (core.extra_summon[sumplayer] || !target->is_affected_by_effect(EFFECT_EXTRA_SUMMON_COUNT))
 				&& (core.summon_count[sumplayer] >= get_summon_count_limit(sumplayer)))
 				return TRUE;
-			if(!target->is_affected_by_effect(EFFECT_DUAL_SUMMONABLE))
+			if(!target->is_affected_by_effect(EFFECT_GEMINI_SUMMONABLE))
 				return TRUE;
-			if(target->is_affected_by_effect(EFFECT_DUAL_STATUS))
+			if(target->is_affected_by_effect(EFFECT_GEMINI_STATUS))
 				return TRUE;
-			if(!is_player_can_summon(SUMMON_TYPE_DUAL, sumplayer, target, sumplayer))
+			if(!is_player_can_summon(SUMMON_TYPE_GEMINI, sumplayer, target, sumplayer))
 				return TRUE;
 		} else {
 			effect_set eset;
@@ -1890,7 +1890,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		target->current.reason_player = sumplayer;
 		effect* deffect = pduel->new_effect();
 		deffect->owner = target;
-		deffect->code = EFFECT_DUAL_STATUS;
+		deffect->code = EFFECT_GEMINI_STATUS;
 		deffect->type = EFFECT_TYPE_SINGLE;
 		deffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_CLIENT_HINT;
 		deffect->description = 64;

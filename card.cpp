@@ -3390,9 +3390,9 @@ int32 card::is_can_be_summoned(uint8 playerid, uint8 ignore_count, effect* peffe
 	}
 	if(current.location == LOCATION_MZONE) {
 		if(is_position(POS_FACEDOWN)
-		        || !is_affected_by_effect(EFFECT_DUAL_SUMMONABLE)
-		        || is_affected_by_effect(EFFECT_DUAL_STATUS)
-		        || !pduel->game_field->is_player_can_summon(SUMMON_TYPE_DUAL, playerid, this, playerid)
+		        || !is_affected_by_effect(EFFECT_GEMINI_SUMMONABLE)
+		        || is_affected_by_effect(EFFECT_GEMINI_STATUS)
+		        || !pduel->game_field->is_player_can_summon(SUMMON_TYPE_GEMINI, playerid, this, playerid)
 		        || is_affected_by_effect(EFFECT_CANNOT_SUMMON)) {
 			pduel->game_field->restore_lp_cost();
 			return FALSE;

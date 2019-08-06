@@ -1170,7 +1170,7 @@ int32 scriptlib::card_is_dual_state(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	int32 ret = 0;
-	if(pcard->is_affected_by_effect(EFFECT_DUAL_STATUS))
+	if(pcard->is_affected_by_effect(EFFECT_GEMINI_STATUS))
 		ret = 1;
 	else
 		ret = 0;
@@ -1184,7 +1184,7 @@ int32 scriptlib::card_enable_dual_state(lua_State *L) {
 	duel* pduel = pcard->pduel;
 	effect* deffect = pduel->new_effect();
 	deffect->owner = pcard;
-	deffect->code = EFFECT_DUAL_STATUS;
+	deffect->code = EFFECT_GEMINI_STATUS;
 	deffect->type = EFFECT_TYPE_SINGLE;
 	deffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
 	deffect->reset_flag = RESET_EVENT + 0x1fe0000;
