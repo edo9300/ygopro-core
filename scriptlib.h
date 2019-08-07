@@ -115,8 +115,8 @@ public:
 	static int32 card_is_status(lua_State *L);
 	static int32 card_is_not_tuner(lua_State *L);
 	static int32 card_set_status(lua_State *L);
-	static int32 card_is_dual_state(lua_State *L);
-	static int32 card_enable_dual_state(lua_State *L);
+	static int32 card_is_gemini_state(lua_State *L);
+	static int32 card_enable_gemini_state(lua_State *L);
 	static int32 card_set_turn_counter(lua_State *L);
 	static int32 card_get_turn_counter(lua_State *L);
 	static int32 card_set_material(lua_State *L);
