@@ -9,7 +9,7 @@
 #define OCGAPI_H_
 
 #include "common.h"
-#ifdef WIN32
+#if defined(WIN32) && defined(YGOPRO_BUILD_DLL)
 #define DECL_DLLEXPORT __declspec(dllexport)
 #else
 #define DECL_DLLEXPORT

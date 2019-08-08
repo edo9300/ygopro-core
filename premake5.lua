@@ -88,6 +88,7 @@ project "ocgcore"
 project "ocgcoreshared"
 	kind "SharedLib"
 	targetname "ocgcore"
+	defines "YGOPRO_BUILD_DLL"
 	staticruntime "on"
 	ocgcore_config()
 	
