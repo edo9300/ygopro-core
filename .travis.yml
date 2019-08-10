@@ -19,6 +19,11 @@ matrix:
   include:
   - name: "Windows 10"
     os: windows
+    env:
+    - VCPKG_ROOT=/c/vcpkg
+    - VCPKG_DEFAULT_TRIPLET=x86-windows-static
+    - VCPKG_LIBS="lua[cpp]"
+    - VCPKG_CACHE_ZIP_URL=https://github.com/kevinlul/edopro-vcpkg-cache/raw/master/installed-core.zip
   - name: "Bionic GCC9"
     os: linux
     compiler: gcc
@@ -62,11 +67,13 @@ before_install:
   fi  
 install:
 - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
-    git clone --depth=1 https://github.com/Microsoft/vcpkg.git /c/vcpkg;
-    cd /c/vcpkg;
+    git clone --depth=1 https://github.com/Microsoft/vcpkg.git "$VCPKG_ROOT";
+    cd "$VCPKG_ROOT";
+    curl --retry 5 --connect-timeout 30 --location --remote-header-name --output installed.zip $VCPKG_CACHE_ZIP_URL;
+    unzip -uo installed.zip;
     powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& '.\bootstrap-vcpkg.bat'";
     ./vcpkg.exe integrate install;
-    ./vcpkg.exe install lua[cpp]:x86-windows-static;
+    ./vcpkg.exe install $VCPKG_LIBS;
     cd -;
   fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
