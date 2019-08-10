@@ -14,7 +14,6 @@ addons:
     - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
     - g++-9
-    - liblua5.3-dev 
 matrix:
   include:
   - name: "Windows 10"
@@ -60,12 +59,15 @@ install:
     ./vcpkg.exe integrate install;
     ./vcpkg.exe install $VCPKG_LIBS;
     cd -;
-  fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+  else
     cd /tmp;
     curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz;
     tar xf lua-5.3.5.tar.gz;
-    make -Clua-5.3.5 macosx CC=g++;
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+      make -Clua-5.3.5 macosx CC=g++;
+    else
+      make -Clua-5.3.5 linux;
+    fi;
     sudo make -Clua-5.3.5 install;
     cd -;
   fi
