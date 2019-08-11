@@ -1,9 +1,8 @@
 language: cpp
 sudo: required
-dist: xenial
+dist: bionic
 git:
   depth: 1
-  submodules: false
 env:
   global:
   - BUILD_CONFIG=release
@@ -12,7 +11,7 @@ addons:
   apt:
     update: true
     sources:
-    - ubuntu-toolchain-r-test
+    - sourceline: 'ppa:ubuntu-toolchain-r/test'
     packages:
     - g++-9
     - liblua5.3-dev 
@@ -20,13 +19,27 @@ matrix:
   include:
   - name: "Windows 10"
     os: windows
+    env:
+    - VCPKG_ROOT=/c/vcpkg
+    - VCPKG_DEFAULT_TRIPLET=x86-windows-static
+    - VCPKG_LIBS="lua[cpp]"
+    - VCPKG_CACHE_ZIP_URL=https://github.com/kevinlul/edopro-vcpkg-cache/raw/master/installed-core.zip
+  - name: "Bionic GCC9"
+    os: linux
+    compiler: gcc
+    env:
+    - CC=gcc-9
+    - CXX=g++-9
+  - name: "Bionic LLVM/Clang"
+    os: linux
+    compiler: clang
+  - name: "Mojave"
+    os: osx
+    osx_image: xcode10.2
   - name: "High Sierra"
     os: osx
     osx_image: xcode9.4
     deploy: false
-  - name: "Mojave"
-    os: osx
-    osx_image: xcode10.2
   - name: "Sierra"
     os: osx
     osx_image: xcode9.2
@@ -34,15 +47,6 @@ matrix:
   - name: "El Capitan"
     os: osx
     osx_image: xcode8
-    deploy: false
-  - name: "Xenial GCC9"
-    os: linux
-    compiler: gcc  
-    env: 
-    - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"  
-  - name: "Xenial GCC5.4"
-    os: linux
-    compiler: gcc
     deploy: false
   allow_failures:
   - name: "Sierra"
@@ -63,11 +67,13 @@ before_install:
   fi  
 install:
 - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
-    git clone --depth=1 https://github.com/Microsoft/vcpkg.git /c/vcpkg;
-    cd /c/vcpkg;
+    git clone --depth=1 https://github.com/Microsoft/vcpkg.git "$VCPKG_ROOT";
+    cd "$VCPKG_ROOT";
+    curl --retry 5 --connect-timeout 30 --location --remote-header-name --output installed.zip $VCPKG_CACHE_ZIP_URL;
+    unzip -uo installed.zip;
     powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& '.\bootstrap-vcpkg.bat'";
     ./vcpkg.exe integrate install;
-    ./vcpkg.exe install lua[cpp]:x86-windows-static;
+    ./vcpkg.exe install $VCPKG_LIBS;
     cd -;
   fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
@@ -84,7 +90,7 @@ script:
     "$MSBUILD_PATH/msbuild.exe" -m -p:Configuration=$BUILD_CONFIG ./build/ocgcore.sln;
   else
     ./premake5 gmake2;
-    make -Cbuild config=$BUILD_CONFIG;
+    make -Cbuild -j2 config=$BUILD_CONFIG;
   fi
 #deploy:
 #- provider: releases
