@@ -11,9 +11,6 @@ local ocgcore_config=function()
 	filter "system:not windows"
 		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }
 
-	filter "system:bsd"
-		defines "LUA_USE_POSIX"
-
 	filter "system:macosx"
 		defines "LUA_USE_MACOSX"
 
@@ -31,10 +28,6 @@ if not subproject then
 	
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
-	
-	filter "system:bsd"
-		includedirs "/usr/local/include"
-		libdirs "/usr/local/lib"
 	
 	filter "system:macosx"
 		toolset "clang"
