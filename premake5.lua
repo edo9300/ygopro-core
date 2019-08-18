@@ -2,17 +2,11 @@ local ocgcore_config=function()
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
 	warnings "Extra"
 	optimize "Speed"
-
+	cppdialect "C++14"
 	defines "LUA_COMPAT_5_2"
 
-	filter "action:not vs*"
-        buildoptions "-std=c++14"
-
 	filter "system:not windows"
-		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }
-
-	filter "system:bsd"
-		defines "LUA_USE_POSIX"
+		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 
 	filter "system:macosx"
 		defines "LUA_USE_MACOSX"
@@ -32,12 +26,7 @@ if not subproject then
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
 	
-	filter "system:bsd"
-		includedirs "/usr/local/include"
-		libdirs "/usr/local/lib"
-	
 	filter "system:macosx"
-		toolset "clang"
 		includedirs "/usr/local/include"
 		libdirs "/usr/local/lib"
 	
