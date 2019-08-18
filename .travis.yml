@@ -64,9 +64,9 @@ install:
     curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz;
     tar xf lua-5.3.5.tar.gz;
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
-      make -Clua-5.3.5 macosx CC=g++;
+      make -Clua-5.3.5 macosx CC=$CXX;
     else
-      make -Clua-5.3.5 linux;
+      make -Clua-5.3.5 linux CC=$CXX;
     fi;
     sudo make -Clua-5.3.5 install;
     cd -;
