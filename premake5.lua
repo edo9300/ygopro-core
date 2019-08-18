@@ -2,14 +2,11 @@ local ocgcore_config=function()
 	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
 	warnings "Extra"
 	optimize "Speed"
-
+	cppdialect "C++14"
 	defines "LUA_COMPAT_5_2"
 
-	filter "action:not vs*"
-        buildoptions "-std=c++14"
-
 	filter "system:not windows"
-		buildoptions { "-std=c++14", "-Wno-unused-parameter", "-pedantic" }
+		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 
 	filter "system:macosx"
 		defines "LUA_USE_MACOSX"
