@@ -8,12 +8,11 @@ local ocgcore_config=function()
 	filter "system:not windows"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 
-	filter "system:macosx"
-		defines "LUA_USE_MACOSX"
-
 	filter "system:linux"
 		defines "LUA_USE_LINUX"
-		includedirs "/usr/include/lua5.3"
+
+	filter "system:macosx"
+		defines "LUA_USE_MACOSX"
 end
 
 if not subproject then
@@ -25,6 +24,10 @@ if not subproject then
 	
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
+	
+	filter "system:linux"
+		includedirs "/usr/local/include"
+		libdirs "/usr/local/lib"
 	
 	filter "system:macosx"
 		includedirs "/usr/local/include"
@@ -81,8 +84,8 @@ project "ocgcoreshared"
 	staticruntime "on"
 	ocgcore_config()
 	
-	filter "system:linux or system:bsd"
-		links "lua5.3-c++" 
-		
+	filter "system:linux"
+		links "lua:static"
+
 	filter "system:macosx"
-		links "lua" 
+		links "lua"
