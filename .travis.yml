@@ -35,23 +35,8 @@ matrix:
     compiler: clang
   - name: "Mojave"
     os: osx
-    osx_image: xcode10.2
-  - name: "High Sierra"
-    os: osx
-    osx_image: xcode9.4
-    deploy: false
-  - name: "Sierra"
-    os: osx
-    osx_image: xcode9.2
-    deploy: false
-  - name: "El Capitan"
-    os: osx
-    osx_image: xcode8
-    deploy: false
-  allow_failures:
-  - name: "Sierra"
-  - name: "El Capitan"
-  fast_finish: true
+    osx_image: xcode10.3
+    env: MACOSX_DEPLOYMENT_TARGET=10.11
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
     curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-windows.zip;

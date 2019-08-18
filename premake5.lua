@@ -27,7 +27,6 @@ if not subproject then
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
 	
 	filter "system:macosx"
-		toolset "clang"
 		includedirs "/usr/local/include"
 		libdirs "/usr/local/lib"
 	
