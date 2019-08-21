@@ -7,13 +7,6 @@ env:
   global:
   - BUILD_CONFIG=release
   - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
-addons:
-  apt:
-    update: true
-    sources:
-    - sourceline: 'ppa:ubuntu-toolchain-r/test'
-    packages:
-    - g++-9
 matrix:
   include:
   - name: "Windows 10"
@@ -23,12 +16,9 @@ matrix:
     - VCPKG_DEFAULT_TRIPLET=x86-windows-static
     - VCPKG_LIBS="lua[cpp]"
     - VCPKG_CACHE_ZIP_URL=https://github.com/kevinlul/edopro-vcpkg-cache/raw/master/installed-core.zip
-  - name: "Bionic GCC9"
+  - name: "Bionic GCC7"
     os: linux
     compiler: gcc
-    env:
-    - CC=gcc-9
-    - CXX=g++-9
   - name: "Bionic LLVM/Clang"
     os: linux
     compiler: clang
