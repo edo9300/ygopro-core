@@ -3348,10 +3348,17 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		int32 playerid = lua_tointeger(L, 1);
-		auto message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_OPSELECTED);
-		message->write<uint8>(playerid);
-		message->write<uint64>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
+		uint32 sel_hint = TRUE;
+		uint32 i = 0;
+		if(lua_isboolean(L, 2)) {
+			sel_hint = lua_toboolean(L, 2);
+		}
+		if(sel_hint) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_OPSELECTED);
+			message->write<uint8>(playerid);
+			message->write<uint64>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
+		}
 		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));
 		return 1;
 	});
