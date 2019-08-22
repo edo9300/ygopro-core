@@ -399,6 +399,7 @@ public:
 	void reset_sequence(uint8 playerid, uint8 location);
 	void swap_deck_and_grave(uint8 playerid);
 	void reverse_deck(uint8 playerid);
+	int get_player_count(uint8 playerid);
 	void tag_swap(uint8 playerid);
 	bool relay_check(uint8 playerid);
 	void next_player(uint8 playerid);

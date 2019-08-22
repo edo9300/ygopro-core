@@ -4404,6 +4404,15 @@ int32 scriptlib::duel_tag_swap(lua_State *L) {
 	pduel->game_field->tag_swap(playerid);
 	return 0;
 }
+int32 scriptlib::duel_get_player_count(lua_State * L) {
+	check_param_count(L, 1);
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 playerid = lua_tonumberint(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	lua_pushinteger(L, pduel->game_field->get_player_count(playerid));
+	return 1;
+}
 int32 scriptlib::duel_swap_deck_and_grave(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 1);

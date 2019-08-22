@@ -1000,6 +1000,9 @@ void field::reverse_deck(uint8 playerid) {
 		player[playerid].list_main[count - 1 - i] = tmp;
 	}
 }
+int field::get_player_count(uint8 playerid) {
+	return player[playerid].extra_lists_main.size() + 1;
+}
 void field::tag_swap(uint8 playerid) {
 	if(player[playerid].extra_lists_main.empty())
 		return;
