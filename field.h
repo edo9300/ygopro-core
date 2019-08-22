@@ -539,6 +539,7 @@ public:
 	void refresh_location_info_instant();
 	int32 refresh_location_info(uint16 step);
 	int32 adjust_step(uint16 step);
+	int32 startup(uint16 step);
 
 	//operations
 	int32 negate_chain(uint8 chaincount);
@@ -718,6 +719,7 @@ public:
 #define PROCESSOR_TURN				3
 #define PROCESSOR_WAIT				4
 #define PROCESSOR_REFRESH_LOC		5
+#define PROCESSOR_STARTUP			6
 #define PROCESSOR_SELECT_IDLECMD	10
 #define PROCESSOR_SELECT_EFFECTYN	11
 #define PROCESSOR_SELECT_BATTLECMD	12

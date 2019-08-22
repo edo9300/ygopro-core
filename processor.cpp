@@ -61,6 +61,14 @@ int32 field::process() {
 			it->step++;
 		return PROCESSOR_FLAG_NONE;
 	}
+	case PROCESSOR_STARTUP: {
+		if (startup(it->step))
+			core.units.pop_front();
+		else {
+			it->step++;
+		}
+		return PROCESSOR_FLAG_NONE;
+	}
 	case PROCESSOR_SELECT_BATTLECMD: {
 		if (select_battle_command(it->step, it->arg1)) {
 			core.units.pop_front();
@@ -2739,7 +2747,7 @@ int32 field::process_battle_command(uint16 step) {
 			raise_event(core.attack_target, EVENT_BE_BATTLE_TARGET, 0, 0, 0, 1 - infos.turn_player, 0);
 			message->write(core.attack_target->get_info_location());
 		} else {
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 		}
 		core.attack_rollback = FALSE;
 		core.opp_mzone.clear();
@@ -3033,7 +3041,7 @@ int32 field::process_battle_command(uint16 step) {
 			message->write<uint32>(dd);
 			message->write<uint8>(bd[1]);
 		} else {
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 			message->write<uint32>(0);
 			message->write<uint32>(0);
 			message->write<uint8>(0);
@@ -3437,7 +3445,7 @@ int32 field::process_damage_step(uint16 step, uint32 new_attack) {
 		if(core.attack_target) {
 			message->write(core.attack_target->get_info_location());
 		} else {
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 		}
 		infos.phase = PHASE_DAMAGE;
 		message = pduel->new_message(MSG_DAMAGE_STEP_START);
@@ -5252,6 +5260,17 @@ int32 field::adjust_step(uint16 step) {
 			shuffle(0, LOCATION_DECK);
 		if(core.shuffle_deck_check[1])
 			shuffle(1, LOCATION_DECK);
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
+
+int32 field::startup(uint16 step) {
+	switch(step) {
+	case 0: {
+		raise_event((card*)0, EVENT_STARTUP, 0, 0, 0, 0, 0);
+		process_instant_event();
 		return TRUE;
 	}
 	}
