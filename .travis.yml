@@ -7,6 +7,8 @@ env:
   global:
   - BUILD_CONFIG=Release
   - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
+  - DEPLOY_DIR=ocgcore
+  - DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME
 matrix:
   include:
   - name: "Windows 10"
@@ -19,31 +21,37 @@ matrix:
   - name: "Bionic GCC7"
     os: linux
     compiler: gcc
+    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-$CXX
   - name: "Bionic LLVM7"
     os: linux
     compiler: clang
+    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-$CXX
   - name: "Mojave"
     os: osx
     osx_image: xcode10.3
     env: MACOSX_DEPLOYMENT_TARGET=10.11
 install: ./travis/install-lua.sh
 script: ./travis/build-cmake.sh
-#deploy:
+before_deploy: ./travis/predeploy.sh
+deploy:
+- provider: script
+  script: bash ./travis/deploy-windows.sh
+  on:
+    condition: "$TRAVIS_OS_NAME == windows"
+- provider: pages
+  skip_cleanup: true
+  local_dir: $DEPLOY_DIR
+  github_token: $DEPLOY_TOKEN
+  repo: $DEPLOY_REPO
+  target_branch: $DEPLOY_BRANCH
+  on:
+    condition: "$TRAVIS_OS_NAME != windows" 
 #- provider: releases
 #  api_key: $OAUTH_TOKEN
-#  file:
-#  - bin/release/ocgcore.dll
-#  - bin/release/libocgcore.dylib
-#  - bin/release/libocgcore.so
-#  skip_cleanup: true
-#  draft: true
 #  overwrite: true
-#- provider: releases
-#  api_key: $OAUTH_TOKEN
-#  file:
-#  - bin/release/ocgcore.dll
-#  - bin/release/libocgcore.dylib
-#  - bin/release/libocgcore.so
 #  skip_cleanup: true
+#  file:
+#  - ocgcore-$TRAVIS_OS_NAME.zip
+#  - ocgcore-$TRAVIS_OS_NAME.tar.gz
 #  on:
 #    tags: true
