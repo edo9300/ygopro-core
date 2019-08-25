@@ -3,6 +3,12 @@ set(CMAKE_CXX_STANDARD 14)
 
 project(ocgcore)
 
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+option(OCGCORE_MSVC_STATIC "Static CRT on Visual Studio" ON)
+
 find_package(Lua REQUIRED)
 
 add_compile_definitions(ocgcore PUBLIC LUA_COMPAT_5_2)
@@ -44,3 +50,20 @@ set(OCGCORE_SOURCE
 
 target_sources(ocgcore_static PRIVATE ${OCGCORE_SOURCE})
 target_sources(ocgcore PRIVATE ${OCGCORE_SOURCE})
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ocgcore)
+if(OCGCORE_MSVC_STATIC AND MSVC)
+	set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        )
+	foreach(CompilerFlag ${CompilerFlags})
+  		string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+	endforeach()
+	# CMake 3.15
+	# set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
