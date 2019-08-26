@@ -21,11 +21,11 @@ matrix:
   - name: "Bionic GCC7"
     os: linux
     compiler: gcc
-    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-$CXX
+    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-gcc7
   - name: "Bionic LLVM7"
     os: linux
     compiler: clang
-    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-$CXX
+    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-llvm7
   - name: "Mojave"
     os: osx
     osx_image: xcode10.3
@@ -35,6 +35,7 @@ script: ./travis/build-cmake.sh
 before_deploy: ./travis/predeploy.sh
 deploy:
 - provider: script
+  skip_cleanup: true
   script: bash ./travis/deploy-windows.sh
   on:
     condition: "$TRAVIS_OS_NAME == windows"
