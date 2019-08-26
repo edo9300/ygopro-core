@@ -1,3 +1,6 @@
-build/
+[Bb]uild*/
 bin/
 obj/
+.vscode/
+.idea/
+.DS_Store

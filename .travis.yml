@@ -5,8 +5,10 @@ git:
   depth: 1
 env:
   global:
-  - BUILD_CONFIG=release
+  - BUILD_CONFIG=Release
   - MSBUILD_PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin"
+  - DEPLOY_DIR=ocgcore
+  - DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME
 matrix:
   include:
   - name: "Windows 10"
@@ -19,72 +21,37 @@ matrix:
   - name: "Bionic GCC7"
     os: linux
     compiler: gcc
-  - name: "Bionic LLVM/Clang"
+    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-$CXX
+  - name: "Bionic LLVM7"
     os: linux
     compiler: clang
+    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-$CXX
   - name: "Mojave"
     os: osx
     osx_image: xcode10.3
     env: MACOSX_DEPLOYMENT_TARGET=10.11
-before_install:
-- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
-    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-windows.zip;
-    unzip -uo premake-5.0.0-alpha14-windows.zip;
-  fi  
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
-    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz;
-    tar xf premake-5.0.0-alpha14-linux.tar.gz;
-  fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
-    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-macosx.tar.gz;
-    tar xf premake-5.0.0-alpha14-macosx.tar.gz;
-  fi  
-install:
-- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then 
-    git clone --depth=1 https://github.com/Microsoft/vcpkg.git "$VCPKG_ROOT";
-    cd "$VCPKG_ROOT";
-    curl --retry 5 --connect-timeout 30 --location --remote-header-name --output installed.zip $VCPKG_CACHE_ZIP_URL;
-    unzip -uo installed.zip;
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& '.\bootstrap-vcpkg.bat'";
-    ./vcpkg.exe integrate install;
-    ./vcpkg.exe install $VCPKG_LIBS;
-    cd -;
-  else
-    cd /tmp;
-    curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz;
-    tar xf lua-5.3.5.tar.gz;
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
-      make -Clua-5.3.5 macosx CC=$CXX;
-    else
-      make -Clua-5.3.5 linux CC=$CXX MYCFLAGS=-fPIC;
-    fi;
-    sudo make -Clua-5.3.5 install;
-    cd -;
-  fi
-script:
-- if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-    ./premake5 vs2017;
-    "$MSBUILD_PATH/msbuild.exe" -m -p:Configuration=$BUILD_CONFIG ./build/ocgcore.sln;
-  else
-    ./premake5 gmake2;
-    make -Cbuild -j2 config=$BUILD_CONFIG;
-  fi
-#deploy:
+install: ./travis/install-lua.sh
+script: ./travis/build-cmake.sh
+before_deploy: ./travis/predeploy.sh
+deploy:
+- provider: script
+  script: bash ./travis/deploy-windows.sh
+  on:
+    condition: "$TRAVIS_OS_NAME == windows"
+- provider: pages
+  skip_cleanup: true
+  local_dir: $DEPLOY_DIR
+  github_token: $DEPLOY_TOKEN
+  repo: $DEPLOY_REPO
+  target_branch: $DEPLOY_BRANCH
+  on:
+    condition: "$TRAVIS_OS_NAME != windows" 
 #- provider: releases
 #  api_key: $OAUTH_TOKEN
-#  file:
-#  - bin/release/ocgcore.dll
-#  - bin/release/libocgcore.dylib
-#  - bin/release/libocgcore.so
-#  skip_cleanup: true
-#  draft: true
 #  overwrite: true
-#- provider: releases
-#  api_key: $OAUTH_TOKEN
-#  file:
-#  - bin/release/ocgcore.dll
-#  - bin/release/libocgcore.dylib
-#  - bin/release/libocgcore.so
 #  skip_cleanup: true
+#  file:
+#  - ocgcore-$TRAVIS_OS_NAME.zip
+#  - ocgcore-$TRAVIS_OS_NAME.tar.gz
 #  on:
 #    tags: true
