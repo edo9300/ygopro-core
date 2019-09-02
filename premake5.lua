@@ -1,5 +1,5 @@
 local ocgcore_config=function()
-	files { "**.cc", "**.cpp", "**.c", "**.hh", "**.hpp", "**.h" }
+	files { "*.h", "*.cpp" }
 	warnings "Extra"
 	optimize "Speed"
 	cppdialect "C++14"
