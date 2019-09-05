@@ -21,7 +21,23 @@
 OCGAPI void OCG_GetVersion(int* major, int* minor);
 /* OCGAPI void OCG_GetName(const char** name); Maybe created by git hash? */
 
-struct OCG_Duel; // Opaque pointer to a Duel class
+typedef struct OCG_Duel OCG_Duel; /* Opaque pointer to a Duel class */
+
+typedef struct CardData
+{
+	uint32_t code;
+	uint32_t alias;
+	uint64_t setcode;
+	uint32_t type;
+	uint32_t level;
+	uint32_t attribute;
+	uint32_t race;
+	int32_t attack;
+	int32_t defense;
+	uint32_t lscale;
+	uint32_t rscale;
+	uint32_t link_marker;
+}CardData;
 
 typedef int (*OCG_DataReader)(void* userdata, int code, CardData* data);
 typedef int (*OCG_ScriptReader)(void* userdata, int code, char** script);
@@ -36,7 +52,7 @@ typedef struct OCG_DuelOptions
 	void* userdata1; // relayed to cardReader
 	OCG_ScriptReader scriptReader;
 	void* userdata2; // relayed to scriptReader
-};
+}OCG_DuelOptions;
 OCGAPI int OCG_CreateDuel(OCG_Duel** duel, OCG_DuelOptions* options);
 OCGAPI void OCG_DestroyDuel(OCG_Duel* duel);
 
@@ -46,7 +62,7 @@ typedef struct OCG_Player
 	int startingLP;
 	int startingDrawCount;
 	int drawCountPerTurn;
-};
+}OCG_Player;
 OCGAPI void OCG_DuelPlayer(OCG_Duel* duel, int pos, OCG_Player* options);
 
 typedef struct OCG_NewCardInfo
@@ -58,7 +74,7 @@ typedef struct OCG_NewCardInfo
 	uint32_t sequence;
 	uint32_t position;
 	/*uint32_t duelist; FIXME: explain this */
-};
+}OCG_NewCardInfo;
 OCGAPI void OCG_DuelNewCard(OCG_Duel* duel, OCG_NewCardInfo* info);
 
 OCGAPI int OCG_StartDuel(OCG_Duel* duel);
@@ -69,8 +85,8 @@ typedef enum OCG_DuelStatus
 	OCG_DUEL_STATUS_END, /* Duel ended */
 	OCG_DUEL_STATUS_AWAITING, /* Duel needs a response */
 	OCG_DUEL_STATUS_CONTINUE /* Duel can continue execution */
-};
-OCGAPI OCG_DuelStatus OCG_DuelProcess(OCG_Duel* duel);
+}OCG_DuelStatus;
+OCGAPI int OCG_DuelProcess(OCG_Duel* duel);
 OCGAPI void OCG_DuelGetMessage(OCG_Duel* duel, void** buffer, int* length);
 
 OCGAPI void OCG_DuelSetResponse(OCG_Duel* duel, void* buffer, int length);
