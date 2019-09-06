@@ -87,6 +87,14 @@ typedef struct OCG_NewCardInfo {
 	uint32_t pos;
 }OCG_NewCardInfo;
 
+typedef struct OCG_QueryInfo {
+	uint32_t flags;
+	uint8_t con;
+	uint32_t loc;
+	uint32_t seq;
+	uint32_t overlay_seq;
+}OCG_QueryInfo;
+
 /*** CORE INFORMATION ***/
 OCGAPI void OCG_GetVersion(int* major, int* minor);
 /* OCGAPI void OCG_GetName(const char** name); Maybe created by git hash? */
@@ -103,6 +111,8 @@ OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, int* length);
 OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length);
 OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name);
 
-/* TODO queries */
+OCGAPI int OCG_DuelQueryCount(OCG_Duel duel, uint8_t pos, uint32_t loc);
+OCGAPI void* OCG_DuelQuery(OCG_Duel duel, int* length, OCG_QueryInfo info);
+OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, int* length);
 
 #endif /* OCGAPI_H */
