@@ -134,10 +134,10 @@ OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
 	return flag;
 }
 
-OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen) {
+OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* length) {
 	DUEL->generate_buffer();
-	if(retlen)
-		*retlen = DUEL->buff.size();
+	if(length)
+		*length = DUEL->buff.size();
 	return DUEL->buff.data();
 }
 
@@ -145,8 +145,8 @@ OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length) {
 	DUEL->set_response(static_cast<uint8_t*>(buffer), length);
 }
 
-OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* scriptName) {
-	return DUEL->lua->load_script(buffer, length, scriptName);
+OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name) {
+	return DUEL->lua->load_script(buffer, length, name);
 }
 
 int DefaultLogHandler(void* payload, char* string, int type)

@@ -21,7 +21,7 @@
 OCGAPI void OCG_GetVersion(int* major, int* minor);
 /* OCGAPI void OCG_GetName(const char** name); Maybe created by git hash? */
 
-typedef void* OCG_Duel; /* Opaque pointer to a Duel class */
+typedef void* OCG_Duel;
 
 typedef struct CardData {
 	uint32_t code;
@@ -39,7 +39,7 @@ typedef struct CardData {
 }CardData;
 
 typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
-typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* scriptName);
+typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* name);
 typedef enum OCG_LogTypes {
 	OCG_LOG_TYPE_ERROR,
 	OCG_LOG_TYPE_FROM_SCRIPT,
@@ -59,11 +59,11 @@ typedef struct OCG_DuelOptions {
 	OCG_Player team1;
 	OCG_Player team2;
 	OCG_DataReader cardReader;
-	void* payload1; // relayed to cardReader
+	void* payload1; /* relayed to cardReader */
 	OCG_ScriptReader scriptReader;
-	void* payload2; // relayed to scriptReader
+	void* payload2; /* relayed to scriptReader */
 	OCG_LogHandler logHandler;
-	void* payload3; // relayed to errorHandler
+	void* payload3; /* relayed to errorHandler */
 }OCG_DuelOptions;
 typedef enum OCG_DuelCreationStatus {
 	OCG_DUEL_CREATION_SUCCESS,
@@ -95,13 +95,13 @@ typedef enum OCG_DuelStatus {
 	OCG_DUEL_STATUS_CONTINUE /* Duel can continue execution */
 }OCG_DuelStatus;
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
-OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen);
+OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* length);
 
 OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length);
 
-OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* scriptName); //direct call to load_script
+OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name);
 
 
 /* TODO queries */
 
-#endif // OCGAPI_H
+#endif /* OCGAPI_H */
