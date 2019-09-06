@@ -69,13 +69,13 @@ OCGAPI void OCG_DuelPlayer(OCG_Duel* duel, int pos, OCG_Player* options);
 
 typedef struct OCG_NewCardInfo
 {
+	uint8_t team; /* either 0 or 1 */
+	uint8_t duelist; /* index of original owner */
 	uint32_t code;
-	uint8_t owner;
 	uint8_t controller;
 	uint32_t location;
 	uint32_t sequence;
 	uint32_t position;
-	/*uint32_t duelist; FIXME: explain this */
 }OCG_NewCardInfo;
 OCGAPI void OCG_DuelNewCard(OCG_Duel* duel, OCG_NewCardInfo* info);
 
