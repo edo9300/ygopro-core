@@ -40,7 +40,7 @@ typedef struct CardData
 }CardData;
 
 typedef int (*OCG_DataReader)(void* userdata, int code, CardData* data);
-typedef int (*OCG_ScriptReader)(void* userdata, int code); //has to return a call to OCG_LoadScript
+typedef int (*OCG_ScriptReader)(OCG_Duel* duel, void* userdata, int code); //has to return a call to OCG_LoadScript
 typedef int (*OCG_ErrorHandler)(void* userdata, char* string);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
@@ -91,7 +91,7 @@ OCGAPI void OCG_DuelGetMessage(OCG_Duel* duel, void** buffer, int* length);
 
 OCGAPI void OCG_DuelSetResponse(OCG_Duel* duel, void* buffer, int length);
 
-OCGAPI int OCG_LoadScript(OCG_Duel* duel, char* buffer, int length, char* script_name); //same direct call to load_script
+OCGAPI int OCG_LoadScript(OCG_Duel* duel, char* buffer, int length, char* scriptName); //direct call to load_script
 
 
 /* TODO queries */
