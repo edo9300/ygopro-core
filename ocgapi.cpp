@@ -77,26 +77,6 @@ extern "C" DECL_DLLEXPORT ptr create_duel(uint32 seed) {
 extern "C" DECL_DLLEXPORT void start_duel(ptr pduel, int32 options) {
 	duel* pd = (duel*)pduel;
 	pd->game_field->core.duel_options |= options;
-	int32 duel_rule = 5;
-	switch(options) {
-	case MASTER_RULE_1: {
-		duel_rule = 1;
-	break;
-	}
-	case MASTER_RULE_2: {
-		duel_rule = 2;
-	break;
-	}
-	case MASTER_RULE_3: {
-		duel_rule = 3;
-	break;
-	}
-	case MASTER_RULE_4: {
-		duel_rule = 4;
-	break;
-	}
-	}
-	pd->game_field->core.duel_rule = duel_rule;
 	pd->game_field->core.shuffle_hand_check[0] = FALSE;
 	pd->game_field->core.shuffle_hand_check[1] = FALSE;
 	pd->game_field->core.shuffle_deck_check[0] = FALSE;
@@ -208,8 +188,6 @@ extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uin
 				pcard->current.position = POS_FACEDOWN_DEFENSE;
 				break;
 		}
-
-
 	}
 }
 template<typename T>
@@ -354,7 +332,8 @@ extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 	ptduel->cached_query.clear();
 	//byte* p = buf;
 	insert_value<int8_t>(ptduel->cached_query, MSG_RELOAD_FIELD);
-	insert_value<int8_t>(ptduel->cached_query, ptduel->game_field->core.duel_rule + ((ptduel->game_field->is_flag(SPEED_DUEL) ? 1 : 0) << 4));
+	/*to change*/
+	//insert_value<int8_t>(ptduel->cached_query, ((ptduel->game_field->is_flag(SPEED_DUEL) ? 1 : 0) << 4));
 	for(int playerid = 0; playerid < 2; ++playerid) {
 		auto& player = ptduel->game_field->player[playerid];
 		insert_value<int32_t>(ptduel->cached_query, player.lp);

@@ -3822,11 +3822,6 @@ int32 scriptlib::duel_is_duel_type(lua_State *L) {
 		lua_pushboolean(L, FALSE);
 	return 1;
 }
-int32 scriptlib::duel_get_master_rule(lua_State * L) {
-	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushinteger(L, pduel->game_field->core.duel_rule);
-	return 1;
-}
 int32 scriptlib::duel_is_player_affected_by_effect(lua_State *L) {
 	check_param_count(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);

@@ -102,7 +102,6 @@ field::field(duel* pduel) {
 	core.forced_summon_maxc = 0;
 	core.last_control_changed_id = 0;
 	core.duel_options = 0;
-	core.duel_rule = 0;
 	core.attacker = 0;
 	core.attack_target = 0;
 	core.set_forced_attack = false;
@@ -125,7 +124,8 @@ field::field(duel* pduel) {
 }
 void field::reload_field_info() {
 	auto message = pduel->new_message(MSG_RELOAD_FIELD);
-	message->write<uint8>(core.duel_rule + ((is_flag(SPEED_DUEL) ? 1 : 0) << 4));
+	/*to update*/
+	//message->write<uint8>(core.duel_rule + ((is_flag(SPEED_DUEL) ? 1 : 0) << 4));
 	for(int32 playerid = 0; playerid < 2; ++playerid) {
 		message->write<uint32>(player[playerid].lp);
 		for(auto& pcard : player[playerid].list_mzone) {
