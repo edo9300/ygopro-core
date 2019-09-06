@@ -39,23 +39,19 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 		duelPtr->handle_message = options.logHandler;
 		duelPtr->payload3 = options.payload3;
 	}
+	auto& team = options.team1;
+	for(int i = 0; i < 2; i++, team = options.team2) {
+		duelPtr->game_field->player[i].lp = team.startingLP;
+		duelPtr->game_field->player[i].start_lp = team.startingLP;
+		duelPtr->game_field->player[i].start_count = team.startingDrawCount;
+		duelPtr->game_field->player[i].draw_count = team.drawCountPerTurn;
+	}
 	*duel = static_cast<OCG_Duel>(duelPtr);
 	return OCG_DUEL_CREATION_SUCCESS;
 }
 
 OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
 	delete DUEL;
-}
-
-OCGAPI void OCG_DuelPlayer(OCG_Duel duel, int pos, OCG_Player options) {
-	if(options.startingLP > 0) {
-		DUEL->game_field->player[pos].lp = options.startingLP;
-		DUEL->game_field->player[pos].start_lp = options.startingLP;
-	}
-	if(options.startingDrawCount >= 0)
-		DUEL->game_field->player[pos].start_count = options.startingDrawCount;
-	if(options.drawCountPerTurn >= 0)
-		DUEL->game_field->player[pos].draw_count = options.drawCountPerTurn;
 }
 
 OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
@@ -94,6 +90,36 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 		list.push_back(pcard);
 		pcard->current.sequence = list.size() - 1;
 	}
+}
+
+OCGAPI int OCG_StartDuel(OCG_Duel duel) {
+	DUEL->game_field->core.shuffle_hand_check[0] = FALSE;
+	DUEL->game_field->core.shuffle_hand_check[1] = FALSE;
+	DUEL->game_field->core.shuffle_deck_check[0] = FALSE;
+	DUEL->game_field->core.shuffle_deck_check[1] = FALSE;
+	DUEL->game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
+	if(DUEL->game_field->player[0].start_count > 0)
+		DUEL->game_field->draw(0, REASON_RULE, PLAYER_NONE, 0, DUEL->game_field->player[0].start_count);
+	if(DUEL->game_field->player[1].start_count > 0)
+		DUEL->game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, DUEL->game_field->player[1].start_count);
+	for(int p = 0; p < 2; p++) {
+		for(std::vector<card*>::size_type l = 0; l < DUEL->game_field->player[p].extra_lists_main.size(); l++) {
+			auto& main = DUEL->game_field->player[p].extra_lists_main[l];
+			auto& hand = DUEL->game_field->player[p].extra_lists_hand[l];
+			for(int i = 0; i < DUEL->game_field->player[p].start_count && main.size(); ++i) {
+				card* pcard = main.back();
+				main.pop_back();
+				hand.push_back(pcard);
+				pcard->current.controler = p;
+				pcard->current.location = LOCATION_HAND;
+				pcard->current.sequence = hand.size() - 1;
+				pcard->current.position = POS_FACEDOWN;
+			}
+
+		}
+	}
+	DUEL->game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);
+	return 1;
 }
 
 OCGAPI int OCG_DuelProcess(OCG_Duel duel) {

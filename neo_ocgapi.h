@@ -48,9 +48,16 @@ typedef enum OCG_LogTypes {
 typedef int (*OCG_LogHandler)(void* payload, char* string, int type);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
+typedef struct OCG_Player {
+	int startingLP;
+	int startingDrawCount;
+	int drawCountPerTurn;
+}OCG_Player;
 typedef struct OCG_DuelOptions {
 	int seed;
 	int flags;
+	OCG_Player team1;
+	OCG_Player team2;
 	OCG_DataReader cardReader;
 	void* payload1; // relayed to cardReader
 	OCG_ScriptReader scriptReader;
@@ -67,14 +74,6 @@ typedef enum OCG_DuelCreationStatus {
 }OCG_DuelCreationStatus;
 OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options);
 OCGAPI void OCG_DestroyDuel(OCG_Duel duel);
-
-/*** DUEL SET UP ***/
-typedef struct OCG_Player {
-	int startingLP;
-	int startingDrawCount;
-	int drawCountPerTurn;
-}OCG_Player;
-OCGAPI void OCG_DuelPlayer(OCG_Duel duel, int pos, OCG_Player options);
 
 typedef struct OCG_NewCardInfo {
 	uint8_t team; /* either 0 or 1 */
