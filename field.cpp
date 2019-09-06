@@ -1772,13 +1772,13 @@ void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, grou
 			if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 				pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
 		}
-		return;
-	}
-	for(int i = 0; i < 2; i++) {
-		if((i == 0 && s) || (i == 1 && o)) {
-			for(auto& pcard : player[self - i].list_mzone) {
-				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
-					pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
+	} else {
+		for(int i = 0; i < 2; i++) {
+			if((i == self && s) || (i == (1 - self) && o)) {
+				for(auto& pcard : player[i].list_mzone) {
+					if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
+						pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
+				}
 			}
 		}
 	}
