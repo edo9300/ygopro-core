@@ -5,6 +5,8 @@
 
 #define DUEL (static_cast<class duel*>(duel))
 
+int DefaultLogHandler(void* payload, char* string, int type);
+
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
 		*major = OCG_VERSION_MAJOR;
@@ -33,7 +35,7 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	duelPtr->read_script = options.scriptReader;
 	duelPtr->payload2 = options.payload2;
 	if(options.logHandler == nullptr) {
-		duelPtr->handle_message = (OCG_LogHandler)&[](void*, char*, int) { return 0; };
+		duelPtr->handle_message = &DefaultLogHandler;
 		duelPtr->payload3 = nullptr;
 	} else {
 		duelPtr->handle_message = options.logHandler;
@@ -145,4 +147,9 @@ OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length) {
 
 OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* scriptName) {
 	return DUEL->lua->load_script(buffer, length, scriptName);
+}
+
+int DefaultLogHandler(void* payload, char* string, int type)
+{
+	return 0;
 }
