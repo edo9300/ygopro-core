@@ -13,7 +13,10 @@
 #include "group.h"
 #include "ocgapi.h"
 
-duel::duel() {
+duel::duel(): payload1(nullptr), payload2(nullptr), payload3(nullptr) {
+	read_card = (OCG_DataReader)&[](void*, int, CardData*) { return 0; };
+	read_script = (OCG_ScriptReader)&[](void*, OCG_Duel, int) { return 0; };
+	handle_message = (OCG_ErrorHandler)&[](void*, char*) { return 0; };
 	lua = new interpreter(this);
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);
