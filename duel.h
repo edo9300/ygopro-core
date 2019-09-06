@@ -73,6 +73,9 @@ public:
 	void set_responseb(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 	duel_message* new_message(uint32_t message);
+	void* payload1;
+	void* payload2;
+	void* payload3;
 private:
 	std::deque<duel_message> messages;
 	group* register_group(group* pgroup);
