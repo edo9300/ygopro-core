@@ -39,8 +39,13 @@ typedef struct CardData {
 }CardData;
 
 typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
-typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* scriptName); //has to return a call to OCG_LoadScript
-typedef int (*OCG_LogHandler)(void* payload, char* string);
+typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* scriptName);
+typedef enum OCG_LogTypes {
+	OCG_LOG_TYPE_ERROR,
+	OCG_LOG_TYPE_FROM_SCRIPT,
+	OCG_LOG_TYPE_UNDEFINED
+}OCG_LogTypes;
+typedef int (*OCG_LogHandler)(void* payload, char* string, int type);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
 typedef struct OCG_DuelOptions {

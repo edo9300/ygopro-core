@@ -33,7 +33,7 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	duelPtr->read_script = options.scriptReader;
 	duelPtr->payload2 = options.payload2;
 	if(options.logHandler == nullptr) {
-		duelPtr->handle_message = (OCG_LogHandler)&[](void*, char*) { return 0; };
+		duelPtr->handle_message = (OCG_LogHandler)&[](void*, char*, int) { return 0; };
 		duelPtr->payload3 = nullptr;
 	} else {
 		duelPtr->handle_message = options.logHandler;
