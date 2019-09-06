@@ -153,7 +153,7 @@ OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* length) {
 	return DUEL->buff.data();
 }
 
-OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length) {
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, const void* buffer, int length) {
 	DUEL->set_response(static_cast<uint8_t*>(buffer), length);
 }
 

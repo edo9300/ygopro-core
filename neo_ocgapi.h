@@ -100,7 +100,7 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel);
 /*** DUEL PROCESSING AND QUERYING ***/
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
 OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* length);
-OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length);
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, const void* buffer, int length);
 OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name);
 
 /* TODO queries */
