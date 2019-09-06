@@ -17,7 +17,13 @@ include_directories(${LUA_INCLUDE_DIR})
 add_library(ocgcore_static STATIC)
 add_library(ocgcore SHARED)
 target_compile_definitions(ocgcore PUBLIC YGOPRO_BUILD_DLL)
-target_link_libraries(ocgcore PUBLIC ${LUA_LIBRARIES})
+if(MSVC)
+	find_library(LUA_CXX_LIBRARIES lua-c++)
+	message("Lua-C++ found at " ${LUA_CXX_LIBRARIES})
+	target_link_libraries(ocgcore PUBLIC ${LUA_CXX_LIBRARIES})
+else()
+	target_link_libraries(ocgcore PUBLIC ${LUA_LIBRARIES})
+endif()
 
 set(OCGCORE_SOURCE
 	card.cpp
