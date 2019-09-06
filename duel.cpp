@@ -103,7 +103,11 @@ int32 duel::read_buffer(byte* buf) {
 }
 void duel::generate_buffer() {
 	for(auto& message : messages) {
-		write_buffer(message.data.data(), message.data.size());
+		auto size = message.data.size();
+		if(size) {
+			write_buffer(&size, sizeof(size));
+			write_buffer(message.data.data(), size);
+		}
 	}
 	messages.clear();
 }
