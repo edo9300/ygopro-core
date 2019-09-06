@@ -2612,7 +2612,7 @@ int32 field::sset_g(uint16 step, uint8 setplayer, uint8 toplayer, group* ptarget
 			pcard->current.sequence = seq;
 		}
 		for(uint32 i = 0; i < ct; ++i) {
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 		}
 		return FALSE;
 	}
@@ -3965,7 +3965,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 			auto message = pduel->new_message(MSG_MOVE);
 			message->write<uint32>(pcard->data.code);
 			message->write(pcard->get_info_location());
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 			message->write<uint32>(pcard->current.reason);
 			pcard->previous.controler = pcard->current.controler;
 			pcard->previous.location = pcard->current.location;

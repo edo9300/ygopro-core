@@ -1587,7 +1587,7 @@ int32 scriptlib::duel_shuffle_setcard(lua_State *L) {
 		if(ms[i]->xyz_materials.size()) {
 			message->write(ms[i]->get_info_location());
 		} else {
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 		}
 	}
 	return 0;
@@ -1665,7 +1665,7 @@ int32 scriptlib::duel_change_attack_target(lua_State *L) {
 			message->write(target->get_info_location());
 		} else {
 			pduel->game_field->core.attack_player = TRUE;
-			message->write(loc_info{ 0 });
+			message->write(loc_info{});
 		}
 		lua_pushboolean(L, 1);
 	} else
