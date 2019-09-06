@@ -57,15 +57,16 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
 }
 
 OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
+	auto game_field = DUEL->game_field;
 	if(info.duelist == 0) {
-		if(DUEL->game_field->is_location_useable(info.con, info.loc, info.seq)) {
+		if(game_field->is_location_useable(info.con, info.loc, info.seq)) {
 			card* pcard = DUEL->new_card(info.code);
 			pcard->owner = info.team;
-			DUEL->game_field->add_card(info.con, pcard, info.loc, info.seq);
+			game_field->add_card(info.con, pcard, info.loc, info.seq);
 			pcard->current.position = info.pos;
 			if(!(info.loc & LOCATION_ONFIELD) || (info.pos & POS_FACEUP)) {
 				pcard->enable_field_effect(true);
-				DUEL->game_field->adjust_instant();
+				game_field->adjust_instant();
 			}
 			if(info.loc & LOCATION_ONFIELD) {
 				if(info.loc == LOCATION_MZONE)
@@ -77,7 +78,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 			return;
 		info.duelist--;
 		card* pcard = DUEL->new_card(info.code);
-		auto& player = DUEL->game_field->player[info.team];
+		auto& player = game_field->player[info.team];
 		if(info.duelist >= player.extra_lists_main.size()) {
 			player.extra_lists_main.resize(info.duelist + 1);
 			player.extra_lists_extra.resize(info.duelist + 1);
@@ -115,7 +116,7 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel) {
 		game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, p1start_count);
 	for(int p = 0; p < 2; p++) {
 		const auto list_size = game_field->player[p].extra_lists_main.size();
-		for(std::vector<card*>::size_type l = 0; l < list_size; l++) {
+		for(decltype(list_size) l = 0; l < list_size; l++) {
 			auto& main = game_field->player[p].extra_lists_main[l];
 			auto& hand = game_field->player[p].extra_lists_hand[l];
 			const int start_count = game_field->player[p].start_count;
