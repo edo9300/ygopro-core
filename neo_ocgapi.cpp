@@ -5,7 +5,7 @@
 
 #define DUEL (static_cast<class duel*>(duel))
 
-int DefaultLogHandler(void* payload, char* string, int type);
+void DefaultLogHandler(void* payload, char* string, int type);
 
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
@@ -161,6 +161,5 @@ OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name) {
 	return DUEL->lua->load_script(buffer, length, name);
 }
 
-int DefaultLogHandler(void* payload, char* string, int type) {
-	return 0;
+void DefaultLogHandler(void* payload, char* string, int type) {
 }
