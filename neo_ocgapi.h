@@ -40,7 +40,7 @@ typedef struct CardData {
 
 typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
 typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* scriptName); //has to return a call to OCG_LoadScript
-typedef int (*OCG_ErrorHandler)(void* payload, char* string);
+typedef int (*OCG_LogHandler)(void* payload, char* string);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
 typedef struct OCG_DuelOptions {
@@ -50,9 +50,16 @@ typedef struct OCG_DuelOptions {
 	void* payload1; // relayed to cardReader
 	OCG_ScriptReader scriptReader;
 	void* payload2; // relayed to scriptReader
-	OCG_ErrorHandler errorHandler;
+	OCG_LogHandler logHandler;
 	void* payload3; // relayed to errorHandler
 }OCG_DuelOptions;
+typedef enum OCG_DuelCreationStatus {
+	OCG_DUEL_CREATION_SUCCESS,
+	OCG_DUEL_CREATION_NO_OUTPUT,
+	OCG_DUEL_CREATION_NOT_CREATED,
+	OCG_DUEL_CREATION_NULL_DATA_READER,
+	OCG_DUEL_CREATION_NULL_SCRIPT_READER
+}OCG_DuelCreationStatus;
 OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options);
 OCGAPI void OCG_DestroyDuel(OCG_Duel duel);
 
