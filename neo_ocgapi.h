@@ -79,10 +79,10 @@ typedef struct OCG_NewCardInfo {
 	uint8_t team; /* either 0 or 1 */
 	uint8_t duelist; /* index of original owner */
 	uint32_t code;
-	uint8_t controller;
-	uint32_t location;
-	uint32_t sequence;
-	uint32_t position;
+	uint8_t con;
+	uint32_t loc;
+	uint32_t seq;
+	uint32_t pos;
 }OCG_NewCardInfo;
 OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info);
 
