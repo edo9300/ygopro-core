@@ -21,10 +21,9 @@
 OCGAPI void OCG_GetVersion(int* major, int* minor);
 /* OCGAPI void OCG_GetName(const char** name); Maybe created by git hash? */
 
-typedef struct OCG_Duel OCG_Duel; /* Opaque pointer to a Duel class */
+typedef void* OCG_Duel; /* Opaque pointer to a Duel class */
 
-typedef struct CardData
-{
+typedef struct CardData {
 	uint32_t code;
 	uint32_t alias;
 	uint64_t setcode;
@@ -40,12 +39,11 @@ typedef struct CardData
 }CardData;
 
 typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
-typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel* duel, int code); //has to return a call to OCG_LoadScript
+typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* scriptName); //has to return a call to OCG_LoadScript
 typedef int (*OCG_ErrorHandler)(void* payload, char* string);
 
 /*** DUEL CREATION AND DESTRUCTION ***/
-typedef struct OCG_DuelOptions
-{
+typedef struct OCG_DuelOptions {
 	int seed;
 	int flags;
 	OCG_DataReader cardReader;
@@ -55,20 +53,18 @@ typedef struct OCG_DuelOptions
 	OCG_ErrorHandler errorHandler;
 	void* payload3; // relayed to errorHandler
 }OCG_DuelOptions;
-OCGAPI int OCG_CreateDuel(OCG_Duel** duel, OCG_DuelOptions* options);
-OCGAPI void OCG_DestroyDuel(OCG_Duel* duel);
+OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options);
+OCGAPI void OCG_DestroyDuel(OCG_Duel duel);
 
 /*** DUEL SET UP ***/
-typedef struct OCG_Player
-{
+typedef struct OCG_Player {
 	int startingLP;
 	int startingDrawCount;
 	int drawCountPerTurn;
 }OCG_Player;
-OCGAPI void OCG_DuelPlayer(OCG_Duel* duel, int pos, OCG_Player* options);
+OCGAPI void OCG_DuelPlayer(OCG_Duel duel, int pos, OCG_Player options);
 
-typedef struct OCG_NewCardInfo
-{
+typedef struct OCG_NewCardInfo {
 	uint8_t team; /* either 0 or 1 */
 	uint8_t duelist; /* index of original owner */
 	uint32_t code;
@@ -77,23 +73,22 @@ typedef struct OCG_NewCardInfo
 	uint32_t sequence;
 	uint32_t position;
 }OCG_NewCardInfo;
-OCGAPI void OCG_DuelNewCard(OCG_Duel* duel, OCG_NewCardInfo* info);
+OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info);
 
-OCGAPI int OCG_StartDuel(OCG_Duel* duel);
+OCGAPI int OCG_StartDuel(OCG_Duel duel);
 
 /*** DUEL PROCESSING AND QUERYING ***/
-typedef enum OCG_DuelStatus
-{
+typedef enum OCG_DuelStatus {
 	OCG_DUEL_STATUS_END, /* Duel ended */
 	OCG_DUEL_STATUS_AWAITING, /* Duel needs a response */
 	OCG_DUEL_STATUS_CONTINUE /* Duel can continue execution */
 }OCG_DuelStatus;
-OCGAPI int OCG_DuelProcess(OCG_Duel* duel);
-OCGAPI void OCG_DuelGetMessage(OCG_Duel* duel, void** buffer, int* length);
+OCGAPI int OCG_DuelProcess(OCG_Duel duel);
+OCGAPI void OCG_DuelGetMessage(OCG_Duel duel, void** buffer, int* length);
 
 OCGAPI void OCG_DuelSetResponse(OCG_Duel* duel, void* buffer, int length);
 
-OCGAPI int OCG_LoadScript(OCG_Duel* duel, char* buffer, int length, char* scriptName); //direct call to load_script
+OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* scriptName); //direct call to load_script
 
 
 /* TODO queries */

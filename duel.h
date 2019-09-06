@@ -9,6 +9,7 @@
 #define DUEL_H_
 
 #include "common.h"
+#include "neo_ocgapi.h"
 #include <random>
 #include <set>
 #include <unordered_set>
@@ -76,6 +77,9 @@ public:
 	void* payload1;
 	void* payload2;
 	void* payload3;
+	OCG_DataReader read_card;
+	OCG_ScriptReader read_script;
+	OCG_ErrorHandler handle_message;
 private:
 	std::deque<duel_message> messages;
 	group* register_group(group* pgroup);
