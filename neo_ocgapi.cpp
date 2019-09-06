@@ -47,6 +47,55 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
 	delete DUEL;
 }
 
+OCGAPI void OCG_DuelPlayer(OCG_Duel duel, int pos, OCG_Player options) {
+	if(options.startingLP > 0) {
+		DUEL->game_field->player[pos].lp = options.startingLP;
+		DUEL->game_field->player[pos].start_lp = options.startingLP;
+	}
+	if(options.startingDrawCount >= 0)
+		DUEL->game_field->player[pos].start_count = options.startingDrawCount;
+	if(options.drawCountPerTurn >= 0)
+		DUEL->game_field->player[pos].draw_count = options.drawCountPerTurn;
+}
+
+OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
+	if(info.duelist == 0) {
+		if(DUEL->game_field->is_location_useable(info.controller, info.location, info.sequence)) {
+			card* pcard = DUEL->new_card(info.code);
+			pcard->owner = info.team;
+			DUEL->game_field->add_card(info.controller, pcard, info.location, info.sequence);
+			pcard->current.position = info.position;
+			if(!(info.location & LOCATION_ONFIELD) || (info.position & POS_FACEUP)) {
+				pcard->enable_field_effect(true);
+				DUEL->game_field->adjust_instant();
+			}
+			if(info.location & LOCATION_ONFIELD) {
+				if(info.location == LOCATION_MZONE)
+					pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
+			}
+		}
+	} else {
+		if(info.team > 1 || !(info.location & (LOCATION_DECK | LOCATION_EXTRA)))
+			return;
+		info.duelist--;
+		card* pcard = DUEL->new_card(info.code);
+		auto& player = DUEL->game_field->player[info.team];
+		if(info.duelist >= player.extra_lists_main.size()) {
+			player.extra_lists_main.resize(info.duelist + 1);
+			player.extra_lists_extra.resize(info.duelist + 1);
+			player.extra_lists_hand.resize(info.duelist + 1);
+			player.extra_extra_p_count.resize(info.duelist + 1);
+		}
+		pcard->current.location = info.location;
+		pcard->owner = info.team;
+		pcard->current.controler = info.team;
+		pcard->current.position = POS_FACEDOWN_DEFENSE;
+		auto& list = (info.location == LOCATION_DECK) ? player.extra_lists_main[info.duelist] : player.extra_lists_extra[info.duelist];
+		list.push_back(pcard);
+		pcard->current.sequence = list.size() - 1;
+	}
+}
+
 OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
 	DUEL->buff.clear();
 	int flag = 0;
@@ -62,6 +111,10 @@ OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen) {
 	if(retlen)
 		*retlen = DUEL->buff.size();
 	return DUEL->buff.data();
+}
+
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length) {
+	DUEL->set_response(static_cast<uint8_t*>(buffer), length);
 }
 
 OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* scriptName) {

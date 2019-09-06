@@ -98,7 +98,7 @@ typedef enum OCG_DuelStatus {
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
 OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen);
 
-OCGAPI void OCG_DuelSetResponse(OCG_Duel* duel, void* buffer, int length);
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length);
 
 OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* scriptName); //direct call to load_script
 

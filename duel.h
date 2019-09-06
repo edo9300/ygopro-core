@@ -70,8 +70,7 @@ public:
 	void generate_buffer();
 	void write_buffer(void* data, size_t size);
 	void clear_buffer();
-	void set_responsei(uint32 resp);
-	void set_responseb(byte* resp, size_t len);
+	void set_response(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 	duel_message* new_message(uint32_t message);
 	void* payload1;
@@ -79,7 +78,7 @@ public:
 	void* payload3;
 	OCG_DataReader read_card;
 	OCG_ScriptReader read_script;
-	OCG_ErrorHandler handle_message;
+	OCG_LogHandler handle_message;
 private:
 	std::deque<duel_message> messages;
 	group* register_group(group* pgroup);
