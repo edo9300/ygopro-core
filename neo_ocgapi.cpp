@@ -47,6 +47,16 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
 	delete DUEL;
 }
 
+OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
+	DUEL->buff.clear();
+	int flag = 0;
+	do {
+		flag = DUEL->game_field->process();
+		DUEL->generate_buffer();
+	} while(DUEL->buff.size() == 0 && flag == PROCESSOR_FLAG_CONTINUE);
+	return flag;
+}
+
 OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen) {
 	DUEL->generate_buffer();
 	if(retlen)

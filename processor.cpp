@@ -41,14 +41,14 @@ int32 field::process() {
 		else {
 			it->step++;
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_TURN: {
 		if (process_turn(it->step, it->arg1))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_WAIT: {
 		core.units.pop_front();
@@ -59,7 +59,7 @@ int32 field::process() {
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_STARTUP: {
 		if (startup(it->step))
@@ -67,12 +67,12 @@ int32 field::process() {
 		else {
 			it->step++;
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELECT_BATTLECMD: {
 		if (select_battle_command(it->step, it->arg1)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -81,7 +81,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_IDLECMD: {
 		if (select_idle_command(it->step, it->arg1)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -90,7 +90,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_EFFECTYN: {
 		if (select_effect_yes_no(it->step, it->arg1, it->arg2, (card*)it->ptarget)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -99,7 +99,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_YESNO: {
 		if (select_yes_no(it->step, it->arg1, it->arg2)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -108,7 +108,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_OPTION: {
 		if (select_option(it->step, it->arg1)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -117,7 +117,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_CARD: {
 		if (select_card(it->step, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -126,7 +126,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_UNSELECT_CARD: {
 		if (select_unselect_card(it->step, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff, (it->arg3) & 0xff)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -135,7 +135,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_CHAIN: {
 		if (select_chain(it->step, it->arg1, (it->arg2 & 0xffff), it->arg2 >> 16)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -145,7 +145,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_PLACE: {
 		if(select_place(it->step, it->arg1, it->arg2, it->arg3)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -154,7 +154,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_POSITION: {
 		if (select_position(it->step, it->arg1 & 0xffff, it->arg2, (it->arg1 >> 16) & 0xffff)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -163,7 +163,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_TRIBUTE_P: {
 		if (select_tribute(it->step, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -175,12 +175,12 @@ int32 field::process() {
 		} else {
 			it->step++;
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELECT_COUNTER: {
 		if (select_counter(it->step, it->arg1, it->arg2, it->arg3, it->arg4 >> 8, it->arg4 & 0xff)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -189,7 +189,7 @@ int32 field::process() {
 	case PROCESSOR_SELECT_SUM: {
 		if (select_with_sum_limit(it->step, it->arg2 & 0xffff, it->arg1, (it->arg2 >> 16) & 0xff, (it->arg2 >> 24) & 0xff)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -198,7 +198,7 @@ int32 field::process() {
 	case PROCESSOR_SORT_CARD: {
 		if (sort_card(it->step, it->arg1, it->arg2)) {
 			core.units.pop_front();
-			return PROCESSOR_FLAG_NONE;
+			return PROCESSOR_FLAG_CONTINUE;
 		} else {
 			it->step = 1;
 			return PROCESSOR_FLAG_WAITING;
@@ -209,84 +209,84 @@ int32 field::process() {
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELECT_TRIBUTE: {
 		if (select_tribute_cards(it->step, (card*)it->ptarget, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff, it->arg3, it->arg4))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_POINT_EVENT: {
 		if(process_point_event(it->step, it->arg1 & 0xff, (it->arg1 >> 8) & 0xff, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_QUICK_EFFECT: {
 		if(process_quick_effect(it->step, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_IDLE_COMMAND: {
 		if(process_idle_command(it->step))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_PHASE_EVENT: {
 		if(process_phase_event(it->step, it->arg1))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_BATTLE_COMMAND: {
 		if(process_battle_command(it->step))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DAMAGE_STEP: {
 		if(process_damage_step(it->step, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_FORCED_BATTLE: {
 		if(process_forced_battle(it->step))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_ADD_CHAIN: {
 		if (add_chain(it->step))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SOLVE_CHAIN: {
 		if (solve_chain(it->step, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SOLVE_CONTINUOUS: {
 		if (solve_continuous(it->step))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_EXECUTE_COST: {
 		if (execute_cost(it->step, it->peffect, it->arg1)) {
@@ -294,7 +294,7 @@ int32 field::process() {
 			core.solving_event.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_EXECUTE_OPERATION: {
 		if (execute_operation(it->step, it->peffect, it->arg1)) {
@@ -302,7 +302,7 @@ int32 field::process() {
 			core.solving_event.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_EXECUTE_TARGET: {
 		if (execute_target(it->step, it->peffect, it->arg1)) {
@@ -310,140 +310,140 @@ int32 field::process() {
 			core.solving_event.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DESTROY: {
 		if (destroy(it->step, it->ptarget, it->peffect, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_RELEASE: {
 		if (release(it->step, it->ptarget, it->peffect, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SENDTO: {
 		if (send_to(it->step, it->ptarget, it->peffect, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DESTROY_REPLACE: {
 		if(destroy_replace(it->step, it->ptarget, (card*)it->ptr1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_RELEASE_REPLACE: {
 		if (release_replace(it->step, it->ptarget, (card*)it->ptr1))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SENDTO_REPLACE: {
 		if (send_replace(it->step, it->ptarget, (card*)it->ptr1))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_MOVETOFIELD: {
 		if (move_to_field(it->step, (card*)it->ptarget, it->arg1, it->arg2 & 0xff, (it->arg2 >> 8) & 0xff, it->arg3 & 0xff, (it->arg3 >> 8) & 0xff, (it->arg3 >> 16) & 0xff, it->arg4))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_CHANGEPOS: {
 		if (change_position(it->step, it->ptarget, it->peffect, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_OPERATION_REPLACE: {
 		if (operation_replace(it->step, it->peffect, it->ptarget, (card*)it->ptr1, it->arg1))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_ACTIVATE_EFFECT: {
 		if (activate_effect(it->step, it->peffect))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SUMMON_RULE: {
 		if (summon(it->step, it->arg1 & 0xff, (card*)it->ptarget, it->peffect, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SPSUMMON_RULE: {
 		if (special_summon_rule(it->step, it->arg1, (card*)it->ptarget, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SPSUMMON: {
 		if (special_summon(it->step, it->peffect, it->arg1, it->ptarget, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_FLIP_SUMMON: {
 		if (flip_summon(it->step, it->arg1, (card*)(it->ptarget)))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_MSET: {
 		if (mset(it->step, it->arg1 & 0xff, (card*)it->ptarget, it->peffect, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SSET: {
 		if (sset(it->step, it->arg1, it->arg2, (card*)(it->ptarget), it->peffect))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SPSUMMON_STEP: {
 		if (special_summon_step(it->step, it->ptarget, (card*)(it->ptr1), it->arg1))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SSET_G: {
 		if (sset_g(it->step, it->arg1, it->arg2, it->ptarget, it->arg3, it->peffect)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DRAW	: {
 		if (draw(it->step, it->peffect, it->arg1, (it->arg2 >> 28) & 0xf, (it->arg2 >> 24) & 0xf, it->arg2 & 0xffffff))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DAMAGE: {
 		int32 reason = it->arg1;
@@ -461,7 +461,7 @@ int32 field::process() {
 				core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_RECOVER: {
 		if (recover(it->step, it->peffect, it->arg1, (it->arg2 >> 26) & 0x3, (it->arg2 >> 24) & 0x3, it->arg2 & 0xffffff, (it->arg2 >> 28) & 0x1)) {
@@ -472,56 +472,56 @@ int32 field::process() {
 				core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_EQUIP: {
 		if (equip(it->step, it->arg2 & 0xffff, (card*)it->ptr1, (card*)it->ptarget, (it->arg2 >> 16) & 0xff, (it->arg2 >> 24) & 0xff))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_GET_CONTROL: {
 		if (get_control(it->step, it->peffect, (it->arg2 >> 28) & 0xf, it->ptarget, (it->arg2 >> 24) & 0xf, (it->arg2 >> 8) & 0x3ff, it->arg2 & 0xff, it->arg3)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SWAP_CONTROL: {
 		if (swap_control(it->step, it->peffect, it->arg1, it->ptarget, (group*)it->ptr1, it->arg2, it->arg3)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_CONTROL_ADJUST: {
 		if (control_adjust(it->step)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELF_DESTROY: {
 		if (self_destroy(it->step, (card*)it->ptr1, it->arg1)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_PAY_LPCOST: {
 		if (pay_lp_cost(it->step, it->arg1, it->arg2))
 			core.units.pop_front();
 		else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_REMOVE_COUNTER: {
 		if (remove_counter(it->step, it->arg4, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2, it->arg3)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_ATTACK_DISABLE: {
 		if(it->step == 0) {
@@ -548,7 +548,7 @@ int32 field::process() {
 			returns.at<int32>(0) = 1;
 			core.units.pop_front();
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_ANNOUNCE_RACE: {
 		if(announce_race(it->step, it->arg1 & 0xffff, it->arg1 >> 16, it->arg2)) {
@@ -588,21 +588,21 @@ int32 field::process() {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_TOSS_COIN: {
 		if (toss_coin(it->step, it->peffect, (it->arg1 >> 16), it->arg1 & 0xff, it->arg2)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_ROCK_PAPER_SCISSORS: {
 		if (rock_paper_scissors(it->step, it->arg1)) {
 			core.units.pop_front();
 		} else
 			it->step++;
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELECT_FUSION: {
 		if(it->step == 0) {
@@ -613,7 +613,7 @@ int32 field::process() {
 			core.select_options.clear();
 			if(eset.size() < 1) {
 				core.units.pop_front();
-				return PROCESSOR_FLAG_NONE;
+				return PROCESSOR_FLAG_CONTINUE;
 			}
 			for (effect_set::size_type i = 0; i < eset.size(); ++i) {
 				core.select_effects.push_back(eset[i]);
@@ -632,7 +632,7 @@ int32 field::process() {
 			core.fusion_materials.clear();
 			if(!core.select_effects[returns.at<int32>(0)]) {
 				core.units.pop_front();
-				return PROCESSOR_FLAG_NONE;
+				return PROCESSOR_FLAG_CONTINUE;
 			}
 			core.sub_solving_event.push_back(e);
 			pduel->lua->add_param(it->ptr1, PARAM_TYPE_GROUP);
@@ -642,7 +642,7 @@ int32 field::process() {
 		} else {
 			core.units.pop_front();
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DISCARD_HAND: {
 		if(it->step == 0) {
@@ -665,7 +665,7 @@ int32 field::process() {
 		} else {
 			core.units.pop_front();
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DISCARD_DECK: {
 		if(discard_deck(it->step, it->arg1 & 0xff, it->arg1 >> 16, it->arg2)) {
@@ -673,7 +673,7 @@ int32 field::process() {
 		} else {
 			it->step++;
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SORT_DECK: {
 		uint8 sort_player = it->arg1 & 0xffff;
@@ -715,7 +715,7 @@ int32 field::process() {
 			}
 			core.units.pop_front();
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_REMOVE_OVERLAY: {
 		if(remove_overlay_card(it->step, it->arg3, it->ptarget, it->arg1 >> 16,
@@ -724,10 +724,10 @@ int32 field::process() {
 		} else {
 			it->step++;
 		}
-		return PROCESSOR_FLAG_NONE;
+		return PROCESSOR_FLAG_CONTINUE;
 	}
 	}
-	return PROCESSOR_FLAG_NONE;
+	return PROCESSOR_FLAG_CONTINUE;
 }
 int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 triggering_player) {
 	if(!triggering_effect->cost) {
