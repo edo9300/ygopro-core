@@ -25,11 +25,7 @@ if not subproject then
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
 	
-	filter "system:linux"
-		includedirs "/usr/local/include"
-		libdirs "/usr/local/lib"
-	
-	filter "system:macosx"
+	filter "system:not windows"
 		includedirs "/usr/local/include"
 		libdirs "/usr/local/lib"
 	
@@ -41,9 +37,6 @@ if not subproject then
 	filter "action:not vs*"
 		buildoptions { "-fno-strict-aliasing", "-Wno-multichar" }
 	
-	filter { "action:not vs*", "system:windows" }
-		buildoptions { "-static-libgcc" }
-	
 	filter "configurations:Debug"
 		symbols "On"
 		defines "_DEBUG"
@@ -53,7 +46,6 @@ if not subproject then
 	filter { "configurations:Release" , "action:not vs*" }
 		symbols "On"
 		defines "NDEBUG"
-		buildoptions "-march=native"
 	
 	filter "configurations:Release"
 		optimize "Size"
