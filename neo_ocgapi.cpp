@@ -2,13 +2,17 @@
 #include "interpreter.h"
 #include "duel.h"
 
-#define DUEL static_cast<class duel*>(duel) 
+#define DUEL (static_cast<class duel*>(duel))
 
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
 		*major = OCG_VERSION_MAJOR;
 	if(minor)
 		*minor = OCG_VERSION_MINOR;
+}
+
+OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
+	delete DUEL;
 }
 
 OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen) {
