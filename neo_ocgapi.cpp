@@ -108,14 +108,14 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel) {
 	game_field->core.shuffle_deck_check[0] = FALSE;
 	game_field->core.shuffle_deck_check[1] = FALSE;
 	game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
-	const p0start_count = game_field->player[0].start_count;
+	const int p0start_count = game_field->player[0].start_count;
 	if(p0start_count > 0)
 		game_field->draw(0, REASON_RULE, PLAYER_NONE, 0, p0start_count);
-	const p1start_count = game_field->player[1].start_count;
+	const int p1start_count = game_field->player[1].start_count;
 	if(p1start_count > 0)
 		game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, p1start_count);
 	for(int p = 0; p < 2; p++) {
-		const auto list_size = game_field->player[p].extra_lists_main.size();
+		auto list_size = game_field->player[p].extra_lists_main.size();
 		for(decltype(list_size) l = 0; l < list_size; l++) {
 			auto& main = game_field->player[p].extra_lists_main[l];
 			auto& hand = game_field->player[p].extra_lists_hand[l];
@@ -146,19 +146,45 @@ OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
 	return flag;
 }
 
-OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, int* length) {
+OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, uint32_t* length) {
 	DUEL->generate_buffer();
 	if(length)
 		*length = DUEL->buff.size();
 	return DUEL->buff.data();
 }
 
-OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length) {
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, uint32_t length) {
 	DUEL->set_response(static_cast<uint8_t*>(buffer), length);
 }
 
-OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name) {
+OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, uint32_t length, char* name) {
 	return DUEL->lua->load_script(buffer, length, name);
+}
+
+OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint8_t pos, uint32_t loc) {
+	if(team != 0 && team != 1)
+		return 0;
+	auto& player = DUEL->game_field->player[team];
+	if(loc == LOCATION_HAND)
+		return player.list_hand.size();
+	if(loc == LOCATION_GRAVE)
+		return player.list_grave.size();
+	if(loc == LOCATION_REMOVED)
+		return player.list_remove.size();
+	if(loc == LOCATION_EXTRA)
+		return player.list_extra.size();
+	if(loc == LOCATION_DECK)
+		return player.list_main.size();
+	uint32 count = 0;
+	if(loc == LOCATION_MZONE) {
+		for(auto& pcard : player.list_mzone)
+			if(pcard) count++;
+	}
+	if(loc == LOCATION_SZONE) {
+		for(auto& pcard : player.list_szone)
+			if(pcard) count++;
+	}
+	return count;
 }
 
 void DefaultLogHandler(void* payload, char* string, int type) {

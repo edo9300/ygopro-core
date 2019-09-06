@@ -107,11 +107,11 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel);
 
 /*** DUEL PROCESSING AND QUERYING ***/
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
-OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, int* length);
-OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length);
-OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name);
+OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, uint32_t* length);
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, uint32_t length);
+OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, uint32_t length, char* name);
 
-OCGAPI int OCG_DuelQueryCount(OCG_Duel duel, uint8_t pos, uint32_t loc);
+OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint8_t pos, uint32_t loc);
 OCGAPI void* OCG_DuelQuery(OCG_Duel duel, int* length, OCG_QueryInfo info);
 OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, int* length);
 
