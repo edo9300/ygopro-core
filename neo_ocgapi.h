@@ -61,7 +61,7 @@ typedef struct OCG_Player {
 }OCG_Player;
 
 typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
-typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* name);
+typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, char* name);
 typedef void (*OCG_LogHandler)(void* payload, char* string, int type);
 
 typedef struct OCG_DuelOptions {
@@ -99,8 +99,8 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel);
 
 /*** DUEL PROCESSING AND QUERYING ***/
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
-OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* length);
-OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, const void* buffer, int length);
+OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, int* length);
+OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, int length);
 OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, int length, char* name);
 
 /* TODO queries */
