@@ -725,16 +725,10 @@ script reader.
 */
 int32 interpreter::load_script(char* buffer, int len, char* script_name) {
 	int32 error;
-	byte* buffer2 = nullptr;
-	if(!script_name)
-		buffer2 = read_script(buffer, &len);
-	if(!buffer && !buffer2)
+	if(!buffer)
 		return OPERATION_FAIL;
 	no_action++;
-	if(script_name)
-		error = luaL_loadbuffer(current_state, (const char*)buffer, len, (const char*)script_name) || lua_pcall(current_state, 0, 0, 0);
-	else
-		error = luaL_loadbuffer(current_state, (const char*)buffer2, len, (const char*)buffer) || lua_pcall(current_state, 0, 0, 0);
+	error = luaL_loadbuffer(current_state, (const char*)buffer, len, (const char*)script_name) || lua_pcall(current_state, 0, 0, 0);
 	if(error) {
 		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		handle_message(pduel, 1);
@@ -767,7 +761,7 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_setglobal(current_state, "self_table");
 		char script_name[64];
 		sprintf(script_name, "c%d.lua", code);
-		if(!load_script(script_name)) {
+		if(!read_script(script_name)) {
 			lua_pushnil(current_state);
 			lua_setglobal(current_state, "self_table");
 			lua_pushnil(current_state);
