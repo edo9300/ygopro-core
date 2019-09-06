@@ -84,7 +84,7 @@ typedef enum OCG_DuelStatus {
 	OCG_DUEL_STATUS_CONTINUE /* Duel can continue execution */
 }OCG_DuelStatus;
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
-OCGAPI void OCG_DuelGetMessage(OCG_Duel duel, void** buffer, int* length);
+OCGAPI const void* OCG_DuelGetMessage(OCG_Duel duel, int* retlen);
 
 OCGAPI void OCG_DuelSetResponse(OCG_Duel* duel, void* buffer, int length);
 
