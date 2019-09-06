@@ -678,6 +678,39 @@ int32 scriptlib::duel_sendto(lua_State *L) {
 		return 1;
 	});
 }
+int32 scriptlib::duel_remove_cards(lua_State * L) {
+	check_action_permission(L);
+	check_param_count(L, 1);
+	card* pcard = 0;
+	group* pgroup = 0;
+	duel* pduel = 0;
+	if(check_param(L, PARAM_TYPE_CARD, 1, TRUE)) {
+		pcard = *(card**)lua_touserdata(L, 1);
+		pduel = pcard->pduel;
+	} else if(check_param(L, PARAM_TYPE_GROUP, 1, TRUE)) {
+		pgroup = *(group**)lua_touserdata(L, 1);
+		pduel = pgroup->pduel;
+	} else
+		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
+	auto message = pduel->new_message(MSG_REMOVE_CARDS);
+	if(pcard) {
+		message->write<uint32>(1);
+		message->write(pcard->get_info_location());
+		pcard->enable_field_effect(false);
+		pcard->cancel_field_effect();
+		pduel->game_field->remove_card(pcard);
+	} else {
+		message->write<uint32>(pgroup->container.size());
+		for(auto& card : pgroup->container) {
+			message->write(card->get_info_location());
+			card->enable_field_effect(false);
+			card->cancel_field_effect();
+		}
+		for(auto& card : pgroup->container)
+			pduel->game_field->remove_card(card);
+	}
+	return 0;
+}
 int32 scriptlib::duel_get_operated_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group(pduel->game_field->core.operated_set);

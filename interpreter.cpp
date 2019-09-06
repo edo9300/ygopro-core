@@ -388,6 +388,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SendtoDeck", scriptlib::duel_sendto_deck },
 	{ "SendtoExtraP", scriptlib::duel_sendto_extra },
 	{ "Sendto", scriptlib::duel_sendto },
+	{ "RemoveCards", scriptlib::duel_remove_cards },
 	{ "GetOperatedGroup", scriptlib::duel_get_operated_group },
 	{ "Summon", scriptlib::duel_summon },
 	{ "SpecialSummonRule", scriptlib::duel_special_summon_rule },
