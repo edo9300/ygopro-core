@@ -222,7 +222,7 @@ struct card_sort {
 #define QUERY_LSCALE		0x200000
 #define QUERY_RSCALE		0x400000
 #define QUERY_LINK			0x800000
-#define QUERY_END			0x1000000
+#define QUERY_END			0x80000000
 
 //Link markers
 #define LINK_MARKER_BOTTOM_LEFT  0001
