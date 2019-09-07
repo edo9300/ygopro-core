@@ -19,7 +19,7 @@ int32 scriptlib::debug_message(lua_State *L) {
 	lua_pushvalue(L, -2);
 	lua_pcall(L, 1, 1, 0);
 	interpreter::sprintf(pduel->strbuffer, "%s", lua_tostring(L, -1));
-	handle_message(pduel, 2);
+	pduel->handle_message(pduel->payload3, pduel->strbuffer, 2);
 	return 0;
 }
 int32 scriptlib::debug_add_card(lua_State *L) {

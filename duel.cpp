@@ -47,9 +47,7 @@ card* duel::new_card(uint32 code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);
 	if(code)
-		::read_card(code, &(pcard->data));
-	else
-		pcard->data.clear();
+		read_card(payload1, code, &(pcard->data));
 	pcard->data.code = code;
 	lua->register_card(pcard);
 	return pcard;

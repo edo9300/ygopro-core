@@ -3962,7 +3962,8 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State * L) {
 	}
 	int32 code = lua_tonumberint(L, 2);
 	card_data dat;
-	::read_card(code, &dat);
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->read_card(pduel->payload1, code, &dat);
 	dat.code = code;
 	dat.alias = 0;
 	if(!lua_isnil(L, 3))
@@ -3988,7 +3989,6 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State * L) {
 		toplayer = lua_tonumberint(L, 11);
 	if(lua_gettop(L) >= 12)
 		sumtype = lua_tonumberint(L, 12);
-	duel* pduel = interpreter::get_duel_info(L);
 	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_monster(playerid, toplayer, pos, sumtype, &dat));
 	return 1;
 }

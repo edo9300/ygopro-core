@@ -2596,7 +2596,7 @@ int32 field::is_player_can_flipsummon(uint8 playerid, card * pcard) {
 int32 field::is_player_can_spsummon_monster(uint8 playerid, uint8 toplayer, uint8 sumpos, uint32 sumtype, card_data* pdata) {
 	temp_card->data = *pdata;
 	int32 result = is_player_can_spsummon(core.reason_effect, sumtype, sumpos, playerid, toplayer, temp_card);
-	temp_card->data.clear();
+	temp_card->data = {};
 	return result;
 }
 int32 field::is_player_can_release(uint8 playerid, card * pcard) {

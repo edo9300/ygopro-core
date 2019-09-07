@@ -41,8 +41,6 @@ struct card_data {
 	uint32 lscale;
 	uint32 rscale;
 	uint32 link_marker;
-
-	void clear();
 };
 
 struct card_state {
@@ -72,26 +70,6 @@ struct card_state {
 	uint8 reason_player;
 	effect* reason_effect;
 	bool is_location(int32 loc) const;
-};
-
-struct query_cache {
-	uint32 code;
-	uint32 alias;
-	uint32 type;
-	uint32 level;
-	uint32 rank;
-	uint32 link;
-	uint32 attribute;
-	uint32 race;
-	int32 attack;
-	int32 defense;
-	int32 base_attack;
-	int32 base_defense;
-	uint32 reason;
-	int32 status;
-	uint32 lscale;
-	uint32 rscale;
-	uint32 link_marker;
 };
 
 class card {
@@ -138,7 +116,6 @@ public:
 	card_state previous;
 	card_state temp;
 	card_state current;
-	query_cache q_cache;
 	uint8 owner;
 	uint8 summon_player;
 	uint32 summon_info;

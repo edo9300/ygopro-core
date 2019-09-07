@@ -2987,15 +2987,11 @@ int32 field::process_battle_command(uint16 step) {
 		uint32 aa = core.attacker->get_attack(), ad = core.attacker->get_defense();
 		uint32 da = 0, dd = 0;
 		uint8 pa = core.attacker->current.controler, pd;
-		core.attacker->q_cache.attack = aa;
-		core.attacker->q_cache.defense = ad;
 		core.attacker->set_status(STATUS_BATTLE_RESULT, FALSE);
 		core.attacker->set_status(STATUS_BATTLE_DESTROYED, FALSE);
 		if(core.attack_target) {
 			da = core.attack_target->get_attack();
 			dd = core.attack_target->get_defense();
-			core.attack_target->q_cache.attack = da;
-			core.attack_target->q_cache.defense = dd;
 			core.attack_target->set_status(STATUS_BATTLE_RESULT, FALSE);
 			core.attack_target->set_status(STATUS_BATTLE_DESTROYED, FALSE);
 			pd = core.attack_target->current.controler;
