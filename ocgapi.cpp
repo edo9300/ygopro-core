@@ -1,4 +1,4 @@
-#include "neo_ocgapi.h"
+#include "ocgapi.h"
 #include "interpreter.h"
 #include "duel.h"
 #include "field.h"

@@ -9,7 +9,7 @@
 #define DUEL_H_
 
 #include "common.h"
-#include "neo_ocgapi.h"
+#include "ocgapi.h"
 #include <random>
 #include <set>
 #include <unordered_set>
