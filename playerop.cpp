@@ -9,7 +9,6 @@
 #include "duel.h"
 #include "effect.h"
 #include "card.h"
-#include "ocgapi.h"
 
 #include <algorithm>
 #include <stack>

@@ -10,7 +10,6 @@
 #include "card.h"
 #include "effect.h"
 #include "scriptlib.h"
-#include "ocgapi.h"
 #include "interpreter.h"
 #include <cmath>
 static const struct luaL_Reg cardlib[] = {

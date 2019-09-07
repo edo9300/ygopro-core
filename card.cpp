@@ -11,7 +11,6 @@
 #include "duel.h"
 #include "group.h"
 #include "interpreter.h"
-#include "ocgapi.h"
 #include <algorithm>
 
 bool card_sort::operator()(void* const & p1, void* const & p2) const {

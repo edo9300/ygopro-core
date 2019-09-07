@@ -11,7 +11,6 @@
 #include "field.h"
 #include "card.h"
 #include "effect.h"
-#include "ocgapi.h"
 
 int32 scriptlib::debug_message(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
