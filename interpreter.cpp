@@ -759,7 +759,7 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_setglobal(current_state, "self_table");
 		char script_name[64];
 		sprintf(script_name, "c%d.lua", code);
-		if(!pduel->read_script(pduel->payload1, static_cast<OCG_Duel>(pduel), script_name)) {
+		if(!pduel->read_script(pduel->payload2, static_cast<OCG_Duel>(pduel), script_name)) {
 			lua_pushnil(current_state);
 			lua_setglobal(current_state, "self_table");
 			lua_pushnil(current_state);
