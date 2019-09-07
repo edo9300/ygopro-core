@@ -4365,7 +4365,7 @@ int32 scriptlib::duel_load_script(lua_State * L) {
 	lua_pcall(L, 1, 1, 0);
 	char strbuffer[256];
 	interpreter::sprintf(strbuffer, "%s", lua_tostring(L, -1));
-	lua_pushboolean(L, pduel->read_script(pduel->payload1, static_cast<OCG_Duel>(pduel), strbuffer));
+	lua_pushboolean(L, pduel->read_script(pduel->payload2, static_cast<OCG_Duel>(pduel), strbuffer));
 	return 1;
 }
 int32 scriptlib::duel_venom_swamp_check(lua_State *L) {
