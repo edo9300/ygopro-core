@@ -721,12 +721,12 @@ for the script name to load. If a script_name is given, the api will use
 the buffer and the len passed as the script buffer, without calling the
 script reader.
 */
-int32 interpreter::load_script(char* buffer, int len, char* script_name) {
+int32 interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	int32 error;
 	if(!buffer)
 		return OPERATION_FAIL;
 	no_action++;
-	error = luaL_loadbuffer(current_state, (const char*)buffer, len, (const char*)script_name) || lua_pcall(current_state, 0, 0, 0);
+	error = luaL_loadbuffer(current_state, buffer, len, script_name) || lua_pcall(current_state, 0, 0, 0);
 	if(error) {
 		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
 		pduel->handle_message(pduel->payload3, pduel->strbuffer, 1);

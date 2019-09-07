@@ -52,7 +52,8 @@ public:
 	std::unordered_set<effect*> effects;
 	std::unordered_set<effect*> uncopy;
 	
-	duel();
+	duel() {};
+	duel(OCG_DuelOptions options);
 	~duel();
 	void clear();
 	

@@ -39,7 +39,7 @@ typedef enum OCG_DuelStatus {
 
 typedef void* OCG_Duel;
 
-typedef struct card_data;
+struct card_data;
 
 typedef card_data CardData;
 
@@ -50,11 +50,11 @@ typedef struct OCG_Player {
 }OCG_Player;
 
 typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
-typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, char* name);
-typedef void (*OCG_LogHandler)(void* payload, char* string, int type);
+typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* name);
+typedef void (*OCG_LogHandler)(void* payload, const char* string, int type);
 
 typedef struct OCG_DuelOptions {
-	int seed;
+	uint32_t seed;
 	int flags;
 	OCG_Player team1;
 	OCG_Player team2;
@@ -98,9 +98,9 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel);
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);
 OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, uint32_t* length);
 OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, uint32_t length);
-OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, uint32_t length, char* name);
+OCGAPI int OCG_LoadScript(OCG_Duel duel, const char* buffer, uint32_t length, const char* name);
 
-OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint8_t pos, uint32_t loc);
+OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc);
 OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info);
 OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info);
 OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length);

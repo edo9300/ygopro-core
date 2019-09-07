@@ -12,7 +12,13 @@
 #include "effect.h"
 #include "group.h"
 
-duel::duel() {
+duel::duel(OCG_DuelOptions options) {
+	read_card = options.cardReader;
+	payload1 = options.payload1;
+	read_script = options.scriptReader;
+	payload2 = options.payload2;
+	handle_message = options.logHandler;
+	payload3 = options.payload3;
 	lua = new interpreter(this);
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);

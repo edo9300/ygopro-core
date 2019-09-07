@@ -18,30 +18,21 @@ OCGAPI void OCG_GetVersion(int* major, int* minor) {
 OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	if(duel == nullptr)
 		return OCG_DUEL_CREATION_NO_OUTPUT;
-	auto duelPtr = new class duel();
+	if(options.cardReader == nullptr) {
+		return OCG_DUEL_CREATION_NULL_DATA_READER;
+	}
+	if(options.scriptReader == nullptr) {
+		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
+	}
+	if(options.logHandler == nullptr) {
+		options.logHandler = (OCG_LogHandler)&DefaultLogHandler;
+		options.payload3 = nullptr;
+	}
+	auto duelPtr = new class duel(options);
 	if(duelPtr == nullptr)
 		return OCG_DUEL_CREATION_NOT_CREATED;
 	duelPtr->random.seed(options.seed);
 	duelPtr->game_field->core.duel_options = options.flags;
-	if(options.cardReader == nullptr) {
-		delete duelPtr;
-		return OCG_DUEL_CREATION_NULL_DATA_READER;
-	}
-	if(options.scriptReader == nullptr) {
-		delete duelPtr;
-		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
-	}
-	duelPtr->read_card = options.cardReader;
-	duelPtr->payload1 = options.payload1;
-	duelPtr->read_script = options.scriptReader;
-	duelPtr->payload2 = options.payload2;
-	if(options.logHandler == nullptr) {
-		duelPtr->handle_message = &DefaultLogHandler;
-		duelPtr->payload3 = nullptr;
-	} else {
-		duelPtr->handle_message = options.logHandler;
-		duelPtr->payload3 = options.payload3;
-	}
 	auto& team = options.team1;
 	for(int i = 0; i < 2; i++, team = options.team2) {
 		duelPtr->game_field->player[i].lp = team.startingLP;
@@ -158,11 +149,11 @@ OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, void* buffer, uint32_t length) {
 	DUEL->set_response(static_cast<uint8_t*>(buffer), length);
 }
 
-OCGAPI int OCG_LoadScript(OCG_Duel duel, char* buffer, uint32_t length, char* name) {
+OCGAPI int OCG_LoadScript(OCG_Duel duel, const char* buffer, uint32_t length, const char* name) {
 	return DUEL->lua->load_script(buffer, length, name);
 }
 
-OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint8_t pos, uint32_t loc) {
+OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 	if(team != 0 && team != 1)
 		return 0;
 	auto& player = DUEL->game_field->player[team];
