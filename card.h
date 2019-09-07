@@ -197,7 +197,7 @@ public:
 	static bool card_operation_sort(card* c1, card* c2);
 	bool is_extra_deck_monster() const { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && !!(data.type & TYPE_MONSTER); }
 
-	uint32 get_infos(int32 query_flag, int32 use_cache = TRUE, int32 ignore_cache = FALSE);
+	void get_infos(int32 query_flag);
 	loc_info get_info_location();
 	uint32 second_code(uint32 code);
 	uint32 get_code();

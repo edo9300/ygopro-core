@@ -199,10 +199,10 @@ void insert_value(std::vector<uint8_t>& vec, T val) {
 }
 extern "C" DECL_DLLEXPORT int32 get_cached_query(ptr pduel, byte * buf) {
 	duel* ptduel = (duel*)pduel;
-	int len = ptduel->cached_query.size();
+	int len = ptduel->query_buffer.size();
 	if(len)
-		memcpy(buf, ptduel->cached_query.data(), len);
-	ptduel->cached_query.clear();
+		memcpy(buf, ptduel->query_buffer.data(), len);
+	ptduel->query_buffer.clear();
 	return len;
 }
 extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 location, uint8 sequence, int32 query_flag, byte* buf, int32 use_cache, int32 ignore_cache) {
@@ -210,7 +210,7 @@ extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 loca
 		return 0;
 	duel* ptduel = (duel*)pduel;
 	card* pcard = 0;
-	ptduel->cached_query.clear();
+	ptduel->query_buffer.clear();
 	location &= 0x7f;
 	if(location & LOCATION_ONFIELD)
 		pcard = ptduel->game_field->get_field_card(playerid, location, sequence);
@@ -233,11 +233,12 @@ extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 loca
 		}
 	}
 	if(pcard) {
-		auto len = pcard->get_infos(query_flag, use_cache, ignore_cache);
+		auto len = 1;
+		pcard->get_infos(query_flag);
 		if(buf != nullptr) {
 			if(len)
-				memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
-			ptduel->cached_query.clear();
+				memcpy(buf, ptduel->query_buffer.data(), ptduel->query_buffer.size());
+			ptduel->query_buffer.clear();
 		}
 		return len;
 	}
@@ -245,7 +246,7 @@ extern "C" DECL_DLLEXPORT int32 query_card(ptr pduel, uint8 playerid, uint8 loca
 		if(buf != nullptr) {
 			*((int32*)buf) = 4;
 		} else {
-			insert_value<int32>(ptduel->cached_query, 4);
+			insert_value<int32>(ptduel->query_buffer, 4);
 		}
 		return 4;
 	}
@@ -283,24 +284,24 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	duel* ptduel = (duel*)pduel;
-	ptduel->cached_query.clear();
+	ptduel->query_buffer.clear();
 	auto& player = ptduel->game_field->player[playerid];
 	if(location == LOCATION_MZONE) {
 		for(auto cit = player.list_mzone.begin(); cit != player.list_mzone.end(); ++cit) {
 			card* pcard = *cit;
 			if(pcard) {
-				pcard->get_infos(query_flag, use_cache, ignore_cache);
+				pcard->get_infos(query_flag);
 			} else {
-				insert_value<int32>(ptduel->cached_query, 4);
+				insert_value<int32>(ptduel->query_buffer, 4);
 			}
 		}
 	} else if(location == LOCATION_SZONE) {
 		for(auto cit = player.list_szone.begin(); cit != player.list_szone.end(); ++cit) {
 			card* pcard = *cit;
 			if(pcard) {
-				pcard->get_infos(query_flag, use_cache, ignore_cache);
+				pcard->get_infos(query_flag);
 			} else {
-				insert_value<int32>(ptduel->cached_query, 4);
+				insert_value<int32>(ptduel->query_buffer, 4);
 			}
 		}
 	} else {
@@ -316,80 +317,80 @@ extern "C" DECL_DLLEXPORT int32 query_field_card(ptr pduel, uint8 playerid, uint
 		else if(location == LOCATION_DECK)
 			lst = &player.list_main;
 		for(auto& pcard : *lst) {
-			pcard->get_infos(query_flag, use_cache, ignore_cache);
+			pcard->get_infos(query_flag);
 		}
 	}
-	int len = ptduel->cached_query.size();
+	int len = ptduel->query_buffer.size();
 	if(buf != nullptr) {
 		if(len)
-			memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
-		ptduel->cached_query.clear();
+			memcpy(buf, ptduel->query_buffer.data(), ptduel->query_buffer.size());
+		ptduel->query_buffer.clear();
 	}
 	return len;
 }
 extern "C" DECL_DLLEXPORT int32 query_field_info(ptr pduel, byte* buf) {
 	duel* ptduel = (duel*)pduel;
-	ptduel->cached_query.clear();
+	ptduel->query_buffer.clear();
 	//byte* p = buf;
-	insert_value<int8_t>(ptduel->cached_query, MSG_RELOAD_FIELD);
+	insert_value<int8_t>(ptduel->query_buffer, MSG_RELOAD_FIELD);
 	/*to change*/
-	//insert_value<int8_t>(ptduel->cached_query, ((ptduel->game_field->is_flag(SPEED_DUEL) ? 1 : 0) << 4));
+	//insert_value<int8_t>(ptduel->query_buffer, ((ptduel->game_field->is_flag(SPEED_DUEL) ? 1 : 0) << 4));
 	for(int playerid = 0; playerid < 2; ++playerid) {
 		auto& player = ptduel->game_field->player[playerid];
-		insert_value<int32_t>(ptduel->cached_query, player.lp);
+		insert_value<int32_t>(ptduel->query_buffer, player.lp);
 		for(auto cit = player.list_mzone.begin(); cit != player.list_mzone.end(); ++cit) {
 			card* pcard = *cit;
 			if(pcard) {
-				insert_value<int8_t>(ptduel->cached_query, 1);
-				insert_value<int8_t>(ptduel->cached_query, pcard->current.position);
-				insert_value<int32_t>(ptduel->cached_query, pcard->xyz_materials.size());
+				insert_value<int8_t>(ptduel->query_buffer, 1);
+				insert_value<int8_t>(ptduel->query_buffer, pcard->current.position);
+				insert_value<int32_t>(ptduel->query_buffer, pcard->xyz_materials.size());
 			} else {
-				insert_value<int8_t>(ptduel->cached_query, 0);
+				insert_value<int8_t>(ptduel->query_buffer, 0);
 			}
 		}
 		for(auto cit = player.list_szone.begin(); cit != player.list_szone.end(); ++cit) {
 			card* pcard = *cit;
 			if(pcard) {
-				insert_value<int8_t>(ptduel->cached_query, 1);
-				insert_value<int8_t>(ptduel->cached_query, pcard->current.position);
+				insert_value<int8_t>(ptduel->query_buffer, 1);
+				insert_value<int8_t>(ptduel->query_buffer, pcard->current.position);
 			} else {
-				insert_value<int8_t>(ptduel->cached_query, 0);
+				insert_value<int8_t>(ptduel->query_buffer, 0);
 			}
 		}
-		insert_value<uint32_t>(ptduel->cached_query, player.list_main.size());
-		insert_value<uint32_t>(ptduel->cached_query, player.list_hand.size());
-		insert_value<uint32_t>(ptduel->cached_query, player.list_grave.size());
-		insert_value<uint32_t>(ptduel->cached_query, player.list_remove.size());
-		insert_value<uint32_t>(ptduel->cached_query, player.list_extra.size());
-		insert_value<uint32_t>(ptduel->cached_query, player.extra_p_count);
+		insert_value<uint32_t>(ptduel->query_buffer, player.list_main.size());
+		insert_value<uint32_t>(ptduel->query_buffer, player.list_hand.size());
+		insert_value<uint32_t>(ptduel->query_buffer, player.list_grave.size());
+		insert_value<uint32_t>(ptduel->query_buffer, player.list_remove.size());
+		insert_value<uint32_t>(ptduel->query_buffer, player.list_extra.size());
+		insert_value<uint32_t>(ptduel->query_buffer, player.extra_p_count);
 	}
-	insert_value<int32_t>(ptduel->cached_query, ptduel->game_field->core.current_chain.size());
+	insert_value<int32_t>(ptduel->query_buffer, ptduel->game_field->core.current_chain.size());
 	for(const auto& ch : ptduel->game_field->core.current_chain) {
 		effect* peffect = ch.triggering_effect;
-		insert_value<int32_t>(ptduel->cached_query, peffect->get_handler()->data.code);
+		insert_value<int32_t>(ptduel->query_buffer, peffect->get_handler()->data.code);
 		loc_info info = peffect->get_handler()->get_info_location();
-		insert_value<uint8>(ptduel->cached_query, info.controler);
-		insert_value<uint8>(ptduel->cached_query, info.location);
-		insert_value<uint32>(ptduel->cached_query, info.sequence);
-		insert_value<uint32>(ptduel->cached_query, info.position);
-		insert_value<uint8>(ptduel->cached_query, ch.triggering_controler);
-		insert_value<uint8>(ptduel->cached_query, (uint8)ch.triggering_location);
-		insert_value<uint32>(ptduel->cached_query, ch.triggering_sequence);
-		insert_value<uint64>(ptduel->cached_query, peffect->description);
+		insert_value<uint8>(ptduel->query_buffer, info.controler);
+		insert_value<uint8>(ptduel->query_buffer, info.location);
+		insert_value<uint32>(ptduel->query_buffer, info.sequence);
+		insert_value<uint32>(ptduel->query_buffer, info.position);
+		insert_value<uint8>(ptduel->query_buffer, ch.triggering_controler);
+		insert_value<uint8>(ptduel->query_buffer, (uint8)ch.triggering_location);
+		insert_value<uint32>(ptduel->query_buffer, ch.triggering_sequence);
+		insert_value<uint64>(ptduel->query_buffer, peffect->description);
 	}
-	int len = ptduel->cached_query.size();
+	int len = ptduel->query_buffer.size();
 	if(buf != nullptr) {
 		if(len)
-			memcpy(buf, ptduel->cached_query.data(), ptduel->cached_query.size());
-		ptduel->cached_query.clear();
+			memcpy(buf, ptduel->query_buffer.data(), ptduel->query_buffer.size());
+		ptduel->query_buffer.clear();
 	}
 	return len;
-}
+}/*
 extern "C" DECL_DLLEXPORT void set_responsei(ptr pduel, int32 value) {
 	((duel*)pduel)->set_responsei(value);
-}
+}*/
 extern "C" DECL_DLLEXPORT void set_responseb(ptr pduel, byte* buf, size_t len) {
-	((duel*)pduel)->set_responseb(buf, len);
+	((duel*)pduel)->set_response(buf, len);
 }
 extern "C" DECL_DLLEXPORT int32 preload_script(ptr pduel, char* script, int32 len, int32 scriptlen, char* scriptbuff) {
 	if(scriptlen)

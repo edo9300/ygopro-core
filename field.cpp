@@ -124,8 +124,7 @@ field::field(duel* pduel) {
 }
 void field::reload_field_info() {
 	auto message = pduel->new_message(MSG_RELOAD_FIELD);
-	/*to update*/
-	//message->write<uint8>(core.duel_rule + ((is_flag(SPEED_DUEL) ? 1 : 0) << 4));
+	message->write<uint32>(core.duel_options);
 	for(int32 playerid = 0; playerid < 2; ++playerid) {
 		message->write<uint32>(player[playerid].lp);
 		for(auto& pcard : player[playerid].list_mzone) {

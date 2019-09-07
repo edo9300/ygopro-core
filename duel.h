@@ -41,7 +41,7 @@ public:
 	typedef std::set<card*, card_sort> card_set;
 	char strbuffer[256];
 	std::vector<uint8_t> buff;
-	std::vector<uint8_t> cached_query;
+	std::vector<uint8_t> query_buffer;
 	interpreter* lua;
 	field* game_field;
 	std::mt19937 random;

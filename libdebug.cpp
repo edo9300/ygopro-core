@@ -178,15 +178,9 @@ int32 scriptlib::debug_reload_field_begin(lua_State *L) {
 		}
 	} else if (flag & DUEL_OBSOLETE_RULING) {
 		flag |= MASTER_RULE_1;
-		pduel->game_field->core.duel_rule = 1;
 		pduel->game_field->core.duel_options = flag;
 		return 0;
 	}
-	pduel->game_field->core.duel_rule = 2;
-	if(flag & DUEL_EMZONE)
-		pduel->game_field->core.duel_rule = 4;
-	else if (flag & DUEL_PZONE)
-		pduel->game_field->core.duel_rule = 3;
 	pduel->game_field->core.duel_options = flag;
 	return 0;
 }

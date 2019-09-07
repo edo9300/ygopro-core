@@ -2,6 +2,7 @@
 #include "interpreter.h"
 #include "duel.h"
 #include "field.h"
+#include "effect.h"
 
 #define DUEL (static_cast<class duel*>(duel))
 
@@ -185,6 +186,123 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint8_t pos, uin
 			if(pcard) count++;
 	}
 	return count;
+}
+template<typename T>
+void insert_value(std::vector<uint8_t>& vec, T val) {
+	const auto vec_size = vec.size();
+	const auto val_size = sizeof(T);
+	vec.resize(vec_size + val_size);
+	std::memcpy(&vec[vec_size], &val, val_size);
+}
+
+OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {
+	DUEL->query_buffer.clear();
+	card* pcard = nullptr;
+	if(info.loc & LOCATION_OVERLAY) {
+		auto olcard = DUEL->game_field->get_field_card(info.con, (info.loc & LOCATION_OVERLAY), info.seq);
+		if(olcard && olcard->xyz_materials.size() > info.overlay_seq) {
+			pcard = olcard->xyz_materials[info.overlay_seq];
+		}
+	} else {
+		pcard = DUEL->game_field->get_field_card(info.con, info.loc, info.seq);
+	}
+	if(pcard == nullptr) {
+		if(length)
+			*length = 0;
+		return nullptr;
+	} else {
+		pcard->get_infos(info.flags);
+	}
+	if(length)
+		*length = DUEL->query_buffer.size();
+	return DUEL->query_buffer.data();
+}
+
+OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {
+	DUEL->query_buffer.clear();
+	if(info.loc & LOCATION_OVERLAY) {
+		insert_value<int16>(DUEL->query_buffer, 0);
+	} else {
+		auto& player = DUEL->game_field->player[info.con];
+		field::card_vector* lst;
+		if(info.loc == LOCATION_MZONE)
+			lst = &player.list_mzone;
+		else if(info.loc == LOCATION_SZONE)
+			lst = &player.list_szone;
+		else if(info.loc == LOCATION_HAND)
+			lst = &player.list_hand;
+		else if(info.loc == LOCATION_GRAVE)
+			lst = &player.list_grave;
+		else if(info.loc == LOCATION_REMOVED)
+			lst = &player.list_remove;
+		else if(info.loc == LOCATION_EXTRA)
+			lst = &player.list_extra;
+		else if(info.loc == LOCATION_DECK)
+			lst = &player.list_main;
+		for(auto& pcard : *lst) {
+			if(pcard == nullptr) {
+				insert_value<int16>(DUEL->query_buffer, 0);
+			} else {
+				pcard->get_infos(info.flags);
+			}
+		}
+	}
+	auto len = DUEL->query_buffer.size();
+	DUEL->query_buffer.insert(DUEL->query_buffer.end(), reinterpret_cast<uint8_t*>(&len), reinterpret_cast<uint8_t*>(&len) + sizeof(len));
+	if(length)
+		*length = DUEL->query_buffer.size();
+	return DUEL->query_buffer.data();
+}
+
+OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
+	auto& query = DUEL->query_buffer;
+	query.clear();
+	//insert_value<int8_t>(query, MSG_RELOAD_FIELD);
+	insert_value<int32_t>(query, DUEL->game_field->core.duel_options);
+	for(int playerid = 0; playerid < 2; ++playerid) {
+		auto& player = DUEL->game_field->player[playerid];
+		insert_value<int32_t>(query, player.lp);
+		for(auto& pcard : player.list_mzone) {
+			if(pcard) {
+				insert_value<int8_t>(query, 1);
+				insert_value<int8_t>(query, pcard->current.position);
+				insert_value<int32_t>(query, pcard->xyz_materials.size());
+			} else {
+				insert_value<int8_t>(query, 0);
+			}
+		}
+		for(auto& pcard : player.list_szone) {
+			if(pcard) {
+				insert_value<int8_t>(query, 1);
+				insert_value<int8_t>(query, pcard->current.position);
+			} else {
+				insert_value<int8_t>(query, 0);
+			}
+		}
+		insert_value<uint32_t>(query, player.list_main.size());
+		insert_value<uint32_t>(query, player.list_hand.size());
+		insert_value<uint32_t>(query, player.list_grave.size());
+		insert_value<uint32_t>(query, player.list_remove.size());
+		insert_value<uint32_t>(query, player.list_extra.size());
+		insert_value<uint32_t>(query, player.extra_p_count);
+	}
+	insert_value<int32_t>(query, DUEL->game_field->core.current_chain.size());
+	for(const auto& ch : DUEL->game_field->core.current_chain) {
+		effect* peffect = ch.triggering_effect;
+		insert_value<int32_t>(query, peffect->get_handler()->data.code);
+		loc_info info = peffect->get_handler()->get_info_location();
+		insert_value<uint8>(query, info.controler);
+		insert_value<uint8>(query, info.location);
+		insert_value<uint32>(query, info.sequence);
+		insert_value<uint32>(query, info.position);
+		insert_value<uint8>(query, ch.triggering_controler);
+		insert_value<uint8>(query, (uint8)ch.triggering_location);
+		insert_value<uint32>(query, ch.triggering_sequence);
+		insert_value<uint64>(query, peffect->description);
+	}
+	if(length)
+		*length = query.size();
+	return query.data();
 }
 
 void DefaultLogHandler(void* payload, char* string, int type) {
