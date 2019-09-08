@@ -23,8 +23,6 @@
 #include <bitset>
 #include <cmath>
 
-class card;
-struct card_data;
 class duel;
 class group;
 class effect;

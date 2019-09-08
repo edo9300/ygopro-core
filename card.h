@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "effectset.h"
+#include "ocgapi.h"
 #include <set>
 #include <map>
 #include <unordered_set>
@@ -28,20 +29,7 @@ struct loc_info {
 	uint32 position;
 };
 
-struct card_data {
-	uint32 code;
-	uint32 alias;
-	uint64 setcode;
-	uint32 type;
-	uint32 level;
-	uint32 attribute;
-	uint32 race;
-	int32 attack;
-	int32 defense;
-	uint32 lscale;
-	uint32 rscale;
-	uint32 link_marker;
-};
+typedef OCG_CardData card_data;
 
 struct card_state {
 	uint32 code;
