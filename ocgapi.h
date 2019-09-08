@@ -39,9 +39,20 @@ typedef enum OCG_DuelStatus {
 
 typedef void* OCG_Duel;
 
-struct card_data;
-
-typedef card_data CardData;
+typedef struct OCG_CardData {
+	uint32_t code;
+	uint32_t alias;
+	uint64_t setcode;
+	uint32_t type;
+	uint32_t level;
+	uint32_t attribute;
+	uint32_t race;
+	int32_t attack;
+	int32_t defense;
+	uint32_t lscale;
+	uint32_t rscale;
+	uint32_t link_marker;
+}OCG_CardData;
 
 typedef struct OCG_Player {
 	int startingLP;
@@ -49,7 +60,7 @@ typedef struct OCG_Player {
 	int drawCountPerTurn;
 }OCG_Player;
 
-typedef int (*OCG_DataReader)(void* payload, int code, CardData* data);
+typedef int (*OCG_DataReader)(void* payload, int code, OCG_CardData* data);
 typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* name);
 typedef void (*OCG_LogHandler)(void* payload, const char* string, int type);
 
