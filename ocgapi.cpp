@@ -239,7 +239,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 		}
 	}
 	auto len = DUEL->query_buffer.size();
-	DUEL->query_buffer.insert(DUEL->query_buffer.end(), reinterpret_cast<uint8_t*>(&len), reinterpret_cast<uint8_t*>(&len) + sizeof(len));
+	DUEL->query_buffer.insert(DUEL->query_buffer.begin(), reinterpret_cast<uint8_t*>(&len), reinterpret_cast<uint8_t*>(&len) + sizeof(len));
 	if(length)
 		*length = DUEL->query_buffer.size();
 	return DUEL->query_buffer.data();
