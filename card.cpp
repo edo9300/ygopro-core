@@ -163,7 +163,7 @@ void card::get_infos(int32 query_flag) {
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
 		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + xyz_materials.size() * sizeof(uint32));
-		insert_value<uint32>(pduel->query_buffer, QUERY_TARGET_CARD);
+		insert_value<uint32>(pduel->query_buffer, QUERY_OVERLAY_CARD);
 		insert_value<uint32>(pduel->query_buffer, xyz_materials.size());
 		for(auto& xcard : xyz_materials)
 			insert_value<uint32>(pduel->query_buffer, xcard->data.code);
