@@ -19,9 +19,11 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	if(duel == nullptr)
 		return OCG_DUEL_CREATION_NO_OUTPUT;
 	if(options.cardReader == nullptr) {
+		*duel = nullptr;
 		return OCG_DUEL_CREATION_NULL_DATA_READER;
 	}
 	if(options.scriptReader == nullptr) {
+		*duel = nullptr;
 		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
 	}
 	if(options.logHandler == nullptr) {
@@ -45,7 +47,8 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 }
 
 OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
-	delete DUEL;
+	if(duel != nullptr)
+		delete DUEL;
 }
 
 OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
