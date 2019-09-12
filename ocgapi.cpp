@@ -6,7 +6,7 @@
 
 #define DUEL (static_cast<class duel*>(duel))
 
-void DefaultLogHandler(void* payload, char* string, int type);
+void DefaultLogHandler(void* payload, const char* string, int type);
 
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
@@ -25,7 +25,7 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
 	}
 	if(options.logHandler == nullptr) {
-		options.logHandler = (OCG_LogHandler)&DefaultLogHandler;
+		options.logHandler = &DefaultLogHandler;
 		options.payload3 = nullptr;
 	}
 	auto duelPtr = new class duel(options);
@@ -296,5 +296,5 @@ OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
 	return query.data();
 }
 
-void DefaultLogHandler(void* payload, char* string, int type) {
+void DefaultLogHandler(void* payload, const char* string, int type) {
 }
