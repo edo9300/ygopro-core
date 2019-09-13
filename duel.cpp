@@ -14,11 +14,11 @@
 
 duel::duel(OCG_DuelOptions options) {
 	read_card = options.cardReader;
-	payload1 = options.payload1;
+	read_card_payload = options.payload1;
 	read_script = options.scriptReader;
-	payload2 = options.payload2;
+	read_script_payload = options.payload2;
 	handle_message = options.logHandler;
-	payload3 = options.payload3;
+	handle_message_payload = options.payload3;
 	lua = new interpreter(this);
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);
@@ -52,7 +52,7 @@ card* duel::new_card(uint32 code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);
 	if(code)
-		read_card(payload1, code, &(pcard->data));
+		read_card(read_card_payload, code, &(pcard->data));
 	pcard->data.code = code;
 	lua->register_card(pcard);
 	return pcard;

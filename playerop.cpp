@@ -930,7 +930,7 @@ int32 field::announce_card(int16 step, uint8 playerid) {
 		int32 code = returns.at<int32>(0);
 		bool retry = false;
 		card_data data;
-		pduel->read_card(pduel->payload1, code, &data);
+		pduel->read_card(pduel->read_card_payload, code, &data);
 		if(!data.code) {
 			retry = true;
 		} else {

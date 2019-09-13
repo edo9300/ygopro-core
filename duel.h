@@ -74,9 +74,9 @@ public:
 	void set_response(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 	duel_message* new_message(uint32_t message);
-	void* payload1;
-	void* payload2;
-	void* payload3;
+	void* read_card_payload;
+	void* read_script_payload;
+	void* handle_message_payload;
 	OCG_DataReader read_card;
 	OCG_ScriptReader read_script;
 	OCG_LogHandler handle_message;
