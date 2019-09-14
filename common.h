@@ -329,6 +329,8 @@ struct card_sort {
 #define MSG_MATCH_KILL           170
 #define MSG_CUSTOM_MSG           180
 
+#define MSG_REMOVE_CARDS         190
+
 #define OLD_REPLAY_MODE          231
 
 //Hints
