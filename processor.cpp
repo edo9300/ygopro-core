@@ -1900,7 +1900,7 @@ int32 field::process_instant_event() {
 			core.new_ochain.push_back(newchain);
 			if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
 				|| !(peffect->range & LOCATION_HAND)
-				|| (peffect->range & phandler->current.location) && act)
+				|| ((peffect->range & phandler->current.location) && act))
 				phandler->create_relation(newchain);
 		}
 		//instant_f

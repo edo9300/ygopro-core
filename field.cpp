@@ -2298,8 +2298,8 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, 
 bool field::confirm_attack_target() {
 	card_vector cv;
 	get_attack_target(core.attacker, &cv, core.chain_attack, false);
-	return core.attack_target && std::find(cv.begin(), cv.end(), core.attack_target) != cv.end()
-		|| !core.attack_target && core.attacker->direct_attackable;
+	return (core.attack_target && std::find(cv.begin(), cv.end(), core.attack_target) != cv.end())
+		|| (!core.attack_target && core.attacker->direct_attackable);
 }
 // update the validity for EFFECT_ATTACK_ALL (approximate solution)
 void field::attack_all_target_check() {
@@ -2931,8 +2931,8 @@ int32 field::check_deck_effect(chain& ch) const {
 	card* phandler = peffect->get_handler();
 	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
 		&& ch.triggering_location == LOCATION_DECK && (phandler->current.location & LOCATION_DECK)) {
-		if((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
-			&& peffect->code == EVENT_TO_DECK || (peffect->range & LOCATION_DECK)) {
+		if(((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) && peffect->code == EVENT_TO_DECK)
+			|| (peffect->range & LOCATION_DECK)) {
 			ch.flag |= CHAIN_DECK_EFFECT;
 		} else
 			return FALSE;
@@ -2943,13 +2943,13 @@ int32 field::check_hand_trigger(chain& ch) {
 	effect* peffect = ch.triggering_effect;
 	card* phandler = peffect->get_handler();
 	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
-		&& ((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
-			&& phandler->is_has_relation(ch) && ch.triggering_location == LOCATION_HAND
+		&& (((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE)
+			&& phandler->is_has_relation(ch) && ch.triggering_location == LOCATION_HAND)
 			|| (peffect->range & LOCATION_HAND))) {
 		ch.flag |= CHAIN_HAND_TRIGGER;
 		core.new_ochain_h.push_back(ch);
-		if(ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN)
-			|| peffect->range && !peffect->in_range(ch))
+		if((ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN))
+			|| (peffect->range && !peffect->in_range(ch)))
 			return FALSE;
 	}
 	return TRUE;

@@ -304,7 +304,7 @@ uint32 card::get_infos(int32 query_flag, int32 use_cache, int32 ignore_cache) {
 }
 loc_info card::get_info_location() {
 	if(overlay_target) {
-		return { overlay_target->current.controler, (uint8)(overlay_target->current.location | LOCATION_OVERLAY & 0xff), overlay_target->current.sequence, current.sequence };
+		return { overlay_target->current.controler, (uint8)(overlay_target->current.location | (LOCATION_OVERLAY & 0xff)), overlay_target->current.sequence, current.sequence };
 	} else {
 		return { current.controler, current.location , current.sequence, current.position };
 	}
