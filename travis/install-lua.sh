@@ -2,6 +2,9 @@
 
 set -euxo pipefail
 
+TRAVIS_OS_NAME=${1:-$TRAVIS_OS_NAME}
+CXX=${CXX:-g++}
+
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	git clone --depth=1 https://github.com/Microsoft/vcpkg.git "$VCPKG_ROOT"
 	cd "$VCPKG_ROOT"
