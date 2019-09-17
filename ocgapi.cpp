@@ -184,7 +184,7 @@ extern "C" DECL_DLLEXPORT void new_card(ptr pduel, uint32 code, uint8 owner, uin
 		duelist--;
 		card* pcard = ptduel->new_card(code);
 		auto& player = ptduel->game_field->player[owner];
-		if(duelist >= player.extra_lists_main.size()) {
+		if(duelist >= static_cast<int>(player.extra_lists_main.size())) {
 			player.extra_lists_main.resize(duelist + 1);
 			player.extra_lists_extra.resize(duelist + 1);
 			player.extra_lists_hand.resize(duelist + 1);
