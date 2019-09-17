@@ -210,7 +210,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 		}
 		auto message = pduel->new_message(MSG_SELECT_OPTION);
 		message->write<uint8>(playerid);
-		message->write<uint8>(core.select_options.size());
+		message->write<uint8>(static_cast<uint8>(core.select_options.size()));
 		for(auto& option : core.select_options)
 			message->write<uint64>(option);
 		return FALSE;
@@ -261,7 +261,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		if(max == 0 || core.select_cards.empty())
 			return TRUE;
 		if(max > core.select_cards.size())
-			max = core.select_cards.size();
+			max = static_cast<uint8>(core.select_cards.size());
 		if(min > max)
 			min = max;
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
@@ -746,7 +746,7 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 		if(returns.at<int8>(0) == -1)
 			return TRUE;
 		byte c[64] = {};
-		uint8 m = core.select_cards.size();
+		uint8 m = static_cast<uint8>(core.select_cards.size());
 		for(uint8 i = 0; i < m; ++i) {
 			int8 v = returns.at<int8>(i);
 			if(v < 0 || v >= m || c[v]) {
@@ -923,7 +923,7 @@ int32 field::announce_card(int16 step, uint8 playerid) {
 	if(step == 0) {
 		auto message = pduel->new_message(MSG_ANNOUNCE_CARD);
 		message->write<uint8>(playerid);
-		message->write<uint8>(core.select_options.size());
+		message->write<uint8>(static_cast<uint8>(core.select_options.size()));
 		for(auto& option : core.select_options)
 			message->write<uint64>(option);
 		return FALSE;
@@ -958,7 +958,7 @@ int32 field::announce_number(int16 step, uint8 playerid) {
 	if(step == 0) {
 		auto message = pduel->new_message(MSG_ANNOUNCE_NUMBER);
 		message->write<uint8>(playerid);
-		message->write<uint8>(core.select_options.size());
+		message->write<uint8>(static_cast<uint8>(core.select_options.size()));
 		for(auto& option : core.select_options)
 			message->write<uint64>(option);
 		return FALSE;

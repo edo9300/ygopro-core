@@ -4120,7 +4120,7 @@ int32 field::add_chain(uint16 step) {
 			peffect->card_type -= TYPE_TRAP;
 		peffect->set_active_type();
 		peffect->active_handler = peffect->handler->overlay_target;
-		clit.chain_count = core.current_chain.size() + 1;
+		clit.chain_count = static_cast<uint8>(core.current_chain.size()) + 1;
 		clit.target_cards = 0;
 		clit.target_player = PLAYER_NONE;
 		clit.target_param = 0;
