@@ -11,13 +11,21 @@ option(OCGCORE_MSVC_STATIC "Static CRT on Visual Studio" ON)
 
 find_package(Lua REQUIRED)
 
-add_compile_definitions(ocgcore PUBLIC LUA_COMPAT_5_2)
-include_directories(${LUA_INCLUDE_DIR})
-
 add_library(ocgcore_static STATIC)
 add_library(ocgcore SHARED)
+
 target_compile_definitions(ocgcore PUBLIC YGOPRO_BUILD_DLL)
+
+target_compile_definitions(ocgcore PUBLIC LUA_COMPAT_5_2)
+target_compile_definitions(ocgcore_static PUBLIC LUA_COMPAT_5_2)
+
+target_include_directories(ocgcore PUBLIC ${LUA_INCLUDE_DIR})
+target_include_directories(ocgcore_static PUBLIC ${LUA_INCLUDE_DIR})
+
 if(MSVC)
+	target_compile_definitions(ocgcore PRIVATE _CRT_SECURE_NO_WARNINGS)
+	target_compile_definitions(ocgcore_static PRIVATE _CRT_SECURE_NO_WARNINGS)
+	
 	find_library(LUA_CXX_LIBRARIES lua-c++)
 	message("Lua-C++ found at " ${LUA_CXX_LIBRARIES})
 	target_link_libraries(ocgcore PUBLIC ${LUA_CXX_LIBRARIES})
