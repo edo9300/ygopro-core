@@ -103,7 +103,7 @@ OCGAPI void OCG_GetVersion(int* major, int* minor);
 OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options);
 OCGAPI void OCG_DestroyDuel(OCG_Duel duel);
 OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info);
-OCGAPI int OCG_StartDuel(OCG_Duel duel);
+OCGAPI void OCG_StartDuel(OCG_Duel duel);
 
 /*** DUEL PROCESSING AND QUERYING ***/
 OCGAPI int OCG_DuelProcess(OCG_Duel duel);

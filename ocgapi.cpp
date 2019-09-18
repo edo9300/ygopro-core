@@ -96,7 +96,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 	}
 }
 
-OCGAPI int OCG_StartDuel(OCG_Duel duel) {
+OCGAPI void OCG_StartDuel(OCG_Duel duel) {
 	auto game_field = DUEL->game_field;
 	game_field->core.shuffle_hand_check[0] = FALSE;
 	game_field->core.shuffle_hand_check[1] = FALSE;
@@ -128,7 +128,6 @@ OCGAPI int OCG_StartDuel(OCG_Duel duel) {
 		}
 	}
 	game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);
-	return 1;
 }
 
 OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
