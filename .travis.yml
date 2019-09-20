@@ -39,6 +39,7 @@ deploy:
   script: bash ./travis/deploy-windows.sh
   on:
     condition: "$TRAVIS_OS_NAME == windows"
+    repo: edo9300/ygopro-core
 - provider: pages
   skip_cleanup: true
   local_dir: $DEPLOY_DIR
@@ -46,7 +47,8 @@ deploy:
   repo: $DEPLOY_REPO
   target_branch: $DEPLOY_BRANCH
   on:
-    condition: "$TRAVIS_OS_NAME != windows" 
+    condition: "$TRAVIS_OS_NAME != windows"
+    repo: edo9300/ygopro-core
 #- provider: releases
 #  api_key: $OAUTH_TOKEN
 #  overwrite: true
