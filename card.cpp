@@ -150,7 +150,7 @@ void card::get_infos(int32 query_flag) {
 		}
 	}
 	if(query_flag & QUERY_TARGET_CARD) {
-		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + effect_target_cards.size() * (sizeof(uint16) + sizeof(uint64)));
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + static_cast<uint16>(effect_target_cards.size()) * (sizeof(uint16) + sizeof(uint64)));
 		insert_value<uint32>(pduel->query_buffer, QUERY_TARGET_CARD);
 		insert_value<uint32>(pduel->query_buffer, effect_target_cards.size());
 		for(auto& pcard : effect_target_cards) {
@@ -162,14 +162,14 @@ void card::get_infos(int32 query_flag) {
 		}
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
-		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + xyz_materials.size() * sizeof(uint32));
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + static_cast<uint16>(xyz_materials.size()) * sizeof(uint32));
 		insert_value<uint32>(pduel->query_buffer, QUERY_OVERLAY_CARD);
 		insert_value<uint32>(pduel->query_buffer, xyz_materials.size());
 		for(auto& xcard : xyz_materials)
 			insert_value<uint32>(pduel->query_buffer, xcard->data.code);
 	}
 	if(query_flag & QUERY_COUNTERS) {
-		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + counters.size() * sizeof(uint32));
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + static_cast<uint16>(counters.size()) * sizeof(uint32));
 		insert_value<uint32>(pduel->query_buffer, QUERY_COUNTERS);
 		insert_value<uint32>(pduel->query_buffer, counters.size());
 		for(auto& cmit : counters)
