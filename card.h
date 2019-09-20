@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "effectset.h"
+#include "ocgapi.h"
 #include <set>
 #include <map>
 #include <unordered_set>
@@ -28,22 +29,7 @@ struct loc_info {
 	uint32 position;
 };
 
-struct card_data {
-	uint32 code;
-	uint32 alias;
-	uint64 setcode;
-	uint32 type;
-	uint32 level;
-	uint32 attribute;
-	uint32 race;
-	int32 attack;
-	int32 defense;
-	uint32 lscale;
-	uint32 rscale;
-	uint32 link_marker;
-
-	void clear();
-};
+typedef OCG_CardData card_data;
 
 struct card_state {
 	uint32 code;
@@ -72,26 +58,6 @@ struct card_state {
 	uint8 reason_player;
 	effect* reason_effect;
 	bool is_location(int32 loc) const;
-};
-
-struct query_cache {
-	uint32 code;
-	uint32 alias;
-	uint32 type;
-	uint32 level;
-	uint32 rank;
-	uint32 link;
-	uint32 attribute;
-	uint32 race;
-	int32 attack;
-	int32 defense;
-	int32 base_attack;
-	int32 base_defense;
-	uint32 reason;
-	int32 status;
-	uint32 lscale;
-	uint32 rscale;
-	uint32 link_marker;
 };
 
 class card {
@@ -138,7 +104,6 @@ public:
 	card_state previous;
 	card_state temp;
 	card_state current;
-	query_cache q_cache;
 	uint8 owner;
 	uint8 summon_player;
 	uint32 summon_info;
@@ -197,7 +162,7 @@ public:
 	static bool card_operation_sort(card* c1, card* c2);
 	bool is_extra_deck_monster() const { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && !!(data.type & TYPE_MONSTER); }
 
-	uint32 get_infos(int32 query_flag, int32 use_cache = TRUE, int32 ignore_cache = FALSE);
+	void get_infos(int32 query_flag);
 	loc_info get_info_location();
 	uint32 second_code(uint32 code);
 	uint32 get_code();

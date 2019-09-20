@@ -11,9 +11,14 @@
 #include "card.h"
 #include "effect.h"
 #include "group.h"
-#include "ocgapi.h"
 
-duel::duel() {
+duel::duel(OCG_DuelOptions options) {
+	read_card = options.cardReader;
+	read_card_payload = options.payload1;
+	read_script = options.scriptReader;
+	read_script_payload = options.payload2;
+	handle_message = options.logHandler;
+	handle_message_payload = options.payload3;
 	lua = new interpreter(this);
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);
@@ -47,9 +52,7 @@ card* duel::new_card(uint32 code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);
 	if(code)
-		::read_card(code, &(pcard->data));
-	else
-		pcard->data.clear();
+		read_card(read_card_payload, code, &(pcard->data));
 	pcard->data.code = code;
 	lua->register_card(pcard);
 	return pcard;
@@ -103,7 +106,11 @@ int32 duel::read_buffer(byte* buf) {
 }
 void duel::generate_buffer() {
 	for(auto& message : messages) {
-		write_buffer(message.data.data(), message.data.size());
+		uint32_t size = message.data.size();
+		if(size) {
+			write_buffer(&size, sizeof(size));
+			write_buffer(message.data.data(), size);
+		}
 	}
 	messages.clear();
 }
@@ -131,10 +138,7 @@ void duel::write_buffer(void* data, size_t size) {
 void duel::clear_buffer() {
 	buff.clear();
 }
-void duel::set_responsei(uint32 resp) {
-	game_field->returns.at<int32>(0) = resp;
-}
-void duel::set_responseb(byte* resp, size_t len) {
+void duel::set_response(byte* resp, size_t len) {
 	game_field->returns.clear();
 	game_field->returns.data.resize(len);
 	if(len)

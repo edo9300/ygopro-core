@@ -11,7 +11,6 @@
 #include "duel.h"
 #include "group.h"
 #include "interpreter.h"
-#include "ocgapi.h"
 #include <algorithm>
 
 bool card_sort::operator()(void* const & p1, void* const & p2) const {
@@ -66,9 +65,6 @@ uint32 card::attacker_map::findcard(card* pcard) {
 	else
 		return it->second.second;
 }
-void card_data::clear() {
-	std::memset(this, 0, sizeof(card_data));
-}
 card::card(duel* pd) {
 	ref_handle = 0;
 	pduel = pd;
@@ -82,7 +78,6 @@ card::card(duel* pd) {
 	direct_attackable = 0;
 	summon_info = 0;
 	status = 0;
-	memset(&q_cache, 0xff, sizeof(query_cache));
 	equiping_target = 0;
 	pre_equip_target = 0;
 	overlay_target = 0;
@@ -95,6 +90,7 @@ card::card(duel* pd) {
 	unique_code = 0;
 	unique_fieldid = 0;
 	spsummon_code = 0;
+	data = {};
 	current.controler = PLAYER_NONE;
 }
 template<typename T>
@@ -104,203 +100,94 @@ void insert_value(std::vector<uint8_t>& vec, T val) {
 	vec.resize(vec_size + val_size);
 	std::memcpy(&vec[vec_size], &val, val_size);
 }
-uint32 card::get_infos(int32 query_flag, int32 use_cache, int32 ignore_cache) {
-	std::vector<uint8_t> query;
-	int32 tdata = 0;
-	query_cache tmp_q_cache{};
-	if(ignore_cache)
-		tmp_q_cache = q_cache;
-	if(query_flag & QUERY_CODE)
-		insert_value<uint32>(query, data.code);
-	if(query_flag & QUERY_POSITION)
-		insert_value<uint32>(query, (get_info_location().position & 0xff) << 24);
-	if(!use_cache) {
-		if(query_flag & QUERY_ALIAS) {
-			q_cache.alias = get_code();
-			insert_value<uint32>(query, q_cache.alias);
-		}
-		if(query_flag & QUERY_TYPE) {
-			q_cache.type = get_type();
-			insert_value<uint32>(query, q_cache.type);
-		}
-		if(query_flag & QUERY_LEVEL) {
-			q_cache.level = get_level();
-			insert_value<uint32>(query, q_cache.level);
-		}
-		if(query_flag & QUERY_RANK) {
-			q_cache.rank = get_rank();
-			insert_value<uint32>(query, q_cache.rank);
-		}
-		if(query_flag & QUERY_ATTRIBUTE) {
-			q_cache.attribute = get_attribute();
-			insert_value<uint32>(query, q_cache.attribute);
-		}
-		if(query_flag & QUERY_RACE) {
-			q_cache.race = get_race();
-			insert_value<uint32>(query, q_cache.race);
-		}
-		if(query_flag & QUERY_ATTACK) {
-			q_cache.attack = get_attack();
-			insert_value<uint32>(query, q_cache.attack);
-		}
-		if(query_flag & QUERY_DEFENSE) {
-			q_cache.defense = get_defense();
-			insert_value<uint32>(query, q_cache.defense);
-		}
-		if(query_flag & QUERY_BASE_ATTACK) {
-			q_cache.base_attack = get_base_attack();
-			insert_value<uint32>(query, q_cache.base_attack);
-		}
-		if(query_flag & QUERY_BASE_DEFENSE) {
-			q_cache.base_defense = get_base_defense();
-			insert_value<uint32>(query, q_cache.base_defense);
-		}
-		if(query_flag & QUERY_REASON) {
-			q_cache.reason = current.reason;
-			insert_value<uint32>(query, q_cache.reason);
-		}
-	} else {
-		if((query_flag & QUERY_ALIAS) && ((uint32)(tdata = get_code()) != q_cache.alias)) {
-			q_cache.alias = tdata;
-			insert_value<uint32>(query, q_cache.alias);
-		} else query_flag &= ~QUERY_ALIAS;
-		if((query_flag & QUERY_TYPE) && ((uint32)(tdata = get_type()) != q_cache.type)) {
-			q_cache.type = tdata;
-			insert_value<uint32>(query, q_cache.type);
-		} else query_flag &= ~QUERY_TYPE;
-		if((query_flag & QUERY_LEVEL) && ((uint32)(tdata = get_level()) != q_cache.level)) {
-			q_cache.level = tdata;
-			insert_value<uint32>(query, q_cache.level);
-		} else query_flag &= ~QUERY_LEVEL;
-		if((query_flag & QUERY_RANK) && ((uint32)(tdata = get_rank()) != q_cache.rank)) {
-			q_cache.rank = tdata;
-			insert_value<uint32>(query, q_cache.rank);
-		} else query_flag &= ~QUERY_RANK;
-		if((query_flag & QUERY_ATTRIBUTE) && ((uint32)(tdata = get_attribute()) != q_cache.attribute)) {
-			q_cache.attribute = tdata;
-			insert_value<uint32>(query, q_cache.attribute);
-		} else query_flag &= ~QUERY_ATTRIBUTE;
-		if((query_flag & QUERY_RACE) && ((uint32)(tdata = get_race()) != q_cache.race)) {
-			q_cache.race = tdata;
-			insert_value<uint32>(query, q_cache.race);
-		} else query_flag &= ~QUERY_RACE;
-		if((query_flag & QUERY_ATTACK) && ((tdata = get_attack()) != q_cache.attack)) {
-			q_cache.attack = tdata;
-			insert_value<uint32>(query, q_cache.attack);
-		} else query_flag &= ~QUERY_ATTACK;
-		if((query_flag & QUERY_DEFENSE) && ((tdata = get_defense()) != q_cache.defense)) {
-			q_cache.defense = tdata;
-			insert_value<uint32>(query, q_cache.defense);
-		} else query_flag &= ~QUERY_DEFENSE;
-		if((query_flag & QUERY_BASE_ATTACK) && ((tdata = get_base_attack()) != q_cache.base_attack)) {
-			q_cache.base_attack = tdata;
-			insert_value<uint32>(query, q_cache.base_attack);
-		} else query_flag &= ~QUERY_BASE_ATTACK;
-		if((query_flag & QUERY_BASE_DEFENSE) && ((tdata = get_base_defense()) != q_cache.base_defense)) {
-			q_cache.base_defense = tdata;
-			insert_value<uint32>(query, q_cache.base_defense);
-		} else query_flag &= ~QUERY_BASE_DEFENSE;
-		if((query_flag & QUERY_REASON) && ((uint32)(tdata = current.reason) != q_cache.reason)) {
-			q_cache.reason = tdata;
-			insert_value<uint32>(query, q_cache.reason);
-		} else query_flag &= ~QUERY_REASON;
-	}
-	if(query_flag & QUERY_REASON_CARD){
+
+#define CHECK_AND_INSERT(query, value)if(query_flag & query) {\
+insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32));\
+insert_value<uint32>(pduel->query_buffer, query);\
+insert_value<uint32>(pduel->query_buffer, value);\
+}
+
+void card::get_infos(int32 query_flag) {
+	CHECK_AND_INSERT(QUERY_CODE, data.code);
+	CHECK_AND_INSERT(QUERY_POSITION, get_info_location().position);
+	CHECK_AND_INSERT(QUERY_ALIAS, get_code());
+	CHECK_AND_INSERT(QUERY_TYPE, get_type());
+	CHECK_AND_INSERT(QUERY_LEVEL, get_level());
+	CHECK_AND_INSERT(QUERY_RANK, get_rank());
+	CHECK_AND_INSERT(QUERY_ATTRIBUTE, get_attribute());
+	CHECK_AND_INSERT(QUERY_RACE, get_race());
+	CHECK_AND_INSERT(QUERY_ATTACK, get_attack());
+	CHECK_AND_INSERT(QUERY_DEFENSE, get_defense());
+	CHECK_AND_INSERT(QUERY_BASE_ATTACK, get_base_attack());
+	CHECK_AND_INSERT(QUERY_BASE_DEFENSE, get_base_defense());
+	CHECK_AND_INSERT(QUERY_REASON, current.reason);
+	if(query_flag & QUERY_REASON_CARD) {
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint16) + sizeof(uint64));
+		insert_value<uint32>(pduel->query_buffer, QUERY_REASON_CARD);
 		if(current.reason_card) {
 			loc_info info = current.reason_card->get_info_location();
-			insert_value<uint8>(query, info.controler);
-			insert_value<uint8>(query, info.location);
-			insert_value<uint32>(query, info.sequence);
-			insert_value<uint32>(query, info.position);
+			insert_value<uint8>(pduel->query_buffer, info.controler);
+			insert_value<uint8>(pduel->query_buffer, info.location);
+			insert_value<uint32>(pduel->query_buffer, info.sequence);
+			insert_value<uint32>(pduel->query_buffer, info.position);
 		} else {
-			insert_value<uint16>(query, 0);
-			insert_value<uint64>(query, 0);
+			insert_value<uint16>(pduel->query_buffer, 0);
+			insert_value<uint64>(pduel->query_buffer, 0);
 		}
 	}
 	if(query_flag & QUERY_EQUIP_CARD) {
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint16) + sizeof(uint64));
+		insert_value<uint32>(pduel->query_buffer, QUERY_REASON_CARD);
 		if(equiping_target) {
 			loc_info info = equiping_target->get_info_location();
-			insert_value<uint8>(query, info.controler);
-			insert_value<uint8>(query, info.location);
-			insert_value<uint32>(query, info.sequence);
-			insert_value<uint32>(query, info.position);
-		} else
-			query_flag &= ~QUERY_EQUIP_CARD;
+			insert_value<uint8>(pduel->query_buffer, info.controler);
+			insert_value<uint8>(pduel->query_buffer, info.location);
+			insert_value<uint32>(pduel->query_buffer, info.sequence);
+			insert_value<uint32>(pduel->query_buffer, info.position);
+		} else {
+			insert_value<uint16>(pduel->query_buffer, 0);
+			insert_value<uint64>(pduel->query_buffer, 0);
+		}
 	}
 	if(query_flag & QUERY_TARGET_CARD) {
-		insert_value<uint32>(query, effect_target_cards.size());
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + effect_target_cards.size() * (sizeof(uint16) + sizeof(uint64)));
+		insert_value<uint32>(pduel->query_buffer, QUERY_TARGET_CARD);
+		insert_value<uint32>(pduel->query_buffer, effect_target_cards.size());
 		for(auto& pcard : effect_target_cards) {
 			loc_info info = pcard->get_info_location();
-			insert_value<uint8>(query, info.controler);
-			insert_value<uint8>(query, info.location);
-			insert_value<uint32>(query, info.sequence);
-			insert_value<uint32>(query, info.position);
+			insert_value<uint8>(pduel->query_buffer, info.controler);
+			insert_value<uint8>(pduel->query_buffer, info.location);
+			insert_value<uint32>(pduel->query_buffer, info.sequence);
+			insert_value<uint32>(pduel->query_buffer, info.position);
 		}
 	}
 	if(query_flag & QUERY_OVERLAY_CARD) {
-		insert_value<uint32>(query, xyz_materials.size());
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + xyz_materials.size() * sizeof(uint32));
+		insert_value<uint32>(pduel->query_buffer, QUERY_OVERLAY_CARD);
+		insert_value<uint32>(pduel->query_buffer, xyz_materials.size());
 		for(auto& xcard : xyz_materials)
-			insert_value<uint32>(query, xcard->data.code);
+			insert_value<uint32>(pduel->query_buffer, xcard->data.code);
 	}
 	if(query_flag & QUERY_COUNTERS) {
-		insert_value<uint32>(query, counters.size());
-		for(const auto& cmit : counters)
-			insert_value<uint32>(query, cmit.first + ((cmit.second[0] + cmit.second[1]) << 16));
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + counters.size() * sizeof(uint32));
+		insert_value<uint32>(pduel->query_buffer, QUERY_COUNTERS);
+		insert_value<uint32>(pduel->query_buffer, counters.size());
+		for(auto& cmit : counters)
+			insert_value<uint32>(pduel->query_buffer, cmit.first + ((cmit.second[0] + cmit.second[1]) << 16));
 	}
-	if(query_flag & QUERY_OWNER)
-		insert_value<uint32>(query, owner);
-	if(query_flag & QUERY_STATUS) {
-		tdata = status & (STATUS_DISABLED | STATUS_FORBIDDEN | STATUS_PROC_COMPLETE);
-		if(!use_cache || (tdata != q_cache.status)) {
-			q_cache.status = tdata;
-			insert_value<uint32>(query, q_cache.status);
-		} else
-			query_flag &= ~QUERY_STATUS;
+	CHECK_AND_INSERT(QUERY_OWNER, owner);
+	CHECK_AND_INSERT(QUERY_STATUS, status);
+	CHECK_AND_INSERT(QUERY_IS_PUBLIC, is_position(POS_FACEUP) ? 1 : 0);
+	CHECK_AND_INSERT(QUERY_LSCALE, get_lscale());
+	CHECK_AND_INSERT(QUERY_RSCALE, get_rscale());
+	if(query_flag & QUERY_LINK) {
+		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32) + sizeof(uint32));
+		insert_value<uint32>(pduel->query_buffer, QUERY_LINK);
+		insert_value<uint32>(pduel->query_buffer, get_link());
+		insert_value<uint32>(pduel->query_buffer, get_link_marker());
 	}
-	if(query_flag & QUERY_IS_PUBLIC)
-		insert_value<uint32>(query, is_position(POS_FACEUP) ? 1 : 0);
-	if(!use_cache) {
-		if(query_flag & QUERY_LSCALE) {
-			q_cache.lscale = get_lscale();
-			insert_value<uint32>(query, q_cache.lscale);
-		}
-		if(query_flag & QUERY_RSCALE) {
-			q_cache.rscale = get_rscale();
-			insert_value<uint32>(query, q_cache.rscale);
-		}
-		if(query_flag & QUERY_LINK) {
-			q_cache.link = get_link();
-			insert_value<uint32>(query, q_cache.link);
-			q_cache.link_marker = get_link_marker();
-			insert_value<uint32>(query, q_cache.link_marker);
-		}
-	} else {
-		if((query_flag & QUERY_LSCALE) && ((uint32)(tdata = get_lscale()) != q_cache.lscale)) {
-			q_cache.lscale = tdata;
-			insert_value<uint32>(query, q_cache.lscale);
-		} else query_flag &= ~QUERY_LSCALE;
-		if((query_flag & QUERY_RSCALE) && ((uint32)(tdata = get_rscale()) != q_cache.rscale)) {
-			q_cache.rscale = tdata;
-			insert_value<uint32>(query, q_cache.rscale);
-		} else query_flag &= ~QUERY_RSCALE;
-		if(query_flag & QUERY_LINK) {
-			uint32 link = get_link();
-			uint32 link_marker = get_link_marker();
-			if((link != q_cache.link) || (link_marker != q_cache.link_marker)) {
-				q_cache.link = link;
-				insert_value<uint32>(query, q_cache.link);
-				q_cache.link_marker = link_marker;
-				insert_value<uint32>(query, q_cache.link_marker);
-			} else query_flag &= ~QUERY_LINK;
-		}
-	}
-	if(ignore_cache)
-		 q_cache = tmp_q_cache;
-	auto size = query.size() + 8;
-	insert_value<uint32>(pduel->cached_query, size);
-	insert_value<uint32>(pduel->cached_query, query_flag);
-	pduel->cached_query.insert(pduel->cached_query.end(), query.begin(), query.end());
-	return (uint32)size;
+	insert_value<uint16>(pduel->query_buffer, sizeof(uint32));
+	insert_value<uint32>(pduel->query_buffer, QUERY_END);
 }
 loc_info card::get_info_location() {
 	if(overlay_target) {
@@ -339,7 +226,7 @@ uint32 card::get_code() {
 			code = data.alias;
 	} else {
 		card_data dat;
-		read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		if (dat.alias && !second_code(code))
 			code = dat.alias;
 	}
@@ -406,7 +293,7 @@ int32 card::is_set_card(uint32 set_code) {
 		setcode = data.setcode;
 	} else {
 		card_data dat;
-		::read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		setcode = dat.setcode;
 	}
 	uint32 settype = set_code & 0xfff;
@@ -429,7 +316,7 @@ int32 card::is_set_card(uint32 set_code) {
 	uint64 setcode2;
 	if (code2 != 0) {
 		card_data dat;
-		::read_card(code2, &dat);
+		pduel->read_card(pduel->read_card_payload, code2, &dat);
 		setcode2 = dat.setcode;
 	} else {
 		return FALSE;
@@ -459,7 +346,7 @@ int32 card::is_pre_set_card(uint32 set_code) {
 		setcode = data.setcode;
 	} else {
 		card_data dat;
-		::read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		setcode = dat.setcode;
 	}
 	uint32 settype = set_code & 0xfff;
@@ -478,7 +365,7 @@ int32 card::is_pre_set_card(uint32 set_code) {
 	uint64 setcode2;
 	if (code2 != 0) {
 		card_data dat;
-		::read_card(code2, &dat);
+		pduel->read_card(pduel->read_card_payload, code2, &dat);
 		setcode2 = dat.setcode;
 	} else {
 		return FALSE;
@@ -522,7 +409,7 @@ int32 card::is_sumon_set_card(uint32 set_code, card * scard, uint32 sumtype, uin
 	std::set<uint16> setcodes;
 	for (uint32 code : codes) {
 		card_data dat;
-		::read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		uint64 setcode = dat.setcode;
 		while (setcode) {
 			setcodes.insert(setcode & 0xffff);
@@ -562,7 +449,7 @@ uint32 card::get_set_card() {
 		setcode = data.setcode;
 	} else {
 		card_data dat;
-		::read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		setcode = dat.setcode;
 	}
 	for (; setcode > 0; count++, setcode = setcode >> 16)
@@ -579,7 +466,7 @@ uint32 card::get_set_card() {
 	uint32 code2 = get_another_code();
 	if (code2 != 0) {
 		card_data dat;
-		::read_card(code2, &dat);
+		pduel->read_card(pduel->read_card_payload, code2, &dat);
 		setcode = dat.setcode;
 	}
 	for (; setcode > 0; count++, setcode = setcode >> 16)
@@ -597,7 +484,7 @@ uint32 card::get_pre_set_card() {
 		setcode = data.setcode;
 	} else {
 		card_data dat;
-		::read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		setcode = dat.setcode;
 	}
 	for (; setcode > 0; count++, setcode = setcode >> 16)
@@ -610,7 +497,7 @@ uint32 card::get_pre_set_card() {
 	uint32 code2 = previous.code2;
 	if (code2 != 0) {
 		card_data dat;
-		::read_card(code2, &dat);
+		pduel->read_card(pduel->read_card_payload, code2, &dat);
 		setcode = dat.setcode;
 		return setcode;
 	}
@@ -648,7 +535,7 @@ uint32 card::get_summon_set_card(card* scard, uint32 sumtype, uint8 playerid) {
 	std::set<uint16> setcodes;
 	for (uint32 code : codes) {
 		card_data dat;
-		::read_card(code, &dat);
+		pduel->read_card(pduel->read_card_payload, code, &dat);
 		uint64 setcode = dat.setcode;
 		while (setcode) {
 			setcodes.insert(setcode & 0xffff);
@@ -2197,7 +2084,7 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 }
 int32 card::copy_effect(uint32 code, uint32 reset, uint32 count) {
 	card_data cdata;
-	read_card(code, &cdata);
+	pduel->read_card(pduel->read_card_payload, code, &cdata);
 	if(cdata.type & TYPE_NORMAL)
 		return -1;
 	set_status(STATUS_COPYING_EFFECT, TRUE);
@@ -2233,7 +2120,7 @@ int32 card::copy_effect(uint32 code, uint32 reset, uint32 count) {
 }
 int32 card::replace_effect(uint32 code, uint32 reset, uint32 count) {
 	card_data cdata;
-	read_card(code, &cdata);
+	pduel->read_card(pduel->read_card_payload, code, &cdata);
 	if(cdata.type & TYPE_NORMAL)
 		return -1;
 	if(is_status(STATUS_EFFECT_REPLACED))
@@ -4176,7 +4063,7 @@ int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
 }
 bool card::recreate(uint32 code) {
 	card_data dat;
-	read_card(code, &dat);
+	pduel->read_card(pduel->read_card_payload, code, &dat);
 	if(code)
 		data = dat;
 	return code != 0;

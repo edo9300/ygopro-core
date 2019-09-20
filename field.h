@@ -23,8 +23,6 @@
 #include <bitset>
 #include <cmath>
 
-class card;
-struct card_data;
 class duel;
 class group;
 class effect;
@@ -293,7 +291,6 @@ struct processor {
 	uint8 extra_summon[2];
 	int32 spe_effect[2];
 	int32 duel_options;
-	int32 duel_rule;
 	uint32 copy_reset;
 	uint8 copy_reset_count;
 	uint32 last_control_changed_id;
@@ -711,9 +708,9 @@ public:
 #define GLOBALFLAG_SPSUMMON_ONCE		0x200
 #define GLOBALFLAG_TUNE_MAGICIAN		0x400
 //
-#define PROCESSOR_FLAG_NONE		0
+#define PROCESSOR_FLAG_END		0
 #define PROCESSOR_FLAG_WAITING	0x1
-#define PROCESSOR_FLAG_END		0x2
+#define PROCESSOR_FLAG_CONTINUE	0x2
 
 #define PROCESSOR_ADJUST			1
 #define PROCESSOR_HINT				2

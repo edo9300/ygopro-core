@@ -11,7 +11,6 @@
 #include "card.h"
 #include "effect.h"
 #include "group.h"
-#include "ocgapi.h"
 
 int32 scriptlib::duel_enable_global_flag(lua_State *L) {
 	check_param_count(L, 1);
@@ -3822,11 +3821,6 @@ int32 scriptlib::duel_is_duel_type(lua_State *L) {
 		lua_pushboolean(L, FALSE);
 	return 1;
 }
-int32 scriptlib::duel_get_master_rule(lua_State * L) {
-	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushinteger(L, pduel->game_field->core.duel_rule);
-	return 1;
-}
 int32 scriptlib::duel_is_player_affected_by_effect(lua_State *L) {
 	check_param_count(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);
@@ -3967,7 +3961,8 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State * L) {
 	}
 	int32 code = lua_tonumberint(L, 2);
 	card_data dat;
-	::read_card(code, &dat);
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->read_card(pduel->read_card_payload, code, &dat);
 	dat.code = code;
 	dat.alias = 0;
 	if(!lua_isnil(L, 3))
@@ -3993,7 +3988,6 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State * L) {
 		toplayer = lua_tonumberint(L, 11);
 	if(lua_gettop(L) >= 12)
 		sumtype = lua_tonumberint(L, 12);
-	duel* pduel = interpreter::get_duel_info(L);
 	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_monster(playerid, toplayer, pos, sumtype, &dat));
 	return 1;
 }
@@ -4371,7 +4365,7 @@ int32 scriptlib::duel_load_script(lua_State * L) {
 	lua_pcall(L, 1, 1, 0);
 	char strbuffer[256];
 	interpreter::sprintf(strbuffer, "%s", lua_tostring(L, -1));
-	lua_pushboolean(L, pduel->lua->load_script(strbuffer));
+	lua_pushboolean(L, pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), strbuffer));
 	return 1;
 }
 int32 scriptlib::duel_venom_swamp_check(lua_State *L) {

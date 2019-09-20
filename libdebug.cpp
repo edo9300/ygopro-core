@@ -11,7 +11,6 @@
 #include "field.h"
 #include "card.h"
 #include "effect.h"
-#include "ocgapi.h"
 
 int32 scriptlib::debug_message(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
@@ -19,7 +18,7 @@ int32 scriptlib::debug_message(lua_State *L) {
 	lua_pushvalue(L, -2);
 	lua_pcall(L, 1, 1, 0);
 	interpreter::sprintf(pduel->strbuffer, "%s", lua_tostring(L, -1));
-	handle_message(pduel, 2);
+	pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, 2);
 	return 0;
 }
 int32 scriptlib::debug_add_card(lua_State *L) {
@@ -178,15 +177,9 @@ int32 scriptlib::debug_reload_field_begin(lua_State *L) {
 		}
 	} else if (flag & DUEL_OBSOLETE_RULING) {
 		flag |= MASTER_RULE_1;
-		pduel->game_field->core.duel_rule = 1;
 		pduel->game_field->core.duel_options = flag;
 		return 0;
 	}
-	pduel->game_field->core.duel_rule = 2;
-	if(flag & DUEL_EMZONE)
-		pduel->game_field->core.duel_rule = 4;
-	else if (flag & DUEL_PZONE)
-		pduel->game_field->core.duel_rule = 3;
 	pduel->game_field->core.duel_options = flag;
 	return 0;
 }

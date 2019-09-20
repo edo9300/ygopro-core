@@ -553,7 +553,6 @@ public:
 	static int32 duel_set_dice_result(lua_State *L);
 
 	static int32 duel_is_duel_type(lua_State *L);
-	static int32 duel_get_master_rule(lua_State *L);
 	static int32 duel_is_player_affected_by_effect(lua_State *L);
 	static int32 duel_get_player_effect(lua_State *L);
 	static int32 duel_is_player_can_draw(lua_State *L);

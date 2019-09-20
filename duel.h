@@ -9,6 +9,7 @@
 #define DUEL_H_
 
 #include "common.h"
+#include "ocgapi.h"
 #include <random>
 #include <set>
 #include <unordered_set>
@@ -40,7 +41,7 @@ public:
 	typedef std::set<card*, card_sort> card_set;
 	char strbuffer[256];
 	std::vector<uint8_t> buff;
-	std::vector<uint8_t> cached_query;
+	std::vector<uint8_t> query_buffer;
 	interpreter* lua;
 	field* game_field;
 	std::mt19937 random;
@@ -51,7 +52,8 @@ public:
 	std::unordered_set<effect*> effects;
 	std::unordered_set<effect*> uncopy;
 	
-	duel();
+	duel() {};
+	duel(OCG_DuelOptions options);
 	~duel();
 	void clear();
 	
@@ -69,10 +71,15 @@ public:
 	void generate_buffer();
 	void write_buffer(void* data, size_t size);
 	void clear_buffer();
-	void set_responsei(uint32 resp);
-	void set_responseb(byte* resp, size_t len);
+	void set_response(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 	duel_message* new_message(uint32_t message);
+	void* read_card_payload;
+	void* read_script_payload;
+	void* handle_message_payload;
+	OCG_DataReader read_card;
+	OCG_ScriptReader read_script;
+	OCG_LogHandler handle_message;
 private:
 	std::deque<duel_message> messages;
 	group* register_group(group* pgroup);

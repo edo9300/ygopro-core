@@ -102,7 +102,6 @@ field::field(duel* pduel) {
 	core.forced_summon_maxc = 0;
 	core.last_control_changed_id = 0;
 	core.duel_options = 0;
-	core.duel_rule = 0;
 	core.attacker = 0;
 	core.attack_target = 0;
 	core.set_forced_attack = false;
@@ -125,7 +124,7 @@ field::field(duel* pduel) {
 }
 void field::reload_field_info() {
 	auto message = pduel->new_message(MSG_RELOAD_FIELD);
-	message->write<uint8>(core.duel_rule + ((is_flag(SPEED_DUEL) ? 1 : 0) << 4));
+	message->write<uint32>(core.duel_options);
 	for(int32 playerid = 0; playerid < 2; ++playerid) {
 		message->write<uint32>(player[playerid].lp);
 		for(auto& pcard : player[playerid].list_mzone) {
@@ -2597,7 +2596,7 @@ int32 field::is_player_can_flipsummon(uint8 playerid, card * pcard) {
 int32 field::is_player_can_spsummon_monster(uint8 playerid, uint8 toplayer, uint8 sumpos, uint32 sumtype, card_data* pdata) {
 	temp_card->data = *pdata;
 	int32 result = is_player_can_spsummon(core.reason_effect, sumtype, sumpos, playerid, toplayer, temp_card);
-	temp_card->data.clear();
+	temp_card->data = {};
 	return result;
 }
 int32 field::is_player_can_release(uint8 playerid, card * pcard) {
