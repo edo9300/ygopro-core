@@ -14,7 +14,7 @@ find_package(Lua REQUIRED)
 add_library(ocgcore_static STATIC)
 add_library(ocgcore SHARED)
 
-target_compile_definitions(ocgcore PUBLIC YGOPRO_BUILD_DLL)
+target_compile_definitions(ocgcore PUBLIC OCGCORE_EXPORT_FUNCTIONS)
 
 target_compile_definitions(ocgcore PUBLIC LUA_COMPAT_5_2)
 target_compile_definitions(ocgcore_static PUBLIC LUA_COMPAT_5_2)

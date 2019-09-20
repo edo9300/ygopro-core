@@ -72,7 +72,7 @@ project "ocgcore"
 project "ocgcoreshared"
 	kind "SharedLib"
 	targetname "ocgcore"
-	defines "YGOPRO_BUILD_DLL"
+	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
 	ocgcore_config()
 	
