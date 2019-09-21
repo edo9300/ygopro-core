@@ -181,7 +181,8 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 	return count;
 }
 template<typename T>
-void insert_value(std::vector<uint8_t>& vec, T val) {
+void insert_value(std::vector<uint8_t>& vec, const T& _val) {
+	T val = _val;
 	const auto vec_size = vec.size();
 	const auto val_size = sizeof(T);
 	vec.resize(vec_size + val_size);
@@ -240,8 +241,9 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 			}
 		}
 	}
-	auto len = DUEL->query_buffer.size();
-	DUEL->query_buffer.insert(DUEL->query_buffer.begin(), reinterpret_cast<uint8_t*>(&len), reinterpret_cast<uint8_t*>(&len) + sizeof(len));
+	std::vector<uint8_t> tmp_vector;
+	insert_value<uint32_t>(tmp_vector, DUEL->query_buffer.size());
+	DUEL->query_buffer.insert(DUEL->query_buffer.begin(), tmp_vector.begin(), tmp_vector.end());
 	if(length)
 		*length = DUEL->query_buffer.size();
 	return DUEL->query_buffer.data();
