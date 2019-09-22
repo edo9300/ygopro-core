@@ -54,7 +54,7 @@ These functions create the game itself and then manipulate it:
 - `void* create_duel(uint32_t seed);` : Create a duel instance using the provided value as seed for the internal random number generator.
   The return value is a pointer to the created duel.
 - `void start_duel(void* pduel, int32_t options);` : Starts the duel corresponding to the passed object, the second parameter are the various options to use in that duel, they can be found here https://github.com/edo9300/ygopro-core/blob/master/common.h#L377.
-  Call this function everything has been loaded in the current instance, so the players' decks, the various info etc. If DUEL_RELAY_MODE is passed as option, and teams are present, the duel will be a relay duel, otherwise if teams are present and DUEL_RELAY_MODE isn't passed, the duel will be a tag like duel.
+  Call this function everything has been loaded in the current instance, so the players' decks, the various info etc. If DUEL_RELAY is passed as option, and teams are present, the duel will be a relay duel, otherwise if teams are present and DUEL_RELAY isn't passed, the duel will be a tag like duel.
 - `void end_duel(void* pduel);` : Ends the duel corresponding to the passed object, after that the object is destroyed and thus the pointer is invalidated.
 - `void set_player_info(void* pduel, int32_t playerid, int32_t lp, int32_t startcount, int32_t drawcount);` : Sets the various starting values for the provided playerid. This value can be either 0 or 1, with 0 being the starting player.
 - `void get_log_message(void* pduel, uint8_t* buf);` : Function to be called from the message handler callback, it copies the string (with max length of 256 bytes) that generated the call.

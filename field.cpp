@@ -1119,7 +1119,7 @@ int32 field::get_pzone_index(uint8 seq) {
 	if(is_flag(DUEL_SEPARATE_PZONE)) {
 		return seq + 6;
 	}
-	if(is_flag(SPEED_DUEL)) {
+	if(is_flag(DUEL_SPEED)) {
 		if(seq == 0)
 			return 1;
 		return 3;

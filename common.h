@@ -198,31 +198,31 @@ struct card_sort {
 #define STATUS_SPSUMMON_TURN      0x40000000
 
 //Query list
-#define QUERY_CODE			0x1
-#define QUERY_POSITION		0x2
-#define QUERY_ALIAS			0x4
-#define QUERY_TYPE			0x8
-#define QUERY_LEVEL			0x10
-#define QUERY_RANK			0x20
-#define QUERY_ATTRIBUTE		0x40
-#define QUERY_RACE			0x80
-#define QUERY_ATTACK		0x100
-#define QUERY_DEFENSE		0x200
-#define QUERY_BASE_ATTACK	0x400
-#define QUERY_BASE_DEFENSE	0x800
-#define QUERY_REASON		0x1000
-#define QUERY_REASON_CARD	0x2000
-#define QUERY_EQUIP_CARD	0x4000
-#define QUERY_TARGET_CARD	0x8000
-#define QUERY_OVERLAY_CARD	0x10000
-#define QUERY_COUNTERS		0x20000
-#define QUERY_OWNER			0x40000
-#define QUERY_STATUS		0x80000
-#define QUERY_IS_PUBLIC		0x100000
-#define QUERY_LSCALE		0x200000
-#define QUERY_RSCALE		0x400000
-#define QUERY_LINK			0x800000
-#define QUERY_END			0x80000000
+#define QUERY_CODE         0x1
+#define QUERY_POSITION     0x2
+#define QUERY_ALIAS        0x4
+#define QUERY_TYPE         0x8
+#define QUERY_LEVEL        0x10
+#define QUERY_RANK         0x20
+#define QUERY_ATTRIBUTE    0x40
+#define QUERY_RACE         0x80
+#define QUERY_ATTACK       0x100
+#define QUERY_DEFENSE      0x200
+#define QUERY_BASE_ATTACK  0x400
+#define QUERY_BASE_DEFENSE 0x800
+#define QUERY_REASON       0x1000
+#define QUERY_REASON_CARD  0x2000
+#define QUERY_EQUIP_CARD   0x4000
+#define QUERY_TARGET_CARD  0x8000
+#define QUERY_OVERLAY_CARD 0x10000
+#define QUERY_COUNTERS     0x20000
+#define QUERY_OWNER        0x40000
+#define QUERY_STATUS       0x80000
+#define QUERY_IS_PUBLIC    0x100000
+#define QUERY_LSCALE       0x200000
+#define QUERY_RSCALE       0x400000
+#define QUERY_LINK         0x800000
+#define QUERY_END          0x80000000
 
 //Link markers
 #define LINK_MARKER_BOTTOM_LEFT  0001
@@ -407,23 +407,23 @@ struct card_sort {
 //#define DUEL_NO_CHAIN_HINT     0x04
 #define DUEL_OBSOLETE_RULING   0x08
 #define DUEL_PSEUDO_SHUFFLE    0x10
-#define DUEL_TAG_MODE          0x20
+#define DUEL_TAG               0x20
 #define DUEL_SIMPLE_AI         0x40
-#define SPEED_DUEL             0x80
+#define DUEL_SPEED             0x80
 #define DUEL_OBSOLETE_IGNITION 0x100
 #define DUEL_1ST_TURN_DRAW     0x200
 #define DUEL_1_FIELD           0x400
 #define DUEL_PZONE             0x800
 #define DUEL_SEPARATE_PZONE    0x1000
 #define DUEL_EMZONE            0x2000
-#define DUEL_RELAY_MODE        0x4000
-#define MASTER_RULE_1          DUEL_OBSOLETE_IGNITION + DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
-#define MASTER_RULE_2          DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
-#define MASTER_RULE_3          DUEL_PZONE + DUEL_SEPARATE_PZONE
-#define MASTER_RULE_4          DUEL_PZONE + DUEL_EMZONE
-#define MASTER_RULE_1_FORB     TYPE_XYZ + TYPE_PENDULUM + TYPE_LINK
-#define MASTER_RULE_2_FORB     TYPE_PENDULUM + TYPE_LINK
-#define MASTER_RULE_3_FORB     TYPE_LINK
-#define MASTER_RULE_4_FORB     0
+#define DUEL_RELAY             0x4000
+#define DUEL_MODE_MR1          DUEL_OBSOLETE_IGNITION + DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
+#define DUEL_MODE_MR2          DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
+#define DUEL_MODE_MR3          DUEL_PZONE + DUEL_SEPARATE_PZONE
+#define DUEL_MODE_MR4          DUEL_PZONE + DUEL_EMZONE
+#define DUEL_MODE_MR1_FORB     TYPE_XYZ + TYPE_PENDULUM + TYPE_LINK
+#define DUEL_MODE_MR2_FORB     TYPE_PENDULUM + TYPE_LINK
+#define DUEL_MODE_MR3_FORB     TYPE_LINK
+#define DUEL_MODE_MR4_FORB     0
 
 #endif /* COMMON_H_ */
