@@ -2497,7 +2497,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(first_attack.size())
 				core.attackable_cards = first_attack;
 		}
-		core.to_m2 = is_flag(SPEED_DUEL) ? FALSE : TRUE;
+		core.to_m2 = is_flag(DUEL_SPEED) ? FALSE : TRUE;
 		core.to_ep = TRUE;
 		if(must_attack.size() || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_M2) || core.force_turn_end)
 			core.to_m2 = FALSE;
@@ -3718,7 +3718,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		infos.turn_player = turn_player;
 		auto message = pduel->new_message(MSG_NEW_TURN);
 		message->write<uint8>(turn_player);
-		if(!is_flag(DUEL_RELAY_MODE) && infos.turn_id != 1)
+		if(!is_flag(DUEL_RELAY) && infos.turn_id != 1)
 			tag_swap(turn_player);
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_TURN)) {
 			core.units.begin()->step = 17;
@@ -3899,7 +3899,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			}
 			return FALSE;
 		}
-		if(is_flag(SPEED_DUEL)) {
+		if(is_flag(DUEL_SPEED)) {
 			core.units.begin()->step = 14;
 			adjust_all();
 			/*if(core.set_forced_attack)
@@ -4749,7 +4749,7 @@ int32 field::refresh_location_info(uint16 step) {
 	switch(step) {
 	case 0: {
 		effect_set eset;
-		if (is_flag(SPEED_DUEL)) {
+		if (is_flag(DUEL_SPEED)) {
 			player[0].used_location |= 0x1111;
 			player[1].used_location |= 0x1111;
 		}
@@ -4956,7 +4956,7 @@ int32 field::adjust_step(uint16 step) {
 					winp = PLAYER_NONE;
 				rea = 2;
 			}
-			if (is_flag(DUEL_RELAY_MODE)) {
+			if (is_flag(DUEL_RELAY)) {
 				if (winp == PLAYER_NONE) {
 					bool p1 = relay_check(0);
 					bool p2 = relay_check(1);

@@ -1697,7 +1697,7 @@ int32 card::is_all_column() {
 		else if (current.location == LOCATION_SZONE) {
 			if (cs == 1 || cs == 3)
 				full++;
-			else if ((cs == 6 || cs == 7) && pduel->game_field->is_flag(DUEL_PZONE) && !pduel->game_field->is_flag(DUEL_SEPARATE_PZONE) && pduel->game_field->is_flag(SPEED_DUEL))
+			else if ((cs == 6 || cs == 7) && pduel->game_field->is_flag(DUEL_PZONE) && !pduel->game_field->is_flag(DUEL_SEPARATE_PZONE) && pduel->game_field->is_flag(DUEL_SPEED))
 				full++;
 		}
 	}

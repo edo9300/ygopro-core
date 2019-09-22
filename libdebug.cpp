@@ -159,24 +159,24 @@ int32 scriptlib::debug_reload_field_begin(lua_State *L) {
 	if(rule && !build) {
 		switch (rule) {
 		case 1: {
-			flag |= MASTER_RULE_1;
+			flag |= DUEL_MODE_MR1;
 			break;
 		}
 		case 2: {
-			flag |= MASTER_RULE_2;
+			flag |= DUEL_MODE_MR2;
 			break;
 		}
 		case 3: {
-			flag |= MASTER_RULE_3;
+			flag |= DUEL_MODE_MR3;
 			break;
 		}
 		case 4: {
-			flag |= MASTER_RULE_4;
+			flag |= DUEL_MODE_MR4;
 			break;
 		}
 		}
 	} else if (flag & DUEL_OBSOLETE_RULING) {
-		flag |= MASTER_RULE_1;
+		flag |= DUEL_MODE_MR1;
 		pduel->game_field->core.duel_options = flag;
 		return 0;
 	}
