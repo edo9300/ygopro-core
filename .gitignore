@@ -1,6 +1,7 @@
 [Bb]uild*/
 bin/
 obj/
+docs/
 .vscode/
 .idea/
 .DS_Store

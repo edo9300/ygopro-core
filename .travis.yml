@@ -30,6 +30,21 @@ matrix:
     os: osx
     osx_image: xcode10.3
     env: MACOSX_DEPLOYMENT_TARGET=10.11
+  - name: "Doxygen"
+    os: linux
+    install: false
+    script: doxygen
+    deploy: 
+      provider: pages
+      skip_cleanup: true
+      local_dir: docs
+      github_token: $OAUTH_TOKEN
+      on:
+        repo: edo9300/ygopro-core
+    addons:
+      apt:
+        update: true
+        packages: doxygen
 install: ./travis/install-lua.sh
 script: ./travis/build-cmake.sh
 before_deploy: ./travis/predeploy.sh
