@@ -15,7 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+ /**
+  * @file
+  * @brief OCGAPI C structures
+  */
 #ifndef OCGAPI_TYPES_H
 #define OCGAPI_TYPES_H
 #include <stdint.h>
@@ -29,6 +32,7 @@ typedef enum OCG_LogTypes {
 	OCG_LOG_TYPE_UNDEFINED
 }OCG_LogTypes;
 
+/** \ingroup OCGAPI_DuelCreateDestroy */
 typedef enum OCG_DuelCreationStatus {
 	OCG_DUEL_CREATION_SUCCESS,
 	OCG_DUEL_CREATION_NO_OUTPUT,
@@ -37,6 +41,7 @@ typedef enum OCG_DuelCreationStatus {
 	OCG_DUEL_CREATION_NULL_SCRIPT_READER
 }OCG_DuelCreationStatus;
 
+/** \ingroup OCGAPI_DuelProcess */
 typedef enum OCG_DuelStatus {
 	OCG_DUEL_STATUS_END,
 	OCG_DUEL_STATUS_AWAITING,
@@ -45,6 +50,10 @@ typedef enum OCG_DuelStatus {
 
 typedef void* OCG_Duel;
 
+/**
+ * \addtogroup OCGAPI_DuelCreateDestroy
+ * @{
+ */
 typedef struct OCG_CardData {
 	uint32_t code;
 	uint32_t alias;
@@ -69,23 +78,26 @@ typedef struct OCG_Player {
 typedef int (*OCG_DataReader)(void* payload, int code, OCG_CardData* data);
 typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* name);
 typedef void (*OCG_LogHandler)(void* payload, const char* string, int type);
+/** @} */
 
+/** \ingroup OCGAPI_DuelCreateDestroy */
 typedef struct OCG_DuelOptions {
 	uint32_t seed;
 	int flags;
 	OCG_Player team1;
 	OCG_Player team2;
 	OCG_DataReader cardReader;
-	void* payload1; /* relayed to cardReader */
+	void* payload1; /** relayed to cardReader */
 	OCG_ScriptReader scriptReader;
-	void* payload2; /* relayed to scriptReader */
+	void* payload2; /** relayed to scriptReader */
 	OCG_LogHandler logHandler;
-	void* payload3; /* relayed to errorHandler */
+	void* payload3; /** relayed to errorHandler */
 }OCG_DuelOptions;
 
+/** \ingroup OCGAPI_DuelCreateDestroy */
 typedef struct OCG_NewCardInfo {
-	uint8_t team; /* either 0 or 1 */
-	uint8_t duelist; /* index of original owner */
+	uint8_t team; /** either 0 or 1 */
+	uint8_t duelist; /** index of original owner */
 	uint32_t code;
 	uint8_t con;
 	uint32_t loc;
@@ -93,6 +105,7 @@ typedef struct OCG_NewCardInfo {
 	uint32_t pos;
 }OCG_NewCardInfo;
 
+/** \ingroup OCGAPI_DuelQuery */
 typedef struct OCG_QueryInfo {
 	uint32_t flags;
 	uint8_t con;
