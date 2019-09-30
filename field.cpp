@@ -800,15 +800,18 @@ int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 	uint8 cur_controler = pcard->current.controler;
 	uint8 cur_location = pcard->current.location;
 	uint8 cur_sequence = pcard->current.sequence;
+	uint8 cur_position = pcard->current.position;
 	player[playerid].list_mzone[sequence] = pcard;
 	pcard->current.controler = playerid;
 	pcard->current.location = LOCATION_MZONE;
 	pcard->current.sequence = sequence;
+	pcard->current.position = POS_FACEUP;
 	int32 ret = pcard->is_extra_link_state();
 	player[playerid].list_mzone[sequence] = 0;
 	pcard->current.controler = cur_controler;
 	pcard->current.location = cur_location;
 	pcard->current.sequence = cur_sequence;
+	pcard->current.position = cur_position;
 	return ret;
 }
 void field::get_cards_in_zone(card_set* cset, uint32 zone, int32 playerid, int32 location) {
