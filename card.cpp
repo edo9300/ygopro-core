@@ -176,9 +176,9 @@ void card::get_infos(int32 query_flag) {
 		for(auto& cmit : counters)
 			insert_value<uint32>(pduel->query_buffer, cmit.first + ((cmit.second[0] + cmit.second[1]) << 16));
 	}
-	CHECK_AND_INSERT(QUERY_OWNER, owner);
+	CHECK_AND_INSERT_T(QUERY_OWNER, owner, uint8);
 	CHECK_AND_INSERT(QUERY_STATUS, status);
-	CHECK_AND_INSERT(QUERY_IS_PUBLIC, is_position(POS_FACEUP) ? 1 : 0);
+	CHECK_AND_INSERT_T(QUERY_IS_PUBLIC, is_position(POS_FACEUP) ? 1 : 0, uint8);
 	CHECK_AND_INSERT(QUERY_LSCALE, get_lscale());
 	CHECK_AND_INSERT(QUERY_RSCALE, get_rscale());
 	if(query_flag & QUERY_LINK) {
