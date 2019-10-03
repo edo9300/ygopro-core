@@ -93,18 +93,20 @@ card::card(duel* pd) {
 	current.controler = PLAYER_NONE;
 }
 template<typename T>
-void insert_value(std::vector<uint8_t>& vec, T val) {
+void insert_value(std::vector<uint8_t>& vec, const T& _val) {
+	T val = _val;
 	const auto vec_size = vec.size();
 	const auto val_size = sizeof(T);
 	vec.resize(vec_size + val_size);
 	std::memcpy(&vec[vec_size], &val, val_size);
 }
 
-#define CHECK_AND_INSERT(query, value)if(query_flag & query) {\
-insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint32));\
+#define CHECK_AND_INSERT_T(query, value, type)if(query_flag & query) {\
+insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(type));\
 insert_value<uint32>(pduel->query_buffer, query);\
-insert_value<uint32>(pduel->query_buffer, value);\
+insert_value<type>(pduel->query_buffer, value);\
 }
+#define CHECK_AND_INSERT(query, value)CHECK_AND_INSERT_T(query, value, uint32)
 
 void card::get_infos(int32 query_flag) {
 	CHECK_AND_INSERT(QUERY_CODE, data.code);
@@ -185,9 +187,12 @@ void card::get_infos(int32 query_flag) {
 		insert_value<uint32>(pduel->query_buffer, get_link());
 		insert_value<uint32>(pduel->query_buffer, get_link_marker());
 	}
+	CHECK_AND_INSERT_T(QUERY_IS_HIDDEN, is_affected_by_effect(EFFECT_DARKNESS_HIDE) ? 1 : 0, uint8);
 	insert_value<uint16>(pduel->query_buffer, sizeof(uint32));
 	insert_value<uint32>(pduel->query_buffer, QUERY_END);
 }
+#undef CHECK_AND_INSERT_T
+#undef CHECK_AND_INSERT
 loc_info card::get_info_location() {
 	if(overlay_target) {
 		return { overlay_target->current.controler, (uint8)((overlay_target->current.location | LOCATION_OVERLAY) & 0xff), overlay_target->current.sequence, current.sequence };

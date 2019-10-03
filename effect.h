@@ -459,6 +459,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CHANGE_LINKMARKER        425
 #define EFFECT_FORCE_NORMAL_SUMMON_POSITION	426
 #define EFFECT_FORCE_SPSUMMON_POSITION	427
+#define EFFECT_DARKNESS_HIDE			428
 
 #define EVENT_STARTUP		1000
 #define EVENT_FLIP			1001
