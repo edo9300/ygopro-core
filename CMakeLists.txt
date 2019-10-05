@@ -41,7 +41,7 @@ set(OCGCORE_COMPILE_OPTIONS
 	$<$<AND:$<CONFIG:Release>,${CLANG_OR_GNU}>:-O3>
 	$<$<AND:$<CONFIG:RelWithDebInfo>,${CLANG_OR_GNU}>:-ggdb3 -O3>
 	# Microsoft compiler
-	$<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>)
+	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 target_compile_options(ocgcore PRIVATE ${OCGCORE_COMPILE_OPTIONS})
 target_compile_options(ocgcore_static PRIVATE ${OCGCORE_COMPILE_OPTIONS})
 
