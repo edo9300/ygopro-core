@@ -17,7 +17,7 @@ matrix:
     - VCPKG_ROOT=/c/vcpkg
     - VCPKG_DEFAULT_TRIPLET=x86-windows-static
     - VCPKG_LIBS="lua[cpp]"
-    - VCPKG_CACHE_ZIP_URL=https://github.com/kevinlul/edopro-vcpkg-cache/raw/master/installed-core.zip
+    - VCPKG_CACHE_ZIP_URL=https://github.com/kevinlul/edopro-vcpkg-cache/raw/master/vcpkg-windows.zip
   - name: "Bionic GCC7"
     os: linux
     compiler: gcc
