@@ -928,22 +928,11 @@ int32 field::announce_card(int16 step, uint8 playerid) {
 		return FALSE;
 	} else {
 		int32 code = returns.at<int32>(0);
-		bool retry = false;
 		card_data data;
 		pduel->read_card(pduel->read_card_payload, code, &data);
-		if(!data.code) {
-			retry = true;
-		} else {
-			if(!is_declarable(data, core.select_options)) {
-				retry = true;
-			}
-		}
-		if(retry) {
-			auto message = pduel->new_message(MSG_HINT);
-			message->write<uint8>(HINT_MESSAGE);
-			message->write<uint8>(playerid);
-			message->write<uint64>(1421);
-			return announce_card(0, playerid);
+		if(!data.code || !is_declarable(data, core.select_options)) {
+			/*auto message = */pduel->new_message(MSG_RETRY);
+			return FALSE;
 		}
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_CODE);
@@ -963,7 +952,7 @@ int32 field::announce_number(int16 step, uint8 playerid) {
 		return FALSE;
 	} else {
 		int32 ret = returns.at<int32>(0);
-		if(ret < 0 || ret >= (int32)core.select_options.size() || ret >= 63) {
+		if(ret < 0 || ret >= (int32)core.select_options.size()) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
