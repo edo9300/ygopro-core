@@ -2083,7 +2083,7 @@ int32 scriptlib::card_is_link_summonable(lua_State *L) {
 	uint32 p = pcard->pduel->game_field->core.reason_player;
 	pcard->pduel->game_field->core.forced_linkmat = materials;
 	pcard->pduel->game_field->core.forced_summon_minc = minc;
-	pcard->pduel->game_field->core.forced_summon_minc = maxc;
+	pcard->pduel->game_field->core.forced_summon_maxc = maxc;
 	lua_pushboolean(L, pcard->is_special_summonable(p, SUMMON_TYPE_LINK));
 	return 1;
 }
