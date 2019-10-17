@@ -1411,7 +1411,7 @@ int32 card::is_link_marker(uint32 dir, uint32 marker) {
 	else
 		return (int32)(get_link_marker() & dir);
 }
-uint32 card::get_linked_zone() {
+uint32 card::get_linked_zone(bool free) {
 	if(!(get_type() & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
 		return 0;
 	int32 zones = 0;
@@ -1487,29 +1487,26 @@ uint32 card::get_linked_zone() {
 		if(is_link_marker(LINK_MARKER_TOP, marker))
 			zones |= 1u << s;
 	}
-	return zones;
-}
-uint32 card::get_free_linked_zone() {
-	auto zones = get_linked_zone();
-	int32 p = current.controler;
-	for(int i = 0; i < 8; i++) {
-		if(!pduel->game_field->is_location_useable(p, LOCATION_MZONE, i)) {
-			zones &= ~(1 << i);
+	if(free) {
+		for(int i = 0; i < 8; i++) {
+			if(!pduel->game_field->is_location_useable(current.controler, LOCATION_MZONE, i)) {
+				zones &= ~(1u << i);
+			}
 		}
-	}
-	for(int i = 0; i < 8; i++) {
-		if(!pduel->game_field->is_location_useable(p, LOCATION_SZONE, i)) {
-			zones &= ~(1 << (i + 8));
+		for(int i = 0; i < 8; i++) {
+			if(!pduel->game_field->is_location_useable(current.controler, LOCATION_SZONE, i)) {
+				zones &= ~(1u << (i + 8));
+			}
 		}
-	}
-	for(int i = 0; i < 8; i++) {
-		if(!pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, i + 16)) {
-			zones &= ~(1 << (i + 16));
+		for(int i = 0; i < 8; i++) {
+			if(!pduel->game_field->is_location_useable(1 - current.controler, LOCATION_MZONE, i + 16)) {
+				zones &= ~(1u << (i + 16));
+			}
 		}
-	}
-	for(int i = 0; i < 8; i++) {
-		if(!pduel->game_field->is_location_useable(1 - p, LOCATION_MZONE, i + 16)) {
-			zones &= ~(1 << (i + 16));
+		for(int i = 0; i < 8; i++) {
+			if(!pduel->game_field->is_location_useable(1 - current.controler, LOCATION_SZONE, i + 16)) {
+				zones &= ~(1u << (i + 24));
+			}
 		}
 	}
 	return zones;
@@ -1535,10 +1532,6 @@ uint32 card::get_mutual_linked_zone() {
 	if(!linked_zone)
 		return 0;
 	int32 zones = 0;
-	// UNUSED VARIABLES
-	// int32 p = current.controler;
-	// int32 s = current.sequence;
-	// auto marker = get_link_marker();
 	card_set cset;
 	get_linked_cards(&cset, linked_zone);
 	for(auto& pcard : cset) {

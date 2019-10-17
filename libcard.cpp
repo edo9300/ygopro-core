@@ -298,8 +298,22 @@ int32 scriptlib::card_get_linked_group_count(lua_State *L) {
 int32 scriptlib::card_get_linked_zone(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
 	uint32 zone = pcard->get_linked_zone();
+	int32 cp = pcard->current.controler;
+	if(lua_gettop(L) >= 2 && !lua_isnil(L, 2))
+		cp = lua_tointeger(L, 2);
+	if(cp == 1 - pcard->current.controler)
+		lua_pushinteger(L, (((zone & 0xffff) << 16) | (zone >> 16)));
+	else
+		lua_pushinteger(L, zone);
+	return 1;
+}
+int32 scriptlib::card_get_free_linked_zone(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	uint32 zone = pcard->get_linked_zone(true);
 	int32 cp = pcard->current.controler;
 	if(lua_gettop(L) >= 2 && !lua_isnil(L, 2))
 		cp = lua_tointeger(L, 2);

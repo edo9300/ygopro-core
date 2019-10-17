@@ -756,24 +756,24 @@ int32 field::get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint3
 		(res >>= 16 )&= 0xff;
 	return res;
 }
-uint32 field::get_linked_zone(int32 playerid) {
+uint32 field::get_linked_zone(int32 playerid, bool free) {
 	uint32 zones = 0;
 	for(auto& pcard : player[playerid].list_mzone) {
 		if(pcard)
-			zones |= pcard->get_linked_zone();
+			zones |= pcard->get_linked_zone(free);
 	}
 	for(auto& pcard : player[playerid].list_szone) {
 		if(pcard)
-			zones |= pcard->get_linked_zone();
+			zones |= pcard->get_linked_zone(free);
 	}
 	uint32 oppzones = 0;
 	for(auto& pcard : player[1 - playerid].list_mzone) {
 		if(pcard)
-			oppzones |= pcard->get_linked_zone();
+			oppzones |= pcard->get_linked_zone(free);
 	}
 	for(auto& pcard : player[1 - playerid].list_szone) {
 		if(pcard)
-			oppzones |= pcard->get_linked_zone();
+			oppzones |= pcard->get_linked_zone(free);
 	}
 	zones |= ((oppzones & 0xffff) << 16) | (oppzones >> 16);
 	effect_set eset;

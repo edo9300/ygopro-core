@@ -193,8 +193,7 @@ public:
 	uint32 get_rscale();
 	uint32 get_link_marker();
 	int32 is_link_marker(uint32 dir, uint32 marker = 0);
-	uint32 get_linked_zone();
-	uint32 get_free_linked_zone();
+	uint32 get_linked_zone(bool free = false);
 	void get_linked_cards(card_set* cset, uint32 zones = 0);
 	uint32 get_mutual_linked_zone();
 	void get_mutual_linked_cards(card_set * cset);
