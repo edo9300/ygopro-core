@@ -2654,7 +2654,7 @@ int32 field::process_battle_command(uint16 step) {
 		// must attack monster
 		if(atype == 3 || is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS)) {
 			if(core.select_cards.size() == 1)
-				returns.at<int8>(1) = 0;
+				return_cards.list.push_back(core.select_cards.front());
 			else {
 				auto message = pduel->new_message(MSG_BECOME_TARGET);
 				message->write<uint32>(1);
