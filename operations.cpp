@@ -2327,6 +2327,9 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		return FALSE;
 	}
 	case 7: {
+		if(!returns.at<int32>(0)) {
+			return TRUE;
+		}
 		target->summon_info = (proc->get_value(target) & 0xfffffff) | SUMMON_TYPE_NORMAL | (LOCATION_HAND << 16);
 		target->summon_player = setplayer;
 		target->current.reason_effect = proc;
