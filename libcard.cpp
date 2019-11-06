@@ -3141,17 +3141,7 @@ int32 scriptlib::card_set_spsummon_once(lua_State *L) {
 }
 CARD_INFO_FUNC(code)
 CARD_INFO_FUNC(alias)
-int32 scriptlib::card_setcode(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**)lua_touserdata(L, 1);
-	if(lua_gettop(L) > 1) {
-		pcard->data.setcode = lua_tonumberint(L, 2);
-		return 0;
-	} else
-		lua_pushnumber(L, pcard->data.setcode);
-	return 1;
-}
+CARD_INFO_FUNC(setcode)
 CARD_INFO_FUNC(type)
 CARD_INFO_FUNC(level)
 CARD_INFO_FUNC(attribute)
