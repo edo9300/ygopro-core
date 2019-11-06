@@ -270,6 +270,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "Lscale", scriptlib::card_lscale },
 	{ "LinkMarker", scriptlib::card_link_marker },
 	{ "Recreate", scriptlib::card_recreate },
+	{ "Cover", scriptlib::card_cover },
 	{ NULL, NULL }
 };
 
