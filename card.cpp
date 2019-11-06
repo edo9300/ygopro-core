@@ -77,6 +77,7 @@ card::card(duel* pd) {
 	direct_attackable = 0;
 	summon_info = 0;
 	status = 0;
+	cover = 0;
 	equiping_target = 0;
 	pre_equip_target = 0;
 	overlay_target = 0;
@@ -122,6 +123,7 @@ void card::get_infos(int32 query_flag) {
 	CHECK_AND_INSERT(QUERY_BASE_ATTACK, get_base_attack());
 	CHECK_AND_INSERT(QUERY_BASE_DEFENSE, get_base_defense());
 	CHECK_AND_INSERT(QUERY_REASON, current.reason);
+	CHECK_AND_INSERT(QUERY_COVER, cover);
 	if(query_flag & QUERY_REASON_CARD) {
 		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint16) + sizeof(uint64));
 		insert_value<uint32>(pduel->query_buffer, QUERY_REASON_CARD);

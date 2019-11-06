@@ -275,6 +275,7 @@ public:
 	static int32 card_lscale(lua_State *L);
 	static int32 card_link_marker(lua_State *L);
 	static int32 card_recreate(lua_State *L);
+	static int32 card_cover(lua_State *L);
 
 	//Effect functions
 	static int32 effect_new(lua_State *L);

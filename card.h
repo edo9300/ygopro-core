@@ -108,6 +108,7 @@ public:
 	uint8 summon_player;
 	uint32 summon_info;
 	uint32 status;
+	uint32 cover;
 	sendto_param_t sendto_param;
 	uint32 release_param;
 	uint32 sum_param;

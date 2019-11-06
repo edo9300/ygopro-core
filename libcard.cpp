@@ -3185,3 +3185,14 @@ int32 scriptlib::card_recreate(lua_State *L) {
 	}
 	return 0;
 }
+int32 scriptlib::card_cover(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	card* pcard = *(card**)lua_touserdata(L, 1);
+	if(lua_gettop(L) > 1) {
+		pcard->cover = lua_tonumberint(L, 2);
+		return 0;
+	} else
+		lua_pushinteger(L, pcard->cover);
+	return 1;
+}
