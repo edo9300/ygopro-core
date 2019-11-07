@@ -1116,6 +1116,9 @@ void field::next_player(uint8 playerid) {
 	message->write<uint32>(player[playerid].start_lp);
 	player[playerid].recharge = false;
 }
+bool field::is_flag(int32 flag) {
+	return (core.duel_options & flag) == flag;
+}
 int32 field::get_pzone_index(uint8 seq) {
 	if(seq > 1)
 		return 0;

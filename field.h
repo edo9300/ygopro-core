@@ -401,9 +401,7 @@ public:
 	bool relay_check(uint8 playerid);
 	void next_player(uint8 playerid);
 
-	bool is_flag(int32 flag) {
-		return core.duel_options & flag;
-	}
+	bool is_flag(int32 flag);
 	int32 get_pzone_index(uint8 seq);
 
 	void add_effect(effect* peffect, uint8 owner_player = 2);
