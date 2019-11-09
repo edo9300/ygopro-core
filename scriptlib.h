@@ -203,8 +203,8 @@ public:
 	static int32 card_is_releasable(lua_State *L);
 	static int32 card_is_releasable_by_effect(lua_State *L);
 	static int32 card_is_discardable(lua_State *L);
-	static int32 card_is_can_attack(lua_State *L);
-	static int32 card_is_can_chain_attack(lua_State *L);
+	static int32 card_can_attack(lua_State *L);
+	static int32 card_can_chain_attack(lua_State *L);
 	static int32 card_is_faceup(lua_State *L);
 	static int32 card_is_attack_pos(lua_State *L);
 	static int32 card_is_facedown(lua_State *L);

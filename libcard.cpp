@@ -2308,7 +2308,7 @@ int32 scriptlib::card_is_can_attack(lua_State *L) {
 	lua_pushboolean(L, pcard->is_capable_attack());
 	return 1;
 }
-int32 scriptlib::card_is_chain_attackable(lua_State *L) {
+int32 scriptlib::card_can_chain_attack(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	int32 monsteronly = FALSE;
