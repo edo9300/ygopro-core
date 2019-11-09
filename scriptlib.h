@@ -47,8 +47,8 @@ public:
 	static int32 card_get_mutual_linked_group(lua_State *L);
 	static int32 card_get_mutual_linked_group_count(lua_State *L);
 	static int32 card_get_mutual_linked_zone(lua_State *L);
-	static int32 card_is_link_state(lua_State *L);
-	static int32 card_is_extra_link_state(lua_State *L);
+	static int32 card_is_linked(lua_State *L);
+	static int32 card_is_extra_linked(lua_State *L);
 	static int32 card_get_column_group(lua_State *L);
 	static int32 card_get_column_group_count(lua_State *L);
 	static int32 card_get_column_zone(lua_State *L);
@@ -203,8 +203,8 @@ public:
 	static int32 card_is_releasable(lua_State *L);
 	static int32 card_is_releasable_by_effect(lua_State *L);
 	static int32 card_is_discardable(lua_State *L);
-	static int32 card_is_attackable(lua_State *L);
-	static int32 card_is_chain_attackable(lua_State *L);
+	static int32 card_is_can_attack(lua_State *L);
+	static int32 card_is_can_chain_attack(lua_State *L);
 	static int32 card_is_faceup(lua_State *L);
 	static int32 card_is_attack_pos(lua_State *L);
 	static int32 card_is_facedown(lua_State *L);
