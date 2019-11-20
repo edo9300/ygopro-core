@@ -1008,7 +1008,6 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 		message->write<uint8>((*cit)->current.location);
 		message->write<uint32>((*cit)->current.sequence);
 	}
-	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_confirm_extratop(lua_State *L) {
@@ -1030,7 +1029,6 @@ int32 scriptlib::duel_confirm_extratop(lua_State *L) {
 		message->write<uint8>((*cit)->current.location);
 		message->write<uint32>((*cit)->current.sequence);
 	}
-	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_confirm_cards(lua_State *L) {
@@ -1068,7 +1066,6 @@ int32 scriptlib::duel_confirm_cards(lua_State *L) {
 			message->write<uint32>(pcard->current.sequence);
 		}
 	}
-	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_sort_decktop(lua_State *L) {

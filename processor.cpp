@@ -49,10 +49,6 @@ int32 field::process() {
 			it->step++;
 		return PROCESSOR_FLAG_CONTINUE;
 	}
-	case PROCESSOR_WAIT: {
-		core.units.pop_front();
-		return PROCESSOR_FLAG_WAITING;
-	}
 	case PROCESSOR_REFRESH_LOC: {
 		if (refresh_location_info(it->step))
 			core.units.pop_front();
