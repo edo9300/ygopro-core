@@ -1008,7 +1008,6 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 		message->write<uint8>((*cit)->current.location);
 		message->write<uint32>((*cit)->current.sequence);
 	}
-	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_confirm_extratop(lua_State *L) {
@@ -1030,7 +1029,6 @@ int32 scriptlib::duel_confirm_extratop(lua_State *L) {
 		message->write<uint8>((*cit)->current.location);
 		message->write<uint32>((*cit)->current.sequence);
 	}
-	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_confirm_cards(lua_State *L) {
@@ -1068,7 +1066,6 @@ int32 scriptlib::duel_confirm_cards(lua_State *L) {
 			message->write<uint32>(pcard->current.sequence);
 		}
 	}
-	pduel->game_field->add_process(PROCESSOR_WAIT, 0, 0, 0, 0, 0);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_sort_decktop(lua_State *L) {
@@ -3383,11 +3380,8 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 	}
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_options.clear();
-	for(; i < count; ++i) {
-		uint64 val = lua_tointeger(L, i + 2);
-		printf("%lld\n", val);
-		pduel->game_field->core.select_options.push_back(val);
-	}
+	for(; i < count; ++i)
+		pduel->game_field->core.select_options.push_back(lua_tointeger(L, i + 2));
 	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
