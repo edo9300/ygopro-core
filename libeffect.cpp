@@ -66,7 +66,7 @@ int32 scriptlib::effect_set_description(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_EFFECT, 1);
 	effect* peffect = *(effect**)lua_touserdata(L, 1);
-	uint64 v = lua_tonumber(L, 2);
+	uint64 v = lua_tointeger(L, 2);
 	peffect->description = v;
 	return 0;
 }
@@ -515,7 +515,7 @@ int32 scriptlib::effect_is_has_category(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_EFFECT, 1);
 	effect* peffect = *(effect**) lua_touserdata(L, 1);
-	uint32 tcate = lua_tonumberint(L, 2);
+	uint32 tcate = lua_tointeger(L, 2);
 	if (peffect && (peffect->category & tcate))
 		lua_pushboolean(L, 1);
 	else
@@ -526,7 +526,7 @@ int32 scriptlib::effect_is_has_type(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_EFFECT, 1);
 	effect* peffect = *(effect**) lua_touserdata(L, 1);
-	uint32 ttype = lua_tonumberint(L, 2);
+	uint32 ttype = lua_tointeger(L, 2);
 	if (peffect && (peffect->type & ttype))
 		lua_pushboolean(L, 1);
 	else
@@ -536,7 +536,7 @@ int32 scriptlib::effect_is_has_type(lua_State *L) {
 int32 scriptlib::effect_is_activatable(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_EFFECT, 1);
-	uint32 playerid = lua_tonumberint(L, 2);
+	uint32 playerid = lua_tointeger(L, 2);
 	effect* peffect = *(effect**) lua_touserdata(L, 1);
 	uint32 neglect_loc = 0;
 	uint32 neglect_target = 0;

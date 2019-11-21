@@ -39,7 +39,6 @@ typedef int32_t BOOL;
 #ifndef NULL
 #define NULL 0
 #endif
-#define lua_tonumberint(L,i) ((uint64_t)std::round(lua_tonumber(L, i)))
 struct card_sort {
 	bool operator()(void* const & c1, void* const & c2) const;
 };
