@@ -1414,7 +1414,7 @@ int32 card::is_link_marker(uint32 dir, uint32 marker) {
 		return (int32)(get_link_marker() & dir);
 }
 uint32 card::get_linked_zone(bool free) {
-	if(!(get_type() & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
+	if(!(get_type() & TYPE_LINK) || !(current.location & LOCATION_ONFIELD) || get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 		return 0;
 	int32 zones = 0;
 	int32 s = current.sequence;
@@ -1515,7 +1515,7 @@ uint32 card::get_linked_zone(bool free) {
 }
 void card::get_linked_cards(card_set* cset, uint32 zones) {
 	cset->clear();
-	if(!(data.type & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
+	if(!(data.type & TYPE_LINK) || !(current.location & LOCATION_ONFIELD) || get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 		return;
 	int32 p = current.controler;
 	uint32 linked_zone = (zones) ? zones : get_linked_zone();
