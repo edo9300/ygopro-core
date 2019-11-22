@@ -1138,7 +1138,7 @@ uint32 card::get_rank() {
 	return rank;
 }
 uint32 card::get_link() {
-	if(!(get_type() & TYPE_LINK) || (status & STATUS_NO_LEVEL))
+	if(!(data.type & TYPE_LINK) || (status & STATUS_NO_LEVEL))
 		return 0;
 	if (assume.find(ASSUME_LINK) != assume.end())
 		return assume[ASSUME_LINK];
