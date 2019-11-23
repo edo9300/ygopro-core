@@ -1881,11 +1881,13 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		return FALSE;
 	}
 	case 10: {
+		//gemini handling
 		core.summon_depth--;
 		if(core.summon_depth)
 			return TRUE;
 		target->enable_field_effect(false);
-		target->summon_info |= SUMMON_TYPE_NORMAL;
+		target->summon_info &= ~(0xff << 16);
+		target->summon_info |= SUMMON_TYPE_NORMAL | (LOCATION_MZONE << 16);
 		target->current.reason_effect = 0;
 		target->current.reason_player = sumplayer;
 		effect* deffect = pduel->new_effect();
