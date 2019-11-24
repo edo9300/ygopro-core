@@ -372,12 +372,12 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 		}
 		auto message = pduel->new_message(MSG_SELECT_CHAIN);
 		message->write<uint8>(playerid);
-		message->write<uint32>(core.select_chains.size());
 		message->write<uint8>(spe_count);
 		message->write<uint8>(forced);
 		message->write<uint32>(pduel->game_field->core.hint_timing[playerid]);
 		message->write<uint32>(pduel->game_field->core.hint_timing[1 - playerid]);
 		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
+		message->write<uint32>(core.select_chains.size());
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;
 			card* pcard = peffect->get_handler();
