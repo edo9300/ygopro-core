@@ -24,14 +24,12 @@ int32 field::select_battle_command(uint16 step, uint8 playerid) {
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;
 			card* pcard = peffect->get_handler();
-			if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
-				message->write<uint32>(pcard->data.code);
-			else
-				message->write<uint32>(pcard->data.code | 0x80000000);
+			message->write<uint32>(pcard->data.code);
 			message->write<uint8>(pcard->current.controler);
 			message->write<uint8>(pcard->current.location);
 			message->write<uint32>(pcard->current.sequence);
 			message->write<uint64>(peffect->description);
+			message->write<uint8>(peffect->get_client_mode());
 		}
 		//Attackable
 		message->write<uint32>(core.attackable_cards.size());
@@ -116,14 +114,12 @@ int32 field::select_idle_command(uint16 step, uint8 playerid) {
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;
 			card* pcard = peffect->get_handler();
-			if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
-				message->write<uint32>(pcard->data.code);
-			else
-				message->write<uint32>(pcard->data.code | 0x80000000);
+			message->write<uint32>(pcard->data.code);
 			message->write<uint8>(pcard->current.controler);
 			message->write<uint8>(pcard->current.location);
 			message->write<uint32>(pcard->current.sequence);
 			message->write<uint64>(peffect->description);
+			message->write<uint8>(peffect->get_client_mode());
 		}
 		//To BP
 		if(infos.phase == PHASE_MAIN1 && core.to_bp)
@@ -385,15 +381,10 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;
 			card* pcard = peffect->get_handler();
-			if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
-				message->write<uint8>(EDESC_OPERATION);
-			else if(!(peffect->type & EFFECT_TYPE_ACTIONS))
-				message->write<uint8>(EDESC_RESET);
-			else
-				message->write<uint8>(0);
 			message->write<uint32>(pcard->data.code);
 			message->write(pcard->get_info_location());
 			message->write<uint64>(peffect->description);
+			message->write<uint8>(peffect->get_client_mode());
 		}
 		return FALSE;
 	} else {

@@ -358,8 +358,9 @@ struct card_sort {
 #define PHINT_DESC_ADD    6
 #define PHINT_DESC_REMOVE 7
 
-#define EDESC_OPERATION 1
-#define EDESC_RESET     2
+#define EFFECT_CLIENT_MODE_NORMAL  0
+#define EFFECT_CLIENT_MODE_RESOLVE 1
+#define EFFECT_CLIENT_MODE_RESET   2
 
 #define OPCODE_ADD          0x40000000
 #define OPCODE_SUB          0x40000001
