@@ -433,8 +433,10 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 			auto message = pduel->new_message(MSG_DRAW);
 			message->write<uint8>(playerid);
 			message->write<uint32>(drawed);
-			for(uint32 i = 0; i < drawed; ++i)
-				message->write<uint32>(cv[i]->data.code | (cv[i]->is_position(POS_FACEUP) ? 0x80000000 : 0));
+			for(uint32 i = 0; i < drawed; ++i) {
+				message->write<uint32>(cv[i]->data.code);
+				message->write<uint32>(cv[i]->current.position);
+			}
 			if(core.deck_reversed && (public_count < drawed)) {
 				auto message = pduel->new_message(MSG_CONFIRM_CARDS);
 				message->write<uint8>(1 - playerid);
