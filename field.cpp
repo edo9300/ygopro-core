@@ -1048,10 +1048,14 @@ void field::tag_swap(uint8 playerid) {
 		message->write<uint32>(player[playerid].list_main.back()->data.code);
 	else
 		message->write<uint32>(0);
-	for(auto& pcard : player[playerid].list_hand)
-		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
-	for(auto& pcard : player[playerid].list_extra)
-		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+	for(auto& pcard : player[playerid].list_hand) {
+		message->write<uint32>(pcard->data.code);
+		message->write<uint32>(pcard->current.position);
+	}
+	for(auto& pcard : player[playerid].list_extra) {
+		message->write<uint32>(pcard->data.code);
+		message->write<uint32>(pcard->current.position);
+	}
 	player[playerid].tag_index = (player[playerid].tag_index + 1) % player[playerid].extra_lists_main.size();
 }
 bool field::relay_check(uint8 playerid) {
@@ -1104,10 +1108,14 @@ void field::next_player(uint8 playerid) {
 		message->write<uint32>(player[playerid].list_main.back()->data.code);
 	else
 		message->write<uint32>(0);
-	for(auto& pcard : player[playerid].list_hand)
-		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
-	for(auto& pcard : player[playerid].list_extra)
-		message->write<uint32>(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+	for(auto& pcard : player[playerid].list_hand) {
+		message->write<uint32>(pcard->data.code);
+		message->write<uint32>(pcard->current.position);
+	}
+	for(auto& pcard : player[playerid].list_extra) {
+		message->write<uint32>(pcard->data.code);
+		message->write<uint32>(pcard->current.position);
+	}
 	player[playerid].lp = player[playerid].start_lp;
 	message = pduel->new_message(MSG_LPUPDATE);
 	message->write<uint8>(playerid);
