@@ -701,10 +701,8 @@ int32 field::process() {
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(target_player);
 						message->write<uint8>(0);
-						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							message->write<uint32>(ptop->data.code);
-						else
-							message->write<uint32>(ptop->data.code | 0x80000000);
+						message->write<uint32>(ptop->data.code);
+						message->write<uint32>(ptop->current.position);
 					}
 				}
 			}
@@ -5176,20 +5174,16 @@ int32 field::adjust_step(uint16 step) {
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(0);
 						message->write<uint8>(0);
-						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							message->write<uint32>(ptop->data.code);
-						else
-							message->write<uint32>(ptop->data.code | 0x80000000);
+						message->write<uint32>(ptop->data.code);
+						message->write<uint32>(ptop->current.position);
 					}
 					if(player[1].list_main.size()) {
 						card* ptop = player[1].list_main.back();
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(1);
 						message->write<uint8>(0);
-						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							message->write<uint32>(ptop->data.code);
-						else
-							message->write<uint32>(ptop->data.code | 0x80000000);
+						message->write<uint32>(ptop->data.code);
+						message->write<uint32>(ptop->current.position);
 					}
 				}
 			}

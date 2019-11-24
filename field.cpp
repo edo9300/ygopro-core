@@ -899,10 +899,8 @@ void field::shuffle(uint8 playerid, uint8 location) {
 				auto message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(playerid);
 				message->write<uint32>(0);
-				if(ptop->current.position != POS_FACEUP_DEFENSE)
-					message->write<uint32>(ptop->data.code);
-				else
-					message->write<uint32>(ptop->data.code | 0x80000000);
+				message->write<uint32>(ptop->data.code);
+				message->write<uint32>(ptop->current.position);
 			}
 		}
 	}
