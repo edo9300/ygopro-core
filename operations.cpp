@@ -425,18 +425,18 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(playerid);
 						message->write<uint32>(drawed);
-						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							message->write<uint32>(ptop->data.code);
-						else
-							message->write<uint32>(ptop->data.code | 0x80000000);
+						message->write<uint32>(ptop->data.code);
+						message->write<uint32>(ptop->current.position);
 					}
 				}
 			}
 			auto message = pduel->new_message(MSG_DRAW);
 			message->write<uint8>(playerid);
 			message->write<uint32>(drawed);
-			for(uint32 i = 0; i < drawed; ++i)
-				message->write<uint32>(cv[i]->data.code | (cv[i]->is_position(POS_FACEUP) ? 0x80000000 : 0));
+			for(uint32 i = 0; i < drawed; ++i) {
+				message->write<uint32>(cv[i]->data.code);
+				message->write<uint32>(cv[i]->current.position);
+			}
 			if(core.deck_reversed && (public_count < drawed)) {
 				auto message = pduel->new_message(MSG_CONFIRM_CARDS);
 				message->write<uint8>(1 - playerid);
@@ -3932,10 +3932,8 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8>(0);
 					message->write<uint8>(d0 - s0);
-					if(ptop->current.position != POS_FACEUP_DEFENSE)
-						message->write<uint32>(ptop->data.code);
-					else
-						message->write<uint32>(ptop->data.code | 0x80000000);
+					message->write<uint32>(ptop->data.code);
+					message->write<uint32>(ptop->current.position);
 				}
 			}
 			if((s1 != d1) && (s1 > 0)) {
@@ -3944,10 +3942,8 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8>(1);
 					message->write<uint8>(d1 - s1);
-					if(ptop->current.position != POS_FACEUP_DEFENSE)
-						message->write<uint32>(ptop->data.code);
-					else
-						message->write<uint32>(ptop->data.code | 0x80000000);
+					message->write<uint32>(ptop->data.code);
+					message->write<uint32>(ptop->current.position);
 				}
 			}
 		}
@@ -4105,20 +4101,16 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				auto message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(0);
 				message->write<uint8>(0);
-				if(ptop->current.position != POS_FACEUP_DEFENSE)
-					message->write<uint32>(ptop->data.code);
-				else
-					message->write<uint32>(ptop->data.code | 0x80000000);
+				message->write<uint32>(ptop->data.code);
+				message->write<uint32>(ptop->current.position);
 			}
 			if(param->show_decktop[1]) {
 				card* ptop = *player[1].list_main.rbegin();
 				auto message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(1);
 				message->write<uint8>(0);
-				if(ptop->current.position != POS_FACEUP_DEFENSE)
-					message->write<uint32>(ptop->data.code);
-				else
-					message->write<uint32>(ptop->data.code | 0x80000000);
+				message->write<uint32>(ptop->data.code);
+				message->write<uint32>(ptop->current.position);
 			}
 		}
 		for(auto& pcard : param->targets->container) {
@@ -4278,10 +4270,8 @@ int32 field::discard_deck(uint16 step, uint8 playerid, uint8 count, uint32 reaso
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8>(playerid);
 					message->write<uint8>(count);
-					if(ptop->current.position != POS_FACEUP_DEFENSE)
-						message->write<uint32>(ptop->data.code);
-					else
-						message->write<uint32>(ptop->data.code | 0x80000000);
+					message->write<uint32>(ptop->data.code);
+					message->write<uint32>(ptop->current.position);
 				}
 			}
 		}
@@ -4514,10 +4504,8 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(curp);
 						message->write<uint8>(1);
-						if(ptop->current.position != POS_FACEUP_DEFENSE)
-							message->write<uint32>(ptop->data.code);
-						else
-							message->write<uint32>(ptop->data.code | 0x80000000);
+						message->write<uint32>(ptop->data.code);
+						message->write<uint32>(ptop->current.position);
 					}
 				}
 			}

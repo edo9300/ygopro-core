@@ -3053,7 +3053,8 @@ int32 scriptlib::card_reverse_in_deck(lua_State *L) {
 		auto message = pduel->new_message(MSG_DECK_TOP);
 		message->write<uint8>(pcard->current.controler);
 		message->write<uint32>(0);
-		message->write<uint32>(pcard->data.code | 0x80000000);
+		message->write<uint32>(pcard->data.code);
+		message->write<uint32>(pcard->current.position);
 	}
 	return 0;
 }

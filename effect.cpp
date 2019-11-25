@@ -611,6 +611,14 @@ void effect::recharge() {
 		count_limit = count_limit_max;
 	}
 }
+uint8 effect::get_client_mode() const {
+	if(is_flag(EFFECT_FLAG_FIELD_ONLY))
+		return EFFECT_CLIENT_MODE_RESOLVE;
+	else if(!(type & EFFECT_TYPE_ACTIONS))
+		return EFFECT_CLIENT_MODE_RESET;
+	else
+		return EFFECT_CLIENT_MODE_NORMAL;
+}
 int32 effect::get_value(uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);

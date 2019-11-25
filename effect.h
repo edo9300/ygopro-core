@@ -81,6 +81,7 @@ public:
 	int32 reset(uint32 reset_level, uint32 reset_type);
 	void dec_count(uint32 playerid = 2);
 	void recharge();
+	uint8 get_client_mode() const;
 	int32 get_value(uint32 extraargs = 0);
 	int32 get_value(card* pcard, uint32 extraargs = 0);
 	int32 get_value(effect* peffect, uint32 extraargs = 0);

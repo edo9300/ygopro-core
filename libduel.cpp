@@ -991,10 +991,8 @@ int32 scriptlib::duel_confirm_decktop(lua_State *L) {
 				auto message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(playerid);
 				message->write<uint32>(count);
-				if(pcard->current.position != POS_FACEUP_DEFENSE)
-					message->write<uint32>(pcard->data.code);
-				else
-					message->write<uint32>(pcard->data.code | 0x80000000);
+				message->write<uint32>(pcard->data.code);
+				message->write<uint32>(pcard->current.position);
 			}
 		}
 	}
