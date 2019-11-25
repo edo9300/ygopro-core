@@ -3052,7 +3052,7 @@ int32 scriptlib::card_reverse_in_deck(lua_State *L) {
 	if(pcard->current.sequence == pduel->game_field->player[pcard->current.controler].list_main.size() - 1) {
 		auto message = pduel->new_message(MSG_DECK_TOP);
 		message->write<uint8>(pcard->current.controler);
-		message->write<uint8>(0);
+		message->write<uint32>(0);
 		message->write<uint32>(pcard->data.code);
 		message->write<uint32>(pcard->current.position);
 	}
