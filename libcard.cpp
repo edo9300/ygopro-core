@@ -2187,7 +2187,10 @@ int32 scriptlib::card_is_able_to_remove(lua_State *L) {
 	uint32 pos = POS_FACEUP;
 	if(lua_gettop(L) >= 3)
 		pos = lua_tointeger(L, 3);
-	if(pcard->is_removeable(p, pos))
+	uint32 reason = REASON_EFFECT;
+	if(lua_gettop(L) >= 4)
+		reason = lua_tointeger(L, 4);
+	if(pcard->is_removeable(p, pos, reason))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
