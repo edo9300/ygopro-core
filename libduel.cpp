@@ -3917,7 +3917,7 @@ int32 scriptlib::duel_is_player_can_summon(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::duel_is_player_can_mset(lua_State * L) {
+int32 scriptlib::Duel_CanPlayerSetMonster(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3936,7 +3936,7 @@ int32 scriptlib::duel_is_player_can_mset(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::duel_is_player_can_sset(lua_State * L) {
+int32 scriptlib::Duel_CanPlayerSetSpellTrap(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
