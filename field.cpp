@@ -2361,7 +2361,7 @@ int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 t
 		return FALSE;
 	return TRUE;
 }
-int32 field::check_with_sum_limit(const card_vector& mats, int32 acc, int32 index, int32 count, int32 min, int32 max) {
+int32 field::check_with_sum_limit(const card_vector& mats, int32 acc, int32 index, int32 count, int32 min, int32 max, int32* should_continue) {
 	if(count > max)
 		return FALSE;
 	while(index < (int32)mats.size()) {
@@ -2370,55 +2370,59 @@ int32 field::check_with_sum_limit(const card_vector& mats, int32 acc, int32 inde
 		if((op1 == acc || op2 == acc) && count >= min)
 			return TRUE;
 		index++;
-		if(acc > op1 && check_with_sum_limit(mats, acc - op1, index, count + 1, min, max))
+		if(acc > op1 && check_with_sum_limit(mats, acc - op1, index, count + 1, min, max, should_continue))
 			return TRUE;
-		if(op2 && acc > op2 && check_with_sum_limit(mats, acc - op2, index, count + 1, min, max))
+		if(op2 && acc > op2 && check_with_sum_limit(mats, acc - op2, index, count + 1, min, max, should_continue))
 			return TRUE;
 	}
+	if(count + 1 < min && should_continue)
+		*should_continue = FALSE;
 	return FALSE;
 }
-int32 field::check_with_sum_limit_m(const card_vector& mats, int32 acc, int32 index, int32 min, int32 max, int32 must_count) {
+int32 field::check_with_sum_limit_m(const card_vector& mats, int32 acc, int32 index, int32 min, int32 max, int32 must_count, int32* should_continue) {
 	if(acc == 0)
 		return index == must_count && 0 >= min && 0 <= max;
 	if(index == must_count)
-		return check_with_sum_limit(mats, acc, index, 1, min, max);
+		return check_with_sum_limit(mats, acc, index, 1, min, max, should_continue);
 	if(index >= (int32)mats.size())
 		return FALSE;
 	int32 op1 = mats[index]->sum_param & 0xffff;
 	int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
-	if(acc >= op1 && check_with_sum_limit_m(mats, acc - op1, index + 1, min, max, must_count))
+	if(acc >= op1 && check_with_sum_limit_m(mats, acc - op1, index + 1, min, max, must_count, should_continue))
 		return TRUE;
-	if(op2 && acc >= op2 && check_with_sum_limit_m(mats, acc - op2, index + 1, min, max, must_count))
+	if(op2 && acc >= op2 && check_with_sum_limit_m(mats, acc - op2, index + 1, min, max, must_count, should_continue))
 		return TRUE;
 	return FALSE;
 }
-int32 field::check_with_sum_greater_limit(const card_vector& mats, int32 acc, int32 index, int32 opmin) {
+int32 field::check_with_sum_greater_limit(const card_vector& mats, int32 acc, int32 index, int32 opmin, int32* should_continue) {
 	while(index < (int32)mats.size()) {
 		int32 op1 = mats[index]->sum_param & 0xffff;
 		int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
 		if((acc <= op1 && acc + opmin > op1) || (op2 && acc <= op2 && acc + opmin > op2))
 			return TRUE;
 		index++;
-		if(check_with_sum_greater_limit(mats, acc - op1, index, std::min(opmin, op1)))
+		if(check_with_sum_greater_limit(mats, acc - op1, index, std::min(opmin, op1), should_continue))
 			return TRUE;
-		if(op2 && check_with_sum_greater_limit(mats, acc - op2, index, std::min(opmin, op2)))
+		if(op2 && check_with_sum_greater_limit(mats, acc - op2, index, std::min(opmin, op2), should_continue))
 			return TRUE;
 	}
 	return FALSE;
 }
-int32 field::check_with_sum_greater_limit_m(const card_vector& mats, int32 acc, int32 index, int32 opmin, int32 must_count) {
+int32 field::check_with_sum_greater_limit_m(const card_vector& mats, int32 acc, int32 index, int32 opmin, int32 must_count, int32* should_continue) {
 	if(acc <= 0)
 		return index == must_count && acc + opmin > 0;
 	if(index == must_count)
-		return check_with_sum_greater_limit(mats, acc, index, opmin);
+		return check_with_sum_greater_limit(mats, acc, index, opmin, should_continue);
 	if(index >= (int32)mats.size())
 		return FALSE;
 	int32 op1 = mats[index]->sum_param & 0xffff;
 	int32 op2 = (mats[index]->sum_param >> 16) & 0xffff;
-	if(check_with_sum_greater_limit_m(mats, acc - op1, index + 1, std::min(opmin, op1), must_count))
+	if(check_with_sum_greater_limit_m(mats, acc - op1, index + 1, std::min(opmin, op1), must_count, should_continue))
 		return TRUE;
-	if(op2 && check_with_sum_greater_limit_m(mats, acc - op2, index + 1, std::min(opmin, op2), must_count))
+	if(op2 && check_with_sum_greater_limit_m(mats, acc - op2, index + 1, std::min(opmin, op2), must_count, should_continue))
 		return TRUE;
+	if(should_continue && index < must_count && (acc - op1 <= 0 && (!op2 || acc - op2 <= 0)))
+		*should_continue = FALSE;
 	return FALSE;
 }
 int32 field::is_player_can_draw(uint8 playerid) {
