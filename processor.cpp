@@ -522,7 +522,7 @@ int32 field::process() {
 		if(it->step == 0) {
 			card* attacker = core.attacker;
 			if(!attacker
-                    || core.effect_damage_step != 0
+			        || core.effect_damage_step != 0
 			        || (attacker->fieldid_r != core.pre_field[0])
 			        || (attacker->current.location != LOCATION_MZONE)
 			        || !attacker->is_capable_attack()
