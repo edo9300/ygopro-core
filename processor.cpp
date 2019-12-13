@@ -2545,6 +2545,10 @@ int32 field::process_battle_command(uint16 step) {
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, FALSE);
 			core.attacker->attack_controler = core.attacker->current.controler;
 			core.pre_field[0] = core.attacker->fieldid_r;
+			if(core.chain_attack && core.chain_attacker_id != core.attacker->fieldid) {
+				core.chain_attack = FALSE;
+				core.chain_attacker_id = 0;
+			}
 			effect_set eset;
 			core.tpchain.clear();
 			chain newchain;
@@ -2714,10 +2718,6 @@ int32 field::process_battle_command(uint16 step) {
 	case 7: {
 		if(!core.units.begin()->arg1) {
 			core.phase_action = TRUE;
-			if(core.chain_attack && core.chain_attacker_id != core.attacker->fieldid) {
-				core.chain_attack = FALSE;
-				core.chain_attacker_id = 0;
-			}
 			core.attack_state_count[infos.turn_player]++;
 			check_card_counter(core.attacker, 5, infos.turn_player);
 			core.attacker->attack_announce_count++;
