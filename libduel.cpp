@@ -755,7 +755,7 @@ int32 scriptlib::duel_remove_counter(lua_State *L) {
 		return 1;
 	});
 }
-int32 scriptlib::Duel_CanPlayerRemoveCounter(lua_State *L) {
+int32 scriptlib::duel_can_player_remove_counter(lua_State *L) {
 	check_param_count(L, 6);
 	uint32 rplayer = lua_tointeger(L, 1);
 	if(rplayer != 0 && rplayer != 1)
@@ -954,7 +954,7 @@ int32 scriptlib::duel_set_chain_limit(lua_State *L) {
 	pduel->game_field->core.chain_limit.emplace_back(f, pduel->game_field->core.reason_player);
 	return 0;
 }
-int32 scriptlib::Duel_SetChainLimitUntilChainEnd(lua_State *L) {
+int32 scriptlib::duel_set_chain_limit_until_chain_end(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_FUNCTION, 1);
 	duel* pduel = interpreter::get_duel_info(L);
@@ -2522,7 +2522,7 @@ int32 scriptlib::duel_get_first_matching_card(lua_State *L) {
 * \param filter_func, self, location1, location2, count, exception card, (extraargs...)
 * \return boolean
 */
-int32 scriptlib::Duel_IsExistingMatchingCard(lua_State *L) {
+int32 scriptlib::duel_is_existing_matching_card(lua_State *L) {
 	check_param_count(L, 6);
 	if(!lua_isnil(L, 1))
 		check_param(L, PARAM_TYPE_FUNCTION, 1);
@@ -3856,7 +3856,7 @@ int32 scriptlib::duel_get_player_effect(lua_State *L) {
 	}
 	return count;
 }
-int32 scriptlib::Duel_CanPlayerDraw(lua_State * L) {
+int32 scriptlib::duel_can_player_draw(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3874,7 +3874,7 @@ int32 scriptlib::Duel_CanPlayerDraw(lua_State * L) {
 		                && (pduel->game_field->player[playerid].list_main.size() >= count));
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerDiscardDeck(lua_State * L) {
+int32 scriptlib::duel_can_player_discard_deck(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tointeger(L, 1);
 	int32 count = lua_tointeger(L, 2);
@@ -3886,7 +3886,7 @@ int32 scriptlib::Duel_CanPlayerDiscardDeck(lua_State * L) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_discard_deck(playerid, count));
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerDiscardDeckAsCost(lua_State * L) {
+int32 scriptlib::duel_can_player_discard_deck_as_cost(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tointeger(L, 1);
 	int32 count = lua_tointeger(L, 2);
@@ -3898,7 +3898,7 @@ int32 scriptlib::Duel_CanPlayerDiscardDeckAsCost(lua_State * L) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_discard_deck_as_cost(playerid, count));
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSummon(lua_State * L) {
+int32 scriptlib::duel_can_player_summon(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3954,7 +3954,7 @@ int32 scriptlib::duel_can_player_set_spell_trap(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSpecialSummon(lua_State * L) {
+int32 scriptlib::duel_can_player_special_summon(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3975,7 +3975,7 @@ int32 scriptlib::Duel_CanPlayerSpecialSummon(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerFlipSummon(lua_State * L) {
+int32 scriptlib::duel_can_player_flip_summon(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3993,7 +3993,7 @@ int32 scriptlib::Duel_CanPlayerFlipSummon(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSpecialSummonMonster(lua_State * L) {
+int32 scriptlib::duel_can_player_special_summon_monster(lua_State * L) {
 	check_param_count(L, 9);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4032,7 +4032,7 @@ int32 scriptlib::Duel_CanPlayerSpecialSummonMonster(lua_State * L) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_monster(playerid, toplayer, pos, sumtype, &dat));
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSpecialSummonCount(lua_State * L) {
+int32 scriptlib::duel_can_player_special_summon_count(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tointeger(L, 1);
 	int32 count = lua_tointeger(L, 2);
@@ -4044,7 +4044,7 @@ int32 scriptlib::Duel_CanPlayerSpecialSummonCount(lua_State * L) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_count(playerid, count));
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerTribute(lua_State * L) {
+int32 scriptlib::duel_can_player_tribute(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4062,7 +4062,7 @@ int32 scriptlib::Duel_CanPlayerTribute(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerBanish(lua_State * L) {
+int32 scriptlib::duel_can_player_banish(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4083,7 +4083,7 @@ int32 scriptlib::Duel_CanPlayerBanish(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerAddToHand(lua_State * L) {
+int32 scriptlib::duel_can_player_add_to_hand(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tointeger(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
@@ -4102,7 +4102,7 @@ int32 scriptlib::Duel_CanPlayerAddToHand(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSendToGrave(lua_State * L) {
+int32 scriptlib::duel_can_player_send_to_grave(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tointeger(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
@@ -4121,7 +4121,7 @@ int32 scriptlib::Duel_CanPlayerSendToGrave(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSendToDeck(lua_State * L) {
+int32 scriptlib::duel_can_player_send_to_deck(lua_State * L) {
 	check_param_count(L, 2);
 	int32 playerid = lua_tointeger(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
@@ -4140,7 +4140,7 @@ int32 scriptlib::Duel_CanPlayerSendToDeck(lua_State * L) {
 	}
 	return 1;
 }
-int32 scriptlib::Duel_CanPlayerSummonAdditionally(lua_State * L) {
+int32 scriptlib::duel_can_player_summon_additionally(lua_State * L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1) {
