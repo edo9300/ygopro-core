@@ -523,6 +523,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "SetOperationInfo", scriptlib::duel_set_operation_info },
 	{ "GetOperationInfo", scriptlib::duel_get_operation_info },
 	{ "GetOperationCount", scriptlib::duel_get_operation_count },
+	{ "ClearOperationInfo", scriptlib::duel_clear_operation_info },
 	{ "Overlay", scriptlib::duel_overlay },
 	{ "GetOverlayGroup", scriptlib::duel_get_overlay_group },
 	{ "GetOverlayCount", scriptlib::duel_get_overlay_count },
