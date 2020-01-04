@@ -389,6 +389,7 @@ public:
 	int32 get_mzone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
 	int32 get_szone_limit(uint8 playerid, uint8 uplayer, uint32 reason);
 	int32 get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint32 uplayer, uint32 reason);
+	uint32 get_rule_zone_fromex(int32 playerid, card* pcard);
 	uint32 get_linked_zone(int32 playerid, bool free = false);
 	void get_linked_cards(uint8 self, uint8 location1, uint8 location2, card_set* cset);
 	int32 check_extra_link(int32 playerid, card* pcard, int32 sequence);

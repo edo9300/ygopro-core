@@ -725,7 +725,6 @@ int32 field::get_spsummonable_count_fromex_rule4(card* pcard, uint8 playerid, ui
 	uint32 flag = player[playerid].disabled_location | player[playerid].used_location;
 	flag |= ~get_forced_zones(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD);
 	uint32 linked_zone = get_linked_zone(playerid) | (1u << 5) | (1u << 6);
-	flag = flag | ~zone | ~linked_zone;
 	if(player[playerid].list_mzone[5] && is_location_useable(playerid, LOCATION_MZONE, 6)
 		&& check_extra_link(playerid, pcard, 6)) {
 		flag |= 1u << 5;
@@ -740,6 +739,8 @@ int32 field::get_spsummonable_count_fromex_rule4(card* pcard, uint8 playerid, ui
 		if(!is_location_useable(playerid, LOCATION_MZONE, 6))
 			flag |= 1u << 6;
 	}
+	uint32 rule_zone = get_rule_zone_fromex(playerid, pcard);
+	flag = flag | ~zone | ~rule_zone;
 	if(list)
 		*list = flag & 0x7f;
 	int32 count = 5 - field_used_count[flag & 0x1f];
@@ -828,6 +829,16 @@ int32 field::get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint3
 	else
 		(res >>= 16 )&= 0xff;
 	return res;
+}
+uint32 field::get_rule_zone_fromex(int32 playerid, card* pcard) {
+	if(is_flag(DUEL_EMZONE)) {
+		if(!is_flag(DUEL_FSX_MMZONE) || !pcard || (pcard->data.type & (TYPE_LINK)) || (pcard->is_position(POS_FACEUP) && (pcard->data.type & TYPE_PENDULUM)))
+			return get_linked_zone(playerid) | (1u << 5) | (1u << 6);
+		else
+			return 0x7f;
+	} else {
+		return 0x1f;
+	}
 }
 uint32 field::get_linked_zone(int32 playerid, bool free) {
 	uint32 zones = 0;

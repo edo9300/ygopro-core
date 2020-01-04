@@ -419,6 +419,7 @@ struct card_sort {
 #define DUEL_SEPARATE_PZONE    0x1000
 #define DUEL_EMZONE            0x2000
 #define DUEL_RELAY             0x4000
+#define DUEL_FSX_MMZONE        0x8000
 #define DUEL_MODE_MR1          DUEL_OBSOLETE_IGNITION + DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
 #define DUEL_MODE_MR2          DUEL_1ST_TURN_DRAW + DUEL_1_FIELD
 #define DUEL_MODE_MR3          DUEL_PZONE + DUEL_SEPARATE_PZONE
