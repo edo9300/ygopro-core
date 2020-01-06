@@ -220,3 +220,8 @@ int32 scriptlib::debug_show_hint(lua_State *L) {
 	message->write<uint8>(0);
 	return 0;
 }
+
+int32 scriptlib::debug_print_stacktrace(lua_State * L) {
+	interpreter::print_stacktrace(L);
+	return 0;
+}

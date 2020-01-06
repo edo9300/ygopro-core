@@ -75,6 +75,7 @@ public:
 	static int32 get_function_handle(lua_State* L, int32 index);
 	static void set_duel_info(lua_State* L, duel* pduel);
 	static duel* get_duel_info(lua_State* L);
+	static void print_stacktrace(lua_State* L);
 
 	template <size_t N, typename... TR>
 	static int sprintf(char (&buffer)[N], const char* format, TR... args) {
