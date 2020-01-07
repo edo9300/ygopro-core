@@ -3963,11 +3963,6 @@ int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner)
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
-	//special fix for scrap chimera, not perfect yet
-	if(tuner && (pduel->game_field->core.global_flag & GLOBALFLAG_SCRAP_CHIMERA)) {
-		if(is_affected_by_effect(EFFECT_SCRAP_CHIMERA, tuner))
-			return false;
-	}
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i)
