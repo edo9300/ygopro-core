@@ -414,7 +414,7 @@ struct card_sort {
 #define DUEL_SPEED             0x80
 #define DUEL_OBSOLETE_IGNITION 0x100
 #define DUEL_1ST_TURN_DRAW     0x200
-#define DUEL_1_FACEUP_FIELD           0x400
+#define DUEL_1_FACEUP_FIELD    0x400
 #define DUEL_PZONE             0x800
 #define DUEL_SEPARATE_PZONE    0x1000
 #define DUEL_EMZONE            0x2000
