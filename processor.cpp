@@ -3624,7 +3624,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					core.attack_target->filter_effect(EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 					filter_player_effect(pa, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 					filter_player_effect(1 - pa, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
-					eset.sort();
+					std::sort(eset.begin(), eset.end(), effect_sort_id);;
 					for(uint8 p = 0; p < 2; ++p) {
 						bool double_dam = false;
 						bool half_dam = false;
@@ -3744,7 +3744,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 			dam_card->filter_effect(EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 		filter_player_effect(damp, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 		filter_player_effect(1 - damp, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
-		eset.sort();
+		std::sort(eset.begin(), eset.end(), effect_sort_id);;
 		for(uint8 p = 0; p < 2; ++p) {
 			bool double_dam = false;
 			bool half_dam = false;
