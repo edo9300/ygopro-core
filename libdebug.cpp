@@ -158,25 +158,16 @@ int32 scriptlib::debug_reload_field_begin(lua_State *L) {
 	if (!rule)
 		rule = 3;
 	pduel->clear();
+#define CHECK(MR) case MR : { flag |= DUEL_MODE_MR##MR; break; }
 	if(rule && !build) {
 		switch (rule) {
-		case 1: {
-			flag |= DUEL_MODE_MR1;
-			break;
+		CHECK(1)
+		CHECK(2)
+		CHECK(3)
+		CHECK(4)
+		CHECK(5)
 		}
-		case 2: {
-			flag |= DUEL_MODE_MR2;
-			break;
-		}
-		case 3: {
-			flag |= DUEL_MODE_MR3;
-			break;
-		}
-		case 4: {
-			flag |= DUEL_MODE_MR4;
-			break;
-		}
-		}
+#undef CHECK
 	} else if (flag & DUEL_OBSOLETE_RULING) {
 		flag |= DUEL_MODE_MR1;
 		pduel->game_field->core.duel_options = flag;
