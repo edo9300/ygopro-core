@@ -459,7 +459,7 @@ int32 scriptlib::duel_sets(lua_State *L) {
 	pduel->game_field->add_process(PROCESSOR_SSET_G, 0, pduel->game_field->core.reason_effect, pgroup, playerid, toplayer, confirm);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
-		lua_pushinteger(L, pduel->game_field->returns.ivalue[0]);
+		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));
 		return 1;
 	});
 }
