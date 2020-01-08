@@ -4660,7 +4660,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		card* pcard = peffect->get_handler();
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) && pcard->is_has_relation(*cait)) {
 			pcard->enable_field_effect(true);
-			if(is_flag(DUEL_1_FIELD)) {
+			if(is_flag(DUEL_1_FACEUP_FIELD)) {
 				if(pcard->data.type & TYPE_FIELD) {
 					card* fscard = player[1 - pcard->current.controler].list_szone[5];
 					if(fscard && fscard->is_position(POS_FACEUP))
@@ -4780,7 +4780,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if((pcard->data.type & TYPE_EQUIP) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 			&& !pcard->equiping_target && pcard->is_has_relation(*cait))
 			pcard->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
-		if(is_flag(DUEL_1_FIELD)) {
+		if(is_flag(DUEL_1_FACEUP_FIELD)) {
 			if((pcard->data.type & TYPE_FIELD) && (peffect->type & EFFECT_TYPE_ACTIVATE)
 					&& !pcard->is_status(STATUS_LEAVE_CONFIRMED) && pcard->is_has_relation(*cait)) {
 				card* fscard = player[1 - pcard->current.controler].list_szone[5];
