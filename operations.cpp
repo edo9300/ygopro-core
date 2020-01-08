@@ -1103,13 +1103,8 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 		card* pcard1 = *targets1->it;
 		card* pcard2 = *targets2->it;
 		uint8 p1 = pcard1->current.controler, p2 = pcard2->current.controler;
-		uint8 s1 = pcard1->current.sequence, s2 = pcard2->current.sequence;
 		uint8 new_s1 = core.units.begin()->arg4, new_s2 = returns.at<int8>(2);
-		loc_info info1 = pcard1->get_info_location(), info2 = pcard2->get_info_location();
-		remove_card(pcard1);
-		remove_card(pcard2);
-		add_card(p2, pcard1, LOCATION_MZONE, new_s2);
-		add_card(p1, pcard2, LOCATION_MZONE, new_s1);
+		swap_card(pcard1, pcard2, new_s1, new_s2);
 		for (auto& pmatcard : pcard1->xyz_materials)
 			pmatcard->current.controler = p2;
 		for (auto& pmatcard : pcard2->xyz_materials)
@@ -1120,35 +1115,6 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 		set_control(pcard2, p1, reset_phase, reset_count);
 		pcard1->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		pcard2->set_status(STATUS_ATTACK_CANCELED, TRUE);
-		if(s1 == new_s1 && s2 == new_s2) {
-			auto message = pduel->new_message(MSG_SWAP);
-			message->write<uint32>(pcard1->data.code);
-			message->write(info1);
-			message->write<uint32>(pcard2->data.code);
-			message->write(info2);
-		} else if(s1 == new_s1) {
-			auto message = pduel->new_message(MSG_MOVE);
-			message->write<uint32>(pcard1->data.code);
-			message->write(info1);
-			message->write(pcard1->get_info_location());
-			message->write<uint32>(0);
-			message = pduel->new_message(MSG_MOVE);
-			message->write<uint32>(pcard2->data.code);
-			message->write(info2);
-			message->write(pcard2->get_info_location());
-			message->write<uint32>(0);
-		} else {
-			auto message = pduel->new_message(MSG_MOVE);
-			message->write<uint32>(pcard2->data.code);
-			message->write(info2);
-			message->write(pcard2->get_info_location());
-			message->write<uint32>(0);
-			message = pduel->new_message(MSG_MOVE);
-			message->write<uint32>(pcard1->data.code);
-			message->write(info1);
-			message->write(pcard1->get_info_location());
-			message->write<uint32>(0);
-		}
 		++targets1->it;
 		++targets2->it;
 		core.units.begin()->step = 0;
