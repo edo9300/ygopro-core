@@ -3,7 +3,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := ocgcore_static
+LOCAL_MODULE    := ocgcore
 LOCAL_MODULE_FILENAME := libocgcore
 LOCAL_SRC_FILES :=  card.cpp \
 				duel.cpp \
@@ -22,10 +22,9 @@ LOCAL_SRC_FILES :=  card.cpp \
 				processor.cpp \
 				scriptlib.cpp
                    
-LOCAL_CFLAGS    := -frtti -std=gnu++0x -D_IRR_ANDROID_PLATFORM_ -DLUA_COMPAT_5_2 -Wno-format-security
-LOCAL_CPPFLAGS    := -frtti -std=gnu++0x -D_IRR_ANDROID_PLATFORM_ -DLUA_COMPAT_5_2 -Wno-format-security
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lua
-LOCAL_STATIC_LIBRARIES := liblua5.3
+LOCAL_CFLAGS    := -frtti -DLUA_COMPAT_5_2 -Wno-format-security
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lua/include
+LOCAL_STATIC_LIBRARIES += liblua5.3
 
 include $(BUILD_SHARED_LIBRARY)
 
