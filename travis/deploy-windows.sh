@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -euo pipefail
 
 echo Starting deployment of $DEPLOY_BRANCH to GitHub.
 cd $DEPLOY_DIR

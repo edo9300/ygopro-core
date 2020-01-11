@@ -7,6 +7,14 @@ This is the core logic and lua script processor of YGOPro. It maintains a state 
 ## Compiling
 See the [main EDOPro wiki](https://github.com/edo9300/ygopro/wiki/) for details.
 
+## License
+
+EDOPro's core is free/libre and open source software licensed under the GNU Affero General Public License, version 3 or later. Please see [LICENSE](https://github.com/edo9300/ygopro-core/blob/master/LICENSE) and [COPYING](https://github.com/edo9300/ygopro-core/blob/master/COPYING) for more details.
+
+Yu-Gi-Oh! is a trademark of Shueisha and Konami. This is not affiliated with or endorsed by Shueisha or Konami.
+
+# Below is outdated!
+
 ## Exposed Functions
 
 - `int_32 get_api_version(int_32* min)` : This function is used to get the current version of the api.
