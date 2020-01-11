@@ -36,18 +36,8 @@ before_deploy: ./travis/predeploy.sh
 deploy:
 - provider: script
   skip_cleanup: true
-  script: bash ./travis/deploy-windows.sh
+  script: bash ./travis/deploy.sh
   on:
-    condition: "$TRAVIS_OS_NAME == windows"
-    repo: edo9300/ygopro-core
-- provider: pages
-  skip_cleanup: true
-  local_dir: $DEPLOY_DIR
-  github_token: $DEPLOY_TOKEN
-  repo: $DEPLOY_REPO
-  target_branch: $DEPLOY_BRANCH
-  on:
-    condition: "$TRAVIS_OS_NAME != windows"
     repo: edo9300/ygopro-core
 #- provider: releases
 #  api_key: $OAUTH_TOKEN
