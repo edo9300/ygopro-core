@@ -1219,12 +1219,18 @@ uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 	}
 	pduel->lua->add_param(this, PARAM_TYPE_CARD);
 	pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-	lev = eset[0]->get_value(2);
-	if(((lev & 0xfff) == lv))
-		return lev & 0xffff;
-	if(((lev >> 16) & 0xfff) == lv)
-		return (lev >> 16) & 0xffff;
-	return 0;
+	for(auto& eff : eset) {
+		std::vector<int32> res;
+		eff->get_value(2, &res);
+		if(res.size() == 1) {
+			if((lev & 0xfff) == lv || ((lev >> 16) & 0xfff) == lv)
+				return TRUE;
+		} else {
+			if(std::find(res.begin(), res.end(), lv) != res.end())
+				return TRUE;
+		}
+	}
+	return FALSE;
 }
 // see get_level()
 uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
