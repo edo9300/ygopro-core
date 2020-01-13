@@ -1637,8 +1637,8 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 		chain newchain;
 		if(core.ignition_priority_chains.size())
 			core.select_chains.swap(core.ignition_priority_chains);
-		for(auto& event : { core.point_event , core.instant_event }) {
-			for(auto evit = event.begin(); evit != event.end(); ++evit) {
+		for(auto& event : { &core.point_event , &core.instant_event }) {
+			for(auto evit = event->begin(); evit != event->end(); ++evit) {
 				auto pr = effects.activate_effect.equal_range(evit->event_code);
 				for(auto eit = pr.first; eit != pr.second;) {
 					effect* peffect = eit->second;

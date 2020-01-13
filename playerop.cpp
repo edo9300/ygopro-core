@@ -678,8 +678,8 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 			}
 			int32 mcount = core.must_select_cards.size();
 			std::vector<int32> oparam;
-			for(auto& list : { core.must_select_cards , return_cards.list })
-				for(auto& pcard : list)
+			for(auto& list : { &core.must_select_cards , &return_cards.list })
+				for(auto& pcard : *list)
 					oparam.push_back(pcard->sum_param);
 			if(!select_sum_check1(oparam, tot + mcount, 0, acc)) {
 				return_cards.clear();
@@ -691,8 +691,8 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 			// UNUSED VARIABLE
 			// int32 mcount = core.must_select_cards.size();
 			int32 sum = 0, mx = 0, mn = 0x7fffffff;
-			for(auto& list : { core.must_select_cards , return_cards.list }) {
-				for(auto& pcard : list) {
+			for(auto& list : { &core.must_select_cards , &return_cards.list }) {
+				for(auto& pcard : *list) {
 					int32 op = pcard->sum_param;
 					int32 o1 = op & 0xffff;
 					int32 o2 = op >> 16;
