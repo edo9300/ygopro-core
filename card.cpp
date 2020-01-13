@@ -1207,20 +1207,14 @@ uint32 card::get_ritual_level(card* pcard) {
 }
 uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 	if(status & STATUS_NO_LEVEL)
-		return 0;
-	uint32 lev;
+		return FALSE;
+	uint32 lev = get_level();
 	effect_set eset;
 	filter_effect(EFFECT_XYZ_LEVEL, &eset);
-	if(!eset.size()) {
-		lev = get_level();
-		if(lev == lv)
-			return lev;
-		return 0;
-	}
-	pduel->lua->add_param(this, PARAM_TYPE_CARD);
-	pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 	for(auto& eff : eset) {
 		std::vector<int32> res;
+		pduel->lua->add_param(this, PARAM_TYPE_CARD);
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		eff->get_value(2, &res);
 		if(res.size() == 1) {
 			if((lev & 0xfff) == lv || ((lev >> 16) & 0xfff) == lv)
@@ -1230,7 +1224,7 @@ uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 				return TRUE;
 		}
 	}
-	return FALSE;
+	return lev == lv;
 }
 // see get_level()
 uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
