@@ -432,7 +432,6 @@ public:
 	void get_ritual_material(uint8 playerid, effect* peffect, card_set* material);
 	void get_fusion_material(uint8 playerid, card_set* material);
 	void ritual_release(card_set* material);
-	void get_xyz_material(card* scard, int32 findex, uint32 lv, int32 maxc, group* mg, uint32 playerid);
 	void get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, group* pgroup);
 	int32 get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup);
 	void update_disable_check_list(effect* peffect);
