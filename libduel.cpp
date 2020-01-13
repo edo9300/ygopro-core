@@ -4023,11 +4023,19 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State * L) {
 	int32 code = lua_tointeger(L, 2);
 	card_data dat;
 	duel* pduel = interpreter::get_duel_info(L);
-	pduel->read_card(pduel->read_card_payload, code, &dat);
+	pduel->read_card(code, &dat);
 	dat.code = code;
 	dat.alias = 0;
-	if(!lua_isnil(L, 3))
-		dat.setcode = lua_tointeger(L, 3);
+	if(!lua_isnil(L, 3)) {
+		if(lua_istable(L, 3)) {
+			lua_pushnil(L);
+			while(lua_next(L, 3) != 0) {
+				dat.setcodes.insert((uint16)lua_tointeger(L, -1));
+				lua_pop(L, 1);
+			}
+		} else
+			dat.setcodes.insert((uint16)lua_tointeger(L, 3));
+	}
 	if(!lua_isnil(L, 4))
 		dat.type = lua_tointeger(L, 4);
 	if(!lua_isnil(L, 5))

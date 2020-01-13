@@ -31,7 +31,7 @@ typedef void* OCG_Duel;
 typedef struct OCG_CardData {
 	uint32_t code;
 	uint32_t alias;
-	uint64_t setcode;
+	uint16_t* setcodes;
 	uint32_t type;
 	uint32_t level;
 	uint32_t attribute;
@@ -49,7 +49,8 @@ typedef struct OCG_Player {
 	int drawCountPerTurn;
 }OCG_Player;
 
-typedef int (*OCG_DataReader)(void* payload, int code, OCG_CardData* data);
+typedef void (*OCG_DataReader)(void* payload, int code, OCG_CardData* data);
+typedef void (*OCG_DataReaderDone)(void* payload, OCG_CardData* data);
 typedef int (*OCG_ScriptReader)(void* payload, OCG_Duel duel, const char* name);
 typedef void (*OCG_LogHandler)(void* payload, const char* string, int type);
 
@@ -64,6 +65,8 @@ typedef struct OCG_DuelOptions {
 	void* payload2; /* relayed to scriptReader */
 	OCG_LogHandler logHandler;
 	void* payload3; /* relayed to errorHandler */
+	OCG_DataReaderDone cardReaderDone;
+	void* payload4; /* relayed to cardReader */
 }OCG_DuelOptions;
 
 typedef struct OCG_NewCardInfo {

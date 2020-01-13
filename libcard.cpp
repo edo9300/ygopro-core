@@ -118,13 +118,9 @@ int32 scriptlib::card_get_origin_set_card(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 n = 0;
-	uint64 set_code = pcard->get_origin_set_card();
-	while(set_code) {
-		if ((set_code & 0xfff) != 0) {
-			lua_pushinteger(L, set_code & 0xffff);
-			++n;
-		}
-		set_code = set_code >> 16;
+	for(auto& setcode : pcard->get_origin_set_card()) {
+		lua_pushinteger(L, setcode);
+		++n;
 	}
 	return n;
 }
@@ -3158,7 +3154,6 @@ int32 scriptlib::card_set_spsummon_once(lua_State *L) {
 }
 CARD_INFO_FUNC(code)
 CARD_INFO_FUNC(alias)
-CARD_INFO_FUNC(setcode)
 CARD_INFO_FUNC(type)
 CARD_INFO_FUNC(level)
 CARD_INFO_FUNC(attribute)
@@ -3169,6 +3164,27 @@ CARD_INFO_FUNC(rscale)
 CARD_INFO_FUNC(lscale)
 CARD_INFO_FUNC(link_marker)
 #undef CARD_INFO_FUNC
+int32 scriptlib::card_setcode(lua_State *L) { 
+	check_param_count(L, 1); 
+	check_param(L, PARAM_TYPE_CARD, 1); 
+	card* pcard = *(card**)lua_touserdata(L, 1); 
+	if(lua_gettop(L) > 1) {
+		pcard->data.setcodes.clear();
+		if(lua_istable(L, 2)) {
+			lua_pushnil(L);
+			while(lua_next(L, 2) != 0) {
+				pcard->data.setcodes.insert((uint16)lua_tointeger(L, -1));
+				lua_pop(L, 1);
+			}
+		} else
+			pcard->data.setcodes.insert((uint16)lua_tointeger(L, 2));
+		return 0; 
+	} else {
+		for(auto& setcode : pcard->data.setcodes)
+			lua_pushinteger(L, setcode);
+	}
+	return pcard->data.setcodes.size();
+}
 int32 scriptlib::card_recreate(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
@@ -3177,8 +3193,16 @@ int32 scriptlib::card_recreate(lua_State *L) {
 	if (pcard->recreate(code)) {
 		if (lua_gettop(L) > 2 && !lua_isnil(L, 3))
 			pcard->data.alias = lua_tointeger(L, 3);
-		if (lua_gettop(L) > 3 && !lua_isnil(L, 4))
-			pcard->data.setcode = lua_tointeger(L, 4);
+		if(lua_gettop(L) > 3 && !lua_isnil(L, 4)) {
+			if(lua_istable(L, 4)) {
+				lua_pushnil(L);
+				while(lua_next(L, 4) != 0) {
+					pcard->data.setcodes.insert((uint16)lua_tointeger(L, -1));
+					lua_pop(L, 1);
+				}
+			} else
+				pcard->data.setcodes.insert((uint16)lua_tointeger(L, 4));
+		}
 		if (lua_gettop(L) > 4 && !lua_isnil(L, 5))
 			pcard->data.type = lua_tointeger(L, 5);
 		if (lua_gettop(L) > 5 && !lua_isnil(L, 6))

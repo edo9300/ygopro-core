@@ -3851,10 +3851,10 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				}
 				effect_set eset;
 				pcard->filter_effect(EFFECT_ADD_SETCODE, &eset);
-				if(eset.size())
-					pcard->previous.setcode = eset.back()->get_value(pcard);
-				else
-					pcard->previous.setcode = 0;
+				pcard->previous.setcodes.clear();
+				for(auto& eff : eset) {
+					pcard->previous.setcodes.insert((uint16)eff->get_value(pcard));
+				}
 			}
 		}
 		if(leave_p.size())

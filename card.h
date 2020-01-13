@@ -11,6 +11,7 @@
 #include "common.h"
 #include "effectset.h"
 #include "ocgapi.h"
+#include "duel.h"
 #include <set>
 #include <map>
 #include <unordered_set>
@@ -29,12 +30,10 @@ struct loc_info {
 	uint32 position;
 };
 
-typedef OCG_CardData card_data;
-
 struct card_state {
 	uint32 code;
 	uint32 code2;
-	uint16 setcode;
+	std::set<uint16> setcodes;
 	uint32 type;
 	uint32 level;
 	uint32 rank;
@@ -58,6 +57,7 @@ struct card_state {
 	uint8 reason_player;
 	effect* reason_effect;
 	bool is_location(int32 loc) const;
+	void settoff();
 };
 
 class card {
@@ -175,7 +175,7 @@ public:
 	int32 is_pre_set_card(uint32 set_code);
 	int32 is_sumon_set_card(uint32 set_code, card* scard = 0, uint32 sumtype = 0, uint8 playerid = 2);
 	uint32 get_set_card();
-	uint32 get_origin_set_card();
+	std::set<uint16_t> get_origin_set_card();
 	uint32 get_pre_set_card();
 	uint32 get_summon_set_card(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 2);
 	uint32 get_type(card* scard = 0, uint32 sumtype = 0, uint8 playerid = 2);
@@ -356,3 +356,4 @@ public:
 #define CARD_TWINKLE_MOSS   13857930
 
 #endif /* CARD_H_ */
+
