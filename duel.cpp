@@ -162,7 +162,7 @@ const card_data const* duel::read_card(uint32_t code, card_data* copyable) {
 		OCG_CardData data;
 		read_card_api(read_card_payload, code, &data);
 		ret = &(data_cache.emplace(code, &data).first->second);
-		read_card_done(read_card_done_payload, &data);
+		read_card_done(read_card_done_payload);
 	}
 	if(copyable)
 		*copyable = *ret;
