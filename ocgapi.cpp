@@ -8,6 +8,8 @@
 
 void DefaultLogHandler(void* payload, const char* string, int type);
 
+void DefaultCardReaderDone(void* payload);
+
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
 		*major = OCG_VERSION_MAJOR;
@@ -29,6 +31,10 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	if(options.logHandler == nullptr) {
 		options.logHandler = &DefaultLogHandler;
 		options.payload3 = nullptr;
+	}
+	if(options.cardReaderDone == nullptr) {
+		options.cardReaderDone = &DefaultCardReaderDone;
+		options.payload4 = nullptr;
 	}
 	auto duelPtr = new class duel(options);
 	if(duelPtr == nullptr)
@@ -301,4 +307,7 @@ OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
 }
 
 void DefaultLogHandler(void* payload, const char* string, int type) {
+}
+
+void DefaultCardReaderDone(void* payload) {
 }

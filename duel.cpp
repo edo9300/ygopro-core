@@ -13,12 +13,14 @@
 #include "group.h"
 
 duel::duel(OCG_DuelOptions options) {
-	read_card = options.cardReader;
+	read_card_api = options.cardReader;
 	read_card_payload = options.payload1;
 	read_script = options.scriptReader;
 	read_script_payload = options.payload2;
 	handle_message = options.logHandler;
 	handle_message_payload = options.payload3;
+	read_card_done = options.cardReaderDone;
+	read_card_done_payload = options.payload4;
 	lua = new interpreter(this);
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);
@@ -52,7 +54,7 @@ card* duel::new_card(uint32 code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);
 	if(code)
-		read_card(read_card_payload, code, &(pcard->data));
+		read_card(code, &(pcard->data));
 	pcard->data.code = code;
 	lua->register_card(pcard);
 	return pcard;
@@ -151,6 +153,21 @@ duel::duel_message* duel::new_message(uint32_t message) {
 	messages.emplace_back(message);
 	return &(*messages.rbegin());
 }
+const card_data const* duel::read_card(uint32_t code, card_data* copyable) {
+	card_data* ret;
+	auto search = data_cache.find(code);
+	if(search != data_cache.end()) {
+		ret = &(search->second);
+	} else {
+		OCG_CardData data;
+		read_card_api(read_card_payload, code, &data);
+		ret = &(data_cache.emplace(code, &data).first->second);
+		read_card_done(read_card_done_payload);
+	}
+	if(copyable)
+		*copyable = *ret;
+	return ret;
+}
 duel::duel_message::duel_message(uint8_t _message) :message(_message) {
 	write(message);
 }
@@ -165,4 +182,27 @@ void duel::duel_message::write(loc_info loc) {
 	write<uint8_t>(loc.location);
 	write<uint32_t>(loc.sequence);
 	write<uint32_t>(loc.position);
+}
+
+card_data::card_data(OCG_CardData* data) {
+#define COPY(val) this->val = data->val;
+	COPY(code);
+	COPY(alias);
+	COPY(type);
+	COPY(level);
+	COPY(attribute);
+	COPY(race);
+	COPY(attack);
+	COPY(defense);
+	COPY(lscale);
+	COPY(rscale);
+	COPY(link_marker);
+#undef COPY
+	if(data->setcodes) {
+		uint16_t* setptr = data->setcodes;
+		while(*setptr != 0) {
+			this->setcodes.insert(*setptr);
+			setptr++;
+		}
+	}
 }

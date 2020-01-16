@@ -845,12 +845,12 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 								}\
 								break;\
 							}
-#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd.val op)
+#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd->val op)
 #define GET_OP(opcode,val) case opcode: {\
-								stack.push(cd.val);\
+								stack.push(cd->val);\
 								break;\
 							}
-static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcodes) {
+static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcodes) {
 	std::stack<int32> stack;
 	for(auto& opcode : opcodes) {
 		switch(opcode) {
@@ -876,19 +876,19 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 		GET_OP(OPCODE_GETTYPE, type);
 		GET_OP(OPCODE_GETRACE, race);
 		GET_OP(OPCODE_GETATTRIBUTE, attribute);
-		GET_OP(OPCODE_GETSETCARD, setcode);
+		//GET_OP(OPCODE_GETSETCARD, setcode);
 		case OPCODE_ISSETCARD: {
 			if(stack.size() >= 1) {
 				int32 set_code = stack.top();
 				stack.pop();
-				uint64 sc = cd.setcode;
 				bool res = false;
-				uint32 settype = set_code & 0xfff;
-				uint32 setsubtype = set_code & 0xf000;
-				while(sc) {
-					if((sc & 0xfff) == settype && (sc & 0xf000 & setsubtype) == setsubtype)
+				uint16 settype = set_code & 0xfff;
+				uint16 setsubtype = set_code & 0xf000;
+				for(auto& sc : cd->setcodes) {
+					if((sc & 0xfff) == settype && (sc & 0xf000 & setsubtype) == setsubtype) {
 						res = true;
-					sc = sc >> 16;
+						break;
+					}
 				}
 				stack.push(res);
 			}
@@ -902,8 +902,8 @@ static int32 is_declarable(card_data const& cd, const std::vector<uint64>& opcod
 	}
 	if(stack.size() != 1 || stack.top() == 0)
 		return FALSE;
-	return cd.code == CARD_MARINE_DOLPHIN || cd.code == CARD_TWINKLE_MOSS
-		|| (!cd.alias && (cd.type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN));
+	return cd->code == CARD_MARINE_DOLPHIN || cd->code == CARD_TWINKLE_MOSS
+		|| (!cd->alias && (cd->type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN));
 }
 #undef BINARY_OP
 #undef UNARY_OP
@@ -919,9 +919,8 @@ int32 field::announce_card(int16 step, uint8 playerid) {
 		return FALSE;
 	} else {
 		int32 code = returns.at<int32>(0);
-		card_data data;
-		pduel->read_card(pduel->read_card_payload, code, &data);
-		if(!data.code || !is_declarable(data, core.select_options)) {
+		auto data = pduel->read_card(code);
+		if(!data->code || !is_declarable(data, core.select_options)) {
 			/*auto message = */pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
