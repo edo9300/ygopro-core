@@ -153,7 +153,7 @@ duel::duel_message* duel::new_message(uint32_t message) {
 	messages.emplace_back(message);
 	return &(*messages.rbegin());
 }
-const card_data const* duel::read_card(uint32_t code, card_data* copyable) {
+const card_data* const duel::read_card(uint32_t code, card_data* copyable) {
 	card_data* ret;
 	auto search = data_cache.find(code);
 	if(search != data_cache.end()) {

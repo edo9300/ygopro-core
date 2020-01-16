@@ -94,7 +94,7 @@ public:
 	void set_response(byte* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 	duel_message* new_message(uint32_t message);
-	const card_data const* read_card(uint32_t code, card_data* copyable = nullptr);
+	const card_data* const read_card(uint32_t code, card_data* copyable = nullptr);
 	void* read_card_payload;
 	void* read_script_payload;
 	void* handle_message_payload;
