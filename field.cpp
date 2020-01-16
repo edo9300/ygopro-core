@@ -140,6 +140,7 @@ void field::reload_field_info() {
 			if(pcard) {
 				message->write<uint8>(1);
 				message->write<uint8>(pcard->current.position);
+				message->write<uint32>(pcard->xyz_materials.size());
 			} else {
 				message->write<uint8>(0);
 			}

@@ -175,7 +175,7 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 		return player.list_extra.size();
 	if(loc == LOCATION_DECK)
 		return player.list_main.size();
-	uint32 count = 0;
+	uint32_t count = 0;
 	if(loc == LOCATION_MZONE) {
 		for(auto& pcard : player.list_mzone)
 			if(pcard) count++;
@@ -276,6 +276,7 @@ OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
 			if(pcard) {
 				insert_value<int8_t>(query, 1);
 				insert_value<int8_t>(query, pcard->current.position);
+				insert_value<int32_t>(query, pcard->xyz_materials.size());
 			} else {
 				insert_value<int8_t>(query, 0);
 			}
@@ -292,14 +293,14 @@ OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
 		effect* peffect = ch.triggering_effect;
 		insert_value<int32_t>(query, peffect->get_handler()->data.code);
 		loc_info info = peffect->get_handler()->get_info_location();
-		insert_value<uint8>(query, info.controler);
-		insert_value<uint8>(query, info.location);
-		insert_value<uint32>(query, info.sequence);
-		insert_value<uint32>(query, info.position);
-		insert_value<uint8>(query, ch.triggering_controler);
-		insert_value<uint8>(query, (uint8)ch.triggering_location);
-		insert_value<uint32>(query, ch.triggering_sequence);
-		insert_value<uint64>(query, peffect->description);
+		insert_value<uint8_t>(query, info.controler);
+		insert_value<uint8_t>(query, info.location);
+		insert_value<uint32_t>(query, info.sequence);
+		insert_value<uint32_t>(query, info.position);
+		insert_value<uint8_t>(query, ch.triggering_controler);
+		insert_value<uint8_t>(query, (uint8_t)ch.triggering_location);
+		insert_value<uint32_t>(query, ch.triggering_sequence);
+		insert_value<uint64_t>(query, peffect->description);
 	}
 	if(length)
 		*length = query.size();

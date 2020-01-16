@@ -58,7 +58,7 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
 		interpreter::card2value(L, pcard);
 		return 1;
-	} else if(location == LOCATION_MZONE) {
+	} else if(location & LOCATION_ONFIELD) {
 		card* pcard = pduel->new_card(code);
 		pcard->owner = owner;
 		card* fcard = pduel->game_field->get_field_card(playerid, location, sequence);
