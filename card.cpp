@@ -26,7 +26,7 @@ bool card_state::is_location(int32 loc) const {
 		return true;
 	return false;
 }
-void card_state::settoff() {
+void card_state::set0xff() {
 	code = 0xffffffff;
 	code2 = 0xffffffff;
 	type = 0xffffffff;
@@ -106,7 +106,7 @@ card::card(duel* pd) {
 	overlay_target = 0;
 	current = {};
 	previous = {};
-	temp.settoff();
+	temp.set0xff();
 	unique_pos[0] = unique_pos[1] = 0;
 	spsummon_counter[0] = spsummon_counter[1] = 0;
 	spsummon_counter_rst[0] = spsummon_counter_rst[1] = 0;
