@@ -1272,6 +1272,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		core.quick_f_chain.clear();
 		core.instant_event.clear();
 		core.point_event.clear();
+		core.delayed_activate_event.clear();
 		core.full_event.clear();
 		/*if(core.set_forced_attack) {
 			core.set_forced_attack = false;
@@ -1292,6 +1293,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 	case 0: {
 		core.select_chains.clear();
 		core.point_event.splice(core.point_event.end(), core.instant_event);
+		core.full_event.splice(core.full_event.end(), core.delayed_activate_event);
 		if(skip_trigger) {
 			core.units.begin()->step = 7;
 			return FALSE;
@@ -1921,7 +1923,7 @@ int32 field::process_instant_event() {
 			}
 		}
 		// delayed activate effect
-		core.full_event.push_back(ev);
+		core.delayed_activate_event.push_back(ev);
 		// delayed quick effect
 		pr = effects.quick_o_effect.equal_range(ev.event_code);
 		for(auto eit = pr.first; eit != pr.second;) {
