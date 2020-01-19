@@ -3204,6 +3204,8 @@ int32 field::process_battle_command(uint16 step) {
 		message->write<uint8>(HINT_EVENT);
 		message->write<uint8>(1);
 		message->write<uint64>(43);
+		core.hint_timing[0] |= TIMING_BATTLED;
+		core.hint_timing[1] |= TIMING_BATTLED;
 		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
 		return FALSE;
 	}
