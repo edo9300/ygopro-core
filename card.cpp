@@ -2290,8 +2290,17 @@ uint8 card::refresh_control_status() {
 	filter_effect(EFFECT_SET_CONTROL, &eset);
 	if(eset.size()) {
 		effect* peffect = eset.back();
-		if(peffect->id >= last_id)
-			final = (uint8)peffect->get_value(this);
+		if(peffect->id >= last_id) {
+			card* pcard = peffect->get_handler();
+			uint8 val = (uint8)peffect->get_value(this);
+			if(val != current.controler)
+				pduel->game_field->core.readjust_map[pcard]++;
+			if(pduel->game_field->core.readjust_map[pcard] > 5) {
+				pduel->game_field->send_to(pcard, 0, REASON_RULE, peffect->get_handler_player(), PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+				return final;
+			}
+			final = val;
+		}
 	}
 	return final;
 }
