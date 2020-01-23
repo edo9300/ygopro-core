@@ -267,7 +267,6 @@ public:
 	effect* is_affected_by_effect(int32 code);
 	effect* is_affected_by_effect(int32 code, card* target);
 	int32 get_card_effect(uint32 code);
-	effect* check_control_effect();
 	int32 fusion_check(group* fusion_m, group* cg, uint32 chkf);
 	void fusion_filter_valid(group* fusion_m, group* cg, uint32 chkf, effect_set* eset);
 	int32 check_fusion_substitute(card* fcard);
