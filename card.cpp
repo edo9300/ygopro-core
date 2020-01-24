@@ -1546,7 +1546,7 @@ void card::get_mutual_linked_cards(card_set* cset) {
 	pduel->game_field->get_cards_in_zone(cset, mutual_linked_zone >> 16, 1 - p, LOCATION_ONFIELD);
 }
 int32 card::is_link_state() {
-	if(!(data.type & TYPE_LINK) || !(current.location & LOCATION_ONFIELD))
+	if(!(current.location & LOCATION_ONFIELD))
 		return FALSE;
 	card_set cset;
 	get_linked_cards(&cset);
