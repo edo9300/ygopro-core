@@ -868,7 +868,7 @@ static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcod
 		UNARY_OP(OPCODE_BNOT, ~);
 		BINARY_OP(OPCODE_LSHIFT, <<);
 		BINARY_OP(OPCODE_RSHIFT, >>);
-		UNARY_OP_OP(OPCODE_ISCODE, code, == );
+		UNARY_OP_OP(OPCODE_ISCODE, code, == (uint32));
 		UNARY_OP_OP(OPCODE_ISTYPE, type, &);
 		UNARY_OP_OP(OPCODE_ISRACE, race, &);
 		UNARY_OP_OP(OPCODE_ISATTRIBUTE, attribute, &);

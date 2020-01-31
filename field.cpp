@@ -2974,7 +2974,7 @@ int32 field::check_cteffect_hint(effect* peffect, uint8 playerid) {
 		if(!feffect->in_range(phandler))
 			continue;
 		uint32 code = efit.first;
-		if(code == EVENT_FREE_CHAIN || code == EVENT_PHASE + infos.phase) {
+		if(code == EVENT_FREE_CHAIN || code == (EVENT_PHASE | infos.phase)) {
 			nil_event.event_code = code;
 			if(get_cteffect_evt(feffect, playerid, nil_event, FALSE)
 				&& (code != EVENT_FREE_CHAIN || check_hint_timing(feffect)))

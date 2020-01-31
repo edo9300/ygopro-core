@@ -3545,8 +3545,8 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 						core.battle_damage[1] = a - d;
 					bool double_damage = false;
 					//bool half_damage = false;
-					for(int32 i = 0; i < eset.size(); ++i) {
-						if(eset[i]->get_value() == DOUBLE_DAMAGE)
+					for(uint32 i = 0; i < eset.size(); ++i) {
+						if(eset[i]->get_value() == static_cast<int32>(DOUBLE_DAMAGE))
 							double_damage = true;
 						//if(eset[i]->get_value() == HALF_DAMAGE)
 						//	half_damage = true;
@@ -3646,9 +3646,9 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 								break;
 							} else if(val > 0)
 								dam_value = val;
-							else if(val == DOUBLE_DAMAGE)
+							else if(val == static_cast<int32>(DOUBLE_DAMAGE))
 								double_dam = true;
-							else if(val == HALF_DAMAGE)
+							else if(val == static_cast<int32>(HALF_DAMAGE))
 								half_dam = true;
 						}
 						if(double_dam && half_dam) {
@@ -3766,9 +3766,9 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					break;
 				} else if(val > 0)
 					dam_value = val;
-				else if(val == DOUBLE_DAMAGE)
+				else if(val == static_cast<int32>(DOUBLE_DAMAGE))
 					double_dam = true;
-				else if(val == HALF_DAMAGE)
+				else if(val == static_cast<int32>(HALF_DAMAGE))
 					half_dam = true;
 			}
 			if(double_dam && half_dam) {
