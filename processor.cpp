@@ -2798,7 +2798,7 @@ int32 field::process_battle_command(uint16 step) {
 	case 11: {
 		if(core.attacker->is_affected_by_effect(EFFECT_ATTACK_DISABLED)) {
 			core.attacker->reset(EFFECT_ATTACK_DISABLED, RESET_CODE);
-			auto message = pduel->new_message(MSG_ATTACK_DISABLED);
+			pduel->new_message(MSG_ATTACK_DISABLED);
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		}
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP)

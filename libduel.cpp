@@ -3390,10 +3390,8 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	uint32 sel_hint = TRUE;
 	uint32 i = 0;
 	if(lua_isboolean(L, 2)) {
-		sel_hint = lua_toboolean(L, 2);
 		i++;
 	}
 	duel* pduel = interpreter::get_duel_info(L);
@@ -3405,7 +3403,6 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 		duel* pduel = (duel*)ctx;
 		int32 playerid = lua_tointeger(L, 1);
 		uint32 sel_hint = TRUE;
-		uint32 i = 0;
 		if(lua_isboolean(L, 2)) {
 			sel_hint = lua_toboolean(L, 2);
 		}
