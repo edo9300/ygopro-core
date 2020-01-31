@@ -2295,7 +2295,7 @@ std::tuple<uint8, effect*> card::refresh_control_status() {
 			ceffect = peffect;
 		}
 	}
-	return { final, ceffect };
+	return std::make_tuple(final, ceffect);
 }
 void card::count_turn(uint16 ct) {
 	turn_counter = ct;
