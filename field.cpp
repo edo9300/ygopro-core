@@ -438,8 +438,8 @@ void field::swap_card(card* pcard1, card* pcard2, uint8 new_sequence1, uint8 new
 	loc_info info1 = pcard1->get_info_location(), info2 = pcard2->get_info_location();
 	if(!(l1 & LOCATION_ONFIELD) || !(l2 & LOCATION_ONFIELD))
 		return;
-	if(new_sequence1 != s1 && !is_location_useable(p1, l1, new_sequence1)
-		|| new_sequence2 != s2 && !is_location_useable(p2, l2, new_sequence2))
+	if((new_sequence1 != s1 && !is_location_useable(p1, l1, new_sequence1))
+		|| (new_sequence2 != s2 && !is_location_useable(p2, l2, new_sequence2)))
 		return;
 	if(p1 == p2 && l1 == l2 && (new_sequence1 == s2 || new_sequence2 == s1))
 		return;

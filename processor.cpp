@@ -3691,7 +3691,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 		card* dam_card = (reason_card == core.attacker) ? core.attack_target : core.attacker;
 		bool both = false;
 		if(reason_card->is_affected_by_effect(EFFECT_BOTH_BATTLE_DAMAGE)
-			|| dam_card && dam_card->is_affected_by_effect(EFFECT_BOTH_BATTLE_DAMAGE)) {
+			|| (dam_card && dam_card->is_affected_by_effect(EFFECT_BOTH_BATTLE_DAMAGE))) {
 			core.battle_damage[1 - damp] = core.battle_damage[damp];
 			both = true;
 		}
@@ -3702,7 +3702,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 			reflect[1 - damp] = is_player_affected_by_effect(1 - damp, EFFECT_REFLECT_BATTLE_DAMAGE);
 		bool also[2] = { false, false };
 		if(!both
-			&& (dam_card && dam_card->is_affected_by_effect(EFFECT_ALSO_BATTLE_DAMAGE)
+			&& ((dam_card && dam_card->is_affected_by_effect(EFFECT_ALSO_BATTLE_DAMAGE))
 				|| is_player_affected_by_effect(damp, EFFECT_ALSO_BATTLE_DAMAGE)))
 			also[damp] = true;
 		if(!both
@@ -3783,10 +3783,10 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 				core.battle_damage[p] = dam_value;
 		}
 		if(reason_card->is_affected_by_effect(EFFECT_NO_BATTLE_DAMAGE)
-			|| dam_card && dam_card->is_affected_by_effect(EFFECT_AVOID_BATTLE_DAMAGE, reason_card)
+			|| (dam_card && dam_card->is_affected_by_effect(EFFECT_AVOID_BATTLE_DAMAGE, reason_card))
 			|| is_player_affected_by_effect(damp, EFFECT_AVOID_BATTLE_DAMAGE))
 			core.battle_damage[damp] = 0;
-		if(dam_card && dam_card->is_affected_by_effect(EFFECT_NO_BATTLE_DAMAGE)
+		if((dam_card && dam_card->is_affected_by_effect(EFFECT_NO_BATTLE_DAMAGE))
 			|| reason_card->is_affected_by_effect(EFFECT_AVOID_BATTLE_DAMAGE, dam_card)
 			|| is_player_affected_by_effect(1 - damp, EFFECT_AVOID_BATTLE_DAMAGE))
 			core.battle_damage[1 - damp] = 0;
