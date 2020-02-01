@@ -1301,7 +1301,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		core.new_ochain_s.splice(core.new_ochain_s.begin(), core.new_ochain);
 		core.full_event.splice(core.full_event.end(), core.delayed_activate_event);
 		core.delayed_quick.clear();
-		core.delayed_quick_break.swap(core.delayed_quick);
+		core.delayed_quick_tmp.swap(core.delayed_quick);
 		core.current_player = infos.turn_player;
 		core.units.begin()->step = 1;
 		return FALSE;
@@ -1485,6 +1485,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 	case 10: {
 		core.new_ochain_h.clear();
 		core.full_event.clear();
+		core.delayed_quick.clear();
 		for(auto& ch_lim : core.chain_limit)
 			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
@@ -1662,7 +1663,7 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 					effect* peffect = eit->second;
 					++eit;
 					peffect->set_activate_location();
-					if(peffect->is_chainable(priority) && peffect->is_activateable(priority, *evit)) {
+					if(!peffect->is_flag(EFFECT_FLAG_DELAY) && peffect->is_chainable(priority) && peffect->is_activateable(priority, *evit)) {
 						card* phandler = peffect->get_handler();
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
@@ -1672,8 +1673,6 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 						newchain.triggering_player = priority;
 						core.select_chains.push_back(newchain);
 					}
-					core.delayed_quick_tmp.erase(std::make_pair(peffect, *evit));
-					core.delayed_quick_break.erase(std::make_pair(peffect, *evit));
 				}
 			}
 		}
@@ -1794,7 +1793,6 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 			else {
 				core.hint_timing[0] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
 				core.hint_timing[1] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
-				core.delayed_quick.clear();
 			}
 		}
 		core.select_chains.clear();
@@ -4870,8 +4868,6 @@ int32 field::break_effect() {
 			core.new_ochain.erase(rm);
 		}
 	}
-	core.delayed_quick_break.insert(core.delayed_quick_tmp.begin(), core.delayed_quick_tmp.end());
-	core.delayed_quick_tmp.clear();
 	core.used_event.splice(core.used_event.end(), core.instant_event);
 	adjust_instant();
 	return 0;
