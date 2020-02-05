@@ -701,7 +701,7 @@ int32 field::process() {
 					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(target_player);
-						message->write<uint8>(0);
+						message->write<uint32>(0);
 						message->write<uint32>(ptop->data.code);
 						message->write<uint32>(ptop->current.position);
 					}
@@ -5367,7 +5367,7 @@ int32 field::adjust_step(uint16 step) {
 						card* ptop = player[0].list_main.back();
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(0);
-						message->write<uint8>(0);
+						message->write<uint32>(0);
 						message->write<uint32>(ptop->data.code);
 						message->write<uint32>(ptop->current.position);
 					}
@@ -5375,7 +5375,7 @@ int32 field::adjust_step(uint16 step) {
 						card* ptop = player[1].list_main.back();
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(1);
-						message->write<uint8>(0);
+						message->write<uint32>(0);
 						message->write<uint32>(ptop->data.code);
 						message->write<uint32>(ptop->current.position);
 					}

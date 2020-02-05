@@ -3935,7 +3935,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8>(0);
-					message->write<uint8>(d0 - s0);
+					message->write<uint32>(d0 - s0);
 					message->write<uint32>(ptop->data.code);
 					message->write<uint32>(ptop->current.position);
 				}
@@ -3945,7 +3945,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8>(1);
-					message->write<uint8>(d1 - s1);
+					message->write<uint32>(d1 - s1);
 					message->write<uint32>(ptop->data.code);
 					message->write<uint32>(ptop->current.position);
 				}
@@ -4104,7 +4104,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				card* ptop = *player[0].list_main.rbegin();
 				auto message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(0);
-				message->write<uint8>(0);
+				message->write<uint32>(0);
 				message->write<uint32>(ptop->data.code);
 				message->write<uint32>(ptop->current.position);
 			}
@@ -4112,7 +4112,7 @@ int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint3
 				card* ptop = *player[1].list_main.rbegin();
 				auto message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(1);
-				message->write<uint8>(0);
+				message->write<uint32>(0);
 				message->write<uint32>(ptop->data.code);
 				message->write<uint32>(ptop->current.position);
 			}
@@ -4283,7 +4283,7 @@ int32 field::discard_deck(uint16 step, uint8 playerid, uint8 count, uint32 reaso
 				if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8>(playerid);
-					message->write<uint8>(count);
+					message->write<uint32>(count);
 					message->write<uint32>(ptop->data.code);
 					message->write<uint32>(ptop->current.position);
 				}
@@ -4527,7 +4527,7 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(curp);
-						message->write<uint8>(1);
+						message->write<uint32>(1);
 						message->write<uint32>(ptop->data.code);
 						message->write<uint32>(ptop->current.position);
 					}
