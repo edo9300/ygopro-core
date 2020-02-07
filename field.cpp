@@ -1030,13 +1030,21 @@ void field::swap_deck_and_grave(uint8 playerid) {
 		pcard->cancel_field_effect();
 	}
 	player[playerid].list_grave.swap(player[playerid].list_main);
+	auto message = pduel->new_message(MSG_SWAP_GRAVE_DECK);
+	message->write<uint8>(playerid);
+	message->write<uint32>(player[playerid].list_main.size());
 	card_vector ex;
-	for(auto clit = player[playerid].list_main.begin(); clit != player[playerid].list_main.end(); ) {
+	ProgressiveBuffer buff;
+	int i = 0;
+	for(auto clit = player[playerid].list_main.begin(); clit != player[playerid].list_main.end(); i++) {
 		if((*clit)->is_extra_deck_monster()) {
+			buff.bitSet(i);
 			ex.push_back(*clit);
 			clit = player[playerid].list_main.erase(clit);
-		} else
+		} else {
+			buff.bitSet(i, false);
 			++clit;
+		}
 	}
 	for(auto& pcard : player[playerid].list_grave) {
 		pcard->current.location = LOCATION_GRAVE;
@@ -1068,8 +1076,8 @@ void field::swap_deck_and_grave(uint8 playerid) {
 	player[playerid].list_extra.insert(player[playerid].list_extra.end(), ex.begin(), ex.end());
 	reset_sequence(playerid, LOCATION_GRAVE);
 	reset_sequence(playerid, LOCATION_EXTRA);
-	auto message = pduel->new_message(MSG_SWAP_GRAVE_DECK);
-	message->write<uint8>(playerid);
+	message->write<uint32>(buff.data.size());
+	message->write(buff.data.data(), buff.data.size());
 	shuffle(playerid, LOCATION_DECK);
 }
 void field::reverse_deck(uint8 playerid) {
