@@ -91,7 +91,7 @@ public:
 	void generate_buffer();
 	void write_buffer(void* data, size_t size);
 	void clear_buffer();
-	void set_response(byte* resp, size_t len);
+	void set_response(const void* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
 	duel_message* new_message(uint32_t message);
 	card_data const* read_card(uint32_t code, card_data* copyable = nullptr);
