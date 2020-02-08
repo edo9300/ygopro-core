@@ -371,6 +371,8 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_CHANGE_BATTLE_DAMAGE         208
 #define EFFECT_TOSS_COIN_REPLACE            220
 #define EFFECT_TOSS_DICE_REPLACE            221
+#define EFFECT_TOSS_COIN_CHOOSE             222
+#define EFFECT_TOSS_DICE_CHOOSE             223
 #define EFFECT_FUSION_MATERIAL              230
 #define EFFECT_CHAIN_MATERIAL               231
 #define EFFECT_SYNCHRO_MATERIAL             232

@@ -5366,6 +5366,20 @@ int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player,
 			}
 		}
 		if(!peffect) {
+			auto pr = effects.continuous_effect.equal_range(EFFECT_TOSS_COIN_CHOOSE);
+			for(auto eit = pr.first; eit != pr.second;) {
+				effect* pe = eit->second;
+				++eit;
+				if(pe->is_activateable(pe->get_handler_player(), e)) {
+					peffect = pe;
+					break;
+				}
+			}
+			if(peffect) {
+				solve_continuous(peffect->get_handler_player(), peffect, e);
+				core.units.begin()->step = 2;
+				return FALSE;
+			}
 			auto message = pduel->new_message(MSG_TOSS_COIN);
 			message->write<uint8>(playerid);
 			message->write<uint8>(count);
@@ -5385,6 +5399,18 @@ int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player,
 		raise_event((card*)0, EVENT_TOSS_COIN, reason_effect, 0, reason_player, playerid, count);
 		process_instant_event();
 		return TRUE;
+	}
+	case 3: {
+		core.units.begin()->step = 0;
+		auto message = pduel->new_message(MSG_TOSS_COIN);
+		message->write<uint8>(playerid);
+		message->write<uint8>(count);
+		for(int32 i = 0; i < count; ++i) {
+			message->write<uint8>(core.coin_result[i]);
+		}
+		raise_event((card*)0, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
+		process_instant_event();
+		return FALSE;
 	}
 	}
 	return TRUE;
@@ -5413,6 +5439,20 @@ int32 field::toss_dice(uint16 step, effect * reason_effect, uint8 reason_player,
 			}
 		}
 		if(!peffect) {
+			auto pr = effects.continuous_effect.equal_range(EFFECT_TOSS_DICE_CHOOSE);
+			for(auto eit = pr.first; eit != pr.second;) {
+				effect* pe = eit->second;
+				++eit;
+				if(pe->is_activateable(pe->get_handler_player(), e)) {
+					peffect = pe;
+					break;
+				}
+			}
+			if(peffect) {
+				solve_continuous(peffect->get_handler_player(), peffect, e);
+				core.units.begin()->step = 2;
+				return FALSE;
+			}
 			auto message = pduel->new_message(MSG_TOSS_DICE);
 			message->write<uint8>(playerid);
 			message->write<uint8>(count1);
@@ -5441,6 +5481,26 @@ int32 field::toss_dice(uint16 step, effect * reason_effect, uint8 reason_player,
 		raise_event((card*)0, EVENT_TOSS_DICE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
 		process_instant_event();
 		return TRUE;
+	}
+	case 3: {
+		core.units.begin()->step = 0;
+		auto message = pduel->new_message(MSG_TOSS_DICE);
+		message->write<uint8>(playerid);
+		message->write<uint8>(count1);
+		for(int32 i = 0; i < count1; ++i) {
+			message->write<uint8>(core.dice_result[i]);
+		}
+		if(count2 > 0) {
+			auto mmessage = pduel->new_message(MSG_TOSS_DICE);
+			mmessage->write<uint8>(1 - playerid);
+			mmessage->write<uint8>(count2);
+			for(int32 i = 0; i < count2; ++i) {
+				mmessage->write<uint8>(core.dice_result[count1 + i]);
+			}
+		}
+		raise_event((card*)0, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
+		process_instant_event();
+		return FALSE;
 	}
 	}
 	return TRUE;
