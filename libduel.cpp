@@ -3699,7 +3699,7 @@ int32 scriptlib::duel_announce_type(lua_State * L) {
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_OPSELECTED);
 		message->write<uint8>(playerid);
-		message->write<uint32>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
+		message->write<uint64>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
 		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));
 		return 1;
 	});
@@ -3735,7 +3735,7 @@ int32 scriptlib::duel_announce_coin(lua_State * L) {
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_OPSELECTED);
 		message->write<uint8>(playerid);
-		message->write<uint32>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
+		message->write<uint64>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
 		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));
 		return 1;
 	});
