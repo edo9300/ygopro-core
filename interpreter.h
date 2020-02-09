@@ -29,7 +29,7 @@ class duel;
 class interpreter {
 public:
 	typedef std::unordered_map<int32, lua_State*> coroutine_map;
-	typedef std::list<std::pair<uintptr_t, uint32>> param_list;
+	typedef std::list<std::pair<lua_Integer, uint32>> param_list;
 	
 	duel* pduel;
 	char msgbuf[64];
@@ -53,7 +53,7 @@ public:
 	int32 load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	int32 load_card_script(uint32 code);
 	void add_param(void* param, int32 type, bool front = false);
-	void add_param(uintptr_t  param, int32 type, bool front = false);
+	void add_param(lua_Integer  param, int32 type, bool front = false);
 	void push_param(lua_State* L, bool is_coroutine = false);
 	int32 call_function(int32 f, uint32 param_count, int32 ret_count);
 	int32 call_card_function(card *pcard, char *f, uint32 param_count, int32 ret_count, bool forced = true);
