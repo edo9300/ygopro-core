@@ -18,7 +18,7 @@ int32 scriptlib::card_get_code(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	if (lua_gettop(L) > 1) {
 		card* scard = 0;
-		uint32 sumtype = 0;
+		uint64 sumtype = 0;
 		uint32 playerid = PLAYER_NONE;
 		if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 			check_param(L, PARAM_TYPE_CARD, 2);
@@ -87,7 +87,7 @@ int32 scriptlib::card_get_set_card(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	if (lua_gettop(L) > 1) {
 		card* scard = 0;
-		uint32 sumtype = 0;
+		uint64 sumtype = 0;
 		uint32 playerid = PLAYER_NONE;
 		if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 			check_param(L, PARAM_TYPE_CARD, 2);
@@ -140,7 +140,7 @@ int32 scriptlib::card_get_type(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
-	uint32 sumtype = 0;
+	uint64 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
 	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_CARD, 2);
@@ -430,7 +430,7 @@ int32 scriptlib::card_get_attribute(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
-	uint32 sumtype = 0;
+	uint64 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
 	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_CARD, 2);
@@ -460,7 +460,7 @@ int32 scriptlib::card_get_race(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	card* scard = 0;
-	uint32 sumtype = 0;
+	uint64 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
 	if (lua_gettop(L) > 1 && !lua_isnil(L, 2)) {
 		check_param(L, PARAM_TYPE_CARD, 2);
@@ -867,7 +867,7 @@ int32 scriptlib::card_is_summon_code(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**)lua_touserdata(L, 2);
 	}
-	uint32 sumtype = lua_tointeger(L, 3);
+	uint64 sumtype = lua_tointeger(L, 3);
 	playerid = lua_tointeger(L, 4);
 	std::set<uint32> codes;
 	pcard->filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
@@ -920,7 +920,7 @@ int32 scriptlib::card_is_set_card(lua_State *L) {
 	uint32 set_code = lua_tointeger(L, 2);
 	if (lua_gettop(L) > 2) {
 		card* scard = 0;
-		uint32 sumtype = 0;
+		uint64 sumtype = 0;
 		uint32 playerid = PLAYER_NONE;
 		if (lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
 			check_param(L, PARAM_TYPE_CARD, 3);
@@ -957,7 +957,7 @@ int32 scriptlib::card_is_type(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 ttype = lua_tointeger(L, 2);
 	card* scard = 0;
-	uint32 sumtype = 0;
+	uint64 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
 	if (lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
 		check_param(L, PARAM_TYPE_CARD, 3);
@@ -1084,7 +1084,7 @@ int32 scriptlib::card_is_race(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 trace = lua_tointeger(L, 2);
 	card* scard = 0;
-	uint32 sumtype = 0;
+	uint64 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
 	if(lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
 		check_param(L, PARAM_TYPE_CARD, 3);
@@ -1108,7 +1108,7 @@ int32 scriptlib::card_is_attribute(lua_State *L) {
 	card* pcard = *(card**) lua_touserdata(L, 1);
 	uint32 tattrib = lua_tointeger(L, 2);
 	card* scard = 0;
-	uint32 sumtype = 0;
+	uint64 sumtype = 0;
 	uint32 playerid = PLAYER_NONE;
 	if(lua_gettop(L) > 2 && !lua_isnil(L, 3)) {
 		check_param(L, PARAM_TYPE_CARD, 3);
@@ -2829,7 +2829,7 @@ int32 scriptlib::card_is_can_be_material(lua_State * L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**)lua_touserdata(L, 1);
-	uint32 sumtype = lua_tointeger(L, 2);
+	uint64 sumtype = lua_tointeger(L, 2);
 	card* scard = 0;
 	if(lua_gettop(L) >= 3) {
 		check_param(L, PARAM_TYPE_CARD, 3);

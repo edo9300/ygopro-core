@@ -277,7 +277,7 @@ uint32 card::get_another_code() {
 		return otcode;
 	return 0;
 }
-uint32 card::get_summon_code(card* scard, uint32 sumtype, uint8 playerid) {
+uint32 card::get_summon_code(card* scard, uint64 sumtype, uint8 playerid) {
 	std::set<uint32> codes;
 	effect_set eset;
 	bool changed = false;
@@ -386,7 +386,7 @@ int32 card::is_pre_set_card(uint32 set_code) {
 	}
 	return FALSE;
 }
-int32 card::is_sumon_set_card(uint32 set_code, card * scard, uint32 sumtype, uint8 playerid) {
+int32 card::is_sumon_set_card(uint32 set_code, card* scard, uint64 sumtype, uint8 playerid) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	effect_set eset;
@@ -504,7 +504,7 @@ uint32 card::get_pre_set_card() {
 	}
 	return count;
 }
-uint32 card::get_summon_set_card(card* scard, uint32 sumtype, uint8 playerid) {
+uint32 card::get_summon_set_card(card* scard, uint64 sumtype, uint8 playerid) {
 	effect_set eset;
 	std::set<uint32> codes;
 	bool changed = false;
@@ -562,7 +562,7 @@ uint32 card::get_summon_set_card(card* scard, uint32 sumtype, uint8 playerid) {
 		count += get_set_card();
 	return count;
 }
-uint32 card::get_type(card* scard, uint32 sumtype, uint8 playerid) {
+uint32 card::get_type(card* scard, uint64 sumtype, uint8 playerid) {
 	if(assume.find(ASSUME_TYPE) != assume.end())
 		return assume[ASSUME_TYPE];
 	if(!(current.location & (LOCATION_ONFIELD | LOCATION_HAND | LOCATION_GRAVE)))
@@ -1216,7 +1216,7 @@ uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 	return lev == lv;
 }
 // see get_level()
-uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
+uint32 card::get_attribute(card* scard, uint64 sumtype, uint8 playerid) {
 	if (assume.find(ASSUME_ATTRIBUTE) != assume.end())
 		return assume[ASSUME_ATTRIBUTE];
 	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER))
@@ -1266,7 +1266,7 @@ uint32 card::get_attribute(card* scard, uint32 sumtype, uint8 playerid) {
 	return attribute;
 }
 // see get_level()
-uint32 card::get_race(card* scard, uint32 sumtype, uint8 playerid) {
+uint32 card::get_race(card* scard, uint64 sumtype, uint8 playerid) {
 	if (assume.find(ASSUME_RACE) != assume.end())
 		return assume[ASSUME_RACE];
 	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER) && !sumtype)
