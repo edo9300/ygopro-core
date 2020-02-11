@@ -652,6 +652,92 @@ int32 scriptlib::group_merge(lua_State *L) {
 	pgroup->container.insert(mgroup->container.begin(), mgroup->container.end());
 	return 0;
 }
+int32 scriptlib::group_band(lua_State * L) {
+	check_param_count(L, 2);
+	group* pgroup1 = nullptr;
+	group* pgroup2 = nullptr;
+	card* pcard = nullptr;
+	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && !check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
+		luaL_error(L, "At least 1 parameter should be \"Group\".");
+	}
+	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && check_param(L, PARAM_TYPE_CARD, 1)) {
+		pcard = *(card**)lua_touserdata(L, 1);
+		pgroup1 = *(group**)lua_touserdata(L, 2);
+	} else if(!check_param(L, PARAM_TYPE_GROUP, 2, TRUE) && check_param(L, PARAM_TYPE_CARD, 2)) {
+		pgroup1 = *(group**)lua_touserdata(L, 1);
+		pcard = *(card**)lua_touserdata(L, 2);
+	} else {
+		pgroup1 = *(group**)lua_touserdata(L, 1);
+		pgroup2 = *(group**)lua_touserdata(L, 2);
+	}
+	duel* pduel = interpreter::get_duel_info(L);
+	field::card_set cset;
+	if(pcard) {
+		if(pgroup1->container.count(pcard)) {
+			cset.insert(pcard);
+		}
+	} else {
+		if(pgroup1->container.size() < pgroup2->container.size()) {
+			std::swap(pgroup1, pgroup2);
+		}
+		for(const auto& pcard : pgroup1->container) {
+			if(pgroup2->container.count(pcard))
+				cset.insert(pcard);
+		}
+	}
+	interpreter::group2value(L, pduel->new_group(cset));
+	return 1;
+}
+int32 scriptlib::group_add(lua_State * L) {
+	check_param_count(L, 2);
+	group* pgroup1 = nullptr;
+	group* pgroup2 = nullptr;
+	card* pcard = nullptr;
+	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && !check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
+		luaL_error(L, "At least 1 parameter should be \"Group\".");
+	}
+	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && check_param(L, PARAM_TYPE_CARD, 1)) {
+		pcard = *(card**)lua_touserdata(L, 1);
+		pgroup1 = *(group**)lua_touserdata(L, 2);
+	} else if(!check_param(L, PARAM_TYPE_GROUP, 2, TRUE) && check_param(L, PARAM_TYPE_CARD, 2)) {
+		pgroup1 = *(group**)lua_touserdata(L, 1);
+		pcard = *(card**)lua_touserdata(L, 2);
+	} else {
+		pgroup1 = *(group**)lua_touserdata(L, 1);
+		pgroup2 = *(group**)lua_touserdata(L, 2);
+	}
+	duel* pduel = interpreter::get_duel_info(L);
+	group* newgroup = pduel->new_group(pgroup1->container);
+	if(pcard) {
+		newgroup->container.insert(pcard);
+	} else {
+		newgroup->container.insert(pgroup2->container.begin(), pgroup2->container.end());
+	}
+	interpreter::group2value(L, newgroup);
+	return 1;
+}
+int32 scriptlib::group_sub_const(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	group* pgroup1 = *(group**)lua_touserdata(L, 1);
+	group* pgroup2 = nullptr;
+	card* pcard = nullptr;
+	duel* pduel = interpreter::get_duel_info(L);
+	group* newgroup = pduel->new_group(pgroup1->container);
+	if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
+		pgroup2 = *(group**)lua_touserdata(L, 2);
+		for(auto& pcard : pgroup2->container) {
+			newgroup->container.erase(pcard);
+		}
+	} else if(check_param(L, PARAM_TYPE_CARD, 2, TRUE)) {
+		pcard = *(card**)lua_touserdata(L, 2);
+		newgroup->container.erase(pcard);
+	} else {
+		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
+	}
+	interpreter::group2value(L, newgroup);
+	return 1;
+}
 int32 scriptlib::group_sub(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_GROUP, 1);
@@ -664,6 +750,22 @@ int32 scriptlib::group_sub(lua_State *L) {
 		pgroup->container.erase(pcard);
 	}
 	return 0;
+}
+int32 scriptlib::group_len(lua_State * L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	group* pgroup = *(group**)lua_touserdata(L, 1);
+	lua_pushinteger(L, pgroup->container.size());
+	return 1;
+}
+int32 scriptlib::group_equal_size(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	check_param(L, PARAM_TYPE_GROUP, 2);
+	group* pgroup = *(group**)lua_touserdata(L, 1);
+	group* sgroup = *(group**)lua_touserdata(L, 2);
+	lua_pushboolean(L, pgroup->container.size() == sgroup->container.size());
+	return 1;
 }
 int32 scriptlib::group_equal(lua_State *L) {
 	check_param_count(L, 2);
@@ -684,6 +786,24 @@ int32 scriptlib::group_equal(lua_State *L) {
 		}
 	}
 	lua_pushboolean(L, 1);
+	return 1;
+}
+int32 scriptlib::group_less_than(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	check_param(L, PARAM_TYPE_GROUP, 2);
+	group* pgroup = *(group**)lua_touserdata(L, 1);
+	group* sgroup = *(group**)lua_touserdata(L, 2);
+	lua_pushboolean(L, pgroup->container.size() < sgroup->container.size());
+	return 1;
+}
+int32 scriptlib::group_less_equal_than(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	check_param(L, PARAM_TYPE_GROUP, 2);
+	group* pgroup = *(group**)lua_touserdata(L, 1);
+	group* sgroup = *(group**)lua_touserdata(L, 2);
+	lua_pushboolean(L, pgroup->container.size() <= sgroup->container.size());
 	return 1;
 }
 int32 scriptlib::group_is_contains(lua_State *L) {
@@ -711,6 +831,59 @@ int32 scriptlib::group_search_card(lua_State *L) {
 			return 1;
 		}
 	return 0;
+}
+int32 scriptlib::group_split(lua_State * L) {
+	check_param_count(L, 3);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	group* pgroup = *(group**)lua_touserdata(L, 1);
+	field::card_set cset(pgroup->container);
+	field::card_set notmatching;
+	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE)) {
+		card* pexception = *(card**)lua_touserdata(L, 3);
+		cset.erase(pexception);
+		notmatching.insert(pexception);
+	} else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE)) {
+		group* pexgroup = *(group**)lua_touserdata(L, 3);
+		for(auto& pcard : pexgroup->container) {
+			cset.erase(pcard);
+			notmatching.insert(pcard);
+		}
+	}
+	duel* pduel = pgroup->pduel;
+	group* new_group = pduel->new_group();
+	uint32 extraargs = lua_gettop(L) - 3;
+	for(auto& pcard : cset) {
+		if(pduel->lua->check_matching(pcard, 2, extraargs)) {
+			new_group->container.insert(pcard);
+		} else {
+			notmatching.insert(pcard);
+		}
+	}
+	interpreter::group2value(L, new_group);
+	interpreter::group2value(L, pduel->new_group(notmatching));
+	return 2;
+}
+int32 scriptlib::group_includes(lua_State * L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	check_param(L, PARAM_TYPE_GROUP, 2);
+	group* pgroup1 = *(group**)lua_touserdata(L, 1);
+	group* pgroup2 = *(group**)lua_touserdata(L, 2);
+	auto& cset = pgroup1->container;
+	if(pgroup1->container.size() < pgroup2->container.size()) {
+		lua_pushboolean(L, FALSE);
+	} else {
+		int res = TRUE;
+		for(auto& pcard : pgroup2->container) {
+			if(!cset.count(pcard)) {
+				res = FALSE;
+				break;
+			}
+		}
+		lua_pushboolean(L, res);
+	}
+	return 1;
 }
 int32 scriptlib::group_get_bin_class_count(lua_State *L) {
 	check_param_count(L, 2);

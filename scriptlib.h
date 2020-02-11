@@ -367,7 +367,16 @@ public:
 	static int32 group_equal(lua_State *L);
 	static int32 group_is_contains(lua_State *L);
 	static int32 group_search_card(lua_State *L);
+	static int32 group_split(lua_State *L);
+	static int32 group_includes(lua_State *L);
 	static int32 group_get_bin_class_count(lua_State *L);
+	static int32 group_band(lua_State *L);
+	static int32 group_add(lua_State *L);
+	static int32 group_sub_const(lua_State *L);
+	static int32 group_len(lua_State *L);
+	static int32 group_equal_size(lua_State *L);
+	static int32 group_less_than(lua_State *L);
+	static int32 group_less_equal_than(lua_State *L);
 
 	//Duel functions
 	static int32 duel_enable_global_flag(lua_State *L);
