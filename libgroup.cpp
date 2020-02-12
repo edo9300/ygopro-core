@@ -605,6 +605,27 @@ int32 scriptlib::group_get_sum(lua_State *L) {
 	lua_pushinteger(L, sum);
 	return 1;
 }
+int32 scriptlib::group_get_class(lua_State *L) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_GROUP, 1);
+	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	group* pgroup = *(group**) lua_touserdata(L, 1);
+	duel* pduel = pgroup->pduel;
+	int32 extraargs = lua_gettop(L) - 2;
+	std::set<uint32> er;
+	for(auto& pcard : pgroup->container) {
+		er.insert(pduel->lua->get_operation_value(pcard, 2, extraargs));
+	}
+	lua_newtable(L);
+	int i = 1;
+	for(auto& val : er) {
+		lua_pushinteger(L, i);
+		lua_pushinteger(L, val);
+		lua_settable(L, -3);
+		i++;
+	}
+	return 1;
+}
 int32 scriptlib::group_get_class_count(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_GROUP, 1);

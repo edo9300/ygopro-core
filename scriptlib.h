@@ -360,6 +360,7 @@ public:
 	static int32 group_get_min_group(lua_State *L);
 	static int32 group_get_max_group(lua_State *L);
 	static int32 group_get_sum(lua_State *L);
+	static int32 group_get_class(lua_State *L);
 	static int32 group_get_class_count(lua_State *L);
 	static int32 group_remove(lua_State *L);
 	static int32 group_merge(lua_State *L);

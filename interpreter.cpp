@@ -366,6 +366,7 @@ static const struct luaL_Reg grouplib[] = {
 	{ "GetMinGroup", scriptlib::group_get_min_group },
 	{ "GetMaxGroup", scriptlib::group_get_max_group },
 	{ "GetSum", scriptlib::group_get_sum },
+	{ "GetClass", scriptlib::group_get_class },
 	{ "GetClassCount", scriptlib::group_get_class_count },
 	{ "Remove", scriptlib::group_remove },
 	{ "Merge", scriptlib::group_merge },
