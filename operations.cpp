@@ -4677,7 +4677,7 @@ int32 field::change_position(uint16 step, group * targets, effect * reason_effec
 					npos = POS_FACEUP_DEFENSE;
 				pcard->previous.position = opos;
 				pcard->current.position = npos;
-				if(npos & POS_DEFENSE)
+				if((npos & POS_DEFENSE) && !pcard->is_affected_by_effect(EFFECT_DEFENSE_ATTACK))
 					pcard->set_status(STATUS_ATTACK_CANCELED, TRUE);
 				pcard->set_status(STATUS_JUST_POS, TRUE);
 				auto message = pduel->new_message(MSG_POS_CHANGE);
