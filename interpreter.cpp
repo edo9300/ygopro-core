@@ -1327,11 +1327,14 @@ duel* interpreter::get_duel_info(lua_State * L) {
 
 void interpreter::print_stacktrace(lua_State * L) {
 	const char cmp[]="stack traceback:";
+	static std::vector<char> buffer;
 	duel* pduel = interpreter::get_duel_info(L);
 	luaL_traceback(L, L, NULL, 1);
-	interpreter::sprintf(pduel->strbuffer, "%s", lua_tostring(L, -1));
+	size_t l = lua_rawlen(L, -1);
+	buffer.resize(l + 10);
+	std::snprintf(buffer.data(), l, "%s", lua_tostring(L, -1));
 	/*checks for an empty stack*/
-	if(std::strcmp(pduel->strbuffer, cmp) != 0)
-		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_FOR_DEBUG);
+	if(std::strcmp(buffer.data(), cmp) != 0)
+		pduel->handle_message(pduel->handle_message_payload, buffer.data(), OCG_LOG_TYPE_FOR_DEBUG);
 	lua_pop(L, 1);
 }
