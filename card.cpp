@@ -1641,18 +1641,21 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 	else if(loc2 & LOCATION_SZONE && (seq == 5 || (seq > 5 && pduel->game_field->is_flag(DUEL_SEPARATE_PZONE))))
 		return 0;
 	if (loc2 & LOCATION_MZONE && (seq == 5 || seq == 6))
-		seq = seq == 5 ? 1 : 3;
+		seq = (seq == 5) ? 1 : 3;
 	else if (loc2 & LOCATION_SZONE && (seq == 6 || seq == 7))
-		seq = seq == 6 ? pduel->game_field->get_pzone_index(0) : pduel->game_field->get_pzone_index(1);
+		seq = (seq == 6) ? pduel->game_field->get_pzone_index(0) : pduel->game_field->get_pzone_index(1);
 	int32 seq1 = seq - left < 0 ? 0 : seq - left;
 	int32 seq2 = seq + right > 4 ? 4 : seq + right;
+	auto chkextra = [seq = current.sequence, mzone = (current.location == LOCATION_MZONE)](int s)->bool { 
+		return !mzone || seq < 5 || seq != s;
+	};
 	if (loc1 & LOCATION_MZONE) {
 		for (int32 s = seq1; s <= seq2; s++) {
 			zones |= (1u << s) | (1u << (16 + (4 - s)));
 			if (pduel->game_field->is_flag(DUEL_EMZONE)) {
-				if (s == 1)
+				if (s == 1 && chkextra(5))
 					zones |= (1u << 5) | (1u << (16 + 6));
-				else if (s == 3)
+				else if (s == 3 && chkextra(6))
 					zones |= (1u << 6) | (1u << (16 + 5));
 			}
 		}
@@ -1661,6 +1664,7 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 		for (int32 s = seq1; s <= seq2; s++)
 			zones |= (1u << (8 + s)) | (1u << (16 + 8 + (4 - s)));
 	}
+	zones &= ~((1 << current.sequence) << ((loc2 == LOCATION_SZONE) ? 8 : 0));
 	return zones;
 }
 void card::get_column_cards(card_set* cset, int32 left, int32 right) {
