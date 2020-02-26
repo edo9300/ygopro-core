@@ -4116,7 +4116,7 @@ int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
 		if(eset[i]->get_value(scard, 2))
 			return FALSE;
 	}
-	return int32();
+	return TRUE;
 }
 bool card::recreate(uint32 code) {
 	if(!code)
