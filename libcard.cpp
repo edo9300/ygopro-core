@@ -2029,10 +2029,10 @@ int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
 	else if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE))
 		tuner = *(group**)lua_touserdata(L, 2);
 	if(lua_gettop(L) >= 3) {
-		if(!lua_isnil(L, 3)) {
-			check_param(L, PARAM_TYPE_GROUP, 3);
-			mg = *(group**) lua_touserdata(L, 3);
-		}
+		if(check_param(L, PARAM_TYPE_CARD, 3, TRUE))
+			mg = pcard->pduel->new_group(*(card**)lua_touserdata(L, 3));
+		else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
+			mg = *(group**)lua_touserdata(L, 3);
 	}
 	int32 minc = 0;
 	if(lua_gettop(L) >= 4)
@@ -2055,10 +2055,11 @@ int32 scriptlib::card_is_xyz_summonable(lua_State *L) {
 	if(!(pcard->data.type & TYPE_XYZ))
 		return 0;
 	group* materials = 0;
-	if(!lua_isnil(L, 2)) {
-		check_param(L, PARAM_TYPE_GROUP, 2);
-		materials = *(group**) lua_touserdata(L, 2);
-	}
+	duel * pduel = pcard->pduel;
+	if(check_param(L, PARAM_TYPE_CARD, 2, TRUE))
+		materials = pduel->new_group(*(card**)lua_touserdata(L, 2));
+	else if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE))
+		materials = *(group**)lua_touserdata(L, 2);
 	int32 minc = 0;
 	if(lua_gettop(L) >= 3)
 		minc = lua_tointeger(L, 3);
@@ -2079,10 +2080,11 @@ int32 scriptlib::card_is_link_summonable(lua_State *L) {
 	if (!(pcard->data.type & TYPE_LINK))
 		return 0;
 	group* materials = 0;
-	if (!lua_isnil(L, 2)) {
-		check_param(L, PARAM_TYPE_GROUP, 2);
+	duel * pduel = pcard->pduel;
+	if(check_param(L, PARAM_TYPE_CARD, 2, TRUE))
+		materials = pduel->new_group(*(card**)lua_touserdata(L, 2));
+	else if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE))
 		materials = *(group**)lua_touserdata(L, 2);
-	}
 	int32 minc = 0;
 	if (lua_gettop(L) >= 3)
 		minc = lua_tointeger(L, 3);
