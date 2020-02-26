@@ -302,9 +302,9 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 			return TRUE;
 		if ((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			if(cancelable)
-				returns.at<int8>(0) = -1;
+				return_cards.canceled = true;
 			else
-				returns.bitSet(1);
+				return_cards.list.push_back(core.select_cards.size() ? core.select_cards.front() : core.unselect_cards.front());
 			return TRUE;
 		}
 		auto message = pduel->new_message(MSG_SELECT_UNSELECT_CARD);
