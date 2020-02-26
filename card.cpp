@@ -1681,16 +1681,9 @@ int32 card::is_all_column() {
 		return FALSE;
 	card_set cset;
 	get_column_cards(&cset, 0, 0);
-	uint32 full = 4;
-	if(pduel->game_field->is_flag(DUEL_EMZONE)){
-		int32 cs = current.sequence;
-		if (current.location == LOCATION_MZONE && (cs == 1 || cs == 3 || cs > 5))
-			full++;
-		else if (current.location == LOCATION_SZONE) {
-			if (cs == 1 || cs == 3)
-				full++;
-		}
-	}
+	uint32 full = 3;
+	if(pduel->game_field->is_flag(DUEL_EMZONE) && (current.sequence == 1 || current.sequence == 3))
+		full++;
 	if(cset.size() == full)
 		return TRUE;
 	return FALSE;
