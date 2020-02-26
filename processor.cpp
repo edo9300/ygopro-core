@@ -1236,7 +1236,7 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		if(eset.size())
 			limit = eset.back()->get_value();
 		int32 hd = player[infos.turn_player].list_hand.size();
-		if(hd <= limit) {
+		if(hd <= limit || is_flag(DUEL_NO_HAND_LIMIT)) {
 			core.units.begin()->step = 24;
 			return FALSE;
 		}
@@ -2496,7 +2496,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(first_attack.size())
 				core.attackable_cards = first_attack;
 		}
-		core.to_m2 = is_flag(DUEL_SPEED) ? FALSE : TRUE;
+		core.to_m2 = is_flag(DUEL_NO_MAIN_PHASE_2) ? FALSE : TRUE;
 		core.to_ep = TRUE;
 		if(must_attack.size() || is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_M2) || core.force_turn_end)
 			core.to_m2 = FALSE;
@@ -3927,6 +3927,9 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		// Draw, new ruling
 		if(is_flag(DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
 			int32 count = get_draw_count(infos.turn_player);
+			if(count > 0 && is_flag(DUEL_DRAW_UNTIL_5)) {
+				count = std::max<int>(5 - player[turn_player].list_hand.size(), 1);
+			}
 			if(count > 0) {
 				draw(0, REASON_RULE, turn_player, turn_player, count);
 				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
@@ -3949,7 +3952,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP) || core.force_turn_end) {
+		if(is_flag(DUEL_NO_STANDBY_PHASE) || is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP) || core.force_turn_end) {
 			core.units.begin()->step = 5;
 			reset_phase(PHASE_STANDBY);
 			adjust_all();
@@ -4067,7 +4070,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			}
 			return FALSE;
 		}
-		if(is_flag(DUEL_SPEED)) {
+		if(is_flag(DUEL_NO_MAIN_PHASE_2)) {
 			core.units.begin()->step = 14;
 			adjust_all();
 			/*if(core.set_forced_attack)
@@ -4917,7 +4920,7 @@ int32 field::refresh_location_info(uint16 step) {
 	switch(step) {
 	case 0: {
 		effect_set eset;
-		if (is_flag(DUEL_SPEED)) {
+		if(is_flag(DUEL_3_COLUMNS_FIELD)) {
 			player[0].used_location |= 0x1111;
 			player[1].used_location |= 0x1111;
 		}

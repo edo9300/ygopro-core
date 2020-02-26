@@ -1223,7 +1223,7 @@ int32 field::get_pzone_index(uint8 seq) {
 	if(is_flag(DUEL_SEPARATE_PZONE)) {
 		return seq + 6;
 	}
-	if(is_flag(DUEL_SPEED)) {
+	if(is_flag(DUEL_3_COLUMNS_FIELD)) {
 		if(seq == 0)
 			return 1;
 		return 3;
@@ -1773,6 +1773,9 @@ int32 field::get_summon_release_list(card* target, card_set* release_list, card_
 	return rcount + ex_oneof_max;
 }
 int32 field::get_summon_count_limit(uint8 playerid) {
+	if(is_flag(DUEL_UNLIMITED_SUMMONS)) {
+		return INT32_MAX - 100;
+	}
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_SET_SUMMON_COUNT_LIMIT, &eset);
 	int32 count = 1;
