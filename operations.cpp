@@ -447,7 +447,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 					message->write<uint32>(pcard->data.code);
 					message->write<uint8>(pcard->current.controler);
 					message->write<uint8>(pcard->current.location);
-					message->write<uint8>(pcard->current.sequence);
+					message->write<uint32>(pcard->current.sequence);
 				}
 				shuffle(playerid, LOCATION_HAND);
 			}
