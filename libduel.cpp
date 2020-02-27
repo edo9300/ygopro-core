@@ -314,26 +314,28 @@ int32 scriptlib::duel_special_summon_rule(lua_State *L) {
 	pduel->game_field->special_summon_rule(playerid, pcard, sumtype);
 	return lua_yield(L, 0);
 }
-int32 scriptlib::duel_synchro_summon(lua_State *L) {
-	check_action_permission(L);
-	check_param_count(L, 3);
-	check_param(L, PARAM_TYPE_CARD, 2);
+inline int32 supmmon_rule(lua_State *L, uint32 summon_type) {
+	scriptlib::check_action_permission(L);
+	scriptlib::check_param_count(L, 2);
+	scriptlib::check_param(L, PARAM_TYPE_CARD, 2);
 	uint32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	card* pcard = *(card**)lua_touserdata(L, 2);
 	duel* pduel = pcard->pduel;
-	group* tuner = 0;
-	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE))
-		tuner = pduel->new_group(*(card**)lua_touserdata(L, 3));
-	else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
-		tuner = *(group**)lua_touserdata(L, 3);
-	group* mg = 0;
+	group* must = nullptr;
+	if(lua_gettop(L) >= 3) {
+		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3, TRUE))
+			must = pduel->new_group(*(card**)lua_touserdata(L, 3));
+		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
+			must = *(group**)lua_touserdata(L, 3);
+	}
+	group* materials = nullptr;
 	if(lua_gettop(L) >= 4) {
-		if(!lua_isnil(L, 4)) {
-			check_param(L, PARAM_TYPE_GROUP, 4);
-			mg = *(group**) lua_touserdata(L, 4);
-		}
+		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 4, TRUE))
+			materials = pduel->new_group(*(card**)lua_touserdata(L, 4));
+		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 4, TRUE))
+			materials = *(group**)lua_touserdata(L, 4);
 	}
 	int32 minc = 0;
 	if(lua_gettop(L) >= 5)
@@ -341,67 +343,22 @@ int32 scriptlib::duel_synchro_summon(lua_State *L) {
 	int32 maxc = 0;
 	if(lua_gettop(L) >= 6)
 		maxc = lua_tointeger(L, 6);
-	pduel->game_field->core.forced_tuner = tuner;
-	pduel->game_field->core.forced_synmat = mg;
+	pduel->game_field->core.must_use_mats = must;
+	pduel->game_field->core.only_use_mats = materials;
 	pduel->game_field->core.forced_summon_minc = minc;
 	pduel->game_field->core.forced_summon_maxc = maxc;
 	pduel->game_field->core.summon_cancelable = FALSE;
-	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_SYNCHRO);
+	pduel->game_field->special_summon_rule(playerid, pcard, summon_type);
 	return lua_yield(L, 0);
+}
+int32 scriptlib::duel_synchro_summon(lua_State *L) {
+	return supmmon_rule(L, SUMMON_TYPE_SYNCHRO);
 }
 int32 scriptlib::duel_xyz_summon(lua_State *L) {
-	check_action_permission(L);
-	check_param_count(L, 3);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	uint32 playerid = lua_tointeger(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	card* pcard = *(card**)lua_touserdata(L, 2);
-	group* materials = 0;
-	duel* pduel = pcard->pduel;
-	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE))
-		materials = pduel->new_group(*(card**)lua_touserdata(L, 3));
-	else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
-		materials = *(group**)lua_touserdata(L, 3);
-	int32 minc = 0;
-	if(lua_gettop(L) >= 4)
-		minc = lua_tointeger(L, 4);
-	int32 maxc = 0;
-	if(lua_gettop(L) >= 5)
-		maxc = lua_tointeger(L, 5);
-	pduel->game_field->core.forced_xyzmat = materials;
-	pduel->game_field->core.forced_summon_minc = minc;
-	pduel->game_field->core.forced_summon_maxc = maxc;
-	pduel->game_field->core.summon_cancelable = FALSE;
-	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_XYZ);
-	return lua_yield(L, 0);
+	return supmmon_rule(L, SUMMON_TYPE_XYZ);
 }
 int32 scriptlib::duel_link_summon(lua_State *L) {
-	check_action_permission(L);
-	check_param_count(L, 3);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	uint32 playerid = lua_tointeger(L, 1);
-	if (playerid != 0 && playerid != 1)
-		return 0;
-	card* pcard = *(card**)lua_touserdata(L, 2);
-	group* materials = 0;
-	duel * pduel = pcard->pduel;
-	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE))
-		materials = pduel->new_group(*(card**)lua_touserdata(L, 3));
-	else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
-		materials = *(group**)lua_touserdata(L, 3);
-	int32 minc = 0;
-	if (lua_gettop(L) >= 4)
-		minc = lua_tointeger(L, 4);
-	int32 maxc = 0;
-	if (lua_gettop(L) >= 5)
-		maxc = lua_tointeger(L, 5);
-	pduel->game_field->core.forced_linkmat = materials;
-	pduel->game_field->core.forced_summon_minc = minc;
-	pduel->game_field->core.forced_summon_maxc = maxc;
-	pduel->game_field->core.summon_cancelable = FALSE;
-	pduel->game_field->special_summon_rule(playerid, pcard, SUMMON_TYPE_LINK);
-	return lua_yield(L, 0);
+	return supmmon_rule(L, SUMMON_TYPE_LINK);
 }
 int32 scriptlib::duel_setm(lua_State *L) {
 	check_action_permission(L);

@@ -276,10 +276,8 @@ struct processor {
 	bool forced_attack;
 	card* forced_attacker;
 	card* forced_attack_target;
-	group* forced_tuner;
-	group* forced_synmat;
-	group* forced_xyzmat;
-	group* forced_linkmat;
+	group* must_use_mats;
+	group* only_use_mats;
 	int32 forced_summon_minc;
 	int32 forced_summon_maxc;
 	uint8 attack_cancelable;

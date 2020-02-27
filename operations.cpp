@@ -2644,18 +2644,14 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	switch(step) {
 	case 0: {
 		effect_set eset;
-		group* tuner = core.forced_tuner;
-		group* synmaterials = core.forced_synmat;
-		group* xyzmaterials = core.forced_xyzmat;
-		group* linkmaterials = core.forced_linkmat;
+		group* must_mats = core.must_use_mats;
+		group* materials = core.only_use_mats;
 		int32 minc = core.forced_summon_minc;
 		int32 maxc = core.forced_summon_maxc;
 		target->filter_spsummon_procedure(sumplayer, &eset, summon_type);
 		target->filter_spsummon_procedure_g(sumplayer, &eset);
-		core.forced_tuner = tuner;
-		core.forced_synmat = synmaterials;
-		core.forced_xyzmat = xyzmaterials;
-		core.forced_linkmat = linkmaterials;
+		core.must_use_mats = must_mats;
+		core.only_use_mats = materials;
 		core.forced_summon_minc = minc;
 		core.forced_summon_maxc = maxc;
 		if(!eset.size())
@@ -2682,15 +2678,8 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		returns.at<int32>(0) = TRUE;
 		if(peffect->target) {
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
-			if(core.forced_tuner || core.forced_synmat) {
-				pduel->lua->add_param(core.forced_tuner, PARAM_TYPE_GROUP);
-				pduel->lua->add_param(core.forced_synmat, PARAM_TYPE_GROUP);
-			} else if(core.forced_xyzmat)
-				pduel->lua->add_param(core.forced_xyzmat, PARAM_TYPE_GROUP);
-			else if(core.forced_linkmat)
-				pduel->lua->add_param(core.forced_linkmat, PARAM_TYPE_GROUP);
-			else
-				pduel->lua->add_param(nullptr, PARAM_TYPE_GROUP);
+			pduel->lua->add_param(core.must_use_mats, PARAM_TYPE_GROUP);
+			pduel->lua->add_param(core.only_use_mats, PARAM_TYPE_GROUP);
 			if(core.forced_summon_minc) {
 				pduel->lua->add_param(core.forced_summon_minc, PARAM_TYPE_INT);
 				pduel->lua->add_param(core.forced_summon_maxc, PARAM_TYPE_INT);
@@ -2718,25 +2707,16 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		target->material_cards.clear();
 		if(peffect->operation) {
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
-			if(core.forced_tuner || core.forced_synmat) {
-				pduel->lua->add_param(core.forced_tuner, PARAM_TYPE_GROUP);
-				pduel->lua->add_param(core.forced_synmat, PARAM_TYPE_GROUP);
-				core.forced_tuner = 0;
-				core.forced_synmat = 0;
-			} else if(core.forced_xyzmat) {
-				pduel->lua->add_param(core.forced_xyzmat, PARAM_TYPE_GROUP);
-				core.forced_xyzmat = 0;
-			} else if(core.forced_linkmat) {
-				pduel->lua->add_param(core.forced_linkmat, PARAM_TYPE_GROUP);
-				core.forced_linkmat = 0;
-			} else
-				pduel->lua->add_param(nullptr, PARAM_TYPE_GROUP);
+			pduel->lua->add_param(core.must_use_mats, PARAM_TYPE_GROUP);
+			pduel->lua->add_param(core.only_use_mats, PARAM_TYPE_GROUP);
 			if(core.forced_summon_minc) {
 				pduel->lua->add_param(core.forced_summon_minc, PARAM_TYPE_INT);
 				pduel->lua->add_param(core.forced_summon_maxc, PARAM_TYPE_INT);
-				core.forced_summon_minc = 0;
-				core.forced_summon_maxc = 0;
 			}
+			core.must_use_mats = nullptr;
+			core.only_use_mats = nullptr;
+			core.forced_summon_minc = 0;
+			core.forced_summon_maxc = 0;
 			core.sub_solving_event.push_back(nil_event);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, sumplayer, 0);
 		}

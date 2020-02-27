@@ -94,10 +94,8 @@ field::field(duel* pduel) {
 	core.overdraw[0] = FALSE;
 	core.overdraw[1] = FALSE;
 	core.check_level = 0;
-	core.forced_tuner = 0;
-	core.forced_synmat = 0;
-	core.forced_xyzmat = 0;
-	core.forced_linkmat = 0;
+	core.must_use_mats = nullptr;
+	core.only_use_mats = nullptr;
 	core.forced_summon_minc = 0;
 	core.forced_summon_maxc = 0;
 	core.last_control_changed_id = 0;

@@ -3262,22 +3262,10 @@ int32 card::is_spsummonable(effect* peffect) {
 	pduel->game_field->save_lp_cost();
 	pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
 	pduel->lua->add_param(this, PARAM_TYPE_CARD);
+	pduel->lua->add_param(pduel->game_field->core.must_use_mats, PARAM_TYPE_GROUP);
+	pduel->lua->add_param(pduel->game_field->core.only_use_mats, PARAM_TYPE_GROUP);
 	uint32 result = FALSE;
-	uint32 param_count = 2;
-	if(pduel->game_field->core.forced_tuner || pduel->game_field->core.forced_synmat) {
-		pduel->lua->add_param(pduel->game_field->core.forced_tuner, PARAM_TYPE_GROUP);
-		pduel->lua->add_param(pduel->game_field->core.forced_synmat, PARAM_TYPE_GROUP);
-		param_count += 2;
-	} else if(pduel->game_field->core.forced_xyzmat) {
-		pduel->lua->add_param(pduel->game_field->core.forced_xyzmat, PARAM_TYPE_GROUP);
-		param_count++;
-	} else if (pduel->game_field->core.forced_linkmat) {
-		pduel->lua->add_param(pduel->game_field->core.forced_linkmat, PARAM_TYPE_GROUP);
-		param_count++;
-	} else {
-		pduel->lua->add_param(nullptr, PARAM_TYPE_GROUP);
-		param_count++;
-	}
+	uint32 param_count = 4;
 	if(pduel->game_field->core.forced_summon_minc) {
 		pduel->lua->add_param(pduel->game_field->core.forced_summon_minc, PARAM_TYPE_INT);
 		pduel->lua->add_param(pduel->game_field->core.forced_summon_maxc, PARAM_TYPE_INT);
@@ -3454,10 +3442,8 @@ int32 card::is_special_summonable(uint8 playerid, uint32 summon_type) {
 	}
 	effect_set eset;
 	filter_spsummon_procedure(playerid, &eset, summon_type);
-	pduel->game_field->core.forced_tuner = 0;
-	pduel->game_field->core.forced_synmat = 0;
-	pduel->game_field->core.forced_xyzmat = 0;
-	pduel->game_field->core.forced_linkmat = 0;
+	pduel->game_field->core.must_use_mats = nullptr;
+	pduel->game_field->core.only_use_mats = nullptr;
 	pduel->game_field->core.forced_summon_minc = 0;
 	pduel->game_field->core.forced_summon_maxc = 0;
 	pduel->game_field->restore_lp_cost();
