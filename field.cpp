@@ -830,10 +830,10 @@ int32 field::get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint3
 }
 uint32 field::get_rule_zone_fromex(int32 playerid, card* pcard) {
 	if(is_flag(DUEL_EMZONE)) {
-		if(!is_flag(DUEL_FSX_MMZONE) || !pcard || (pcard->data.type & (TYPE_LINK)) || (pcard->is_position(POS_FACEUP) && (pcard->data.type & TYPE_PENDULUM)))
-			return get_linked_zone(playerid) | (1u << 5) | (1u << 6);
-		else
+		if(is_flag(DUEL_FSX_MMZONE) && pcard && pcard->is_position(POS_FACEDOWN) && (pcard->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ)))
 			return 0x7f;
+		else
+			return get_linked_zone(playerid) | (1u << 5) | (1u << 6);
 	} else {
 		return 0x1f;
 	}
