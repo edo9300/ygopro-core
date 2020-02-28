@@ -2016,7 +2016,7 @@ int32 scriptlib::card_is_special_summonable(lua_State *L) {
 	lua_pushboolean(L, pcard->is_special_summonable(p, sumtype));
 	return 1;
 }
-inline int32 spsummonable_rule(lua_State *L, uint32 cardtype, uint32 sumtype) {
+inline int32 spsummonable_rule(lua_State *L, uint32 cardtype, uint32 sumtype, uint32 offset) {
 	scriptlib::check_param_count(L, 1);
 	scriptlib::check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**)lua_touserdata(L, 1);
@@ -2024,24 +2024,24 @@ inline int32 spsummonable_rule(lua_State *L, uint32 cardtype, uint32 sumtype) {
 		return 0;
 	group* must = nullptr;
 	group* materials = nullptr;
-	if(lua_gettop(L) >= 2) {
-		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 2, TRUE))
-			must = pcard->pduel->new_group(*(card**)lua_touserdata(L, 2));
-		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 2, TRUE))
-			must = *(group**)lua_touserdata(L, 2);
+	if(lua_gettop(L) >= (2 + offset)) {
+		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 2 + offset, TRUE))
+			must = pcard->pduel->new_group(*(card**)lua_touserdata(L, 2 + offset));
+		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 2 + offset, TRUE))
+			must = *(group**)lua_touserdata(L, 2 + offset);
 	}
-	if(lua_gettop(L) >= 3) {
-		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3, TRUE))
-			materials = pcard->pduel->new_group(*(card**)lua_touserdata(L, 3));
-		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3, TRUE))
-			materials = *(group**)lua_touserdata(L, 3);
+	if(lua_gettop(L) >= (3 + offset)) {
+		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3 + offset, TRUE))
+			materials = pcard->pduel->new_group(*(card**)lua_touserdata(L, 3 + offset));
+		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3 + offset, TRUE))
+			materials = *(group**)lua_touserdata(L, 3 + offset);
 	}
 	int32 minc = 0;
-	if(lua_gettop(L) >= 4)
-		minc = lua_tointeger(L, 4);
+	if(lua_gettop(L) >= (4 + offset))
+		minc = lua_tointeger(L, 4 + offset);
 	int32 maxc = 0;
-	if(lua_gettop(L) >= 5)
-		maxc = lua_tointeger(L, 5);
+	if(lua_gettop(L) >= (5 + offset))
+		maxc = lua_tointeger(L, 5 + offset);
 	uint32 p = pcard->pduel->game_field->core.reason_player;
 	pcard->pduel->game_field->core.must_use_mats = must;
 	pcard->pduel->game_field->core.only_use_mats = materials;
@@ -2051,13 +2051,21 @@ inline int32 spsummonable_rule(lua_State *L, uint32 cardtype, uint32 sumtype) {
 	return 1;
 }
 int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
-	return spsummonable_rule(L, TYPE_SYNCHRO, SUMMON_TYPE_SYNCHRO);
+	return spsummonable_rule(L, TYPE_SYNCHRO, SUMMON_TYPE_SYNCHRO, 0);
 }
 int32 scriptlib::card_is_xyz_summonable(lua_State *L) {
-	return spsummonable_rule(L, TYPE_XYZ, SUMMON_TYPE_XYZ);
+	return spsummonable_rule(L, TYPE_XYZ, SUMMON_TYPE_XYZ, 0);
 }
 int32 scriptlib::card_is_link_summonable(lua_State *L) {
-	return spsummonable_rule(L, TYPE_LINK, SUMMON_TYPE_LINK);
+	return spsummonable_rule(L, TYPE_LINK, SUMMON_TYPE_LINK, 0);
+}
+int32 scriptlib::card_is_procedure_summonable(lua_State * L) {
+	scriptlib::check_param_count(L, 3);
+	check_param(L, PARAM_TYPE_INT, 2);
+	check_param(L, PARAM_TYPE_INT, 3);
+	uint32 cardtype = lua_tointeger(L, 2);
+	uint32 sumtype = lua_tointeger(L, 3);
+	return spsummonable_rule(L, cardtype, sumtype, 2);
 }
 int32 scriptlib::card_is_can_be_summoned(lua_State *L) {
 	check_param_count(L, 3);
