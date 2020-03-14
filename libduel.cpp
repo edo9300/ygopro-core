@@ -4385,12 +4385,12 @@ int32 scriptlib::duel_assume_reset(lua_State *L) {
 	pduel->restore_assumes();
 	return 1;
 }
-int32 scriptlib::duel_get_card_from_fieldid(lua_State * L) {
+int32 scriptlib::duel_get_card_from_cardid(lua_State * L) {
 	check_param_count(L, 1);
-	uint32 fieldid = static_cast<uint32>(lua_tointeger(L, 1));
+	uint32 id = static_cast<uint32>(lua_tointeger(L, 1));
 	duel* pduel = interpreter::get_duel_info(L);
 	for(auto& pcard : pduel->cards) {
-		if(pcard->fieldid_r == fieldid) {
+		if(pcard->cardid == id) {
 			interpreter::card2value(L, pcard);
 			return 1;
 		}

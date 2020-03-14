@@ -92,6 +92,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetTurnID", scriptlib::card_get_turnid },
 	{ "GetFieldID", scriptlib::card_get_fieldid },
 	{ "GetRealFieldID", scriptlib::card_get_fieldidr },
+	{ "GetCardID", scriptlib::card_get_cardid },
 	{ "IsOriginalCodeRule", scriptlib::card_is_origin_code_rule },
 	{ "IsCode", scriptlib::card_is_code },
 	{ "IsSummonCode", scriptlib::card_is_summon_code },
@@ -600,7 +601,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "MajesticCopy", scriptlib::duel_majestic_copy },
 	{ "GetRandomNumber", scriptlib::duel_get_random_number },
 	{ "AssumeReset", scriptlib::duel_assume_reset },
-	{ "GetCardFromFieldID", scriptlib::duel_get_card_from_fieldid },
+	{ "GetCardFromCardID", scriptlib::duel_get_card_from_cardid },
 	{ "LoadScript", scriptlib::duel_load_script },
 	{ NULL, NULL }
 };

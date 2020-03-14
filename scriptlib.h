@@ -96,7 +96,7 @@ public:
 	static int32 card_get_leave_field_dest(lua_State *L);
 	static int32 card_get_turnid(lua_State *L);
 	static int32 card_get_fieldid(lua_State *L);
-	static int32 card_get_fieldidr(lua_State *L);
+	static int32 card_get_cardid(lua_State *L);
 	static int32 card_is_origin_code_rule(lua_State *L);
 	static int32 card_is_code(lua_State *L);
 	static int32 card_is_summon_code(lua_State *L);
@@ -599,7 +599,7 @@ public:
 	static int32 duel_get_battled_count(lua_State *L);
 	static int32 duel_get_random_number(lua_State *L);
 	static int32 duel_assume_reset(lua_State *L);
-	static int32 duel_get_card_from_fieldid(lua_State *L);
+	static int32 duel_get_card_from_cardid(lua_State *L);
 	static int32 duel_load_script(lua_State *L);
 
 	//specific card functions
