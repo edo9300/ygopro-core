@@ -2631,22 +2631,15 @@ int32 scriptlib::duel_select_release_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	uint32 min = lua_tointeger(L, 3);
 	uint32 max = lua_tointeger(L, 4);
-	uint8 cancelable = FALSE;
-	if(lua_gettop(L) >= 5)
-		cancelable = lua_toboolean(L, 5);
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
 	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, FALSE, 2, extraargs, pexception, pexgroup);
-	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, 0, (cancelable << 16) + playerid, (max << 16) + min);
+	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, 0, playerid, (max << 16) + min);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
-		}
+		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+		interpreter::group2value(L, pgroup);
 		return 1;
 	});
 }
