@@ -64,6 +64,22 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 		luaL_error(L, "Parameter %d should be \"String\".", index);
 		break;
 	}
+	case PARAM_TYPE_INT: {
+		if(lua_isinteger(L, index) || lua_isnumber(L, index))
+			return TRUE;
+		if(retfalse)
+			return FALSE;
+		luaL_error(L, "Parameter %d should be \"Int\".", index);
+		break;
+	}
+	case PARAM_TYPE_BOOLEAN: {
+		if(lua_isboolean(L, index))
+			return TRUE;
+		if(retfalse)
+			return FALSE;
+		luaL_error(L, "Parameter %d should be \"boolean\".", index);
+		break;
+	}
 	}
 	return FALSE;
 }

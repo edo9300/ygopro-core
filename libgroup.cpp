@@ -211,11 +211,17 @@ int32 scriptlib::group_filter_select(lua_State *L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 3);
 	group* pgroup = *(group**) lua_touserdata(L, 1);
 	field::card_set cset(pgroup->container);
-	if(check_param(L, PARAM_TYPE_CARD, 6, TRUE)) {
-		card* pexception = *(card**) lua_touserdata(L, 6);
+	uint8_t cancelable = FALSE;
+	uint8_t lastarg = 6;
+	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+		cancelable = lua_toboolean(L, lastarg);
+		lastarg++;
+	}
+	if(check_param(L, PARAM_TYPE_CARD, lastarg, TRUE)) {
+		card* pexception = *(card**) lua_touserdata(L, lastarg);
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, 6, TRUE)) {
-		group* pexgroup = *(group**) lua_touserdata(L, 6);
+	} else if(check_param(L, PARAM_TYPE_GROUP, lastarg, TRUE)) {
+		group* pexgroup = *(group**) lua_touserdata(L, lastarg);
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -225,13 +231,13 @@ int32 scriptlib::group_filter_select(lua_State *L) {
 		return 0;
 	uint32 min = lua_tointeger(L, 4);
 	uint32 max = lua_tointeger(L, 5);
-	uint32 extraargs = lua_gettop(L) - 6;
+	uint32 extraargs = lua_gettop(L) - lastarg;
 	pduel->game_field->core.select_cards.clear();
 	for (auto& pcard : cset) {
 		if(pduel->lua->check_matching(pcard, 3, extraargs))
 			pduel->game_field->core.select_cards.push_back(pcard);
 	}
-	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, min + (max << 16));
+	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled)
@@ -249,11 +255,17 @@ int32 scriptlib::group_select(lua_State *L) {
 	check_param(L, PARAM_TYPE_GROUP, 1);
 	group* pgroup = *(group**) lua_touserdata(L, 1);
 	field::card_set cset(pgroup->container);
-	if(check_param(L, PARAM_TYPE_CARD, 5, TRUE)) {
-		card* pexception = *(card**) lua_touserdata(L, 5);
+	uint8_t cancelable = FALSE;
+	uint8_t lastarg = 5;
+	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+		cancelable = lua_toboolean(L, lastarg);
+		lastarg++;
+	}
+	if(check_param(L, PARAM_TYPE_CARD, lastarg, TRUE)) {
+		card* pexception = *(card**) lua_touserdata(L, lastarg);
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, 5, TRUE)) {
-		group* pexgroup = *(group**) lua_touserdata(L, 5);
+	} else if(check_param(L, PARAM_TYPE_GROUP, lastarg, TRUE)) {
+		group* pexgroup = *(group**) lua_touserdata(L, lastarg);
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -267,7 +279,7 @@ int32 scriptlib::group_select(lua_State *L) {
 	for (auto& pcard : cset) {
 		pduel->game_field->core.select_cards.push_back(pcard);
 	}
-	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, min + (max << 16));
+	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled)
