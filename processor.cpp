@@ -2227,7 +2227,7 @@ int32 field::process_idle_command(uint16 step) {
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
 				core.select_chains.clear();
 				solve_continuous(peffect->get_handler_player(), peffect, nil_event);
-				core.units.begin()->step = -1;
+				core.units.begin()->step = 2;
 				return FALSE;
 			}
 			card* phandler = peffect->get_handler();
@@ -2299,6 +2299,12 @@ int32 field::process_idle_command(uint16 step) {
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 		add_process(PROCESSOR_SOLVE_CHAIN, 0, 0, 0, FALSE, 0);
+		core.units.begin()->step = -1;
+		return FALSE;
+	}
+	case 3: {
+		adjust_instant();
+		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		core.units.begin()->step = -1;
 		return FALSE;
 	}
@@ -2516,7 +2522,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
 				core.select_chains.clear();
 				solve_continuous(peffect->get_handler_player(), peffect, nil_event);
-				core.units.begin()->step = -1;
+				core.units.begin()->step = 14;
 				return FALSE;
 			}
 			card* phandler = peffect->get_handler();
@@ -2860,6 +2866,12 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		core.tpchain.clear();
 		core.units.begin()->step = 2;
+		return FALSE;
+	}
+	case 15: {
+		adjust_instant();
+		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		core.units.begin()->step = -1;
 		return FALSE;
 	}
 	case 19: {
