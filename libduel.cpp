@@ -3090,14 +3090,13 @@ int32 scriptlib::duel_set_target_card(lua_State *L) {
 				pcard->create_relation(*ch);
 		}
 		if(peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
+			auto message = pduel->new_message(MSG_BECOME_TARGET);
 			if(pcard) {
-				auto message = pduel->new_message(MSG_BECOME_TARGET);
 				message->write<uint32>(1);
 				message->write(pcard->get_info_location());
 			} else {
+				message->write<uint32>(pgroup->container.size());
 				for(auto& pcard : pgroup->container) {
-					auto message = pduel->new_message(MSG_BECOME_TARGET);
-					message->write<uint32>(1);
 					message->write(pcard->get_info_location());
 				}
 			}
@@ -3339,11 +3338,15 @@ int32 scriptlib::duel_hint(lua_State * L) {
 int32 scriptlib::duel_hint_selection(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_GROUP, 1);
+	uint8 selection = FALSE;
+	if(check_param(L, PARAM_TYPE_BOOLEAN, 2, TRUE)) {
+		selection = lua_toboolean(L, 2);
+	}
 	group* pgroup = *(group**) lua_touserdata(L, 1);
 	duel* pduel = pgroup->pduel;
+	auto message = pduel->new_message(selection ? MSG_CARD_SELECTED : MSG_BECOME_TARGET);
+	message->write<uint32>(pgroup->container.size());
 	for(auto& pcard : pgroup->container) {
-		auto message = pduel->new_message(MSG_BECOME_TARGET);
-		message->write<uint32>(1);
 		message->write(pcard->get_info_location());
 	}
 	return 0;

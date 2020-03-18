@@ -79,9 +79,9 @@ void field::change_target(uint8 chaincount, group* targets) {
 		for(auto& pcard : ot->container)
 			pcard->create_relation(core.current_chain[chaincount - 1]);
 		if(te->is_flag(EFFECT_FLAG_CARD_TARGET)) {
+			auto message = pduel->new_message(MSG_BECOME_TARGET);
+			message->write<uint32>(ot->container.size());
 			for(auto& pcard : ot->container) {
-				auto message = pduel->new_message(MSG_BECOME_TARGET);
-				message->write<uint32>(1);
 				message->write(pcard->get_info_location());
 			}
 		}
