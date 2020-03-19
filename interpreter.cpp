@@ -759,7 +759,7 @@ int32 interpreter::load_script(const char* buffer, int len, const char* script_n
 }
 int32 interpreter::load_card_script(uint32 code) {
 	char class_name[20];
-	sprintf(class_name, "c%d", code);
+	sprintf(class_name, "c%u", code);
 	lua_getglobal(current_state, class_name);
 	//if script is not loaded, create and load it
 	if (lua_isnil(current_state, -1)) {
@@ -778,7 +778,7 @@ int32 interpreter::load_card_script(uint32 code) {
 		lua_getglobal(current_state, class_name);
 		lua_setglobal(current_state, "self_table");
 		char script_name[64];
-		sprintf(script_name, "c%d.lua", code);
+		sprintf(script_name, "c%u.lua", code);
 		if(!pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), script_name)) {
 			lua_pushnil(current_state);
 			lua_setglobal(current_state, "self_table");
@@ -875,7 +875,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 	}
 	if (param_count != params.size()) {
 		interpreter::print_stacktrace(current_state);
-		sprintf(pduel->strbuffer, "\"CallFunction\": incorrect parameter count (%d expected, %zu pushed)", param_count, params.size());
+		sprintf(pduel->strbuffer, "\"CallFunction\": incorrect parameter count (%u expected, %zu pushed)", param_count, params.size());
 		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
 		params.clear();
 		return OPERATION_FAIL;
@@ -916,7 +916,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count, bool forced) {
 	if (param_count != params.size()) {
 		interpreter::print_stacktrace(current_state);
-		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): incorrect parameter count", pcard->data.code, f);
+		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%u.%s): incorrect parameter count", pcard->data.code, f);
 		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
 		params.clear();
 		return OPERATION_FAIL;
@@ -926,7 +926,7 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	if (!lua_isfunction(current_state, -1)) {
 		if(forced) {
 			interpreter::print_stacktrace(current_state);
-			sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%d.%s): attempt to call an error function", pcard->data.code, f);
+			sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%u.%s): attempt to call an error function", pcard->data.code, f);
 			pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
 		}
 		lua_pop(current_state, 2);
