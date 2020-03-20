@@ -5041,17 +5041,42 @@ int32 field::activate_effect(uint16 step, effect* peffect) {
 	}
 	return TRUE;
 }
-int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, int32 min, int32 max) {
+int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, int32 min, int32 max, uint8 check_field, card* to_check, uint8 toplayer, uint8 zone) {
 	switch(step) {
 	case 0: {
+		if(check_field) {
+			uint32 ct = 0;
+			zone &= (0x1f & get_forced_zones(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
+			ct = get_useable_count(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
+			if(ct < min) {
+				card_set* must_choose_one = new card_set;
+				for(auto& pcard : core.release_cards) {
+					if((pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer && ((zone >> pcard->current.sequence) & 1)))
+						must_choose_one->insert(pcard);
+				}
+				core.units.begin()->ptr1 = must_choose_one;
+			}
+		}
 		core.operated_set.clear();
-		if(core.release_cards_ex.empty()) {
+		return_cards.clear();
+		/*if all the available cards are equal to the minimum, then the selection will always use all the forced cards without needing to check*/
+		bool allminimum = core.release_cards_ex_oneof.size() <= 1 && ((core.release_cards_ex.size() + core.release_cards.size() + core.release_cards_ex_oneof.size()) == min);
+		/*if only must use cards are available, then the selection will always be correct*/
+		bool allmust = (core.release_cards_ex.size() >= max) || (core.release_cards.size() + core.release_cards_ex_oneof.size()) == 0;
+		/*only self cards available, no need for special check*/
+		bool onlyself = (core.release_cards_ex.size() + core.release_cards_ex_oneof.size()) == 0;
+		if((!allminimum && !allmust && !onlyself) || core.units.begin()->ptr1) {
 			core.units.begin()->step = 1;
 			return FALSE;
 		}
 		core.select_cards.clear();
-		for(auto& pcard : core.release_cards_ex)
-			core.select_cards.push_back(pcard);
+		core.select_cards.insert(core.select_cards.begin(), core.release_cards_ex.begin(), core.release_cards_ex.end());
+		if(core.release_cards_ex.size() < max) {
+			core.select_cards.insert(core.select_cards.begin(), core.release_cards.begin(), core.release_cards.end());
+			core.select_cards.insert(core.select_cards.begin(), core.release_cards_ex_oneof.begin(), core.release_cards_ex_oneof.end());
+		}
+		if(allmust)
+			min = core.release_cards_ex.size();
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_SELECTMSG);
 		message->write<uint8>(playerid);
@@ -5060,77 +5085,112 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		return FALSE;
 	}
 	case 1: {
-		int32 count = return_cards.list.size();
-		max -= count;
-		if(max == 0 || core.release_cards.size() + core.release_cards_ex_oneof.size() == 0)
+		if(core.units.begin()->ptr1)
+			delete core.units.begin()->ptr1;
+		if(return_cards.canceled)
 			return TRUE;
+		int32 count = return_cards.list.size();
 		core.operated_set.insert(return_cards.list.begin(), return_cards.list.end());
-		min -= count;
-		if(min < 0)
-			min = 0;
-		core.units.begin()->arg2 = (max << 16) + min;
-		return FALSE;
+		if((min-count) > 0) {
+			/*something wrong happened when selecting*/
+			return_cards.clear();
+			return_cards.canceled = true;
+		} else {
+			if(core.release_cards_ex_oneof.size()) {
+				effect* peffect = (*core.release_cards_ex_oneof.begin())->is_affected_by_effect(EFFECT_EXTRA_RELEASE_NONSUM);
+				core.dec_count_reserve.push_back(peffect);
+			}
+		}
+		return TRUE;
 	}
 	case 2: {
-		if(!core.release_cards_ex_oneof.empty()) {
-			if((int32)core.release_cards.size() < min)
-				returns.at<int32>(0) = TRUE;
-			else
-				add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, 98);
-		} else
-			returns.at<int32>(0) = FALSE;
+		core.select_cards.clear();
+		core.unselect_cards.clear();
+		core.unselect_cards.insert(core.unselect_cards.begin(), core.operated_set.begin(), core.operated_set.end());
+
+		uint8_t finishable = core.operated_set.size() >= min;
+		uint8_t must_chosen = !core.units.begin()->ptr1;
+
+		auto must_choose = static_cast<card_set*>(core.units.begin()->ptr1);
+		uint32 to_select = 0;
+		for(auto& pcard : core.release_cards_ex) {
+			if(core.operated_set.find(pcard) == core.operated_set.end()) {
+				finishable = FALSE;
+				to_select++;
+			}
+		}
+		if(!must_chosen) {
+			for(auto& pcard : core.operated_set) {
+				if(must_choose->find(pcard) != must_choose->end()) {
+					must_chosen = TRUE;
+					break;
+				}
+			}
+		}
+
+		int32 curmax = max - core.operated_set.size();
+		if(!must_chosen) {
+			curmax--;
+		}
+		curmax -= to_select;
+
+		finishable = finishable && must_chosen;
+
+		card_vector diff;
+		diff.insert(diff.begin(), core.release_cards_ex.begin(), core.release_cards_ex.end());
+		if(curmax <= 0) {
+			if(!must_chosen) {
+				if(curmax == 0)
+					diff.insert(diff.begin(), must_choose->begin(), must_choose->end());
+				else
+					diff.assign(must_choose->begin(), must_choose->end());
+			}
+		} else {
+			diff.insert(diff.begin(), core.release_cards.begin(), core.release_cards.end());
+			if(core.units.begin()->peffect == nullptr)
+				diff.insert(diff.begin(), core.release_cards_ex_oneof.begin(), core.release_cards_ex_oneof.end());
+		}
+		std::set_difference(diff.begin(), diff.end(), core.unselect_cards.begin(), core.unselect_cards.end(),
+							std::inserter(core.select_cards, core.select_cards.begin()));
+
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_SELECTMSG);
+		message->write<uint8>(playerid);
+		message->write<uint64>(500);
+		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, ((finishable || core.operated_set.empty()) << 16) + playerid, (max << 16) + min, finishable);
 		return FALSE;
 	}
 	case 3: {
-		if(!returns.at<int32>(0)) {
-			core.units.begin()->step = 4;
-			return FALSE;
+		if(return_cards.canceled && (core.operated_set.empty() || core.operated_set.size() >= min)) {
+			if(core.units.begin()->peffect)
+				core.dec_count_reserve.push_back(core.units.begin()->peffect);
+			return_cards.list.clear();
+			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
+			if(core.units.begin()->ptr1)
+				delete core.units.begin()->ptr1;
+			if(core.operated_set.size())
+				return_cards.canceled = false;
+			return TRUE;
 		}
-		core.select_cards.clear();
-		for(auto& pcard : core.release_cards_ex_oneof)
-			core.select_cards.push_back(pcard);
-		auto message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_SELECTMSG);
-		message->write<uint8>(playerid);
-		message->write<uint64>(500);
-		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, 0x10001);
-		return FALSE;
-	}
-	case 4: {
 		card* pcard = return_cards.list[0];
-		core.operated_set.insert(pcard);
-		effect* peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_NONSUM);
-		core.dec_count_reserve.push_back(peffect);
-		max--;
-		if(max == 0 || core.release_cards.empty()) {
-			core.units.begin()->step = 6;
-			return FALSE;
+		if(core.operated_set.find(pcard) == core.operated_set.end()) {
+			core.operated_set.insert(pcard);
+			if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
+				core.units.begin()->peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
+		} else {
+			core.operated_set.erase(pcard);
+			if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
+				core.units.begin()->peffect = nullptr;
 		}
-		min--;
-		if(min < 0)
-			min = 0;
-		core.units.begin()->arg2 = (max << 16) + min;
+		if(core.operated_set.size() == max) {
+			return_cards.list.clear();
+			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
+			if(core.units.begin()->ptr1)
+				delete core.units.begin()->ptr1;
+			return TRUE;
+		}
+		core.units.begin()->step = 1;
 		return FALSE;
-	}
-	case 5: {
-		core.select_cards.clear();
-		for(auto& pcard : core.release_cards)
-			core.select_cards.push_back(pcard);
-		auto message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_SELECTMSG);
-		message->write<uint8>(playerid);
-		message->write<uint64>(500);
-		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32)cancelable << 16) + playerid, (max << 16) + min);
-		return FALSE;
-	}
-	case 6: {
-		core.operated_set.insert(return_cards.list.begin(), return_cards.list.end());
-		return FALSE;
-	}
-	case 7: {
-		return_cards.clear();
-		std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
-		return TRUE;
 	}
 	}
 	return TRUE;

@@ -1680,10 +1680,27 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 	}
 	return rcount + ex_oneof_max;
 }
-int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg) {
+int32 field::check_release_list(uint8 playerid, int32 min, int32 max, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg, uint8 check_field, uint8 to_player, uint8 zone, card* to_check) {
 	card_set relcard;
+	//card_set relcard_must;
 	card_set relcard_oneof;
-	get_release_list(playerid, &relcard, &relcard, &relcard_oneof, use_con, use_hand, fun, exarg, exc, exg);
+	bool has_to_choose_one = false;
+	card_set must_choose_one;
+	uint32 rcount = get_release_list(playerid, &relcard, &relcard, &relcard_oneof, use_con, use_hand, fun, exarg, exc, exg);
+	if(check_field) {
+		uint32 ct = 0;
+		zone &= (0x1f & get_forced_zones(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON_TOFIELD));
+		ct = get_useable_count(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON_TOFIELD, zone);
+		if(ct < min) {
+			has_to_choose_one = true;
+			for(auto& pcard : relcard) {
+				if((pcard->current.location == LOCATION_MZONE && pcard->current.controler == playerid && ((zone >> pcard->current.sequence) & 1)))
+					must_choose_one.insert(pcard);
+			}
+		}
+	}
+	if(has_to_choose_one && must_choose_one.empty())
+		return FALSE;
 	bool has_oneof = false;
 	for(auto& pcard : core.must_select_cards) {
 		auto it = relcard.find(pcard);
@@ -1694,10 +1711,10 @@ int32 field::check_release_list(uint8 playerid, int32 count, int32 use_con, int3
 		else
 			return FALSE;
 	}
-	int32 rcount = (int32)relcard.size();
+	rcount = (int32)relcard.size();// +relcard_must.size();
 	if(!has_oneof && !relcard_oneof.empty())
 		rcount++;
-	return (rcount >= count) ? TRUE : FALSE;
+	return (rcount >= min);
 }
 // return: the max release count of mg or all monsters on field
 int32 field::get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, group* mg, uint32 ex, uint32 releasable, uint32 pos) {
