@@ -4422,14 +4422,6 @@ int32 field::move_to_field(uint16 step, card* target, uint32 enable, uint32 ret,
 			}
 			if(ct <= 0 || ~flag == 0)
 				return TRUE;
-			if((zone & (zone - 1)) == 0) {
-				for(uint8 seq = 0; seq < 8; seq++) {
-					if((1 << seq) & zone) {
-						returns.at<int8>(2) = seq;
-						return FALSE;
-					}
-				}
-			}
 			if(ret == 2) {
 				returns.at<int8>(2) = target->previous.sequence;
 				return FALSE;
