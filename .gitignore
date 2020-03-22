@@ -1,5 +1,6 @@
 [Bb]uild*/
 bin/
+libs/
 obj/
 .vscode/
 .idea/
