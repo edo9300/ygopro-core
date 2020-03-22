@@ -60,6 +60,7 @@ public:
 	int32 call_code_function(uint32 code, char *f, uint32 param_count, int32 ret_count);
 	int32 check_condition(int32 f, uint32 param_count);
 	int32 check_matching(card* pcard, int32 findex, int32 extraargs);
+	int32 check_matching_table(card* pcard, int32 findex, int32 table_index);
 	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs);
 	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result);
 	int32 get_function_value(int32 f, uint32 param_count);
@@ -72,6 +73,7 @@ public:
 	static void group2value(lua_State* L, group* pgroup);
 	static void effect2value(lua_State* L, effect* peffect);
 	static void function2value(lua_State* L, int32 pointer);
+	static int pushExpandedTable(lua_State* L, int32 table_index);
 	static int32 get_function_handle(lua_State* L, int32 index);
 	static void set_duel_info(lua_State* L, duel* pduel);
 	static duel* get_duel_info(lua_State* L);

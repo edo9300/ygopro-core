@@ -1059,6 +1059,37 @@ int32 interpreter::check_matching(card* pcard, int32 findex, int32 extraargs) {
 	}
 	return result;
 }
+int32 interpreter::check_matching_table(card * pcard, int32 findex, int32 table_index) {
+	if(!findex || lua_isnil(current_state, findex) || !lua_istable(current_state, table_index))
+		return TRUE;
+	no_action++;
+	call_depth++;
+	lua_pushvalue(current_state, findex);
+	interpreter::card2value(current_state, pcard);
+	int extraargs = pushExpandedTable(current_state, table_index);
+	if (lua_pcall(current_state, 1 + extraargs, 1, 0)) {
+		interpreter::print_stacktrace(current_state);
+		sprintf(pduel->strbuffer, "%s", lua_tostring(current_state, -1));
+		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
+		lua_pop(current_state, 1);
+		no_action--;
+		call_depth--;
+		if(call_depth == 0) {
+			pduel->release_script_group();
+			pduel->restore_assumes();
+		}
+		return OPERATION_FAIL;
+	}
+	int32 result = lua_toboolean(current_state, -1);
+	lua_pop(current_state, 1);
+	no_action--;
+	call_depth--;
+	if(call_depth == 0) {
+		pduel->release_script_group();
+		pduel->restore_assumes();
+	}
+	return result;
+}
 int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraargs) {
 	if(!findex || lua_isnil(current_state, findex))
 		return 0;
@@ -1311,6 +1342,18 @@ void interpreter::function2value(lua_State* L, int32 func_ref) {
 		lua_pushnil(L);
 	else
 		lua_rawgeti(L, LUA_REGISTRYINDEX, func_ref);
+}
+//Push all the elements of the table to the stack, +len(table) -0
+int interpreter::pushExpandedTable(lua_State * L, int32 table_index) {
+	lua_pushnil(L);
+	int extraargs = 0;
+	while(lua_next(L, table_index) != 0) {
+		lua_pushvalue(L, -1);
+		lua_insert(L, -3);
+		lua_pop(L, 1);
+		extraargs++;
+	}
+	return extraargs;
 }
 int32 interpreter::get_function_handle(lua_State* L, int32 index) {
 	lua_pushvalue(L, index);
