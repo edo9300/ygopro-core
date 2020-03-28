@@ -2621,14 +2621,14 @@ int32 check_release_group(lua_State *L, uint8 use_hand) {
 		if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE))
 			check_field = lua_toboolean(L, lastarg);
 		lastarg++;
-		if(scriptlib::check_param(L, PARAM_TYPE_INT, lastarg, TRUE))
-			zone = lua_tointeger(L, lastarg);
-		lastarg++;
 		if(scriptlib::check_param(L, PARAM_TYPE_CARD, lastarg, TRUE))
 			to_check = *(card**)lua_touserdata(L, lastarg);
 		lastarg++;
 		if(scriptlib::check_param(L, PARAM_TYPE_INT, lastarg, TRUE))
 			toplayer = lua_tointeger(L, lastarg);
+		lastarg++;
+		if(scriptlib::check_param(L, PARAM_TYPE_INT, lastarg, TRUE))
+			zone = lua_tointeger(L, lastarg);
 		lastarg++;
 	}
 	if(scriptlib::check_param(L, PARAM_TYPE_CARD, lastarg, TRUE))
