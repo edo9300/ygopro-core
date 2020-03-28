@@ -4178,7 +4178,7 @@ int32 scriptlib::duel_is_chain_negatable(lua_State * L) {
 	chain* ch = pduel->game_field->get_chain(chaincount);
 	if(!ch)
 		return 0;
-	if(ch->flag & CHAIN_DECK_EFFECT)
+	if(ch->triggering_location == LOCATION_DECK)
 		lua_pushboolean(L, 0);
 	else
 		lua_pushboolean(L, 1);
@@ -4195,7 +4195,7 @@ int32 scriptlib::duel_is_chain_disablable(lua_State * L) {
 	chain* ch = pduel->game_field->get_chain(chaincount);
 	if(!ch)
 		return 0;
-	if(ch->flag & CHAIN_DECK_EFFECT)
+	if(ch->triggering_location == LOCATION_DECK)
 		lua_pushboolean(L, 0);
 	else
 		lua_pushboolean(L, 1);

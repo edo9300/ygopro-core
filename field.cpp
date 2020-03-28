@@ -3022,19 +3022,6 @@ int32 field::check_cteffect_hint(effect* peffect, uint8 playerid) {
 	}
 	return FALSE;
 }
-int32 field::check_deck_effect(chain& ch) const {
-	effect* peffect = ch.triggering_effect;
-	card* phandler = peffect->get_handler();
-	if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)
-		&& ch.triggering_location == LOCATION_DECK && (phandler->current.location & LOCATION_DECK)) {
-		if(((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) && peffect->code == EVENT_TO_DECK)
-			|| (peffect->range & LOCATION_DECK)) {
-			ch.flag |= CHAIN_DECK_EFFECT;
-		} else
-			return FALSE;
-	}
-	return TRUE;
-}
 int32 field::check_hand_trigger(chain& ch) {
 	effect* peffect = ch.triggering_effect;
 	card* phandler = peffect->get_handler();
@@ -3053,11 +3040,13 @@ int32 field::check_hand_trigger(chain& ch) {
 int32 field::check_trigger_effect(const chain& ch) const {
 	effect* peffect = ch.triggering_effect;
 	card* phandler = peffect->get_handler();
+	if(pduel->game_field->is_flag(DUEL_TRIGGER_ONLY_IN_LOCATION))
+		return phandler->is_has_relation(ch);
 	if((peffect->type & EFFECT_TYPE_FIELD) && !phandler->is_has_relation(ch))
 		return FALSE;
 	if(peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE)
 		return TRUE;
-	if((phandler->current.location & LOCATION_DECK) && !(ch.flag & CHAIN_DECK_EFFECT))
+	if((phandler->current.location & LOCATION_DECK) && !(ch.triggering_location == LOCATION_DECK))
 		return FALSE;
 	if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
 		&& (ch.triggering_position & POS_FACEDOWN))

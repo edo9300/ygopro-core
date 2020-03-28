@@ -3928,7 +3928,8 @@ int32 card::is_control_can_be_changed(int32 ignore_mzone, uint32 zone) {
 		return FALSE;
 	if(!ignore_mzone && pduel->game_field->get_useable_count(this, 1 - current.controler, LOCATION_MZONE, current.controler, LOCATION_REASON_CONTROL, zone) <= 0)
 		return FALSE;
-	if((get_type() & TYPE_TRAPMONSTER) && pduel->game_field->get_useable_count(this, 1 - current.controler, LOCATION_SZONE, current.controler, LOCATION_REASON_CONTROL) <= 0)
+	if(!pduel->game_field->is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && ((get_type() & TYPE_TRAPMONSTER)
+											 && pduel->game_field->get_useable_count(this, 1 - current.controler, LOCATION_SZONE, current.controler, LOCATION_REASON_CONTROL) <= 0))
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_CHANGE_CONTROL))
 		return FALSE;
