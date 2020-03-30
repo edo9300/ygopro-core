@@ -2567,11 +2567,14 @@ int32 scriptlib::duel_get_release_group(lua_State *L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	uint32 hand = FALSE;
+	uint32 oppo = FALSE;
 	if(lua_gettop(L) > 1)
 		hand = lua_toboolean(L, 2);
+	if(lua_gettop(L) > 2)
+		oppo = lua_toboolean(L, 3);
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, FALSE, hand, 0, 0, 0, 0);
+	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, FALSE, hand, 0, 0, 0, 0, oppo);
 	interpreter::group2value(L, pgroup);
 	return 1;
 }
@@ -2586,10 +2589,13 @@ int32 scriptlib::duel_get_release_group_count(lua_State *L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	uint32 hand = FALSE;
+	uint32 oppo = FALSE;
 	if(lua_gettop(L) > 1)
 		hand = lua_toboolean(L, 2);
+	if(lua_gettop(L) > 2)
+		oppo = lua_toboolean(L, 3);
 	duel* pduel = interpreter::get_duel_info(L);
-	lua_pushinteger(L, pduel->game_field->get_release_list(playerid, 0, 0, 0, FALSE, hand, 0, 0, 0, 0));
+	lua_pushinteger(L, pduel->game_field->get_release_list(playerid, 0, 0, 0, FALSE, hand, 0, 0, 0, 0, oppo));
 	return 1;
 }
 int32 check_release_group(lua_State *L, uint8 use_hand) {
@@ -2612,6 +2618,7 @@ int32 check_release_group(lua_State *L, uint8 use_hand) {
 	uint8 zone = 0xff;
 	card* to_check = nullptr;
 	uint8 toplayer = playerid;
+	uint8 use_oppo = FALSE;
 	if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
 		use_hand = lua_toboolean(L, lastarg);
 		lastarg++;
@@ -2630,13 +2637,16 @@ int32 check_release_group(lua_State *L, uint8 use_hand) {
 		if(scriptlib::check_param(L, PARAM_TYPE_INT, lastarg, TRUE))
 			zone = lua_tointeger(L, lastarg);
 		lastarg++;
+		if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE))
+			use_oppo = lua_toboolean(L, lastarg);
+		lastarg++;
 	}
 	if(scriptlib::check_param(L, PARAM_TYPE_CARD, lastarg, TRUE))
 		pexception = *(card**)lua_touserdata(L, lastarg);
 	else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, lastarg, TRUE))
 		pexgroup = *(group**)lua_touserdata(L, lastarg);
 	uint32 extraargs = lua_gettop(L) - lastarg;
-	int32 result = pduel->game_field->check_release_list(playerid, min, max, use_con, FALSE, 2, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check);
+	int32 result = pduel->game_field->check_release_list(playerid, min, max, use_con, FALSE, 2, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
 	pduel->game_field->core.must_select_cards.clear();
 	lua_pushboolean(L, result);
 	return 1;
@@ -2667,6 +2677,7 @@ int32 select_release_group(lua_State *L, uint8 use_hand) {
 	card* to_check = nullptr;
 	uint8 toplayer = playerid;
 	uint8 zone = 0xff;
+	uint8 use_oppo = FALSE;
 	if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
 		use_hand = lua_toboolean(L, lastarg);
 		lastarg++;
@@ -2685,6 +2696,9 @@ int32 select_release_group(lua_State *L, uint8 use_hand) {
 		if(scriptlib::check_param(L, PARAM_TYPE_INT, lastarg, TRUE))
 			zone = lua_tointeger(L, lastarg);
 		lastarg++;
+		if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE))
+			use_oppo = lua_toboolean(L, lastarg);
+		lastarg++;
 	}
 	if(scriptlib::check_param(L, PARAM_TYPE_CARD, lastarg, TRUE))
 		pexception = *(card**)lua_touserdata(L, lastarg);
@@ -2697,7 +2711,7 @@ int32 select_release_group(lua_State *L, uint8 use_hand) {
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
-	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, 2, extraargs, pexception, pexgroup);
+	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, 2, extraargs, pexception, pexgroup, use_oppo);
 	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, 0, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;

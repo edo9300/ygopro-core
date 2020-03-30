@@ -423,8 +423,8 @@ public:
 	effect* is_player_affected_by_effect(uint8 playerid, uint32 code);
 	int32 get_player_effect(uint8 playerid, uint32 code);
 
-	int32 get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg);
-	int32 check_release_list(uint8 playerid, int32 min, int32 max, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg, uint8 check_field, uint8 to_player, uint8 zone, card* to_check);
+	int32 get_release_list(uint8 playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg, uint8 use_oppo);
+	int32 check_release_list(uint8 playerid, int32 min, int32 max, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg, uint8 check_field, uint8 to_player, uint8 zone, card* to_check, uint8 use_oppo);
 	int32 get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, group* mg = NULL, uint32 ex = 0, uint32 releasable = 0xff00ff, uint32 pos = 0x1);
 	int32 get_summon_count_limit(uint8 playerid);
 	int32 get_draw_count(uint8 playerid);
