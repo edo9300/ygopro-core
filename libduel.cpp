@@ -2646,7 +2646,7 @@ int32 check_release_group(lua_State *L, uint8 use_hand) {
 	else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, lastarg, TRUE))
 		pexgroup = *(group**)lua_touserdata(L, lastarg);
 	uint32 extraargs = lua_gettop(L) - lastarg;
-	int32 result = pduel->game_field->check_release_list(playerid, min, max, use_con, FALSE, 2, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
+	int32 result = pduel->game_field->check_release_list(playerid, min, max, use_con, use_hand, 2, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
 	pduel->game_field->core.must_select_cards.clear();
 	lua_pushboolean(L, result);
 	return 1;
