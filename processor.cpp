@@ -1206,7 +1206,10 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 			peffect->dec_count(check_player);
 			core.select_chains.clear();
 			add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
-			add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - check_player);
+			if(pduel->game_field->is_flag(DUEL_INVERTED_QUICK_PRIORITY))
+				add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, check_player);
+			else
+				add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - check_player);
 			infos.priorities[0] = 0;
 			infos.priorities[1] = 0;
 		} else {
@@ -1482,8 +1485,12 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		infos.priorities[0] = 0;
 		infos.priorities[1] = 0;
 		if(core.current_chain.size() == 0) {
-			if(!core.hand_adjusted)
-				add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, skip_freechain, infos.turn_player);
+			if(!core.hand_adjusted) {
+				if(pduel->game_field->is_flag(DUEL_INVERTED_QUICK_PRIORITY))
+					add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, skip_freechain, 1 - infos.turn_player);
+				else
+					add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, skip_freechain, infos.turn_player);
+			}
 		} else
 			add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, skip_freechain, 1 - core.current_chain.back().triggering_player);
 		return FALSE;
