@@ -1994,6 +1994,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		message->write(target->get_info_location());
 		core.summon_state_count[sumplayer]++;
 		core.normalsummon_state_count[sumplayer]++;
+		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 1, sumplayer);
+			check_card_counter(target, 2, sumplayer);
+		}
 		if (target->material_cards.size()) {
 			for (auto& mcard : target->material_cards)
 				raise_single_event(mcard, 0, EVENT_BE_PRE_MATERIAL, proc, REASON_SUMMON, sumplayer, sumplayer, 0);
@@ -2068,8 +2072,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		return FALSE;
 	}
 	case 18: {
-		check_card_counter(target, 1, sumplayer);
-		check_card_counter(target, 2, sumplayer);
+		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 1, sumplayer);
+			check_card_counter(target, 2, sumplayer);
+		}
 		raise_single_event(target, 0, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
 		process_single_event();
 		raise_event(target, EVENT_SUMMON_SUCCESS, proc, 0, sumplayer, sumplayer, 0);
@@ -2109,6 +2115,9 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card * target) {
 		target->fieldid = infos.field_id++;
 		core.phase_action = TRUE;
 		core.flipsummon_state_count[sumplayer]++;
+		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 4, sumplayer);
+		}
 		auto message = pduel->new_message(MSG_FLIPSUMMONING);
 		message->write<uint32>(target->data.code);
 		message->write(target->get_info_location());
@@ -2141,7 +2150,9 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card * target) {
 	}
 	case 4: {
 		pduel->new_message(MSG_FLIPSUMMONED);
-		check_card_counter(target, 4, sumplayer);
+		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 4, sumplayer);
+		}
 		adjust_instant();
 		raise_single_event(target, 0, EVENT_FLIP, 0, 0, sumplayer, sumplayer, 0);
 		raise_single_event(target, 0, EVENT_FLIP_SUMMON_SUCCESS, 0, 0, sumplayer, sumplayer, 0);
@@ -2833,6 +2844,9 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		target->current.reason_player = sumplayer;
 		target->summon_player = sumplayer;
 		set_spsummon_counter(sumplayer);
+		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 3, sumplayer);
+		}
 		if(pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && target->spsummon_code)
 			core.spsummon_once_map[sumplayer][target->spsummon_code]++;
 		break_effect();
@@ -2939,7 +2953,9 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		return FALSE;
 	}
 	case 17: {
-		check_card_counter(target, 3, sumplayer);
+		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 3, sumplayer);
+		}
 		if(!pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && target->spsummon_code)
 			core.spsummon_once_map[sumplayer][target->spsummon_code]++;
 		raise_single_event(target, 0, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
@@ -3022,6 +3038,9 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 					continue;
 			}
 			positions &= eff->get_value();
+		}
+		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 3, sumplayer);
 		}
 		uint32 zone = 0xff;
 		uint32 flag1, flag2;
@@ -3118,7 +3137,9 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	case 28: {
 		group* pgroup = core.units.begin()->ptarget;
 		pduel->new_message(MSG_SPSUMMONED);
-		check_card_counter(pgroup, 3, sumplayer);
+		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 3, sumplayer);
+		}
 		if(!pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
 			std::set<uint32> spsummon_once_set;
 			for(auto& pcard : pgroup->container) {
@@ -3198,6 +3219,9 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 		if(!targets)
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
+		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			check_card_counter(target, 3, target->summon_player);
+		}
 		// UNUSED VARIABLE	
 		// uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
 		bool extra = !(zone & 0xff);
@@ -3320,7 +3344,9 @@ int32 field::special_summon(uint16 step, effect* reason_effect, uint8 reason_pla
 	case 3: {
 		pduel->new_message(MSG_SPSUMMONED);
 		for(auto& pcard : targets->container) {
-			check_card_counter(pcard, 3, pcard->summon_player);
+			if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+				check_card_counter(pcard, 3, pcard->summon_player);
+			}
 			if(!(pcard->current.position & POS_FACEDOWN))
 				raise_single_event(pcard, 0, EVENT_SPSUMMON_SUCCESS, pcard->current.reason_effect, 0, pcard->current.reason_player, pcard->summon_player, 0);
 			int32 summontype = pcard->summon_info & 0xff000000;
