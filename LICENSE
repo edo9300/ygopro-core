@@ -1,5 +1,5 @@
 edo9300's YGOPro script engine
----------------
+------------------------------
 
 Copyright (C) 2019-2020  Edoardo Lolletti (edo9300)
 See version history for a full list of authors.
@@ -19,8 +19,8 @@ along with this program (COPYING).  If not, see <https://www.gnu.org/licenses/>.
 
 
 Modified from Fluorohydride's YGOPro script engine
----------------
-https://github.com/Fluorohydride/ygopro-core
+--------------------------------------------------
+https://github.com/Fluorohydride/ygopro-core, lead maintainers DailyShana, mercury233
 
 The MIT License (MIT)
 
