@@ -3042,7 +3042,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			positions &= eff->get_value();
 		}
 		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
-			check_card_counter(target, 3, sumplayer);
+			check_card_counter(pcard, 3, sumplayer);
 		}
 		uint32 zone = 0xff;
 		uint32 flag1, flag2;
