@@ -4446,10 +4446,12 @@ int32 field::add_chain(uint16 step) {
 			clit.flag |= CHAIN_CONTINUOUS_CARD;
 		core.phase_action = TRUE;
 		if(clit.opinfos.count(0x200) && clit.opinfos[0x200].op_count) {
-			core.spsummon_rst = true;
-			set_spsummon_counter(clit.triggering_player, true, true);
-			if(clit.opinfos[0x200].op_player == PLAYER_ALL)
-				set_spsummon_counter(1 - clit.triggering_player, true, true);
+			if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+				core.spsummon_rst = true;
+				set_spsummon_counter(clit.triggering_player, true, true);
+				if(clit.opinfos[0x200].op_player == PLAYER_ALL)
+					set_spsummon_counter(1 - clit.triggering_player, true, true);
+			}
 			if(pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && (core.global_flag & GLOBALFLAG_SPSUMMON_ONCE)) {
 				auto& optarget = clit.opinfos[0x200];
 				if(optarget.op_cards) {
@@ -4641,8 +4643,11 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	switch(step) {
 	case 0: {
 		if(core.spsummon_rst) {
-			set_spsummon_counter(0, false, true);
-			set_spsummon_counter(1, false, true);
+			if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+				set_spsummon_counter(0, false, true);
+				set_spsummon_counter(1, false, true);
+				core.spsummon_rst = false;
+			}
 			if(pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
 				for(int plr = 0; plr < 2; ++plr) {
 					for(auto& iter : core.spsummon_once_map[plr]) {
@@ -4652,7 +4657,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 					}
 				}
 			}
-			core.spsummon_rst = false;
 		}
 		auto message = pduel->new_message(MSG_CHAIN_SOLVING);
 		message->write<uint8>(cait->chain_count);
@@ -4741,10 +4745,12 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	case 4: {
 		if(core.units.begin()->arg4 == 0) {
 			if(cait->opinfos.count(0x200) && cait->opinfos[0x200].op_count) {
-				if(core.spsummon_state_count_tmp[cait->triggering_player] == core.spsummon_state_count[cait->triggering_player])
-					set_spsummon_counter(cait->triggering_player);
-				if(cait->opinfos[0x200].op_player == PLAYER_ALL && core.spsummon_state_count_tmp[1 - cait->triggering_player] == core.spsummon_state_count[1 - cait->triggering_player])
-					set_spsummon_counter(1 - cait->triggering_player);
+				if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+					if(core.spsummon_state_count_tmp[cait->triggering_player] == core.spsummon_state_count[cait->triggering_player])
+						set_spsummon_counter(cait->triggering_player);
+					if(cait->opinfos[0x200].op_player == PLAYER_ALL && core.spsummon_state_count_tmp[1 - cait->triggering_player] == core.spsummon_state_count[1 - cait->triggering_player])
+						set_spsummon_counter(1 - cait->triggering_player);
+				}
 				if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 					//sometimes it may add twice, only works for once per turn
 					auto& optarget = cait->opinfos[0x200];
