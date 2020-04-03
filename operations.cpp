@@ -2039,7 +2039,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			core.units.begin()->step = 15;
 			return FALSE;
 		}
-		if(proc)
+		if(proc && !pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD))
 			remove_oath_effect(proc);
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
@@ -2917,7 +2917,8 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			core.units.begin()->step = 14;
 			return FALSE;
 		}
-		remove_oath_effect(core.units.begin()->peffect);
+		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD))
+			remove_oath_effect(core.units.begin()->peffect);
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		adjust_instant();
@@ -3122,7 +3123,8 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			adjust_instant();
 		}
 		if(pgroup->container.size() == 0) {
-			remove_oath_effect(core.units.begin()->peffect);
+			if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD))
+				remove_oath_effect(core.units.begin()->peffect);
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
 			return TRUE;
 		}
