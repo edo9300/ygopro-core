@@ -146,8 +146,15 @@ void duel::set_response(const void* resp, size_t len) {
 	if(len)
 		std::memcpy(game_field->returns.data.data(), resp, len);
 }
+// uniform integer distribution
 int32 duel::get_next_integer(int32 l, int32 h) {
-	return (std::uniform_int_distribution<>(l, h))(random);
+	const int32 range = h - l + 1;
+	const int32 lim = random.max() % range;
+	int32 n;
+	do {
+		n = random();
+	} while(n <= lim);
+	return static_cast<int32>((n % range) + l);
 }
 duel::duel_message* duel::new_message(uint32_t message) {
 	messages.emplace_back(message);
