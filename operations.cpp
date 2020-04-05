@@ -3149,7 +3149,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		pduel->new_message(MSG_SPSUMMONED);
 		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			set_spsummon_counter(sumplayer);
-			check_card_counter(target, 3, sumplayer);
+			check_card_counter(pgroup, 3, sumplayer);
 		}
 		if(!pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
 			std::set<uint32> spsummon_once_set;
