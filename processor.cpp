@@ -754,6 +754,7 @@ int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 trigger
 			core.shuffle_hand_check[0] = FALSE;
 			core.shuffle_hand_check[1] = FALSE;
 		}
+		core.units.begin()->arg2 = core.shuffle_check_disabled;
 		core.shuffle_check_disabled = FALSE;
 		core.check_level++;
 	}
@@ -777,7 +778,7 @@ int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 trigger
 			if(core.shuffle_deck_check[1])
 				shuffle(1, LOCATION_DECK);
 		}
-		core.shuffle_check_disabled = FALSE;
+		core.shuffle_check_disabled = core.units.begin()->arg2;
 		return TRUE;
 	}
 	return FALSE;
@@ -805,6 +806,7 @@ int32 field::execute_operation(uint16 step, effect * triggering_effect, uint8 tr
 			core.shuffle_hand_check[0] = FALSE;
 			core.shuffle_hand_check[1] = FALSE;
 		}
+		core.units.begin()->arg2 = core.shuffle_check_disabled;
 		core.shuffle_check_disabled = FALSE;
 		core.check_level++;
 	}
@@ -832,7 +834,7 @@ int32 field::execute_operation(uint16 step, effect * triggering_effect, uint8 tr
 			//cost[0].amount = 0;
 			//cost[1].amount = 0;
 		}
-		core.shuffle_check_disabled = FALSE;
+		core.shuffle_check_disabled = core.units.begin()->arg2;
 		return TRUE;
 	}
 	return FALSE;
@@ -861,6 +863,7 @@ int32 field::execute_target(uint16 step, effect * triggering_effect, uint8 trigg
 			core.shuffle_hand_check[0] = FALSE;
 			core.shuffle_hand_check[1] = FALSE;
 		}
+		core.units.begin()->arg2 = core.shuffle_check_disabled;
 		core.shuffle_check_disabled = FALSE;
 		core.check_level++;
 	}
@@ -884,7 +887,7 @@ int32 field::execute_target(uint16 step, effect * triggering_effect, uint8 trigg
 			if(core.shuffle_deck_check[1])
 				shuffle(1, LOCATION_DECK);
 		}
-		core.shuffle_check_disabled = FALSE;
+		core.shuffle_check_disabled = core.units.begin()->arg2;
 		return TRUE;
 	}
 	return FALSE;
