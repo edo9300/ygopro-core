@@ -3692,7 +3692,7 @@ int32 scriptlib::duel_announce_card(lua_State * L) {
 	if(lua_gettop(L) <= 2) {
 		uint32 ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
 		if(lua_gettop(L) == 2)
-			ttype = lua_tointeger(L, 1);
+			ttype = lua_tointeger(L, 2);
 		pduel->game_field->core.select_options.push_back(ttype);
 		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
 	} else {
