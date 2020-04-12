@@ -1799,6 +1799,7 @@ void card::xyz_remove(card* mat) {
 	mat->current.location = 0;
 	mat->current.sequence = 0;
 	mat->overlay_target = 0;
+	mat->current.controler = PLAYER_NONE;
 	for(auto clit = xyz_materials.begin(); clit != xyz_materials.end(); ++clit)
 		(*clit)->current.sequence = clit - xyz_materials.begin();
 	for(auto eit = mat->xmaterial_effect.begin(); eit != mat->xmaterial_effect.end(); ++eit) {
