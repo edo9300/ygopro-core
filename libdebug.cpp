@@ -62,16 +62,9 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 		card* pcard = pduel->new_card(code);
 		pcard->owner = owner;
 		card* fcard = pduel->game_field->get_field_card(playerid, location, sequence);
-		fcard->xyz_materials.push_back(pcard);
-		pcard->overlay_target = fcard;
-		pcard->current.controler = playerid;
-		pcard->current.location = LOCATION_OVERLAY;
-		pcard->current.sequence = fcard->xyz_materials.size() - 1;
-		for(auto& eit : pcard->xmaterial_effect) {
-			effect* peffect = eit.second;
-			if(peffect->type & EFFECT_TYPE_FIELD)
-				pduel->game_field->add_effect(peffect);
-		}
+		fcard->xyz_add(pcard);
+		if(proc)
+			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
 		interpreter::card2value(L, pcard);
 		return 1;
 	}
