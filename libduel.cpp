@@ -3708,10 +3708,16 @@ int32 scriptlib::duel_announce_card(lua_State * L) {
 		case OPCODE_DIV:
 		case OPCODE_AND:
 		case OPCODE_OR:
+		case OPCODE_BAND:
+		case OPCODE_BOR:
+		case OPCODE_BXOR:
+		case OPCODE_LSHIFT:
+		case OPCODE_RSHIFT:
 			stack_size -= 1;
 			break;
 		case OPCODE_NEG:
 		case OPCODE_NOT:
+		case OPCODE_BNOT:
 		case OPCODE_ISCODE:
 		case OPCODE_ISSETCARD:
 		case OPCODE_ISTYPE:
