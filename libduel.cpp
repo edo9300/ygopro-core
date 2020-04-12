@@ -321,7 +321,7 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 	uint32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	card* pcard = *(card**)lua_touserdata(L, 2 + offset);
+	card* pcard = *(card**)lua_touserdata(L, 2);
 	duel* pduel = pcard->pduel;
 	group* must = nullptr;
 	if(lua_gettop(L) >= (3 + offset)) {
