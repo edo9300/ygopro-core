@@ -942,8 +942,6 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 		}
 		card* pcard = *targets->it;
 		move_to_field(pcard, playerid, playerid, LOCATION_MZONE, pcard->current.position, FALSE, 0, FALSE, zone);
-		for (auto& pmatcard : pcard->xyz_materials)
-			pmatcard->current.controler = playerid;
 		return FALSE;
 	}
 	case 4: {
@@ -1103,10 +1101,6 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 		uint8 p1 = pcard1->current.controler, p2 = pcard2->current.controler;
 		uint8 new_s1 = core.units.begin()->arg4, new_s2 = returns.at<int8>(2);
 		swap_card(pcard1, pcard2, new_s1, new_s2);
-		for (auto& pmatcard : pcard1->xyz_materials)
-			pmatcard->current.controler = p2;
-		for (auto& pmatcard : pcard2->xyz_materials)
-			pmatcard->current.controler = p1;
 		pcard1->reset(RESET_CONTROL, RESET_EVENT);
 		pcard2->reset(RESET_CONTROL, RESET_EVENT);
 		set_control(pcard1, p2, reset_phase, reset_count);
@@ -1244,8 +1238,6 @@ int32 field::control_adjust(uint16 step) {
 		adjust_set->erase(cit);
 		pcard->reset(RESET_CONTROL, RESET_EVENT);
 		move_to_field(pcard, 1 - pcard->current.controler, 1 - pcard->current.controler, LOCATION_MZONE, pcard->current.position);
-		for (auto& pmatcard : pcard->xyz_materials)
-			pmatcard->current.controler = 1 - pcard->current.controler;
 		core.units.begin()->step = 2;
 		return FALSE;
 	}
