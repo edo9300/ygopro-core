@@ -872,7 +872,7 @@ uint32 field::get_linked_zone(int32 playerid, bool free) {
 }
 void field::get_linked_cards(uint8 self, uint8 location1, uint8 location2, card_set* cset) {
 	get_cards_in_zone(cset, get_linked_zone(self), self, location1);
-	get_cards_in_zone(cset, get_linked_zone(1 - self), self, location2);
+	get_cards_in_zone(cset, get_linked_zone(1 - self), 1 - self, location2);
 }
 int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 	if(!pcard)
