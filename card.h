@@ -166,6 +166,7 @@ public:
 	bool is_extra_deck_monster() const { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && !!(data.type & TYPE_MONSTER); }
 
 	void get_infos(int32 query_flag);
+	int32 is_related_to_chains();
 	loc_info get_info_location();
 	uint32 second_code(uint32 code);
 	uint32 get_code();

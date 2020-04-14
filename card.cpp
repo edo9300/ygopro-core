@@ -203,7 +203,7 @@ void card::get_infos(int32 query_flag) {
 	}
 	CHECK_AND_INSERT_T(QUERY_OWNER, owner, uint8);
 	CHECK_AND_INSERT(QUERY_STATUS, status);
-	CHECK_AND_INSERT_T(QUERY_IS_PUBLIC, (is_position(POS_FACEUP) || (current.location == LOCATION_HAND && is_affected_by_effect(EFFECT_PUBLIC))) ? 1 : 0, uint8);
+	CHECK_AND_INSERT_T(QUERY_IS_PUBLIC, (is_position(POS_FACEUP) || is_related_to_chains() || (current.location == LOCATION_HAND && is_affected_by_effect(EFFECT_PUBLIC))) ? 1 : 0, uint8);
 	CHECK_AND_INSERT(QUERY_LSCALE, get_lscale());
 	CHECK_AND_INSERT(QUERY_RSCALE, get_rscale());
 	if(query_flag & QUERY_LINK) {
@@ -215,6 +215,16 @@ void card::get_infos(int32 query_flag) {
 	CHECK_AND_INSERT_T(QUERY_IS_HIDDEN, is_affected_by_effect(EFFECT_DARKNESS_HIDE) ? 1 : 0, uint8);
 	insert_value<uint16>(pduel->query_buffer, sizeof(uint32));
 	insert_value<uint32>(pduel->query_buffer, QUERY_END);
+}
+int32 card::is_related_to_chains() {
+	if(!is_status(STATUS_CHAINING))
+		return FALSE;
+	for(const auto& chain : pduel->game_field->core.current_chain){
+		if(chain.triggering_effect->get_handler() == this && is_has_relation(chain.triggering_effect)) {
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 #undef CHECK_AND_INSERT_T
 #undef CHECK_AND_INSERT
