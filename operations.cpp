@@ -4782,6 +4782,7 @@ int32 field::change_position(uint16 step, group * targets, effect * reason_effec
 			}
 		}
 		if(ssets.size()) {
+			return_cards.clear();
 			refresh_location_info_instant();
 			int32 fcount = get_useable_count(NULL, playerid, LOCATION_SZONE, playerid, 0);
 			if(fcount <= 0) {
