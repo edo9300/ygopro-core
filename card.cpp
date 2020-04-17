@@ -1746,13 +1746,21 @@ void card::xyz_overlay(card_set* materials) {
 	if(materials->size() == 0)
 		return;
 	card_set des;
-	field::card_vector cv;
-	for(auto& pcard : *materials)
-		cv.push_back(pcard);
+	field::card_vector cv(materials->begin(), materials->end());
 	std::sort(cv.begin(), cv.end(), card::card_operation_sort);
+	duel::duel_message* decktop[2] = { nullptr, nullptr };
+	size_t s[2] = { pduel->game_field->player[0].list_main.size(), pduel->game_field->player[1].list_main.size() };
+	if(pduel->game_field->core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
+		decktop[0] = pduel->new_message(MSG_DECK_TOP);
+		decktop[1] = pduel->new_message(MSG_DECK_TOP);
+	}
 	for(auto& pcard : cv) {
 		if(pcard->overlay_target == this)
 			continue;
+		if(decktop[0] && pduel->game_field->player[0].list_main.back() == pcard)
+			decktop[0]->write<uint8_t>(0);
+		if(decktop[1] && pduel->game_field->player[1].list_main.back() == pcard)
+			decktop[1]->write<uint8_t>(1);
 		pcard->current.reason = REASON_XYZ + REASON_MATERIAL;
 		pcard->reset(RESET_LEAVE + RESET_OVERLAY, RESET_EVENT);
 		if(pcard->unique_code)
@@ -1779,6 +1787,24 @@ void card::xyz_overlay(card_set* materials) {
 		message->write(pcard->get_info_location());
 		message->write<uint32>(pcard->current.reason);
 	}
+	auto writetopcard = [rev=pduel->game_field->core.deck_reversed, &decktop, &player=pduel->game_field->player, &s](int playerid) {
+		if(!decktop[playerid])
+			return;
+		auto& msg = decktop[playerid];
+		auto& list = player[playerid].list_main;
+		auto& prevcount = s[playerid];
+		card* ptop = nullptr;
+		if(list.empty() || msg->data.size() == 1 || ((ptop = list.back()) &&
+			!rev && ptop->current.position != POS_FACEUP_DEFENSE))
+			msg->data.clear();
+		else {
+			msg->write<uint32>(prevcount - list.size());
+			msg->write<uint32>(ptop->data.code);
+			msg->write<uint32>(ptop->current.position);
+		}
+	};
+	writetopcard(0);
+	writetopcard(1);
 	if(des.size())
 		pduel->game_field->destroy(&des, 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);
 	else
