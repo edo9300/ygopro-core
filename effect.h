@@ -360,6 +360,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 // #define EFFECT_MUST_BE_ATTACKED          195
 #define EFFECT_ONLY_BE_ATTACKED             196
 #define EFFECT_ATTACK_DISABLED              197
+#define EFFECT_CHANGE_BATTLE_STAT           198
 #define EFFECT_NO_BATTLE_DAMAGE             200
 #define EFFECT_AVOID_BATTLE_DAMAGE          201
 #define EFFECT_REFLECT_BATTLE_DAMAGE        202

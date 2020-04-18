@@ -3527,12 +3527,21 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 		if(defattack && defattack->get_value(core.attacker))
 			a = ad;
 	}
+	effect* battstat = core.attacker->is_affected_by_effect(EFFECT_CHANGE_BATTLE_STAT);
+	if(battstat)
+		a = battstat->get_value(core.attacker);
 	if(core.attack_target) {
 		da = core.attack_target->get_attack();
 		dd = core.attack_target->get_defense();
 		pd = core.attack_target->current.controler;
-		if(core.attack_target->is_position(POS_ATTACK)) {
+		battstat = core.attack_target->is_affected_by_effect(EFFECT_CHANGE_BATTLE_STAT);
+		if(battstat)
+			d = battstat->get_value(core.attack_target);
+		else if (core.attack_target->is_position(POS_ATTACK))
 			d = da;
+		else
+			d = dd;
+		if(core.attack_target->is_position(POS_ATTACK)) {
 			if(a > d) {
 				damp = pd;
 				core.battle_damage[damp] = a - d;
@@ -3550,7 +3559,6 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 				}
 			}
 		} else {
-			d = dd;
 			if(a > d) {
 				effect_set eset;
 				core.attacker->filter_effect(EFFECT_PIERCE, &eset);
