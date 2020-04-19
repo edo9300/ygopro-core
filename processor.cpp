@@ -693,24 +693,30 @@ int32 field::process() {
 		} else {
 			if(returns.at<int8>(0) != -1) {
 				card* tc[64];
+				auto& list = player[target_player].list_main;
 				for(i = 0; i < count; ++i)
-					player[target_player].list_main.pop_back();
-				for(i = 0; i < count; ++i)
-					tc[(uint8)returns.at<int8>(i)] = core.select_cards[i];
+					tc[returns.at<uint8>(i)] = core.select_cards[i];
 				for(i = 0; i < count; ++i) {
-					player[target_player].list_main.push_back(tc[count - i - 1]);
-					tc[count - i - 1]->current.sequence = player[target_player].list_main.size() - 1;
+					auto pcard = tc[count - i - 1];
+					auto message = pduel->new_message(MSG_MOVE);
+					message->write<uint32>(0);
+					message->write(pcard->get_info_location());
+					list.erase(list.begin() + pcard->current.sequence);
+					list.push_back(pcard);
+					reset_sequence(target_player, LOCATION_DECK);
+					message->write(pcard->get_info_location());
+					message->write<uint32>(pcard->current.reason);
 				}
-			}
-			if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
 				if(count > 0) {
-					card* ptop = player[target_player].list_main.back();
-					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
-						auto message = pduel->new_message(MSG_DECK_TOP);
-						message->write<uint8>(target_player);
-						message->write<uint32>(0);
-						message->write<uint32>(ptop->data.code);
-						message->write<uint32>(ptop->current.position);
+					if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
+						card* ptop = list.back();
+						if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
+							auto message = pduel->new_message(MSG_DECK_TOP);
+							message->write<uint8>(target_player);
+							message->write<uint32>(0);
+							message->write<uint32>(ptop->data.code);
+							message->write<uint32>(ptop->current.position);
+						}
 					}
 				}
 			}
