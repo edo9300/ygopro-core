@@ -1029,7 +1029,23 @@ int32 scriptlib::duel_sort_decktop(lua_State *L) {
 	if(count < 1 || count > 64)
 		return 0;
 	duel* pduel = interpreter::get_duel_info(L);
-	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count);
+	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count, FALSE);
+	return lua_yield(L, 0);
+}
+int32 scriptlib::duel_sort_deckbottom(lua_State *L) {
+	check_action_permission(L);
+	check_param_count(L, 3);
+	uint32 sort_player = lua_tointeger(L, 1);
+	uint32 target_player = lua_tointeger(L, 2);
+	uint32 count = lua_tointeger(L, 3);
+	if(sort_player != 0 && sort_player != 1)
+		return 0;
+	if(target_player != 0 && target_player != 1)
+		return 0;
+	if(count < 1 || count > 64)
+		return 0;
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count, TRUE);
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_check_event(lua_State *L) {

@@ -434,6 +434,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "ConfirmExtratop", scriptlib::duel_confirm_extratop },
 	{ "ConfirmCards", scriptlib::duel_confirm_cards },
 	{ "SortDecktop", scriptlib::duel_sort_decktop },
+	{ "SortDeckbottom", scriptlib::duel_sort_deckbottom },
 	{ "CheckEvent", scriptlib::duel_check_event },
 	{ "RaiseEvent", scriptlib::duel_raise_event },
 	{ "RaiseSingleEvent", scriptlib::duel_raise_single_event },

@@ -682,27 +682,40 @@ int32 field::process() {
 		uint8 sort_player = it->arg1 & 0xffff;
 		uint8 target_player = it->arg1 >> 16;
 		uint32 count = it->arg2, i = 0;
-		if(count > player[target_player].list_main.size())
-			count = player[target_player].list_main.size();
+		bool bottom = it->arg3;
+		auto& list = player[target_player].list_main;
+		if(count > list.size())
+			count = list.size();
 		if(it->step == 0) {
 			core.select_cards.clear();
-			for(auto clit = player[target_player].list_main.rbegin(); i < count; ++i, ++clit)
-				core.select_cards.push_back(*clit);
+			if(bottom) {
+				for(auto clit = list.begin(); i < count; ++i, ++clit)
+					core.select_cards.push_back(*clit);
+			} else {
+				for(auto clit = list.rbegin(); i < count; ++i, ++clit)
+					core.select_cards.push_back(*clit);
+			}
 			add_process(PROCESSOR_SORT_CARD, 0, 0, 0, sort_player, 0);
 			it->step++;
 		} else {
 			if(returns.at<int8>(0) != -1) {
 				card* tc[64];
-				auto& list = player[target_player].list_main;
 				for(i = 0; i < count; ++i)
 					tc[returns.at<uint8>(i)] = core.select_cards[i];
 				for(i = 0; i < count; ++i) {
-					auto pcard = tc[count - i - 1];
+					card* pcard = nullptr;
+					if(bottom)
+						pcard = tc[i];
+					else
+						pcard = tc[count - i - 1];
 					auto message = pduel->new_message(MSG_MOVE);
 					message->write<uint32>(0);
 					message->write(pcard->get_info_location());
 					list.erase(list.begin() + pcard->current.sequence);
-					list.push_back(pcard);
+					if(bottom)
+						list.insert(list.begin(), pcard);
+					else
+						list.push_back(pcard);
 					reset_sequence(target_player, LOCATION_DECK);
 					message->write(pcard->get_info_location());
 					message->write<uint32>(pcard->current.reason);
