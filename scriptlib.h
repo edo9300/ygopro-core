@@ -434,6 +434,7 @@ public:
 	static int32 duel_confirm_extratop(lua_State *L);
 	static int32 duel_confirm_cards(lua_State *L);
 	static int32 duel_sort_decktop(lua_State *L);
+	static int32 duel_sort_deckbottom(lua_State *L);
 	static int32 duel_check_event(lua_State *L);
 	static int32 duel_raise_event(lua_State *L);
 	static int32 duel_raise_single_event(lua_State *L);
