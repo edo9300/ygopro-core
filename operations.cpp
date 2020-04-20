@@ -29,7 +29,8 @@ int32 field::negate_chain(uint8 chaincount) {
 		}
 		auto message = pduel->new_message(MSG_CHAIN_NEGATED);
 		message->write<uint8>(chaincount);
-		if(pchain.triggering_location & (LOCATION_DECK | LOCATION_EXTRA))
+		if(pchain.triggering_location == LOCATION_DECK
+				|| (!pduel->game_field->is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
@@ -48,7 +49,8 @@ int32 field::disable_chain(uint8 chaincount) {
 		core.current_chain[chaincount - 1].disable_player = core.reason_player;
 		auto message = pduel->new_message(MSG_CHAIN_DISABLED);
 		message->write<uint8>(chaincount);
-		if(pchain.triggering_location & (LOCATION_DECK | LOCATION_EXTRA))
+		if(pchain.triggering_location == LOCATION_DECK
+				|| (!pduel->game_field->is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
