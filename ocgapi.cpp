@@ -103,37 +103,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 }
 
 OCGAPI void OCG_StartDuel(OCG_Duel duel) {
-	auto game_field = DUEL->game_field;
-	game_field->core.shuffle_hand_check[0] = FALSE;
-	game_field->core.shuffle_hand_check[1] = FALSE;
-	game_field->core.shuffle_deck_check[0] = FALSE;
-	game_field->core.shuffle_deck_check[1] = FALSE;
-	game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
-	const int p0start_count = game_field->player[0].start_count;
-	if(p0start_count > 0)
-		game_field->draw(0, REASON_RULE, PLAYER_NONE, 0, p0start_count);
-	const int p1start_count = game_field->player[1].start_count;
-	if(p1start_count > 0)
-		game_field->draw(0, REASON_RULE, PLAYER_NONE, 1, p1start_count);
-	for(int p = 0; p < 2; p++) {
-		auto list_size = game_field->player[p].extra_lists_main.size();
-		for(decltype(list_size) l = 0; l < list_size; l++) {
-			auto& main = game_field->player[p].extra_lists_main[l];
-			auto& hand = game_field->player[p].extra_lists_hand[l];
-			const int start_count = game_field->player[p].start_count;
-			for(int i = 0; i < start_count && main.size(); ++i) {
-				card* pcard = main.back();
-				main.pop_back();
-				hand.push_back(pcard);
-				pcard->current.controler = p;
-				pcard->current.location = LOCATION_HAND;
-				pcard->current.sequence = hand.size() - 1;
-				pcard->current.position = POS_FACEDOWN;
-			}
-
-		}
-	}
-	game_field->add_process(PROCESSOR_TURN, 0, 0, 0, 0, 0);
+	DUEL->game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
 }
 
 OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
