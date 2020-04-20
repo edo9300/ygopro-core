@@ -4254,15 +4254,7 @@ int32 scriptlib::duel_is_player_can_additional_summon(lua_State * L) {
 }
 int32 scriptlib::duel_is_chain_negatable(lua_State * L) {
 	check_param_count(L, 1);
-	int32 chaincount = lua_tointeger(L, 1);
-	duel* pduel = interpreter::get_duel_info(L);
-	chain* ch = pduel->game_field->get_chain(chaincount);
-	if(!ch)
-		return 0;
-	if(ch->triggering_location == LOCATION_DECK)
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, 1);
+	lua_pushboolean(L, 1);
 	return 1;
 }
 int32 scriptlib::duel_is_chain_disablable(lua_State * L) {
@@ -4273,13 +4265,7 @@ int32 scriptlib::duel_is_chain_disablable(lua_State * L) {
 		lua_pushboolean(L, pduel->game_field->is_chain_disablable(chaincount));
 		return 1;
 	}
-	chain* ch = pduel->game_field->get_chain(chaincount);
-	if(!ch)
-		return 0;
-	if(ch->triggering_location == LOCATION_DECK)
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, 1);
+	lua_pushboolean(L, 1);
 	return 1;
 }
 int32 scriptlib::duel_check_chain_target(lua_State *L) {
