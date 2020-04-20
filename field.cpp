@@ -2187,10 +2187,10 @@ void field::set_spsummon_counter(uint8 playerid, bool add, bool chain) {
 							if(chain)
 								pcard->spsummon_counter_rst[playerid]++;
 						}
-					} else {
-						pcard->spsummon_counter[playerid] -= pcard->spsummon_counter_rst[playerid];
-						pcard->spsummon_counter_rst[playerid] = 0;
 					}
+				} else {
+					pcard->spsummon_counter[playerid] -= pcard->spsummon_counter_rst[playerid];
+					pcard->spsummon_counter_rst[playerid] = 0;
 				}
 			} else {
 				if(peffect->is_available()) {
