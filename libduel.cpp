@@ -3610,7 +3610,7 @@ int32 scriptlib::duel_select_field_zone(lua_State * L) {
 		flag &= 0xffff00ff;
 	if(location2 & LOCATION_MZONE)
 		flag &= 0xff00ffff;
-	if(location1 & LOCATION_SZONE)
+	if(location2 & LOCATION_SZONE)
 		flag &= 0xffffff;
 	flag |= filter;
 	if (flag == 0xffffffff)
