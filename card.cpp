@@ -163,7 +163,7 @@ void card::get_infos(int32 query_flag) {
 	}
 	if(query_flag & QUERY_EQUIP_CARD) {
 		insert_value<uint16>(pduel->query_buffer, sizeof(uint32) + sizeof(uint16) + sizeof(uint64));
-		insert_value<uint32>(pduel->query_buffer, QUERY_REASON_CARD);
+		insert_value<uint32>(pduel->query_buffer, QUERY_EQUIP_CARD);
 		if(equiping_target) {
 			loc_info info = equiping_target->get_info_location();
 			insert_value<uint8>(pduel->query_buffer, info.controler);
