@@ -2830,7 +2830,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				pduel->lua->add_param(positions, PARAM_TYPE_INT);
 				pduel->lua->add_param(targetplayer, PARAM_TYPE_INT);
 				pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT);
-				if(pduel->lua->check_condition(eff->target, 7))
+				if(!pduel->lua->check_condition(eff->target, 7))
 					continue;
 			}
 			positions &= eff->get_value();
