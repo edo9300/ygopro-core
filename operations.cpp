@@ -5547,7 +5547,7 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 		min = min > 0 ? min : 0;
 		max = max > 0 ? max : 0;
 		if((return_cards.canceled && min <= 0) || !max) {
-			return_cards.list.clear();
+			return_cards.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
 			effect* peffect = core.units.begin()->peffect;
 			if(peffect)
