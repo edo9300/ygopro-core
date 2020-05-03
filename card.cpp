@@ -261,7 +261,16 @@ uint32 card::get_code() {
 		code = effects.back()->get_value(this);
 	temp.code = 0xffffffff;
 	if (code == data.code) {
-		if(data.alias && !is_affected_by_effect(EFFECT_ADD_CODE))
+		effects.clear();
+		filter_effect(EFFECT_ADD_CODE, &effects);
+		effect* addcode = nullptr;
+		for(auto it = effects.rbegin(); it != effects.rend(); it++) {
+			if(!(*it)->operation) {
+				addcode = *it;
+				break;
+			}
+		}
+		if(data.alias && !addcode)
 			code = data.alias;
 	} else {
 		auto dat = pduel->read_card(code);
@@ -279,9 +288,16 @@ uint32 card::get_another_code() {
 	}
 	effect_set eset;
 	filter_effect(EFFECT_ADD_CODE, &eset);
-	if(!eset.size())
+	effect* addcode = nullptr;
+	for(auto it = eset.rbegin(); it != eset.rend(); it++) {
+		if(!(*it)->operation) {
+			addcode = *it;
+			break;
+		}
+	}
+	if(!addcode)
 		return 0;
-	uint32 otcode = eset.back()->get_value(this);
+	uint32 otcode = addcode->get_value(this);
 	if(get_code() != otcode)
 	if(code != otcode)
 		return otcode;
