@@ -2035,8 +2035,12 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			core.units.begin()->step = 15;
 			return FALSE;
 		}
-		if(proc && !pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD))
+		if(proc && !pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			remove_oath_effect(proc);
+			if(proc->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (proc->count_code & EFFECT_COUNT_CODE_OATH)) {
+				dec_effect_code(proc->count_code, proc->count_flag, sumplayer);
+			}
+		}
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		adjust_instant();
@@ -2913,8 +2917,13 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			core.units.begin()->step = 14;
 			return FALSE;
 		}
-		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD))
-			remove_oath_effect(core.units.begin()->peffect);
+		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			effect* peffect = core.units.begin()->peffect;
+			remove_oath_effect(peffect);
+			if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_code & EFFECT_COUNT_CODE_OATH)) {
+				dec_effect_code(peffect->count_code, peffect->count_flag, sumplayer);
+			}
+		}
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		adjust_instant();
@@ -3119,8 +3128,13 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			adjust_instant();
 		}
 		if(pgroup->container.size() == 0) {
-			if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD))
-				remove_oath_effect(core.units.begin()->peffect);
+			if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+				effect* peffect = core.units.begin()->peffect;
+				remove_oath_effect(peffect);
+				if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_code & EFFECT_COUNT_CODE_OATH)) {
+					dec_effect_code(peffect->count_code, peffect->count_flag, sumplayer);
+				}
+			}
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
 			return TRUE;
 		}
