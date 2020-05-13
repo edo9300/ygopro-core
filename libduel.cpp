@@ -277,25 +277,30 @@ int32 scriptlib::duel_summon(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 2);
+	uint32 playerid = lua_tointeger(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	card* pcard = *(card**)lua_touserdata(L, 2);
+	duel* pduel = pcard->pduel;
+	if(pduel->game_field->core.effect_damage_step)
+		return 0;
+	uint32 ignore_count = lua_toboolean(L, 3);
 	effect* peffect = 0;
 	if(!lua_isnil(L, 4)) {
 		check_param(L, PARAM_TYPE_EFFECT, 4);
 		peffect = *(effect**)lua_touserdata(L, 4);
 	}
-	uint32 playerid = lua_tointeger(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	card* pcard = *(card**)lua_touserdata(L, 2);
-	uint32 ignore_count = lua_toboolean(L, 3);
 	uint32 min_tribute = 0;
 	if(lua_gettop(L) >= 5)
 		min_tribute = lua_tointeger(L, 5);
 	uint32 zone = 0x1f;
 	if(lua_gettop(L) >= 6)
 		zone = lua_tointeger(L, 6);
-	duel* pduel = pcard->pduel;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->summon(playerid, pcard, peffect, ignore_count, min_tribute, zone);
+	pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+	pduel->game_field->core.subunits.pop_back();
+	pduel->game_field->core.summoning_card = pcard;
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_special_summon_rule(lua_State *L) {
@@ -307,11 +312,16 @@ int32 scriptlib::duel_special_summon_rule(lua_State *L) {
 		return 0;
 	card* pcard = *(card**)lua_touserdata(L, 2);
 	duel* pduel = pcard->pduel;
+	if(pduel->game_field->core.effect_damage_step)
+		return 0;
 	uint32 sumtype = 0;
 	if(lua_gettop(L) >= 3)
 		sumtype = lua_tointeger(L, 3);
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule(playerid, pcard, sumtype);
+	pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+	pduel->game_field->core.subunits.pop_back();
+	pduel->game_field->core.summoning_card = pcard;
 	return lua_yield(L, 0);
 }
 inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
@@ -323,6 +333,8 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 		return 0;
 	card* pcard = *(card**)lua_touserdata(L, 2);
 	duel* pduel = pcard->pduel;
+	if(pduel->game_field->core.effect_damage_step)
+		return 0;
 	group* must = nullptr;
 	if(lua_gettop(L) >= (3 + offset)) {
 		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3 + offset, TRUE))
@@ -349,6 +361,9 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 	pduel->game_field->core.forced_summon_maxc = maxc;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule(playerid, pcard, summon_type);
+	pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+	pduel->game_field->core.subunits.pop_back();
+	pduel->game_field->core.summoning_card = pcard;
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_synchro_summon(lua_State *L) {
@@ -370,25 +385,30 @@ int32 scriptlib::duel_setm(lua_State *L) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_CARD, 2);
+	uint32 playerid = lua_tointeger(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	card* pcard = *(card**)lua_touserdata(L, 2);
+	duel* pduel = pcard->pduel;
+	if(pduel->game_field->core.effect_damage_step)
+		return 0;
+	uint32 ignore_count = lua_toboolean(L, 3);
 	effect* peffect = 0;
 	if(!lua_isnil(L, 4)) {
 		check_param(L, PARAM_TYPE_EFFECT, 4);
 		peffect = *(effect**)lua_touserdata(L, 4);
 	}
-	uint32 playerid = lua_tointeger(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	card* pcard = *(card**)lua_touserdata(L, 2);
-	uint32 ignore_count = lua_toboolean(L, 3);
 	uint32 min_tribute = 0;
 	if(lua_gettop(L) >= 5)
 		min_tribute = lua_tointeger(L, 5);
 	uint32 zone = 0x1f;
 	if(lua_gettop(L) >= 6)
 		zone = lua_tointeger(L, 6);
-	duel* pduel = pcard->pduel;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->mset(playerid, pcard, peffect, ignore_count, min_tribute, zone);
+	pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+	pduel->game_field->core.subunits.pop_back();
+	pduel->game_field->core.summoning_card = pcard;
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_sets(lua_State *L) {
