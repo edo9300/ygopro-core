@@ -337,17 +337,27 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 		return 0;
 	group* must = nullptr;
 	if(lua_gettop(L) >= (3 + offset)) {
-		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3 + offset, TRUE))
+		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3 + offset, TRUE)) {
 			must = pduel->new_group(*(card**)lua_touserdata(L, 3 + offset));
-		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3 + offset, TRUE))
-			must = *(group**)lua_touserdata(L, 3 + offset);
+			must->is_readonly = TRUE;
+		}
+		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3 + offset, TRUE)) {
+			group* pgroup = *(group**)lua_touserdata(L, 4 + offset);
+			must = pduel->new_group(pgroup->container);
+			must->is_readonly = TRUE;
+		}
 	}
 	group* materials = nullptr;
 	if(lua_gettop(L) >= (4 + offset)) {
-		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 4 + offset, TRUE))
+		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 4 + offset, TRUE)) {
 			materials = pduel->new_group(*(card**)lua_touserdata(L, 4 + offset));
-		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 4 + offset, TRUE))
-			materials = *(group**)lua_touserdata(L, 4 + offset);
+			materials->is_readonly = TRUE;
+		}
+		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 4 + offset, TRUE)) {
+			group* pgroup = *(group**)lua_touserdata(L, 4 + offset);
+			materials = pduel->new_group(pgroup->container);
+			materials->is_readonly = TRUE;
+		}
 	}
 	int32 minc = 0;
 	if(lua_gettop(L) >= (5 + offset))

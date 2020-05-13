@@ -2785,8 +2785,6 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				pduel->lua->add_param(core.forced_summon_minc, PARAM_TYPE_INT);
 				pduel->lua->add_param(core.forced_summon_maxc, PARAM_TYPE_INT);
 			}
-			core.must_use_mats = nullptr;
-			core.only_use_mats = nullptr;
 			core.forced_summon_minc = 0;
 			core.forced_summon_maxc = 0;
 			core.sub_solving_event.push_back(nil_event);
@@ -2796,6 +2794,14 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		return FALSE;
 	}
 	case 4: {
+		if(core.must_use_mats) {
+			pduel->delete_group(core.must_use_mats);
+			core.must_use_mats = nullptr;
+		}
+		if(core.only_use_mats) {
+			pduel->delete_group(core.only_use_mats);
+			core.only_use_mats = nullptr;
+		}
 		effect* peffect = core.units.begin()->peffect;
 		uint8 targetplayer = sumplayer;
 		uint8 positions = POS_FACEUP;
