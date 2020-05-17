@@ -1396,8 +1396,6 @@ uint32 card::get_rscale() {
 	return rscale;
 }
 uint32 card::get_link_marker() {
-	if(!(current.position & POS_FACEUP))
-		return 0;
 	if (assume.find(ASSUME_LINKMARKER) != assume.end())
 		return assume[ASSUME_LINKMARKER];
 	if(!(get_type() & TYPE_LINK))
