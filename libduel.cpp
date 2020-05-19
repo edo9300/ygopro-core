@@ -324,7 +324,7 @@ int32 scriptlib::duel_special_summon_rule(lua_State *L) {
 	pduel->game_field->core.summoning_card = pcard;
 	return lua_yield(L, 0);
 }
-inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
+inline int32 spsummon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 	scriptlib::check_action_permission(L);
 	scriptlib::check_param_count(L, 2);
 	scriptlib::check_param(L, PARAM_TYPE_CARD, 2);
@@ -340,9 +340,8 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 3 + offset, TRUE)) {
 			must = pduel->new_group(*(card**)lua_touserdata(L, 3 + offset));
 			must->is_readonly = TRUE;
-		}
-		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3 + offset, TRUE)) {
-			group* pgroup = *(group**)lua_touserdata(L, 4 + offset);
+		} else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 3 + offset, TRUE)) {
+			group* pgroup = *(group**)lua_touserdata(L, 3 + offset);
 			must = pduel->new_group(pgroup->container);
 			must->is_readonly = TRUE;
 		}
@@ -352,8 +351,7 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 		if(scriptlib::check_param(L, PARAM_TYPE_CARD, 4 + offset, TRUE)) {
 			materials = pduel->new_group(*(card**)lua_touserdata(L, 4 + offset));
 			materials->is_readonly = TRUE;
-		}
-		else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 4 + offset, TRUE)) {
+		} else if(scriptlib::check_param(L, PARAM_TYPE_GROUP, 4 + offset, TRUE)) {
 			group* pgroup = *(group**)lua_touserdata(L, 4 + offset);
 			materials = pduel->new_group(pgroup->container);
 			materials->is_readonly = TRUE;
@@ -377,19 +375,19 @@ inline int32 supmmon_rule(lua_State *L, uint32 summon_type, uint32 offset) {
 	return lua_yield(L, 0);
 }
 int32 scriptlib::duel_synchro_summon(lua_State *L) {
-	return supmmon_rule(L, SUMMON_TYPE_SYNCHRO, 0);
+	return spsummon_rule(L, SUMMON_TYPE_SYNCHRO, 0);
 }
 int32 scriptlib::duel_xyz_summon(lua_State *L) {
-	return supmmon_rule(L, SUMMON_TYPE_XYZ, 0);
+	return spsummon_rule(L, SUMMON_TYPE_XYZ, 0);
 }
 int32 scriptlib::duel_link_summon(lua_State *L) {
-	return supmmon_rule(L, SUMMON_TYPE_LINK, 0);
+	return spsummon_rule(L, SUMMON_TYPE_LINK, 0);
 }
 int32 scriptlib::duel_procedure_summon(lua_State *L) {
 	scriptlib::check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_INT, 3);
 	uint32 sumtype = lua_tointeger(L, 3);
-	return supmmon_rule(L, sumtype, 1);
+	return spsummon_rule(L, sumtype, 1);
 }
 int32 scriptlib::duel_setm(lua_State *L) {
 	check_action_permission(L);
