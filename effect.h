@@ -443,7 +443,6 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_REMOVE_SETCODE               349
 #define EFFECT_CHANGE_SETCODE               350
 #define EFFECT_EXTRA_FUSION_MATERIAL        352
-#define EFFECT_TUNER_MATERIAL_LIMIT         353
 #define EFFECT_EXTRA_PENDULUM_SUMMON        360
 #define EFFECT_IRON_WALL                    361
 #define EFFECT_CANNOT_LOSE_DECK             400

@@ -3055,14 +3055,6 @@ int32 scriptlib::duel_set_fusion_material(lua_State *L) {
 	pduel->game_field->core.fusion_materials = pgroup->container;
 	return 0;
 }
-int32 scriptlib::duel_set_synchro_material(lua_State *L) {
-	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_GROUP, 1);
-	group* pgroup = *(group**) lua_touserdata(L, 1);
-	duel* pduel = pgroup->pduel;
-	pduel->game_field->core.synchro_materials = pgroup->container;
-	return 0;
-}
 int32 scriptlib::duel_get_ritual_material(lua_State *L) {
 	check_param_count(L, 1);
 	int32 playerid = lua_tointeger(L, 1);
@@ -3482,10 +3474,6 @@ int32 scriptlib::duel_select_option(lua_State * L) {
 		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));
 		return 1;
 	});
-}
-int32 scriptlib::duel_select_sequence(lua_State * L) {
-	check_action_permission(L);
-	return 0;
 }
 int32 scriptlib::duel_select_position(lua_State * L) {
 	check_action_permission(L);
