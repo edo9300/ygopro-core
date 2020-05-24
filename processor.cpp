@@ -2979,7 +2979,7 @@ int32 field::process_battle_command(uint16 step) {
 		message->write<uint8>(1);
 		message->write<uint64>(41);
 		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
 		return FALSE;
 	}
 	case 23: {
