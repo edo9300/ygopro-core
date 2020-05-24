@@ -1475,8 +1475,11 @@ int32 field::equip(uint16 step, uint8 equip_player, card * equip_card, card * ta
 		if(equip_card == target)
 			return TRUE;
 		bool to_grave = false;
-		if(target->current.location != LOCATION_MZONE || (target->current.position & POS_FACEDOWN))
+		if(target->current.location != LOCATION_MZONE || (target->current.position & POS_FACEDOWN)) {
+			if(is_flag(DUEL_EQUIP_NOT_SENT_IF_MISSING_TARGET) && equip_card->current.location == LOCATION_MZONE)
+				return TRUE;
 			to_grave = true;
+		}
 		if(equip_card->current.location != LOCATION_SZONE) {
 			refresh_location_info_instant();
 			if(get_useable_count(equip_card, equip_player, LOCATION_SZONE, equip_player, LOCATION_REASON_TOFIELD) <= 0)
