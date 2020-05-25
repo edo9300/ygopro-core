@@ -3929,7 +3929,7 @@ int32 card::is_capable_attack_announce(uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_capable_change_position(uint8 playerid) {
-	if(get_status(STATUS_SUMMON_TURN | STATUS_FLIP_SUMMON_TURN | STATUS_SPSUMMON_TURN | STATUS_FORM_CHANGED) && !get_status(STATUS_CONTROL_CHANGED))
+	if(get_status(STATUS_SUMMON_TURN | STATUS_FLIP_SUMMON_TURN | STATUS_SPSUMMON_TURN | STATUS_FORM_CHANGED) && (is_flag(DUEL_CHANGE_BATTLE_POSITION_AFTER_CONTROL_CHANGED) && !get_status(STATUS_CONTROL_CHANGED)))
 		return FALSE;
 	if((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER))
 		return FALSE;
