@@ -3444,8 +3444,13 @@ int32 card::get_set_tribute_count() {
 	return min + (max << 16);
 }
 int32 card::is_can_be_flip_summoned(uint8 playerid) {
-	if(is_status(STATUS_SUMMON_TURN) || is_status(STATUS_FLIP_SUMMON_TURN) || is_status(STATUS_SPSUMMON_TURN) || is_status(STATUS_FORM_CHANGED))
-		return FALSE;
+	if(pduel->game_field->is_flag(DUEL_CHANGE_BATTLE_POSITION_AFTER_CONTROL_CHANGED)) {
+		if((is_status(STATUS_SUMMON_TURN) || is_status(STATUS_FLIP_SUMMON_TURN) || is_status(STATUS_SPSUMMON_TURN) || is_status(STATUS_FORM_CHANGED)) && !get_status(STATUS_CONTROL_CHANGED))
+			return FALSE;
+	} else {
+		if(is_status(STATUS_SUMMON_TURN) || is_status(STATUS_FLIP_SUMMON_TURN) || is_status(STATUS_SPSUMMON_TURN) || is_status(STATUS_FORM_CHANGED))
+			return FALSE;
+	}
 	if(announce_count > 0)
 		return FALSE;
 	if(current.location != LOCATION_MZONE)
@@ -3929,8 +3934,13 @@ int32 card::is_capable_attack_announce(uint8 playerid) {
 	return TRUE;
 }
 int32 card::is_capable_change_position(uint8 playerid) {
-	if(get_status(STATUS_SUMMON_TURN | STATUS_FLIP_SUMMON_TURN | STATUS_SPSUMMON_TURN | STATUS_FORM_CHANGED) && (pduel->game_field->is_flag(DUEL_CHANGE_BATTLE_POSITION_AFTER_CONTROL_CHANGED) && !get_status(STATUS_CONTROL_CHANGED)))
-		return FALSE;
+	if(pduel->game_field->is_flag(DUEL_CHANGE_BATTLE_POSITION_AFTER_CONTROL_CHANGED)) {
+		if(get_status(STATUS_SUMMON_TURN | STATUS_FLIP_SUMMON_TURN | STATUS_SPSUMMON_TURN | STATUS_FORM_CHANGED) && !get_status(STATUS_CONTROL_CHANGED))
+			return FALSE;
+	} else {
+		if(get_status(STATUS_SUMMON_TURN | STATUS_FLIP_SUMMON_TURN | STATUS_SPSUMMON_TURN | STATUS_FORM_CHANGED))
+			return FALSE;
+	}
 	if((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER))
 		return FALSE;
 	if(announce_count > 0)
