@@ -3574,7 +3574,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 				reason_card = core.attack_target;
 				bd[0] = TRUE;
 			} else {
-				if(a != 0 && !is_flag(DUEL_0_ATK_DESTROYED)) {
+				if(a != 0 || is_flag(DUEL_0_ATK_DESTROYED)) {
 					bd[0] = TRUE;
 					bd[1] = TRUE;
 				}
