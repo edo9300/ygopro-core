@@ -161,10 +161,6 @@ int32 scriptlib::debug_reload_field_begin(lua_State *L) {
 		CHECK(5)
 		}
 #undef CHECK
-	} else if (flag & DUEL_OBSOLETE_RULING) {
-		flag |= DUEL_MODE_MR1;
-		pduel->game_field->core.duel_options = flag;
-		return 0;
 	}
 	pduel->game_field->core.duel_options = flag;
 	return 0;
