@@ -281,8 +281,8 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				return FALSE;
 			if((type & EFFECT_TYPE_FIELD) && (phandler->current.controler != playerid) && !is_flag(EFFECT_FLAG_BOTH_SIDE | EFFECT_FLAG_EVENT_PLAYER))
 				return FALSE;
-			if(phandler->current.location == LOCATION_DECK
-				|| (!pduel->game_field->is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && phandler->current.location == LOCATION_EXTRA && (phandler->current.position & POS_FACEDOWN))) {
+			if(!pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE) && (phandler->current.location == LOCATION_DECK
+				|| (!pduel->game_field->is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && phandler->current.location == LOCATION_EXTRA && (phandler->current.position & POS_FACEDOWN)))) {
 				if((type & EFFECT_TYPE_SINGLE) && code != EVENT_TO_DECK)
 					return FALSE;
 				if((type & EFFECT_TYPE_FIELD) && !(range & (LOCATION_DECK | LOCATION_EXTRA)))
