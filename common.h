@@ -406,10 +406,8 @@ struct card_sort {
 //Options
 #define DUEL_TEST_MODE         0x01
 #define DUEL_ATTACK_FIRST_TURN 0x02
-//#define DUEL_NO_CHAIN_HINT     0x04
-#define DUEL_OBSOLETE_RULING   0x08
+
 #define DUEL_PSEUDO_SHUFFLE    0x10
-#define DUEL_TAG               0x20
 #define DUEL_SIMPLE_AI         0x40
 #define DUEL_RELAY             0x80
 #define DUEL_OBSOLETE_IGNITION 0x100
