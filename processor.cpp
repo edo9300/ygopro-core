@@ -2856,7 +2856,9 @@ int32 field::process_battle_command(uint16 step) {
 			return FALSE;
 		}
 		// replay
-		if(!core.attacker->is_affected_by_effect(EFFECT_MUST_ATTACK))
+		if(is_flag(DUEL_STORE_ATTACK_REPLAYS)) {
+			returns.at<int32>(0) = FALSE;
+		} else if(!core.attacker->is_affected_by_effect(EFFECT_MUST_ATTACK))
 			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 30);
 		else {
 			returns.at<int32>(0) = TRUE;
