@@ -1468,8 +1468,8 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		// Obsolete ignition effect ruling
 		tevent e;
 		if(core.current_chain.size() == 0 &&
-		        (check_event(EVENT_SUMMON_SUCCESS, &e) || check_event(EVENT_SPSUMMON_SUCCESS, &e) || check_event(EVENT_FLIP_SUMMON_SUCCESS, &e))
-		        && e.reason_player == infos.turn_player) {
+		        (check_event(EVENT_SUMMON_SUCCESS, &e) || check_event(EVENT_SPSUMMON_SUCCESS, &e) || check_event(EVENT_FLIP_SUMMON_SUCCESS, &e)
+				 || check_event(EVENT_CHAIN_END, &e)) && e.reason_player == infos.turn_player) {
 			chain newchain;
 			tevent e;
 			e.event_cards = 0;
