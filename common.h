@@ -409,6 +409,7 @@ struct card_sort {
 #define DUEL_ATTACK_FIRST_TURN 0x02
 
 #define DUEL_PSEUDO_SHUFFLE    0x10
+#define DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE 0x20
 #define DUEL_SIMPLE_AI         0x40
 #define DUEL_RELAY             0x80
 #define DUEL_OBSOLETE_IGNITION 0x100
