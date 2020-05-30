@@ -4371,7 +4371,7 @@ int32 field::add_chain(uint16 step) {
 		auto& clit = core.current_chain.back();
 		int32 playerid = clit.triggering_player;
 		effect* peffect = clit.triggering_effect;
-		if(get_cteffect(peffect, playerid, TRUE)) {
+		if(!is_flag(DUEL_USE_TRAPS_IN_NEW_CHAIN) && get_cteffect(peffect, playerid, TRUE)) {
 			const bool damage_step = infos.phase == PHASE_DAMAGE && !peffect->is_flag(EFFECT_FLAG_DAMAGE_STEP);
 			const bool damage_cal = infos.phase == PHASE_DAMAGE_CAL && !peffect->is_flag(EFFECT_FLAG_DAMAGE_CAL);
 			if(damage_step || damage_cal) {
