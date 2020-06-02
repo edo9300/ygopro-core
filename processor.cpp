@@ -2937,15 +2937,23 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_EVENT);
-		message->write<uint8>(0);
-		message->write<uint64>(40);
-		message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_EVENT);
-		message->write<uint8>(1);
-		message->write<uint64>(40);
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
+		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
+			if(core.new_fchain.size() || core.new_ochain.size()) {
+				core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
+				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+				core.units.begin()->arg3 = TRUE;
+			}
+		} else {
+			message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(0);
+			message->write<uint64>(40);
+			message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(1);
+			message->write<uint64>(40);
+			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
+		}
 		return FALSE;
 	}
 	case 21: {
@@ -2954,6 +2962,21 @@ int32 field::process_battle_command(uint16 step) {
 			return FALSE;
 		}
 		if(!core.attack_target) {
+			if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
+				core.units.begin()->step = 23;
+				if(!core.units.begin()->arg3) {
+					auto message = pduel->new_message(MSG_HINT);
+					message->write<uint8>(HINT_EVENT);
+					message->write<uint8>(0);
+					message->write<uint64>(40);
+					message = pduel->new_message(MSG_HINT);
+					message->write<uint8>(HINT_EVENT);
+					message->write<uint8>(1);
+					message->write<uint64>(40);
+					core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
+					add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+				}
+			}
 			return FALSE;
 		}
 		core.attacker->temp.position = core.attacker->current.position;
@@ -2974,6 +2997,7 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
+		core.units.begin()->arg3 = core.new_fchain.size() || core.new_ochain.size();
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_EVENT);
 		message->write<uint8>(0);
@@ -3110,7 +3134,23 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		process_single_event();
 		process_instant_event();
-		//this timing does not exist in Master Rule 3
+		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
+			//this timing does not exist in Master Rule 2<
+			if(!core.effect_damage_step) {
+				auto message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_EVENT);
+				message->write<uint8>(0);
+				message->write<uint64>(45);
+				message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_EVENT);
+				message->write<uint8>(1);
+				message->write<uint64>(45);
+				core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
+				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+			} else {
+				break_effect();
+			}
+		}
 		core.damage_calculated = TRUE;
 		return FALSE;
 	}
@@ -3221,7 +3261,24 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		core.selfdes_disabled = FALSE;
 		adjust_all();
-		//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3
+		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
+			//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3
+			//this timing does not exist in Master Rule 2<
+			if(!core.effect_damage_step) {
+				auto message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_EVENT);
+				message->write<uint8>(0);
+				message->write<uint64>(45);
+				message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_EVENT);
+				message->write<uint8>(1);
+				message->write<uint64>(45);
+				core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
+				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+			} else {
+				break_effect();
+			}
+		}
 		return FALSE;
 	}
 	case 31: {
