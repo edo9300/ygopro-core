@@ -2976,18 +2976,16 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		if(!is_flag(DUEL_6_STEP_BATLLE_STEP)) {
-			auto message = pduel->new_message(MSG_HINT);
-			message->write<uint8>(HINT_EVENT);
-			message->write<uint8>(0);
-			message->write<uint64>(41);
-			message = pduel->new_message(MSG_HINT);
-			message->write<uint8>(HINT_EVENT);
-			message->write<uint8>(1);
-			message->write<uint64>(41);
-			core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
-		}
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(0);
+		message->write<uint64>(41);
+		message = pduel->new_message(MSG_HINT);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(1);
+		message->write<uint64>(41);
+		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
+		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
 		return FALSE;
 	}
 	case 23: {
