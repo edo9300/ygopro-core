@@ -187,7 +187,8 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if((code < 1132 || code > 1149) && pduel->game_field->infos.phase == PHASE_DAMAGE && !is_flag(EFFECT_FLAG_DAMAGE_STEP)
 					&& !pduel->game_field->get_cteffect(this, playerid, FALSE))
 					return FALSE;
-				if((code < 1134 || code > 1136) && pduel->game_field->infos.phase == PHASE_DAMAGE_CAL && !is_flag(EFFECT_FLAG_DAMAGE_CAL)
+				if((code < 1134 || code > 1136) && pduel->game_field->infos.phase == PHASE_DAMAGE_CAL &&
+					(!is_flag(EFFECT_FLAG_DAMAGE_CAL) && (!(category & 0x600000) || !pduel->game_field->is_flag(DUEL_6_STEP_BATLLE_STEP)))
 					&& !pduel->game_field->get_cteffect(this, playerid, FALSE))
 					return FALSE;
 			}
@@ -274,7 +275,8 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 			if(!(type & (EFFECT_TYPE_FLIP | EFFECT_TYPE_TRIGGER_F)) && !((type & EFFECT_TYPE_TRIGGER_O) && (type & EFFECT_TYPE_SINGLE))) {
 				if((code < 1132 || code > 1149) && pduel->game_field->infos.phase == PHASE_DAMAGE && !is_flag(EFFECT_FLAG_DAMAGE_STEP))
 					return FALSE;
-				if((code < 1134 || code > 1136) && pduel->game_field->infos.phase == PHASE_DAMAGE_CAL && !is_flag(EFFECT_FLAG_DAMAGE_CAL))
+				if((code < 1134 || code > 1136) && pduel->game_field->infos.phase == PHASE_DAMAGE_CAL &&
+					(!is_flag(EFFECT_FLAG_DAMAGE_CAL) && (!(category & 0x600000) || !pduel->game_field->is_flag(DUEL_6_STEP_BATLLE_STEP))))
 					return FALSE;
 			}
 			if(phandler->current.location == LOCATION_OVERLAY)
