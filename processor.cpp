@@ -3114,23 +3114,6 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		process_single_event();
 		process_instant_event();
-		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
-			//this timing does not exist in Master Rule 2<
-			if(!core.effect_damage_step) {
-				auto message = pduel->new_message(MSG_HINT);
-				message->write<uint8>(HINT_EVENT);
-				message->write<uint8>(0);
-				message->write<uint64>(45);
-				message = pduel->new_message(MSG_HINT);
-				message->write<uint8>(HINT_EVENT);
-				message->write<uint8>(1);
-				message->write<uint64>(45);
-				core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
-				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
-			} else {
-				break_effect();
-			}
-		}
 		core.damage_calculated = TRUE;
 		return FALSE;
 	}
@@ -3242,8 +3225,7 @@ int32 field::process_battle_command(uint16 step) {
 		core.selfdes_disabled = FALSE;
 		adjust_all();
 		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
-			//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3
-			//this timing does not exist in Master Rule 2<
+			//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3+
 			if(!core.effect_damage_step) {
 				auto message = pduel->new_message(MSG_HINT);
 				message->write<uint8>(HINT_EVENT);
