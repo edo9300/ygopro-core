@@ -79,7 +79,7 @@ int32 effect::is_available() {
 	if ((type & (EFFECT_TYPE_SINGLE | EFFECT_TYPE_XMATERIAL)) && !(type & EFFECT_TYPE_FIELD)) {
 		card* phandler = get_handler();
 		card* powner = get_owner();
-		if (phandler->current.controler == PLAYER_NONE)
+		if (phandler->current.controler == PLAYER_NONE && code != EFFECT_ADD_SETCODE && code != EFFECT_ADD_CODE)
 			return FALSE;
 		if(is_flag(EFFECT_FLAG_SINGLE_RANGE) && !in_range(phandler))
 			return FALSE;
