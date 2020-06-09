@@ -233,14 +233,18 @@ bool field::parse_response_cards(uint8 cancelable) {
 				list.push_back(core.select_cards[i]);
 		}
 	} else {
-		uint32 size = returns.at<int32>(1);
-		for(uint32 i = 0; i < size; ++i) {
-			list.push_back(core.select_cards[
+		try {
+			uint32 size = returns.at<int32>(1);
+			for(uint32 i = 0; i < size; ++i) {
+				list.push_back(core.select_cards.at(
 					(type == 0) ? returns.at<int32>(i + 2) :
 					(type == 1) ? returns.at<int16>(i + 4) :
 					returns.at<int8>(i + 8)
-			]
-			);
+				)
+				);
+			}
+		} catch(...) {
+			return false;
 		}
 	}
 	std::sort(list.begin(), list.end());
