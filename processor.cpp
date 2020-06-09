@@ -4821,8 +4821,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			add_process(PROCESSOR_SOLVE_CONTINUOUS, 0, 0, 0, 0, 0);
 		} else
 			core.conti_player = PLAYER_NONE;
-		auto message = pduel->new_message(MSG_CHAIN_SOLVED);
-		message->write<uint8>(cait->chain_count);
 		raise_event((card*)0, EVENT_CHAIN_SOLVED, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 		adjust_disable_check_list();
 		process_instant_event();
@@ -4830,6 +4828,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		return FALSE;
 	}
 	case 10: {
+		auto message = pduel->new_message(MSG_CHAIN_SOLVED);
+		message->write<uint8>(cait->chain_count);
 		effect* peffect = cait->triggering_effect;
 		card* pcard = peffect->get_handler();
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) && (cait->flag & CHAIN_ACTIVATING))
