@@ -257,8 +257,13 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 	if(step == 0) {
 		return_cards.clear();
 		returns.clear();
-		if(max == 0 || core.select_cards.empty())
+		if(max == 0 || core.select_cards.empty()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(playerid);
+			message->write<uint64>(0);
 			return TRUE;
+		}
 		if(max > core.select_cards.size())
 			max = static_cast<uint8>(core.select_cards.size());
 		if(min > max)
@@ -302,8 +307,13 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 	if (step == 0) {
 		return_cards.clear();
 		returns.clear();
-		if (core.select_cards.empty() && core.unselect_cards.empty())
+		if (core.select_cards.empty() && core.unselect_cards.empty()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(playerid);
+			message->write<uint64>(0);
 			return TRUE;
+		}
 		if ((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			if(cancelable)
 				return_cards.canceled = true;
@@ -403,8 +413,13 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 }
 int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count) {
 	if(step == 0) {
-		if(count == 0)
+		if(count == 0) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(playerid);
+			message->write<uint64>(0);
 			return TRUE;
+		}
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			flag = ~flag;
 			int32 filter;
@@ -514,8 +529,13 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 	if(step == 0) {
 		returns.clear();
 		return_cards.clear();
-		if(max == 0 || core.select_cards.empty())
+		if(max == 0 || core.select_cards.empty()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(playerid);
+			message->write<uint64>(0);
 			return TRUE;
+		}
 		uint8 tm = 0;
 		for(auto& pcard : core.select_cards)
 			tm += pcard->release_param;
@@ -588,10 +608,8 @@ int32 field::select_counter(uint16 step, uint8 playerid, uint16 countertype, uin
 			fp = 1 - fp;
 			avail = o;
 		}
-		if(count > total) {
-			pduel->new_message(MSG_RETRY);
-			return FALSE;
-		}
+		if(count > total)
+			count = total;
 		auto message = pduel->new_message(MSG_SELECT_COUNTER);
 		message->write<uint8>(playerid);
 		message->write<uint16>(countertype);
@@ -636,8 +654,13 @@ int32 field::select_with_sum_limit(int16 step, uint8 playerid, int32 acc, int32 
 	if(step == 0) {
 		return_cards.clear();
 		returns.clear();
-		if(core.select_cards.empty())
+		if(core.select_cards.empty()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(playerid);
+			message->write<uint64>(0);
 			return TRUE;
+		}
 		auto message = pduel->new_message(MSG_SELECT_SUM);
 		message->write<uint8>(playerid);
 		if(max)
@@ -724,8 +747,13 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 			returns.at<int8>(0) = -1;
 			return TRUE;
 		}
-		if(core.select_cards.empty())
+		if(core.select_cards.empty()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_SELECTMSG);
+			message->write<uint8>(playerid);
+			message->write<uint64>(0);
 			return TRUE;
+		}
 		auto message = pduel->new_message((is_chain) ? MSG_SORT_CHAIN : MSG_SORT_CARD);
 		message->write<uint8>(playerid);
 		message->write<uint32>(core.select_cards.size());
