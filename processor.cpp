@@ -350,7 +350,7 @@ int32 field::process() {
 		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_MOVETOFIELD: {
-		if (move_to_field(it->step, (card*)it->ptarget, it->arg1 & 0xff, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff, (it->arg1 >> 32) & 0xff, (it->arg1 >> 40) & 0xff, (it->arg1 >> 48) & 0xff))
+		if (move_to_field(it->step, (card*)it->ptarget, it->arg1 & 0xff, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff, it->arg2 & 0xff, (it->arg2 >> 8) & 0xff, (it->arg2 >> 16) & 0xff))
 			core.units.pop_front();
 		else
 			it->step++;

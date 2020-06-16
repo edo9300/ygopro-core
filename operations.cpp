@@ -326,7 +326,7 @@ void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uin
 		return;
 	if(destination == target->current.location && playerid == target->current.controler)
 		return;
-	uint32 pzone = false;
+	uint8 pzone = false;
 	if(destination == LOCATION_PZONE) {
 		destination = LOCATION_SZONE;
 		pzone = true;
@@ -336,7 +336,7 @@ void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uin
 		zone = 0x1 << 5;
 	}
 	target->to_field_param = (move_player << 24) + (playerid << 16) + ((destination & 0xff) << 8) + positions;
-	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable | (ret << 8) | (pzone << 16) | (zone << 24) | (rule << 32) | (reason << 40) | (confirm << 48), 0);
+	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable | (ret << 8) | (pzone << 16) | (zone << 24), rule | (reason << 8) | (confirm << 16));
 }
 void field::change_position(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 au, uint32 ad, uint32 du, uint32 dd, uint32 flag, uint32 enable) {
 	group* ng = pduel->new_group(*targets);
@@ -2838,7 +2838,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			}
 			positions &= eff->get_value();
 		}
-		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone);
+		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone, TRUE);
 		target->current.reason = REASON_SPSUMMON;
 		target->current.reason_effect = peffect;
 		target->current.reason_player = sumplayer;
