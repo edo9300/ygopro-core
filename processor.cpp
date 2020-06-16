@@ -4292,6 +4292,8 @@ int32 field::add_chain(uint16 step) {
 					phandler->set_status(STATUS_ACT_FROM_HAND, TRUE);
 					if(phandler->data.type & TYPE_PENDULUM) {
 						loc = LOCATION_PZONE;
+					} else if(phandler->data.type & TYPE_FIELD){
+						loc = LOCATION_FZONE;
 					} else {
 						loc = LOCATION_SZONE;
 					}
