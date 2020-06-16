@@ -350,7 +350,7 @@ int32 field::process() {
 		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_MOVETOFIELD: {
-		if (move_to_field(it->step, (card*)it->ptarget, it->arg1, it->arg2 & 0xff, (it->arg2 >> 8) & 0xff, it->arg3 & 0xff, (it->arg3 >> 8) & 0xff, (it->arg3 >> 16) & 0xff, it->arg4 & 0xff, (it->arg4 >> 8) & 0xff))
+		if (move_to_field(it->step, (card*)it->ptarget, it->arg1 & 0xff, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff, (it->arg1 >> 32) & 0xff, (it->arg1 >> 40) & 0xff, (it->arg1 >> 48) & 0xff))
 			core.units.pop_front();
 		else
 			it->step++;
@@ -4303,7 +4303,7 @@ int32 field::add_chain(uint16 step) {
 					if(loc == LOCATION_MZONE) {
 						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP_ATTACK);
 					} else {
-						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP, FALSE, 0, FALSE, zone);
+						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP, FALSE, 0, zone);
 					}
 				}
 			}
