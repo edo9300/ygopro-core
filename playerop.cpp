@@ -277,7 +277,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		core.units.begin()->arg2 = ((uint32)min) + (((uint32)max) << 16);
 		auto message = pduel->new_message(MSG_SELECT_CARD);
 		message->write<uint8>(playerid);
-		message->write<uint8>(cancelable);
+		message->write<uint8>(cancelable || min == 0);
 		message->write<uint32>(min);
 		message->write<uint32>(max);
 		message->write<uint32>((uint32)core.select_cards.size());
@@ -288,7 +288,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		}
 		return FALSE;
 	} else {
-		if(!parse_response_cards(cancelable)) {
+		if(!parse_response_cards(cancelable || min == 0)) {
 			return_cards.clear();
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
@@ -548,7 +548,7 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		core.units.begin()->arg2 = ((uint32)min) + (((uint32)max) << 16);
 		auto message = pduel->new_message(MSG_SELECT_TRIBUTE);
 		message->write<uint8>(playerid);
-		message->write<uint8>(cancelable);
+		message->write<uint8>(cancelable || min == 0);
 		message->write<uint32>(min);
 		message->write<uint32>(max);
 		message->write<uint32>((uint32)core.select_cards.size());
@@ -562,7 +562,7 @@ int32 field::select_tribute(uint16 step, uint8 playerid, uint8 cancelable, uint8
 		}
 		return FALSE;
 	} else {
-		if(!parse_response_cards(cancelable)) {
+		if(!parse_response_cards(cancelable || min == 0)) {
 			return_cards.clear();
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
