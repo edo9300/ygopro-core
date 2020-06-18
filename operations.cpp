@@ -1402,6 +1402,10 @@ int32 field::self_destroy(uint16 step, card* ucard, int32 p) {
 int32 field::trap_monster_adjust(uint16 step) {
 	switch(step) {
 	case 0: {
+		if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE)) {
+			core.units.begin()->step = 3;
+			return FALSE;
+		}
 		card_set* to_grave_set = new card_set;
 		core.units.begin()->ptr1 = to_grave_set;
 		return FALSE;
@@ -1455,14 +1459,18 @@ int32 field::trap_monster_adjust(uint16 step) {
 		for(uint8 p = 0; p < 2; ++p) {
 			for(auto& pcard : core.trap_monster_adjust_set[tp]) {
 				pcard->reset(RESET_TURN_SET, RESET_EVENT);
+				if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE))
+					refresh_location_info_instant();
 				move_to_field(pcard, tp, tp, LOCATION_SZONE, pcard->current.position, FALSE, 2);
 			}
 			tp = 1 - tp;
 		}
 		card_set* to_grave_set = (card_set*)core.units.begin()->ptr1;
-		if(to_grave_set->size())
-			send_to(to_grave_set, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
-		delete to_grave_set;
+		if(to_grave_set) {
+			if(to_grave_set->size())
+				send_to(to_grave_set, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			delete to_grave_set;
+		}
 		return TRUE;
 	}
 	}
