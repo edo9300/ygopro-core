@@ -1915,7 +1915,6 @@ void card::enable_field_effect(bool enabled) {
 			reset(RESET_DISABLE, RESET_EVENT);
 	} else
 		set_status(STATUS_EFFECT_ENABLED, FALSE);
-	filter_immune_effect();
 	if (get_status(STATUS_DISABLED | STATUS_FORBIDDEN))
 		return;
 	filter_disable_related_cards();
@@ -2298,26 +2297,17 @@ void card::reset_effect_count() {
 // refresh STATUS_DISABLED based on EFFECT_DISABLE and EFFECT_CANNOT_DISABLE
 // refresh STATUS_FORBIDDEN based on EFFECT_FORBIDDEN
 void card::refresh_disable_status() {
-	// forbidden
-	int32 pre_fb = is_status(STATUS_FORBIDDEN);
 	filter_immune_effect();
+	// forbidden
 	if (is_affected_by_effect(EFFECT_FORBIDDEN))
 		set_status(STATUS_FORBIDDEN, TRUE);
 	else
 		set_status(STATUS_FORBIDDEN, FALSE);
-	int32 cur_fb = is_status(STATUS_FORBIDDEN);
-	if(pre_fb != cur_fb)
-		filter_immune_effect();
 	// disabled
-	int32 pre_dis = is_status(STATUS_DISABLED);
-	filter_immune_effect();
 	if (!is_affected_by_effect(EFFECT_CANNOT_DISABLE) && is_affected_by_effect(EFFECT_DISABLE))
 		set_status(STATUS_DISABLED, TRUE);
 	else
 		set_status(STATUS_DISABLED, FALSE);
-	int32 cur_dis = is_status(STATUS_DISABLED);
-	if(pre_dis != cur_dis)
-		filter_immune_effect();
 }
 std::tuple<uint8, effect*> card::refresh_control_status() {
 	uint8 final = owner;
@@ -2709,23 +2699,19 @@ void card::filter_immune_effect() {
 	immune_effect.clear();
 	auto rg = single_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
-		if (peffect->is_available())
-			immune_effect.push_back(peffect);
+		immune_effect.add_item(rg.first->second);
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
-			if (peffect->is_available())
-				immune_effect.push_back(peffect);
+			immune_effect.add_item(rg.first->second);
 		}
 	}
 	for (auto& pcard : effect_target_owner) {
 		rg = pcard->target_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 		for (; rg.first != rg.second; ++rg.first) {
 			peffect = rg.first->second;
-			if(peffect->is_target(this) && peffect->is_available())
+			if(peffect->is_target(this))
 				immune_effect.push_back(peffect);
 		}
 	}
@@ -2735,14 +2721,13 @@ void card::filter_immune_effect() {
 			peffect = rg.first->second;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
-			if (peffect->is_available())
-				immune_effect.push_back(peffect);
+			immune_effect.push_back(peffect);
 		}
 	}
 	rg = pduel->game_field->effects.aura_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
-		if (peffect->is_target(this) && peffect->is_available())
+		if (peffect->is_target(this))
 			immune_effect.push_back(peffect);
 	}
 	std::sort(immune_effect.begin(), immune_effect.end(), effect_sort_id);
