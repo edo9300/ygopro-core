@@ -1594,7 +1594,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			effect_set eset;
 			int32 res = target->filter_summon_procedure(sumplayer, &eset, ignore_count, min_tribute, zone);
 			if(proc) {
-				if(res < 0)
+				if(res < 0 || !target->check_summon_procedure(proc, sumplayer, ignore_count, min_tribute, zone))
 					return TRUE;
 			} else {
 				if(res == -2)
@@ -1635,23 +1635,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			core.units.begin()->ptr1 = 0;
 			return FALSE;
 		}
-		if(proc) {
-			core.units.begin()->step = 3;
-			if(!ignore_count && !core.extra_summon[sumplayer]) {
-				for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-					std::vector<int32> retval;
-					eset[i]->get_value(target, 0, &retval);
-					if(retval.size() < 2) {
-						core.units.begin()->ptr1 = eset[i];
-						return FALSE;
-					}
-				}
-			}
-			core.units.begin()->ptr1 = 0;
-			return FALSE;
+		if(!proc) {
+			proc = core.select_effects[returns.at<int32>(0)];
+			core.units.begin()->peffect = peffect;
 		}
-		effect* peffect = core.select_effects[returns.at<int32>(0)];
-		core.units.begin()->peffect = peffect;
 		core.select_effects.clear();
 		core.select_options.clear();
 		if(ignore_count || core.summon_count[sumplayer] < get_summon_count_limit(sumplayer)) {
@@ -1668,10 +1655,10 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
 					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
-				if(peffect) {
+				if(proc) {
 					if(new_min_tribute < (int32)min_tribute)
 						new_min_tribute = min_tribute;
-					if(!target->is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
+					if(!target->is_summonable(proc, new_min_tribute, new_zone, releasable, eset[i]))
 						continue;
 				} else {
 					int32 rcount = target->get_summon_tribute_count();
@@ -2188,7 +2175,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 		effect_set eset;
 		int32 res = target->filter_set_procedure(setplayer, &eset, ignore_count, min_tribute, zone);
 		if(proc) {
-			if(res < 0)
+			if(res < 0 || !target->check_set_procedure(proc, setplayer, ignore_count, min_tribute, zone))
 				return TRUE;
 		} else {
 			if(res == -2)
@@ -2214,23 +2201,10 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 	case 1: {
 		effect_set eset;
 		target->filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
-		if(proc) {
-			core.units.begin()->step = 3;
-			if(!ignore_count && !core.extra_summon[setplayer]) {
-				for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-					std::vector<int32> retval;
-					eset[i]->get_value(target, 0, &retval);
-					if(retval.size() < 2) {
-						core.units.begin()->ptr1 = eset[i];
-						return FALSE;
-					}
-				}
-			}
-			core.units.begin()->ptr1 = 0;
-			return FALSE;
+		if(!proc) {
+			proc = core.select_effects[returns.at<int32>(0)];
+			core.units.begin()->peffect = proc;
 		}
-		effect* peffect = core.select_effects[returns.at<int32>(0)];
-		core.units.begin()->peffect = peffect;
 		core.select_effects.clear();
 		core.select_options.clear();
 		if(ignore_count || core.summon_count[setplayer] < get_summon_count_limit(setplayer)) {
@@ -2247,10 +2221,10 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 				if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
 					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
-				if(peffect) {
+				if(proc) {
 					if(new_min_tribute < (int32)min_tribute)
 						new_min_tribute = min_tribute;
-					if(!target->is_summonable(peffect, new_min_tribute, new_zone, releasable, eset[i]))
+					if(!target->is_summonable(proc, new_min_tribute, new_zone, releasable, eset[i]))
 						continue;
 				} else {
 					int32 rcount = target->get_set_tribute_count();
