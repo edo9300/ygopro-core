@@ -1892,7 +1892,7 @@ int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup) {
 		return count;
 	}
 	for(int i = 0; i < 2; i++) {
-		if((i == self && s) || (i == self && o)) {
+		if((i == self && s) || (i == (1 - self) && o)) {
 			for(auto& pcard : player[i].list_mzone) {
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 					count += pcard->xyz_materials.size();
