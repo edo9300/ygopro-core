@@ -1901,7 +1901,7 @@ int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup) {
 	}
 	return count;
 }
-// put all cards in the target of peffect into effects.disable_check_set, effects.disable_check_list
+// put all cards in the target of peffect into effects.disable_check_set
 void field::update_disable_check_list(effect* peffect) {
 	card_set cset;
 	filter_affected_cards(peffect, &cset);
@@ -1909,43 +1909,27 @@ void field::update_disable_check_list(effect* peffect) {
 		add_to_disable_check_list(pcard);
 }
 void field::add_to_disable_check_list(card* pcard) {
-	if (effects.disable_check_set.find(pcard) != effects.disable_check_set.end())
-		return;
 	effects.disable_check_set.insert(pcard);
-	effects.disable_check_list.push_back(pcard);
 }
 void field::adjust_disable_check_list() {
-	card* checking;
-	int32 pre_disable, new_disable;
-	if (!effects.disable_check_list.size())
-		return;
-	card_set checked;
-	do {
-		checked.clear();
-		while (effects.disable_check_list.size()) {
-			checking = effects.disable_check_list.front();
-			effects.disable_check_list.pop_front();
-			effects.disable_check_set.erase(checking);
-			checked.insert(checking);
-			if (checking->is_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE))
-				continue;
-			pre_disable = checking->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
-			checking->refresh_disable_status();
-			new_disable = checking->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
-			if (pre_disable != new_disable && checking->is_status(STATUS_EFFECT_ENABLED)) {
-				checking->filter_disable_related_cards();
-				if (pre_disable)
-					checking->set_status(STATUS_TO_ENABLE, TRUE);
+	for(const auto& pcard : effects.disable_check_set) {
+		if(!pcard->is_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE)) {
+			int32 pre_disable = pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
+			pcard->refresh_disable_status();
+			int32 new_disable = pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
+			if(pre_disable != new_disable && pcard->is_status(STATUS_EFFECT_ENABLED)) {
+				pcard->filter_disable_related_cards();
+				if(pre_disable)
+					pcard->set_status(STATUS_TO_ENABLE, TRUE);
 				else
-					checking->set_status(STATUS_TO_DISABLE, TRUE);
+					pcard->set_status(STATUS_TO_DISABLE, TRUE);
 			}
 		}
-		for (auto& pcard : checked) {
-			if(pcard->is_status(STATUS_DISABLED) && pcard->is_status(STATUS_TO_DISABLE) && !pcard->is_status(STATUS_TO_ENABLE))
-				pcard->reset(RESET_DISABLE, RESET_EVENT);
-			pcard->set_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE, FALSE);
-		}
-	} while(effects.disable_check_list.size());
+		if(pcard->is_status(STATUS_DISABLED) && pcard->is_status(STATUS_TO_DISABLE) && !pcard->is_status(STATUS_TO_ENABLE))
+			pcard->reset(RESET_DISABLE, RESET_EVENT);
+		pcard->set_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE, FALSE);
+	}
+	effects.disable_check_set.clear();
 }
 // adjust SetUniqueOnField(), EFFECT_SELF_DESTROY, EFFECT_SELF_TOGRAVE
 void field::adjust_self_destroy_set() {
