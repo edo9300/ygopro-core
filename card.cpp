@@ -4019,15 +4019,13 @@ int32 card::is_can_be_fusion_material(card* fcard, uint64 summon_type) {
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
 	effect_set eset;
-	if(summon_type & SUMMON_TYPE_FUSION) {
-		filter_effect(EFFECT_CANNOT_BE_FUSION_MATERIAL, &eset);
-		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-			pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
-			if(eset[i]->get_value(fcard, 1))
-				return FALSE;
-		}
-		eset.clear();
+	filter_effect(EFFECT_CANNOT_BE_FUSION_MATERIAL, &eset);
+	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
+		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
+		if(eset[i]->get_value(fcard, 1))
+			return FALSE;
 	}
+	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
