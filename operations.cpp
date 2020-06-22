@@ -1637,7 +1637,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		}
 		if(!proc) {
 			proc = core.select_effects[returns.at<int32>(0)];
-			core.units.begin()->peffect = peffect;
+			core.units.begin()->peffect = proc;
 		}
 		core.select_effects.clear();
 		core.select_options.clear();
