@@ -317,9 +317,9 @@ public:
 	int32 is_capable_be_battle_target(card* pcard);
 	int32 is_capable_be_effect_target(effect* peffect, uint8 playerid);
 	int32 is_capable_overlay(uint8 playerid);
-	int32 is_can_be_fusion_material(card* fcard, uint64 summon_type);
+	int32 is_can_be_fusion_material(card* fcard, uint64 summon_type, uint8 playerid);
 	int32 is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner = 0);
-	int32 is_can_be_ritual_material(card* scard);
+	int32 is_can_be_ritual_material(card* scard, uint8 playerid);
 	int32 is_can_be_xyz_material(card* scard, uint8 playerid);
 	int32 is_can_be_link_material(card* scard, uint8 playerid);
 	int32 is_can_be_material(card* scard, uint64 sumtype, uint8 playerid);

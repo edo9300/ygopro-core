@@ -2676,9 +2676,12 @@ int32 scriptlib::card_is_can_be_fusion_material(lua_State *L) {
 		fcard = *(card**)lua_touserdata(L, 2);
 	}
 	uint64 summon_type = SUMMON_TYPE_FUSION;
-	if(lua_gettop(L) >= 3)
+	if(lua_gettop(L) >= 3 && !lua_isnil(L, 3))
 		summon_type = lua_tonumber(L, 3);
-	lua_pushboolean(L, pcard->is_can_be_fusion_material(fcard, summon_type));
+	uint8 playerid = pcard->pduel->game_field->core.reason_player;
+	if(lua_gettop(L) >= 4 && !lua_isnil(L, 4))
+		playerid = lua_tonumber(L, 4);
+	lua_pushboolean(L, pcard->is_can_be_fusion_material(fcard, summon_type, playerid));
 	return 1;
 }
 int32 scriptlib::card_is_can_be_synchro_material(lua_State *L) {
@@ -2711,7 +2714,10 @@ int32 scriptlib::card_is_can_be_ritual_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	lua_pushboolean(L, pcard->is_can_be_ritual_material(scard));
+	uint8 playerid = pcard->pduel->game_field->core.reason_player;
+	if(lua_gettop(L) >= 3 && !lua_isnil(L, 3))
+		playerid = lua_tonumber(L, 3);
+	lua_pushboolean(L, pcard->is_can_be_ritual_material(scard, playerid));
 	return 1;
 }
 int32 scriptlib::card_is_can_be_xyz_material(lua_State *L) {
