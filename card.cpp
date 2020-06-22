@@ -2699,12 +2699,12 @@ void card::filter_immune_effect() {
 	immune_effect.clear();
 	auto rg = single_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 	for (; rg.first != rg.second; ++rg.first) {
-		immune_effect.add_item(rg.first->second);
+		immune_effect.push_back(rg.first->second);
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 		for (; rg.first != rg.second; ++rg.first) {
-			immune_effect.add_item(rg.first->second);
+			immune_effect.push_back(rg.first->second);
 		}
 	}
 	for (auto& pcard : effect_target_owner) {
