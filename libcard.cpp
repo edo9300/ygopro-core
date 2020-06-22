@@ -2675,9 +2675,9 @@ int32 scriptlib::card_is_can_be_fusion_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		fcard = *(card**)lua_touserdata(L, 2);
 	}
-	uint32 summon_type = SUMMON_TYPE_FUSION;
+	uint64 summon_type = SUMMON_TYPE_FUSION;
 	if(lua_gettop(L) >= 3)
-		summon_type = lua_tointeger(L, 3);
+		summon_type = lua_tonumber(L, 3);
 	lua_pushboolean(L, pcard->is_can_be_fusion_material(fcard, summon_type));
 	return 1;
 }
@@ -2723,7 +2723,7 @@ int32 scriptlib::card_is_can_be_xyz_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	uint32 playerid = PLAYER_NONE;
+	uint8 playerid = PLAYER_NONE;
 	if(lua_gettop(L) >= 3) {
 		playerid = lua_tointeger(L, 3);
 	}
@@ -2739,7 +2739,7 @@ int32 scriptlib::card_is_can_be_link_material(lua_State *L) {
 		check_param(L, PARAM_TYPE_CARD, 2);
 		scard = *(card**) lua_touserdata(L, 2);
 	}
-	uint32 playerid = PLAYER_NONE;
+	uint8 playerid = PLAYER_NONE;
 	if(lua_gettop(L) >= 3) {
 		playerid = lua_tointeger(L, 3);
 	}
@@ -2750,13 +2750,13 @@ int32 scriptlib::card_is_can_be_material(lua_State * L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card* pcard = *(card**)lua_touserdata(L, 1);
-	uint64 sumtype = lua_tointeger(L, 2);
+	uint64 sumtype = lua_tonumber(L, 2);
 	card* scard = 0;
 	if(lua_gettop(L) >= 3) {
 		check_param(L, PARAM_TYPE_CARD, 3);
 		scard = *(card**)lua_touserdata(L, 3);
 	}
-	uint32 playerid = PLAYER_NONE;
+	uint8 playerid = PLAYER_NONE;
 	if(lua_gettop(L) >= 4) {
 		playerid = lua_tointeger(L, 4);
 	}

@@ -4015,21 +4015,26 @@ int32 card::is_capable_overlay(uint8 playerid) {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_can_be_fusion_material(card* fcard, uint32 summon_type) {
+int32 card::is_can_be_fusion_material(card* fcard, uint64 summon_type) {
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
 	effect_set eset;
-	filter_effect(EFFECT_CANNOT_BE_FUSION_MATERIAL, &eset);
-	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
-		if(eset[i]->get_value(fcard, 1))
-			return FALSE;
+	if(summon_type & SUMMON_TYPE_FUSION) {
+		filter_effect(EFFECT_CANNOT_BE_FUSION_MATERIAL, &eset);
+		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
+			pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
+			if(eset[i]->get_value(fcard, 1))
+				return FALSE;
+		}
+		eset.clear();
 	}
-	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-		pduel->lua->add_param(SUMMON_TYPE_FUSION, PARAM_TYPE_INT);
-		pduel->lua->add_param(fcard->current.controler, PARAM_TYPE_INT);
+		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
+		if(fcard)
+			pduel->lua->add_param(fcard->current.controler, PARAM_TYPE_INT);
+		else
+			pduel->lua->add_param(nullptr, PARAM_TYPE_CARD);
 		if(eset[i]->get_value(fcard, 2))
 			return FALSE;
 	}
@@ -4135,16 +4140,16 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 	}
 	return TRUE;
 }
-int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
-	if(sumtype == SUMMON_TYPE_FUSION)
-		return is_can_be_fusion_material(scard, SUMMON_TYPE_FUSION);
-	if(sumtype == SUMMON_TYPE_SYNCHRO)
+int32 card::is_can_be_material(card * scard, uint64 sumtype, uint8 playerid) {
+	if(sumtype & SUMMON_TYPE_FUSION)
+		return is_can_be_fusion_material(scard, sumtype);
+	if(sumtype & SUMMON_TYPE_SYNCHRO)
 		return is_can_be_synchro_material(scard, playerid);
-	if(sumtype == SUMMON_TYPE_RITUAL)
+	if(sumtype & SUMMON_TYPE_RITUAL)
 		return is_can_be_ritual_material(scard);
-	if(sumtype == SUMMON_TYPE_XYZ)
+	if(sumtype & SUMMON_TYPE_XYZ)
 		return is_can_be_xyz_material(scard, playerid);
-	if(sumtype == SUMMON_TYPE_LINK)
+	if(sumtype & SUMMON_TYPE_LINK)
 		return is_can_be_link_material(scard, playerid);
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
