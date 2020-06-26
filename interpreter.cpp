@@ -602,6 +602,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "AssumeReset", scriptlib::duel_assume_reset },
 	{ "GetCardFromCardID", scriptlib::duel_get_card_from_cardid },
 	{ "LoadScript", scriptlib::duel_load_script },
+	{ "GetStartingHand", scriptlib::duel_get_starting_hand },
 	{ NULL, NULL }
 };
 

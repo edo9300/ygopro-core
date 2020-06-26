@@ -4605,3 +4605,12 @@ int32 scriptlib::duel_majestic_copy(lua_State *L) {
 	}
 	return 0;
 }
+int32 scriptlib::duel_get_starting_hand(lua_State *L) {
+	check_param_count(L, 1);
+	duel* pduel = interpreter::get_duel_info(L);
+	int32 playerid = lua_tointeger(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	lua_pushinteger(L, pduel->game_field->player[playerid].start_count);
+	return 1;
+}
