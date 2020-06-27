@@ -1306,6 +1306,20 @@ int32 scriptlib::card_check_equip_target(lua_State *L) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
+int32 scriptlib::card_check_union_target(lua_State *L) {
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_CARD, 1);
+	check_param(L, PARAM_TYPE_CARD, 2);
+	card* pcard = *(card**) lua_touserdata(L, 1);
+	card* target = *(card**) lua_touserdata(L, 2);
+	if(pcard->is_affected_by_effect(EFFECT_UNION_LIMIT, target)
+		&& ((!pcard->is_affected_by_effect(EFFECT_OLDUNION_STATUS) || target->get_union_count() == 0)
+			&& (!pcard->is_affected_by_effect(EFFECT_UNION_STATUS) || target->get_old_union_count() == 0)))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+	return 1;
+}
 int32 scriptlib::card_get_union_count(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);

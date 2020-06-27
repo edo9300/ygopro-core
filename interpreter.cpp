@@ -124,6 +124,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetEquipTarget", scriptlib::card_get_equip_target },
 	{ "GetPreviousEquipTarget", scriptlib::card_get_pre_equip_target },
 	{ "CheckEquipTarget", scriptlib::card_check_equip_target },
+	{ "CheckUnionTarget", scriptlib::card_check_union_target },
 	{ "GetUnionCount", scriptlib::card_get_union_count },
 	{ "GetOverlayGroup", scriptlib::card_get_overlay_group },
 	{ "GetOverlayCount", scriptlib::card_get_overlay_count },
