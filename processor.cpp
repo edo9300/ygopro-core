@@ -3676,7 +3676,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					core.attack_target->filter_effect(EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 					filter_player_effect(pa, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 					filter_player_effect(1 - pa, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
-					std::sort(eset.begin(), eset.end(), effect_sort_id);;
+					std::sort(eset.begin(), eset.end(), effect_sort_id);
 					for(uint8 p = 0; p < 2; ++p) {
 						bool double_dam = false;
 						bool half_dam = false;
@@ -3685,9 +3685,12 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 							int32 val = -1;
 							if(!eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 								pduel->lua->add_param(p, PARAM_TYPE_INT);
+								pduel->lua->add_param(eset[i]->get_handler() == core.attacker, PARAM_TYPE_BOOLEAN);
+								val = eset[i]->get_value(2);
+							} else if(eset[i]->is_target_player(p)) {
+								pduel->lua->add_param(eset[i]->get_handler() == core.attacker, PARAM_TYPE_BOOLEAN);
 								val = eset[i]->get_value(1);
-							} else if(eset[i]->is_target_player(p))
-								val = eset[i]->get_value();
+							}
 							if(val == 0) {
 								dam_value = 0;
 								break;
@@ -3796,7 +3799,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 			dam_card->filter_effect(EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 		filter_player_effect(damp, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
 		filter_player_effect(1 - damp, EFFECT_CHANGE_BATTLE_DAMAGE, &eset, FALSE);
-		std::sort(eset.begin(), eset.end(), effect_sort_id);;
+		std::sort(eset.begin(), eset.end(), effect_sort_id);
 		for(uint8 p = 0; p < 2; ++p) {
 			bool double_dam = false;
 			bool half_dam = false;
@@ -3805,9 +3808,12 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 				int32 val = -1;
 				if(!eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 					pduel->lua->add_param(p, PARAM_TYPE_INT);
+					pduel->lua->add_param(eset[i]->get_handler() == reason_card, PARAM_TYPE_BOOLEAN);
+					val = eset[i]->get_value(2);
+				} else if(eset[i]->is_target_player(p)) {
+					pduel->lua->add_param(eset[i]->get_handler() == reason_card, PARAM_TYPE_BOOLEAN);
 					val = eset[i]->get_value(1);
-				} else if(eset[i]->is_target_player(p))
-					val = eset[i]->get_value();
+				}
 				if(val == 0) {
 					dam_value = 0;
 					break;
