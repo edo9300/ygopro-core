@@ -1820,10 +1820,13 @@ int32 field::get_summon_count_limit(uint8 playerid) {
 }
 int32 field::get_draw_count(uint8 playerid) {
 	effect_set eset;
-	filter_player_effect(infos.turn_player, EFFECT_DRAW_COUNT, &eset);
+	filter_player_effect(playerid, EFFECT_DRAW_COUNT, &eset);
 	int32 count = player[playerid].draw_count;
-	if(eset.size())
-		count = eset.back()->get_value();
+	for(const auto& peffect : eset) {
+		int32 c = peffect->get_value();
+		if(c > count)
+			count = c;
+	}
 	return count;
 }
 void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* material) {
