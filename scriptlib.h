@@ -129,6 +129,7 @@ public:
 	static int32 card_get_equip_target(lua_State *L);
 	static int32 card_get_pre_equip_target(lua_State *L);
 	static int32 card_check_equip_target(lua_State *L);
+	static int32 card_check_union_target(lua_State *L);
 	static int32 card_get_union_count(lua_State *L);
 	static int32 card_get_overlay_group(lua_State *L);
 	static int32 card_get_overlay_count(lua_State *L);
@@ -607,6 +608,7 @@ public:
 	static int32 duel_get_player_count(lua_State *L);
 	static int32 duel_swap_deck_and_grave(lua_State *L);
 	static int32 duel_majestic_copy(lua_State *L);
+	static int32 duel_get_starting_hand(lua_State *L);
 
 	//preload
 	static int32 debug_message(lua_State *L);

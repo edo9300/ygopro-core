@@ -1915,7 +1915,6 @@ void card::enable_field_effect(bool enabled) {
 			reset(RESET_DISABLE, RESET_EVENT);
 	} else
 		set_status(STATUS_EFFECT_ENABLED, FALSE);
-	filter_immune_effect();
 	if (get_status(STATUS_DISABLED | STATUS_FORBIDDEN))
 		return;
 	filter_disable_related_cards();
@@ -2088,7 +2087,7 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 		if (!(data.type & TYPE_NORMAL) || (data.type & TYPE_PENDULUM)) {
 			set_status(STATUS_INITIALIZING, TRUE);
 			pduel->lua->add_param(this, PARAM_TYPE_CARD);
-			pduel->lua->call_card_function(this, (char*) "initial_effect", 1, 0);
+			pduel->lua->call_card_function(this, "initial_effect", 1, 0);
 			set_status(STATUS_INITIALIZING, FALSE);
 		}
 	}
@@ -2135,7 +2134,7 @@ int32 card::copy_effect(uint32 code, uint32 reset, uint32 count) {
 	pduel->game_field->core.copy_reset = reset;
 	pduel->game_field->core.copy_reset_count = count;
 	pduel->lua->add_param(this, PARAM_TYPE_CARD);
-	pduel->lua->call_code_function(code, (char*) "initial_effect", 1, 0);
+	pduel->lua->call_code_function(code, "initial_effect", 1, 0);
 	pduel->game_field->infos.copy_id++;
 	set_status(STATUS_COPYING_EFFECT, FALSE);
 	pduel->game_field->core.copy_reset = cr;
@@ -2179,7 +2178,7 @@ int32 card::replace_effect(uint32 code, uint32 reset, uint32 count) {
 	set_status(STATUS_INITIALIZING | STATUS_COPYING_EFFECT, TRUE);
 	pduel->lua->load_card_script(code);
 	pduel->lua->add_param(this, PARAM_TYPE_CARD);
-	pduel->lua->call_code_function(code, (char*) "initial_effect", 1, 0);
+	pduel->lua->call_code_function(code, "initial_effect", 1, 0);
 	set_status(STATUS_INITIALIZING | STATUS_COPYING_EFFECT, FALSE);
 	pduel->game_field->infos.copy_id++;
 	pduel->game_field->core.copy_reset = cr;
@@ -2298,26 +2297,17 @@ void card::reset_effect_count() {
 // refresh STATUS_DISABLED based on EFFECT_DISABLE and EFFECT_CANNOT_DISABLE
 // refresh STATUS_FORBIDDEN based on EFFECT_FORBIDDEN
 void card::refresh_disable_status() {
-	// forbidden
-	int32 pre_fb = is_status(STATUS_FORBIDDEN);
 	filter_immune_effect();
+	// forbidden
 	if (is_affected_by_effect(EFFECT_FORBIDDEN))
 		set_status(STATUS_FORBIDDEN, TRUE);
 	else
 		set_status(STATUS_FORBIDDEN, FALSE);
-	int32 cur_fb = is_status(STATUS_FORBIDDEN);
-	if(pre_fb != cur_fb)
-		filter_immune_effect();
 	// disabled
-	int32 pre_dis = is_status(STATUS_DISABLED);
-	filter_immune_effect();
 	if (!is_affected_by_effect(EFFECT_CANNOT_DISABLE) && is_affected_by_effect(EFFECT_DISABLE))
 		set_status(STATUS_DISABLED, TRUE);
 	else
 		set_status(STATUS_DISABLED, FALSE);
-	int32 cur_dis = is_status(STATUS_DISABLED);
-	if(pre_dis != cur_dis)
-		filter_immune_effect();
 }
 std::tuple<uint8, effect*> card::refresh_control_status() {
 	uint8 final = owner;
@@ -2709,23 +2699,19 @@ void card::filter_immune_effect() {
 	immune_effect.clear();
 	auto rg = single_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
-		if (peffect->is_available())
-			immune_effect.push_back(peffect);
+		immune_effect.push_back(rg.first->second);
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
-			if (peffect->is_available())
-				immune_effect.push_back(peffect);
+			immune_effect.push_back(rg.first->second);
 		}
 	}
 	for (auto& pcard : effect_target_owner) {
 		rg = pcard->target_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 		for (; rg.first != rg.second; ++rg.first) {
 			peffect = rg.first->second;
-			if(peffect->is_target(this) && peffect->is_available())
+			if(peffect->is_target(this))
 				immune_effect.push_back(peffect);
 		}
 	}
@@ -2735,14 +2721,13 @@ void card::filter_immune_effect() {
 			peffect = rg.first->second;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
-			if (peffect->is_available())
-				immune_effect.push_back(peffect);
+			immune_effect.push_back(peffect);
 		}
 	}
 	rg = pduel->game_field->effects.aura_effect.equal_range(EFFECT_IMMUNE_EFFECT);
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
-		if (peffect->is_target(this) && peffect->is_available())
+		if (peffect->is_target(this))
 			immune_effect.push_back(peffect);
 	}
 	std::sort(immune_effect.begin(), immune_effect.end(), effect_sort_id);
@@ -2959,7 +2944,7 @@ void card::filter_spsummon_procedure(uint8 playerid, effect_set* peset, uint32 s
 			toplayer = playerid;
 		}
 		if(peffect->is_available() && peffect->check_count_limit(playerid) && is_spsummonable(peffect)
-				&& !pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE)) {
+				&& ((topos & POS_FACEDOWN) || !pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE))) {
 			effect* sumeffect = pduel->game_field->core.reason_effect;
 			if(!sumeffect)
 				sumeffect = peffect;
@@ -3378,7 +3363,7 @@ int32 card::is_can_be_summoned(uint8 playerid, uint8 ignore_count, effect* peffe
 		effect_set proc;
 		int32 res = filter_summon_procedure(playerid, &proc, ignore_count, min_tribute, zone);
 		if(peffect) {
-			if(res < 0 || !pduel->game_field->is_player_can_summon(peffect->get_value(), playerid, this, playerid)) {
+			if(res < 0 || !check_summon_procedure(peffect, playerid, ignore_count, min_tribute, zone)) {
 				pduel->game_field->restore_lp_cost();
 				return FALSE;
 			}
@@ -3515,7 +3500,9 @@ int32 card::is_can_be_special_summoned(effect* reason_effect, uint32 sumtype, ui
 	if((data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP)
 		&& (sumtype == SUMMON_TYPE_FUSION || sumtype == SUMMON_TYPE_SYNCHRO || sumtype == SUMMON_TYPE_XYZ))
 		return FALSE;
-	if(((sumpos & POS_FACEDOWN) == 0) && pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE))
+	if((sumpos & POS_FACEDOWN) && pduel->game_field->is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
+		sumpos = (sumpos & POS_FACEUP) | ((sumpos & POS_FACEDOWN) >> 1);
+	if(!(sumpos & POS_FACEDOWN) && pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE))
 		return FALSE;
 	sumtype |= SUMMON_TYPE_SPECIAL;
 	if((sumplayer == 0 || sumplayer == 1) && !pduel->game_field->is_player_can_spsummon(reason_effect, sumtype, sumpos, sumplayer, toplayer, this))
@@ -3576,7 +3563,7 @@ int32 card::is_setable_mzone(uint8 playerid, uint8 ignore_count, effect* peffect
 	effect_set eset;
 	int32 res = filter_set_procedure(playerid, &eset, ignore_count, min_tribute, zone);
 	if(peffect) {
-		if(res < 0 || !pduel->game_field->is_player_can_mset(peffect->get_value(), playerid, this, playerid)) {
+		if(res < 0 || !check_set_procedure(peffect, playerid, ignore_count, min_tribute, zone)) {
 			pduel->game_field->restore_lp_cost();
 			return FALSE;
 		}
@@ -4000,6 +3987,8 @@ int32 card::is_capable_be_battle_target(card* pcard) {
 int32 card::is_capable_be_effect_target(effect* peffect, uint8 playerid) {
 	if(is_status(STATUS_SUMMONING) || is_status(STATUS_BATTLE_DESTROYED))
 		return FALSE;
+	if(current.location & (LOCATION_DECK | LOCATION_EXTRA | LOCATION_HAND))
+		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_EFFECT_TARGET, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
@@ -4025,7 +4014,7 @@ int32 card::is_capable_overlay(uint8 playerid) {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_can_be_fusion_material(card* fcard, uint32 summon_type) {
+int32 card::is_can_be_fusion_material(card* fcard, uint64 summon_type, uint8 playerid) {
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
 	effect_set eset;
@@ -4038,8 +4027,8 @@ int32 card::is_can_be_fusion_material(card* fcard, uint32 summon_type) {
 	eset.clear();
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-		pduel->lua->add_param(SUMMON_TYPE_FUSION, PARAM_TYPE_INT);
-		pduel->lua->add_param(fcard->current.controler, PARAM_TYPE_INT);
+		pduel->lua->add_param(summon_type, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(fcard, 2))
 			return FALSE;
 	}
@@ -4082,14 +4071,14 @@ int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner)
 	}
 	return TRUE;
 }
-int32 card::is_can_be_ritual_material(card* scard) {
+int32 card::is_can_be_ritual_material(card* scard, uint8 playerid) {
 	if(!(get_type() & TYPE_MONSTER))
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		pduel->lua->add_param(SUMMON_TYPE_RITUAL, PARAM_TYPE_INT);
-		pduel->lua->add_param(scard->current.controler, PARAM_TYPE_INT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 		if(eset[i]->get_value(scard, 2))
 			return FALSE;
 	}
@@ -4145,16 +4134,16 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 	}
 	return TRUE;
 }
-int32 card::is_can_be_material(card * scard, uint32 sumtype, uint8 playerid) {
-	if(sumtype == SUMMON_TYPE_FUSION)
-		return is_can_be_fusion_material(scard, SUMMON_TYPE_FUSION);
-	if(sumtype == SUMMON_TYPE_SYNCHRO)
+int32 card::is_can_be_material(card * scard, uint64 sumtype, uint8 playerid) {
+	if(sumtype & SUMMON_TYPE_FUSION)
+		return is_can_be_fusion_material(scard, sumtype, playerid);
+	if(sumtype & SUMMON_TYPE_SYNCHRO)
 		return is_can_be_synchro_material(scard, playerid);
-	if(sumtype == SUMMON_TYPE_RITUAL)
-		return is_can_be_ritual_material(scard);
-	if(sumtype == SUMMON_TYPE_XYZ)
+	if(sumtype & SUMMON_TYPE_RITUAL)
+		return is_can_be_ritual_material(scard, playerid);
+	if(sumtype & SUMMON_TYPE_XYZ)
 		return is_can_be_xyz_material(scard, playerid);
-	if(sumtype == SUMMON_TYPE_LINK)
+	if(sumtype & SUMMON_TYPE_LINK)
 		return is_can_be_link_material(scard, playerid);
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;

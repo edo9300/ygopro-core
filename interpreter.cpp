@@ -124,6 +124,7 @@ static const struct luaL_Reg cardlib[] = {
 	{ "GetEquipTarget", scriptlib::card_get_equip_target },
 	{ "GetPreviousEquipTarget", scriptlib::card_get_pre_equip_target },
 	{ "CheckEquipTarget", scriptlib::card_check_equip_target },
+	{ "CheckUnionTarget", scriptlib::card_check_union_target },
 	{ "GetUnionCount", scriptlib::card_get_union_count },
 	{ "GetOverlayGroup", scriptlib::card_get_overlay_group },
 	{ "GetOverlayCount", scriptlib::card_get_overlay_count },
@@ -602,6 +603,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "AssumeReset", scriptlib::duel_assume_reset },
 	{ "GetCardFromCardID", scriptlib::duel_get_card_from_cardid },
 	{ "LoadScript", scriptlib::duel_load_script },
+	{ "GetStartingHand", scriptlib::duel_get_starting_hand },
 	{ NULL, NULL }
 };
 
@@ -680,7 +682,7 @@ int32 interpreter::register_card(card *pcard) {
 		bool forced = !(pcard->data.type & TYPE_NORMAL) || (pcard->data.type & TYPE_PENDULUM);
 		pcard->set_status(STATUS_INITIALIZING, TRUE);
 		add_param(pcard, PARAM_TYPE_CARD);
-		call_card_function(pcard, (char*) "initial_effect", 1, 0, forced);
+		call_card_function(pcard, "initial_effect", 1, 0, forced);
 		pcard->set_status(STATUS_INITIALIZING, FALSE);
 	}
 	pcard->cardid = pduel->game_field->infos.card_id++;
@@ -912,7 +914,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 	}
 	return OPERATION_SUCCESS;
 }
-int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, int32 ret_count, bool forced) {
+int32 interpreter::call_card_function(card* pcard, const char* f, uint32 param_count, int32 ret_count, bool forced) {
 	if (param_count != params.size()) {
 		interpreter::print_stacktrace(current_state);
 		sprintf(pduel->strbuffer, "\"CallCardFunction\"(c%u.%s): incorrect parameter count", pcard->data.code, f);
@@ -957,7 +959,7 @@ int32 interpreter::call_card_function(card* pcard, char* f, uint32 param_count, 
 	}
 	return OPERATION_SUCCESS;
 }
-int32 interpreter::call_code_function(uint32 code, char* f, uint32 param_count, int32 ret_count) {
+int32 interpreter::call_code_function(uint32 code, const char* f, uint32 param_count, int32 ret_count) {
 	if (param_count != params.size()) {
 		interpreter::print_stacktrace(current_state);
 		sprintf(pduel->strbuffer, "%s", "\"CallCodeFunction\": incorrect parameter count");
