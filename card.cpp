@@ -3977,6 +3977,8 @@ int32 card::is_capable_be_battle_target(card* pcard) {
 int32 card::is_capable_be_effect_target(effect* peffect, uint8 playerid) {
 	if(is_status(STATUS_SUMMONING) || is_status(STATUS_BATTLE_DESTROYED))
 		return FALSE;
+	if(current.location & (LOCATION_DECK | LOCATION_EXTRA | LOCATION_HAND))
+		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_EFFECT_TARGET, &eset);
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
