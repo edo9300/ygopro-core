@@ -3274,7 +3274,7 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 	}
 	case 1: {
 		if(effect_set* peset = (effect_set*)core.units.begin()->ptr2) {
-			for(const auto& peffect : peset)
+			for(const auto& peffect : *peset)
 				release_oath_relation(peffect);
 			delete peset;
 			core.units.begin()->ptr2 = nullptr;
