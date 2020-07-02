@@ -1824,6 +1824,8 @@ int32 field::get_draw_count(uint8 playerid) {
 	int32 count = player[playerid].draw_count;
 	for(const auto& peffect : eset) {
 		int32 c = peffect->get_value();
+		if(c == 0)
+			return 0;
 		if(c > count)
 			count = c;
 	}
