@@ -3021,6 +3021,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				continue;
 			}
 			effect_set eset;
+			pcard->filter_effect(EFFECT_SPSUMMON_COST, &eset);
 			if(eset.size()) {
 				for(const auto& peffect : eset) {
 					if(peffect->operation) {
