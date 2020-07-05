@@ -1415,17 +1415,21 @@ int32 scriptlib::duel_get_control(lua_State *L) {
 		return 0;
 	uint32 reset_phase = 0;
 	uint32 reset_count = 0;
-	if(lua_gettop(L) >= 3) {
+	if(check_param(L, PARAM_TYPE_INT, 3, TRUE)) {
 		reset_phase = lua_tointeger(L, 3) & 0x3ff;
-		reset_count = lua_tointeger(L, 4) & 0xff;
+		if(check_param(L, PARAM_TYPE_INT, 4, TRUE))
+			reset_count = lua_tointeger(L, 4) & 0xff;
 	}
 	uint32 zone = 0xff;
-	if(lua_gettop(L) >= 5)
+	if(check_param(L, PARAM_TYPE_INT, 5, TRUE))
 		zone = lua_tointeger(L, 5);
+	uint8 chose_player = pduel->game_field->core.reason_player;
+	if(check_param(L, PARAM_TYPE_INT, 6, TRUE))
+		chose_player = lua_tointeger(L, 6);
 	if(pcard)
-		pduel->game_field->get_control(pcard, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, reset_phase, reset_count, zone);
+		pduel->game_field->get_control(pcard, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
 	else
-		pduel->game_field->get_control(&pgroup->container, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, reset_phase, reset_count, zone);
+		pduel->game_field->get_control(&pgroup->container, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		lua_pushinteger(L, pduel->game_field->returns.at<int32>(0));

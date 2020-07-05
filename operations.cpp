@@ -880,7 +880,7 @@ int32 field::remove_overlay_card(uint16 step, uint32 reason, group* pgroup, uint
 	}
 	return TRUE;
 }
-int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player, group* targets, uint8 playerid, uint16 reset_phase, uint8 reset_count, uint32 zone) {
+int32 field::get_control(uint16 step, effect* reason_effect, uint8 chose_player, group* targets, uint8 playerid, uint16 reset_phase, uint8 reset_count, uint32 zone) {
 	switch(step) {
 	case 0: {
 		card_set* destroy_set = new card_set;
@@ -948,7 +948,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 			return FALSE;
 		}
 		card* pcard = *targets->it;
-		move_to_field(pcard, playerid, playerid, LOCATION_MZONE, pcard->current.position, FALSE, 0, zone);
+		move_to_field(pcard, (chose_player == PLAYER_NONE) ? core.reason_player : chose_player, playerid, LOCATION_MZONE, pcard->current.position, FALSE, 0, zone);
 		return FALSE;
 	}
 	case 4: {
@@ -962,6 +962,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 		return FALSE;
 	}
 	case 5: {
+		uint8 reason_player = chose_player == PLAYER_NONE ? PLAYER_NONE : core.reason_player;
 		for(auto cit = targets->container.begin(); cit != targets->container.end(); ) {
 			card* pcard = *cit++;
 			if(!(pcard->current.location & LOCATION_ONFIELD)) {
@@ -972,6 +973,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 reason_player
 				add_unique_card(pcard);
 			raise_single_event(pcard, 0, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
 			raise_single_event(pcard, 0, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
+			pcard->set_status(STATUS_CONTROL_CHANGED, !pcard->get_status(STATUS_CONTROL_CHANGED));
 		}
 		if(targets->container.size()) {
 			raise_event(&targets->container, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
@@ -1127,6 +1129,7 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 				add_unique_card(pcard);
 			raise_single_event(pcard, 0, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, pcard->current.controler, 0);
 			raise_single_event(pcard, 0, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, pcard->current.controler, 0);
+			pcard->set_status(STATUS_CONTROL_CHANGED, !pcard->get_status(STATUS_CONTROL_CHANGED));
 		}
 		raise_event(&targets1->container, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, 0, 0);
 		raise_event(&targets1->container, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, 0, 0);
@@ -1486,8 +1489,11 @@ int32 field::equip(uint16 step, uint8 equip_player, card * equip_card, card * ta
 		if(equip_card == target)
 			return TRUE;
 		bool to_grave = false;
-		if(target->current.location != LOCATION_MZONE || (target->current.position & POS_FACEDOWN))
+		if(target->current.location != LOCATION_MZONE || (target->current.position & POS_FACEDOWN)) {
+			if(is_flag(DUEL_EQUIP_NOT_SENT_IF_MISSING_TARGET) && equip_card->current.location == LOCATION_MZONE)
+				return TRUE;
 			to_grave = true;
+		}
 		if(equip_card->current.location != LOCATION_SZONE) {
 			refresh_location_info_instant();
 			if(get_useable_count(equip_card, equip_player, LOCATION_SZONE, equip_player, LOCATION_REASON_TOFIELD) <= 0)
