@@ -1421,7 +1421,8 @@ void field::filter_field_effect(uint32 code, effect_set* eset, uint8 sort) {
 		std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
 void field::filter_affected_cards(effect* peffect, card_set* cset) {
-	if((peffect->type & EFFECT_TYPE_ACTIONS) || !(peffect->type & EFFECT_TYPE_FIELD) || peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET))
+	if((peffect->type & EFFECT_TYPE_ACTIONS) || !(peffect->type & EFFECT_TYPE_FIELD)
+		|| peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET | EFFECT_FLAG_SPSUM_PARAM))
 		return;
 	uint8 self = peffect->get_handler_player();
 	if(self == PLAYER_NONE)
@@ -1454,7 +1455,7 @@ void field::filter_affected_cards(effect* peffect, card_set* cset) {
 	}
 }
 void field::filter_inrange_cards(effect* peffect, card_set* cset) {
-	if(peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET))
+	if(peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET | EFFECT_FLAG_SPSUM_PARAM))
 		return;
 	uint8 self = peffect->get_handler_player();
 	if(self == PLAYER_NONE)
