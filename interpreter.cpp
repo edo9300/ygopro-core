@@ -1153,6 +1153,8 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 		int32 return_value = 0;
 		if(lua_isboolean(current_state, index))
 			return_value = lua_toboolean(current_state, index);
+		else if(lua_isinteger(current_state, index))
+			return_value = lua_tointeger(current_state, index);
 		else
 			return_value = std::round(lua_tonumber(current_state, index));
 		result->push_back(return_value);
