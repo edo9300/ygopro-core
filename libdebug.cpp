@@ -30,7 +30,7 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 	int32 location = lua_tointeger(L, 4);
 	int32 sequence = lua_tointeger(L, 5);
 	int32 position = lua_tointeger(L, 6);
-	int32 proc = lua_toboolean(L, 7);
+	int32 proc = lua_get<bool>(L, 7);
 	if(owner != 0 && owner != 1)
 		return 0;
 	if(playerid != 0 && playerid != 1)
@@ -88,7 +88,7 @@ int32 scriptlib::debug_set_player_info(lua_State *L) {
 int32 scriptlib::debug_pre_summon(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
+	auto pcard = lua_get<card*>(L, 1);
 	uint32 summon_type = lua_tointeger(L, 2);
 	uint8 summon_location = 0;
 	if(lua_gettop(L) > 2)
@@ -100,8 +100,8 @@ int32 scriptlib::debug_pre_equip(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	card* equip_card = *(card**) lua_touserdata(L, 1);
-	card* target = *(card**) lua_touserdata(L, 2);
+	auto equip_card = lua_get<card*>(L, 1);
+	auto target = lua_get<card*>(L, 2);
 	if((equip_card->current.location != LOCATION_SZONE)
 	        || (target->current.location != LOCATION_MZONE)
 	        || (target->current.position & POS_FACEDOWN))
@@ -118,15 +118,15 @@ int32 scriptlib::debug_pre_set_target(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	check_param(L, PARAM_TYPE_CARD, 2);
-	card* t_card = *(card**) lua_touserdata(L, 1);
-	card* target = *(card**) lua_touserdata(L, 2);
+	auto t_card = lua_get<card*>(L, 1);
+	auto target = lua_get<card*>(L, 2);
 	t_card->add_card_target(target);
 	return 0;
 }
 int32 scriptlib::debug_pre_add_counter(lua_State *L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_CARD, 1);
-	card* pcard = *(card**) lua_touserdata(L, 1);
+	auto pcard = lua_get<card*>(L, 1);
 	uint32 countertype = lua_tointeger(L, 2);
 	uint32 count = lua_tointeger(L, 3);
 	uint16 cttype = countertype & ~COUNTER_NEED_ENABLE;
@@ -147,7 +147,7 @@ int32 scriptlib::debug_reload_field_begin(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	uint32 flag = lua_tointeger(L, 1);
 	int32 rule = lua_tointeger(L, 2);
-	bool build = lua_toboolean(L, 3);
+	bool build = lua_get<bool>(L, 3);
 	if (!rule)
 		rule = 3;
 	pduel->clear();
