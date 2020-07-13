@@ -1924,12 +1924,12 @@ void field::add_to_disable_check_list(card* pcard) {
 }
 void field::adjust_disable_check_list() {
 	for(const auto& pcard : effects.disable_check_set) {
-		if(!pcard->is_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE)) {
+		if(!pcard->is_status(STATUS_TO_ENABLE | STATUS_TO_DISABLE)) { // prevent loop
 			int32 pre_disable = pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
 			pcard->refresh_disable_status();
 			int32 new_disable = pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN);
 			if(pre_disable != new_disable && pcard->is_status(STATUS_EFFECT_ENABLED)) {
-				pcard->filter_disable_related_cards();
+				pcard->filter_disable_related_cards(); // change effects.disable_check_list
 				if(pre_disable)
 					pcard->set_status(STATUS_TO_ENABLE, TRUE);
 				else
