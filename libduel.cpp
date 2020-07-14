@@ -3073,7 +3073,7 @@ int32 scriptlib::duel_get_ritual_material(lua_State *L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	bool check_level = true;
-	if(check_param(L, PARAM_TYPE_BOOLEAN, 2))
+	if(check_param(L, PARAM_TYPE_BOOLEAN, 2, TRUE))
 		check_level = lua_get<bool>(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
