@@ -3470,10 +3470,6 @@ int32 card::is_special_summonable(uint8 playerid, uint32 summon_type) {
 	}
 	effect_set eset;
 	filter_spsummon_procedure(playerid, &eset, summon_type);
-	pduel->game_field->core.must_use_mats = nullptr;
-	pduel->game_field->core.only_use_mats = nullptr;
-	pduel->game_field->core.forced_summon_minc = 0;
-	pduel->game_field->core.forced_summon_maxc = 0;
 	pduel->game_field->restore_lp_cost();
 	return eset.size();
 }
