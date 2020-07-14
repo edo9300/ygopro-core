@@ -1996,16 +1996,17 @@ inline int32 spsummonable_rule(lua_State *L, uint32 cardtype, uint32 sumtype, ui
 	int32 maxc = 0;
 	if(lua_gettop(L) >= (5 + offset))
 		maxc = lua_tointeger(L, 5 + offset);
-	uint32 p = pcard->pduel->game_field->core.reason_player;
-	pcard->pduel->game_field->core.must_use_mats = must;
-	pcard->pduel->game_field->core.only_use_mats = materials;
-	pcard->pduel->game_field->core.forced_summon_minc = minc;
-	pcard->pduel->game_field->core.forced_summon_maxc = maxc;
+	auto& core = pcard->pduel->game_field->core;
+	uint32 p = core.reason_player;
+	core.must_use_mats = must;
+	core.only_use_mats = materials;
+	core.forced_summon_minc = minc;
+	core.forced_summon_maxc = maxc;
 	lua_pushboolean(L, pcard->is_special_summonable(p, sumtype));
-	pduel->game_field->core.must_use_mats = nullptr;
-	pduel->game_field->core.only_use_mats = nullptr;
-	pduel->game_field->core.forced_summon_minc = 0;
-	pduel->game_field->core.forced_summon_maxc = 0;
+	core.must_use_mats = nullptr;
+	core.only_use_mats = nullptr;
+	core.forced_summon_minc = 0;
+	core.forced_summon_maxc = 0;
 	return 1;
 }
 int32 scriptlib::card_is_synchro_summonable(lua_State *L) {
