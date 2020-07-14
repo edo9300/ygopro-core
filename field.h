@@ -427,7 +427,7 @@ public:
 	int32 get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, group* mg = NULL, uint32 ex = 0, uint32 releasable = 0xff00ff, uint32 pos = 0x1);
 	int32 get_summon_count_limit(uint8 playerid);
 	int32 get_draw_count(uint8 playerid);
-	void get_ritual_material(uint8 playerid, effect* peffect, card_set* material);
+	void get_ritual_material(uint8 playerid, effect* peffect, card_set* material, bool check_level);
 	void get_fusion_material(uint8 playerid, card_set* material);
 	void ritual_release(card_set* material);
 	void get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, group* pgroup);

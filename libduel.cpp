@@ -3072,9 +3072,12 @@ int32 scriptlib::duel_get_ritual_material(lua_State *L) {
 	int32 playerid = lua_tointeger(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
+	bool check_level = true;
+	if(check_param(L, PARAM_TYPE_BOOLEAN, 2))
+		check_level = lua_get<bool>(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->get_ritual_material(playerid, pduel->game_field->core.reason_effect, &pgroup->container);
+	pduel->game_field->get_ritual_material(playerid, pduel->game_field->core.reason_effect, &pgroup->container, check_level);
 	interpreter::group2value(L, pgroup);
 	return 1;
 }
