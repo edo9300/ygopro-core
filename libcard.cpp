@@ -893,7 +893,7 @@ int32 scriptlib::card_is_link(lua_State *L) {
 int32 scriptlib::card_is_attack(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
-	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
+	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !pcard->is_affected_by_effect(EFFECT_PRE_MONSTER))
 		lua_pushboolean(L, 0);
 	else
 		is_prop(L, pcard->get_attack());
@@ -902,7 +902,8 @@ int32 scriptlib::card_is_attack(lua_State *L) {
 int32 scriptlib::card_is_defense(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
-	if((pcard->data.type & TYPE_LINK) || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
+	if((pcard->data.type & TYPE_LINK)
+	   || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !pcard->is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		lua_pushboolean(L, 0);
 	else
 		is_prop(L, pcard->get_defense());
@@ -1991,75 +1992,55 @@ int32 scriptlib::card_is_level_below(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto lvl = lua_get<uint32>(L, 2);
-	if(((pcard->data.type & TYPE_XYZ) && !(pcard->is_affected_by_effect(EFFECT_RANK_LEVEL) || pcard->is_affected_by_effect(EFFECT_RANK_LEVEL_S))) 
-		|| (pcard->data.type & TYPE_LINK) || (pcard->status & STATUS_NO_LEVEL)
-		|| (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, pcard->get_level() <= lvl);
+	uint32 plvl = pcard->get_level();
+	lua_pushboolean(L, plvl > 0 && plvl <= lvl);
 	return 1;
 }
 int32 scriptlib::card_is_level_above(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto lvl = lua_get<uint32>(L, 2);
-	if(((pcard->data.type & TYPE_XYZ) && !(pcard->is_affected_by_effect(EFFECT_RANK_LEVEL) || pcard->is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
-		|| (pcard->data.type & TYPE_LINK) || (pcard->status & STATUS_NO_LEVEL)
-		|| (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, pcard->get_level() >= lvl);
+	uint32 plvl = pcard->get_level();
+	lua_pushboolean(L, plvl > 0 && plvl >= lvl);
 	return 1;
 }
 int32 scriptlib::card_is_rank_below(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto rnk = lua_get<uint32>(L, 2);
-	if(((!(pcard->data.type & TYPE_XYZ) && !(pcard->is_affected_by_effect(EFFECT_LEVEL_RANK) || pcard->is_affected_by_effect(EFFECT_LEVEL_RANK_S))) || (pcard->status & STATUS_NO_LEVEL)
-	        || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))) || (pcard->data.type & TYPE_LINK))
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, pcard->get_rank() <= rnk);
+	uint32 prnk = pcard->get_rank();
+	lua_pushboolean(L, prnk > 0 && prnk <= rnk);
 	return 1;
 }
 int32 scriptlib::card_is_rank_above(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto rnk = lua_get<uint32>(L, 2);
-	if(((!(pcard->data.type & TYPE_XYZ) && !(pcard->is_affected_by_effect(EFFECT_LEVEL_RANK) || pcard->is_affected_by_effect(EFFECT_LEVEL_RANK_S))) || (pcard->status & STATUS_NO_LEVEL)
-	        || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))) || (pcard->data.type & TYPE_LINK))
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, pcard->get_rank() >= rnk);
+	uint32 prnk = pcard->get_rank();
+	lua_pushboolean(L, prnk > 0 && prnk >= rnk);
 	return 1;
 }
 int32 scriptlib::card_is_link_below(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto lnk = lua_get<uint32>(L, 2);
-	if(!(pcard->data.type & TYPE_LINK) || (pcard->status & STATUS_NO_LEVEL)
-	        || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, pcard->get_link() <= lnk);
+	uint32 plnk = pcard->get_link();
+	lua_pushboolean(L, plnk > 0 && plnk <= lnk);
 	return 1;
 }
 int32 scriptlib::card_is_link_above(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto lnk = lua_get<uint32>(L, 2);
-	if(!(pcard->data.type & TYPE_LINK) || (pcard->status & STATUS_NO_LEVEL)
-	        || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
-		lua_pushboolean(L, 0);
-	else
-		lua_pushboolean(L, pcard->get_link() >= lnk);
+	uint32 plnk = pcard->get_link();
+	lua_pushboolean(L, plnk > 0 && plnk >= lnk);
 	return 1;
 }
 int32 scriptlib::card_is_attack_below(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto atk = lua_get<int32>(L, 2);
-	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
+	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !pcard->is_affected_by_effect(EFFECT_PRE_MONSTER))
 		lua_pushboolean(L, 0);
 	else {
 		int32 _atk = pcard->get_attack();
@@ -2071,7 +2052,7 @@ int32 scriptlib::card_is_attack_above(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto atk = lua_get<int32>(L, 2);
-	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE))
+	if(!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !pcard->is_affected_by_effect(EFFECT_PRE_MONSTER))
 		lua_pushboolean(L, 0);
 	else {
 		lua_pushboolean(L, pcard->get_attack() >= atk);
@@ -2082,7 +2063,8 @@ int32 scriptlib::card_is_defense_below(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto def = lua_get<int32>(L, 2);
-	if((pcard->data.type & TYPE_LINK) || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
+	if((pcard->data.type & TYPE_LINK)
+	   || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
 		lua_pushboolean(L, 0);
 	else {
 		int32 _def = pcard->get_defense();
@@ -2094,7 +2076,8 @@ int32 scriptlib::card_is_defense_above(lua_State *L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto def = lua_get<int32>(L, 2);
-	if((pcard->data.type & TYPE_LINK) || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !(pcard->current.location & LOCATION_MZONE)))
+	if((pcard->data.type & TYPE_LINK)
+	   || (!(pcard->data.type & TYPE_MONSTER) && !(pcard->get_type() & TYPE_MONSTER) && !pcard->is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		lua_pushboolean(L, 0);
 	else {
 		lua_pushboolean(L, pcard->get_defense() >= def);
