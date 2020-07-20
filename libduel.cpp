@@ -109,7 +109,7 @@ int32 scriptlib::duel_register_flag_effect(lua_State *L) {
 	peffect->reset_count = count;
 	peffect->label.push_back(lab);
 	pduel->game_field->add_effect(peffect, playerid);
-	interpreter::effect2value(L, peffect);
+	interpreter::pushobject(L, peffect);
 	return 1;
 }
 int32 scriptlib::duel_get_flag_effect(lua_State *L) {
@@ -476,7 +476,7 @@ int32 scriptlib::duel_create_token(lua_State *L) {
 	pcard->owner = playerid;
 	pcard->current.location = 0;
 	pcard->current.controler = playerid;
-	interpreter::card2value(L, pcard);
+	interpreter::pushobject(L, pcard);
 	return 1;
 }
 int32 scriptlib::duel_special_summon(lua_State *L) {
@@ -709,7 +709,7 @@ int32 scriptlib::duel_remove_cards(lua_State * L) {
 int32 scriptlib::duel_get_operated_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group(pduel->game_field->core.operated_set);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::duel_is_can_add_counter(lua_State *L) {
@@ -958,7 +958,7 @@ int32 scriptlib::duel_get_chain_material(lua_State *L) {
 	pduel->game_field->filter_player_effect(playerid, EFFECT_CHAIN_MATERIAL, &eset);
 	if(!eset.size())
 		return 0;
-	interpreter::effect2value(L, eset[0]);
+	interpreter::pushobject(L, eset[0]);
 	return 1;
 }
 int32 scriptlib::duel_confirm_decktop(lua_State *L) {
@@ -1096,10 +1096,10 @@ int32 scriptlib::duel_check_event(lua_State *L) {
 		tevent pe;
 		if(pduel->game_field->check_event(ev, &pe)) {
 			lua_pushboolean(L, 1);
-			interpreter::group2value(L, pe.event_cards);
+			interpreter::pushobject(L, pe.event_cards);
 			lua_pushinteger(L, pe.event_player);
 			lua_pushinteger(L, pe.event_value);
-			interpreter::effect2value(L, pe.reason_effect);
+			interpreter::pushobject(L, pe.reason_effect);
 			lua_pushinteger(L, pe.reason);
 			lua_pushinteger(L, pe.reason_player);
 			return 7;
@@ -2108,7 +2108,7 @@ int32 scriptlib::duel_get_linked_group(lua_State *L) {
 	field::card_set cset;
 	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
 	group* pgroup = pduel->new_group(cset);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::duel_get_linked_group_count(lua_State *L) {
@@ -2157,7 +2157,7 @@ int32 scriptlib::duel_get_field_card(lua_State *L) {
 	card* pcard = pduel->game_field->get_field_card(playerid, location, sequence);
 	if(!pcard || pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 		return 0;
-	interpreter::card2value(L, pcard);
+	interpreter::pushobject(L, pcard);
 	return 1;
 }
 int32 scriptlib::duel_check_location(lua_State *L) {
@@ -2191,7 +2191,7 @@ int32 scriptlib::duel_get_chain_info(lua_State *L) {
 			lua_pushinteger(L, ch->chain_count);
 			break;
 		case CHAININFO_TRIGGERING_EFFECT:
-			interpreter::effect2value(L, ch->triggering_effect);
+			interpreter::pushobject(L, ch->triggering_effect);
 			break;
 		case CHAININFO_TRIGGERING_PLAYER:
 			lua_pushinteger(L, ch->triggering_player);
@@ -2233,7 +2233,7 @@ int32 scriptlib::duel_get_chain_info(lua_State *L) {
 			lua_pushinteger(L, ch->triggering_state.defense);
 			break;
 		case CHAININFO_TARGET_CARDS:
-			interpreter::group2value(L, ch->target_cards);
+			interpreter::pushobject(L, ch->target_cards);
 			break;
 		case CHAININFO_TARGET_PLAYER:
 			lua_pushinteger(L, ch->target_player);
@@ -2242,7 +2242,7 @@ int32 scriptlib::duel_get_chain_info(lua_State *L) {
 			lua_pushinteger(L, ch->target_param);
 			break;
 		case CHAININFO_DISABLE_REASON:
-			interpreter::effect2value(L, ch->disable_reason);
+			interpreter::pushobject(L, ch->disable_reason);
 			break;
 		case CHAININFO_DISABLE_PLAYER:
 			lua_pushinteger(L, ch->disable_player);
@@ -2272,10 +2272,10 @@ int32 scriptlib::duel_get_chain_event(lua_State *L) {
 	chain* ch = pduel->game_field->get_chain(count);
 	if(!ch)
 		return 0;
-	interpreter::group2value(L, ch->evt.event_cards);
+	interpreter::pushobject(L, ch->evt.event_cards);
 	lua_pushinteger(L, ch->evt.event_player);
 	lua_pushinteger(L, ch->evt.event_value);
-	interpreter::effect2value(L, ch->evt.reason_effect);
+	interpreter::pushobject(L, ch->evt.reason_effect);
 	lua_pushinteger(L, ch->evt.reason);
 	lua_pushinteger(L, ch->evt.reason_player);
 	return 6;
@@ -2286,7 +2286,7 @@ int32 scriptlib::duel_get_first_target(lua_State *L) {
 	if(!ch || !ch->target_cards || ch->target_cards->container.size() == 0)
 		return 0;
 	for(auto& pcard : ch->target_cards->container)
-		interpreter::card2value(L, pcard);
+		interpreter::pushobject(L, pcard);
 	return ch->target_cards->container.size();
 }
 int32 scriptlib::duel_get_current_phase(lua_State *L) {
@@ -2348,13 +2348,13 @@ int32 scriptlib::duel_is_damage_calculated(lua_State *L) {
 int32 scriptlib::duel_get_attacker(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	card* pcard = pduel->game_field->core.attacker;
-	interpreter::card2value(L, pcard);
+	interpreter::pushobject(L, pcard);
 	return 1;
 }
 int32 scriptlib::duel_get_attack_target(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	card* pcard = pduel->game_field->core.attack_target;
-	interpreter::card2value(L, pcard);
+	interpreter::pushobject(L, pcard);
 	return 1;
 }
 int32 scriptlib::duel_get_battle_monster(lua_State *L) {
@@ -2366,9 +2366,9 @@ int32 scriptlib::duel_get_battle_monster(lua_State *L) {
 	card* defender = pduel->game_field->core.attack_target;
 	for(int32 i = 0; i < 2; i++) {
 		if(attacker && attacker->current.controler == playerid)
-			interpreter::card2value(L, attacker);
+			interpreter::pushobject(L, attacker);
 		else if(defender && defender->current.controler == playerid)
-			interpreter::card2value(L, defender);
+			interpreter::pushobject(L, defender);
 		else
 			lua_pushnil(L);
 		playerid = 1 - playerid;
@@ -2428,7 +2428,7 @@ int32 scriptlib::duel_get_field_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->filter_field_card(playerid, location1, location2, pgroup);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 /**
@@ -2460,7 +2460,7 @@ int32 scriptlib::duel_get_decktop_group(lua_State *L) {
 	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
 	for(uint32 i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit)
 		pgroup->container.insert(*cit);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 /**
@@ -2477,7 +2477,7 @@ int32 scriptlib::duel_get_extratop_group(lua_State *L) {
 	auto cit = pduel->game_field->player[playerid].list_extra.rbegin() + pduel->game_field->player[playerid].extra_p_count;
 	for(uint32 i = 0; i < count && cit != pduel->game_field->player[playerid].list_extra.rend(); ++i, ++cit)
 		pgroup->container.insert(*cit);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 /**
@@ -2502,7 +2502,7 @@ int32 scriptlib::duel_get_matching_group(lua_State *L) {
 	uint32 location2 = lua_tointeger(L, 4);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(1, (uint8)self, location1, location2, pgroup, pexception, pexgroup, extraargs);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 /**
@@ -2554,7 +2554,7 @@ int32 scriptlib::duel_get_first_matching_card(lua_State *L) {
 	card* pret = 0;
 	pduel->game_field->filter_matching_card(1, (uint8)self, location1, location2, 0, pexception, pexgroup, extraargs, &pret);
 	if(pret)
-		interpreter::card2value(L, pret);
+		interpreter::pushobject(L, pret);
 	else lua_pushnil(L);
 	return 1;
 }
@@ -2624,7 +2624,7 @@ int32 scriptlib::duel_select_matching_cards(lua_State *L) {
 			lua_pushnil(L);
 		else {
 			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
+			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
 	});
@@ -2648,7 +2648,7 @@ int32 scriptlib::duel_get_release_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, FALSE, hand, 0, 0, 0, 0, oppo);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 /**
@@ -2792,7 +2792,7 @@ int32 select_release_group(lua_State *L, uint8 use_hand) {
 			lua_pushnil(L);
 		else {
 			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
+			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
 	});
@@ -2815,7 +2815,7 @@ int32 scriptlib::duel_get_tribute_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->get_summon_release_list(target, &(pgroup->container), &(pgroup->container), &(pgroup->container));
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 /**
@@ -2903,7 +2903,7 @@ int32 scriptlib::duel_select_tribute(lua_State *L) {
 			lua_pushnil(L);
 		else {
 			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
+			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
 	});
@@ -3012,7 +3012,7 @@ int32 scriptlib::duel_select_target(lua_State *L) {
 			ch->target_cards->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
 			effect* peffect = ch->triggering_effect;
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
-				interpreter::group2value(L, ch->target_cards);
+				interpreter::pushobject(L, ch->target_cards);
 			} else {
 				group* pret = pduel->new_group();
 				pret->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
@@ -3024,7 +3024,7 @@ int32 scriptlib::duel_select_target(lua_State *L) {
 						message->write(pcard->get_info_location());
 					}
 				}
-				interpreter::group2value(L, pret);
+				interpreter::pushobject(L, pret);
 			}
 		}
 		return 1;
@@ -3055,7 +3055,7 @@ int32 scriptlib::duel_select_fusion_material(lua_State *L) {
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State *L, int32 status, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		group* pgroup = pduel->new_group(pduel->game_field->core.fusion_materials);
-		interpreter::group2value(L, pgroup);
+		interpreter::pushobject(L, pgroup);
 		return 1;
 	});
 }
@@ -3078,7 +3078,7 @@ int32 scriptlib::duel_get_ritual_material(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->get_ritual_material(playerid, pduel->game_field->core.reason_effect, &pgroup->container, check_level);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::duel_release_ritual_material(lua_State *L) {
@@ -3097,7 +3097,7 @@ int32 scriptlib::duel_get_fusion_material(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->get_fusion_material(playerid, &pgroup->container);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::duel_is_summon_cancelable(lua_State *L) {
@@ -3126,7 +3126,7 @@ int32 scriptlib::duel_grab_must_select_cards(lua_State *L) {
 	if(pduel->game_field->core.must_select_cards.size())
 		pgroup->container.insert(pduel->game_field->core.must_select_cards.begin(), pduel->game_field->core.must_select_cards.end());
 	pduel->game_field->core.must_select_cards.clear();
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::duel_set_target_card(lua_State *L) {
@@ -3268,7 +3268,7 @@ int32 scriptlib::duel_get_operation_info(lua_State *L) {
 		optarget& opt = oit->second;
 		lua_pushboolean(L, 1);
 		if(opt.op_cards)
-			interpreter::group2value(L, opt.op_cards);
+			interpreter::pushobject(L, opt.op_cards);
 		else
 			lua_pushnil(L);
 		lua_pushinteger(L, opt.op_count);
@@ -3341,7 +3341,7 @@ int32 scriptlib::duel_get_overlay_group(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->get_overlay_group(rplayer, s, o, &pgroup->container, targetsgroup);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::duel_get_overlay_count(lua_State *L) {
@@ -3971,7 +3971,7 @@ int32 scriptlib::duel_is_player_affected_by_effect(lua_State *L) {
 	}
 	int32 code = lua_tointeger(L, 2);
 	effect* peffect = pduel->game_field->is_player_affected_by_effect(playerid, code);
-	interpreter::effect2value(L, peffect);
+	interpreter::pushobject(L, peffect);
 	return 1;
 }
 int32 scriptlib::duel_get_player_effect(lua_State *L) {
@@ -4526,7 +4526,7 @@ int32 scriptlib::duel_get_card_from_cardid(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	for(auto& pcard : pduel->cards) {
 		if(pcard->cardid == id) {
-			interpreter::card2value(L, pcard);
+			interpreter::pushobject(L, pcard);
 			return 1;
 		}
 	}

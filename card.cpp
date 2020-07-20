@@ -3105,14 +3105,14 @@ int32 card::get_card_effect(uint32 code) {
 	for (auto rg = single_effect.begin(); rg != single_effect.end(); ++rg) {
 		peffect = rg->second;
 		if ((code == 0 || peffect->code == code) && peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))) {
-			interpreter::effect2value(pduel->lua->current_state, peffect);
+			interpreter::pushobject(pduel->lua->current_state, peffect);
 			i++;
 		}
 	}
 	for (auto rg = field_effect.begin(); rg != field_effect.end(); ++rg) {
 		peffect = rg->second;
 		if ((code == 0 || peffect->code == code) && is_affect_by_effect(peffect)) {
-			interpreter::effect2value(pduel->lua->current_state, peffect);
+			interpreter::pushobject(pduel->lua->current_state, peffect);
 			i++;
 		}
 	}
@@ -3120,7 +3120,7 @@ int32 card::get_card_effect(uint32 code) {
 		for (auto rg = (*cit)->equip_effect.begin(); rg != (*cit)->equip_effect.end(); ++rg) {
 			peffect = rg->second;
 			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
-				interpreter::effect2value(pduel->lua->current_state, peffect);
+				interpreter::pushobject(pduel->lua->current_state, peffect);
 				i++;
 			}
 		}
@@ -3130,7 +3130,7 @@ int32 card::get_card_effect(uint32 code) {
 		for(; rg.first != rg.second; ++rg.first) {
 			peffect = rg.first->second;
 			if((code == 0 || peffect->code == code) && peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect)) {
-				interpreter::effect2value(pduel->lua->current_state, peffect);
+				interpreter::pushobject(pduel->lua->current_state, peffect);
 				i++;
 			}
 		}
@@ -3141,7 +3141,7 @@ int32 card::get_card_effect(uint32 code) {
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
-				interpreter::effect2value(pduel->lua->current_state, peffect);
+				interpreter::pushobject(pduel->lua->current_state, peffect);
 				i++;
 			}
 		}
@@ -3150,7 +3150,7 @@ int32 card::get_card_effect(uint32 code) {
 		peffect = rg->second;
 		if ((code == 0 || peffect->code == code) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
 			&& peffect->is_available() && is_affect_by_effect(peffect)) {
-			interpreter::effect2value(pduel->lua->current_state, peffect);
+			interpreter::pushobject(pduel->lua->current_state, peffect);
 			i++;
 		}
 	}

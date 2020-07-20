@@ -279,7 +279,7 @@ int32 scriptlib::card_get_linked_group(lua_State *L) {
 	card::card_set cset;
 	pcard->get_linked_cards(&cset);
 	group* pgroup = pcard->pduel->new_group(cset);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_linked_group_count(lua_State *L) {
@@ -326,7 +326,7 @@ int32 scriptlib::card_get_mutual_linked_group(lua_State *L) {
 	card::card_set cset;
 	pcard->get_mutual_linked_cards(&cset);
 	group* pgroup = pcard->pduel->new_group(cset);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_mutual_linked_group_count(lua_State *L) {
@@ -379,7 +379,7 @@ int32 scriptlib::card_get_column_group(lua_State *L) {
 	card::card_set cset;
 	pcard->get_column_cards(&cset, left, right);
 	group* pgroup = pcard->pduel->new_group(cset);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_column_group_count(lua_State *L) {
@@ -637,7 +637,7 @@ int32 scriptlib::card_get_reason_card(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
-	interpreter::card2value(L, pcard->current.reason_card);
+	interpreter::pushobject(L, pcard->current.reason_card);
 	return 1;
 }
 int32 scriptlib::card_get_reason_player(lua_State *L) {
@@ -651,7 +651,7 @@ int32 scriptlib::card_get_reason_effect(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
-	interpreter::effect2value(L, pcard->current.reason_effect);
+	interpreter::pushobject(L, pcard->current.reason_effect);
 	return 1;
 }
 int32 scriptlib::card_set_reason(lua_State *L) {
@@ -1253,7 +1253,7 @@ int32 scriptlib::card_get_material(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group(pcard->material_cards);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_material_count(lua_State *L) {
@@ -1268,7 +1268,7 @@ int32 scriptlib::card_get_equip_group(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group(pcard->equiping_cards);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_equip_count(lua_State *L) {
@@ -1282,14 +1282,14 @@ int32 scriptlib::card_get_equip_target(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
-	interpreter::card2value(L, pcard->equiping_target);
+	interpreter::pushobject(L, pcard->equiping_target);
 	return 1;
 }
 int32 scriptlib::card_get_pre_equip_target(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
-	interpreter::card2value(L, pcard->pre_equip_target);
+	interpreter::pushobject(L, pcard->pre_equip_target);
 	return 1;
 }
 int32 scriptlib::card_check_equip_target(lua_State *L) {
@@ -1334,7 +1334,7 @@ int32 scriptlib::card_get_overlay_group(lua_State *L) {
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group();
 	pgroup->container.insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_overlay_count(lua_State *L) {
@@ -1348,7 +1348,7 @@ int32 scriptlib::card_get_overlay_target(lua_State *L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
-	interpreter::card2value(L, pcard->overlay_target);
+	interpreter::pushobject(L, pcard->overlay_target);
 	return 1;
 }
 int32 scriptlib::card_check_remove_overlay_card(lua_State *L) {
@@ -1394,7 +1394,7 @@ int32 scriptlib::card_get_attacked_group(lua_State *L) {
 		if(cit.second.first)
 			pgroup->container.insert(cit.second.first);
 	}
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_attacked_group_count(lua_State *L) {
@@ -1420,7 +1420,7 @@ int32 scriptlib::card_get_battled_group(lua_State *L) {
 		if(cit.second.first)
 			pgroup->container.insert(cit.second.first);
 	}
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_battled_group_count(lua_State *L) {
@@ -1461,7 +1461,7 @@ int32 scriptlib::card_get_card_target(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group(pcard->effect_target_cards);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_first_card_target(lua_State *L) {
@@ -1469,7 +1469,7 @@ int32 scriptlib::card_get_first_card_target(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	if(pcard->effect_target_cards.size())
-		interpreter::card2value(L, *pcard->effect_target_cards.begin());
+		interpreter::pushobject(L, *pcard->effect_target_cards.begin());
 	else lua_pushnil(L);
 	return 1;
 }
@@ -1503,7 +1503,7 @@ int32 scriptlib::card_get_owner_target(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group(pcard->effect_target_owner);
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::card_get_owner_target_count(lua_State *L) {
@@ -1520,7 +1520,7 @@ int32 scriptlib::card_get_activate_effect(lua_State *L) {
 	int32 count = 0;
 	for(auto& eit : pcard->field_effect) {
 		if(eit.second->type & EFFECT_TYPE_ACTIVATE) {
-			interpreter::effect2value(L, eit.second);
+			interpreter::pushobject(L, eit.second);
 			count++;
 		}
 	}
@@ -1541,14 +1541,14 @@ int32 scriptlib::card_check_activate_effect(lua_State *L) {
 		if((peffect->type & EFFECT_TYPE_ACTIVATE)
 		        && pduel->game_field->check_event_c(peffect, pduel->game_field->core.reason_player, neglect_con, neglect_cost, copy_info, &pe)) {
 			if(!copy_info || (peffect->code == EVENT_FREE_CHAIN)) {
-				interpreter::effect2value(L, peffect);
+				interpreter::pushobject(L, peffect);
 				return 1;
 			} else {
-				interpreter::effect2value(L, peffect);
-				interpreter::group2value(L, pe.event_cards);
+				interpreter::pushobject(L, peffect);
+				interpreter::pushobject(L, pe.event_cards);
 				lua_pushinteger(L, pe.event_player);
 				lua_pushinteger(L, pe.event_value);
-				interpreter::effect2value(L, pe.reason_effect);
+				interpreter::pushobject(L, pe.reason_effect);
 				lua_pushinteger(L, pe.reason);
 				lua_pushinteger(L, pe.reason_player);
 				return 7;
@@ -1603,7 +1603,7 @@ int32 scriptlib::card_is_has_effect(lua_State *L) {
 	}
 	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
 		if(check_player == PLAYER_NONE || eset[i]->check_count_limit(check_player))
-			interpreter::effect2value(L, eset[i]);
+			interpreter::pushobject(L, eset[i]);
 		else
 			size--;
 	}
@@ -1676,7 +1676,7 @@ int32 scriptlib::card_register_flag_effect(lua_State *L) {
 	peffect->label = { lab };
 	peffect->description = desc;
 	pcard->add_effect(peffect);
-	interpreter::effect2value(L, peffect);
+	interpreter::pushobject(L, peffect);
 	return 1;
 }
 int32 scriptlib::card_get_flag_effect(lua_State *L) {
@@ -2962,9 +2962,9 @@ int32 scriptlib::card_get_battle_target(lua_State *L) {
 	auto pcard = lua_get<card*>(L, 1);
 	duel* pduel = pcard->pduel;
 	if(pduel->game_field->core.attacker == pcard)
-		interpreter::card2value(L, pduel->game_field->core.attack_target);
+		interpreter::pushobject(L, pduel->game_field->core.attack_target);
 	else if(pduel->game_field->core.attack_target == pcard)
-		interpreter::card2value(L, pduel->game_field->core.attacker);
+		interpreter::pushobject(L, pduel->game_field->core.attacker);
 	else lua_pushnil(L);
 	return 1;
 }
@@ -2980,7 +2980,7 @@ int32 scriptlib::card_get_attackable_target(lua_State *L) {
 	pduel->game_field->get_attack_target(pcard, &targets, chain_attack);
 	group* newgroup = pduel->new_group();
 	newgroup->container.insert(targets.begin(), targets.end());
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	lua_pushboolean(L, (int32)pcard->direct_attackable);
 	return 2;
 }

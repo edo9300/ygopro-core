@@ -56,7 +56,7 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 		}
 		if(proc)
 			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
-		interpreter::card2value(L, pcard);
+		interpreter::pushobject(L, pcard);
 		return 1;
 	} else if(location & LOCATION_ONFIELD) {
 		card* pcard = pduel->new_card(code);
@@ -65,7 +65,7 @@ int32 scriptlib::debug_add_card(lua_State *L) {
 		fcard->xyz_add(pcard);
 		if(proc)
 			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
-		interpreter::card2value(L, pcard);
+		interpreter::pushobject(L, pcard);
 		return 1;
 	}
 	return 0;

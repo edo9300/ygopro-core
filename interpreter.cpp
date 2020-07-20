@@ -832,7 +832,7 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			break;
 		}
 		case PARAM_TYPE_FUNCTION: {
-			function2value(L, it.first);
+			pushobject(L, it.first);
 			break;
 		}
 		case PARAM_TYPE_INDEX: {
@@ -871,7 +871,7 @@ int32 interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
 		params.clear();
 		return OPERATION_FAIL;
 	}
-	function2value(current_state, f);
+	pushobject(current_state, f);
 	if (!lua_isfunction(current_state, -1)) {
 		interpreter::print_stacktrace(current_state);
 		sprintf(pduel->strbuffer, "%s", "\"CallFunction\": attempt to call an error function");
@@ -912,7 +912,7 @@ int32 interpreter::call_card_function(card* pcard, const char* f, uint32 param_c
 		params.clear();
 		return OPERATION_FAIL;
 	}
-	card2value(current_state, pcard);
+	pushobject(current_state, pcard);
 	lua_getfield(current_state, -1, f);
 	if (!lua_isfunction(current_state, -1)) {
 		if(forced) {
@@ -1024,7 +1024,7 @@ int32 interpreter::check_matching(card* pcard, int32 findex, int32 extraargs) {
 	no_action++;
 	call_depth++;
 	lua_pushvalue(current_state, findex);
-	interpreter::card2value(current_state, pcard);
+	interpreter::pushobject(current_state, pcard);
 	for(int32 i = 0; i < extraargs; ++i)
 		lua_pushvalue(current_state, (int32)(-extraargs - 2));
 	if (lua_pcall(current_state, 1 + extraargs, 1, 0)) {
@@ -1056,7 +1056,7 @@ int32 interpreter::check_matching_table(card * pcard, int32 findex, int32 table_
 	no_action++;
 	call_depth++;
 	lua_pushvalue(current_state, findex);
-	interpreter::card2value(current_state, pcard);
+	interpreter::pushobject(current_state, pcard);
 	int extraargs = pushExpandedTable(current_state, table_index);
 	if (lua_pcall(current_state, 1 + extraargs, 1, 0)) {
 		interpreter::print_stacktrace(current_state);
@@ -1087,7 +1087,7 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 	no_action++;
 	call_depth++;
 	lua_pushvalue(current_state, findex);
-	interpreter::card2value(current_state, pcard);
+	interpreter::pushobject(current_state, pcard);
 	for(int32 i = 0; i < extraargs; ++i)
 		lua_pushvalue(current_state, (int32)(-extraargs - 2));
 	if (lua_pcall(current_state, 1 + extraargs, 1, 0)) {
@@ -1236,7 +1236,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_va
 	lua_State* rthread;
 	if (it == coroutines.end()) {
 		rthread = lua_newthread(lua_state);
-		function2value(rthread, f);
+		pushobject(rthread, f);
 		if(!lua_isfunction(rthread, -1)) {
 			interpreter::print_stacktrace(current_state);
 			sprintf(pduel->strbuffer, "%s", "\"CallCoroutine\": attempt to call an error function");
@@ -1312,23 +1312,11 @@ void interpreter::pushobject(lua_State* L, lua_obj* obj) {
 	else
 		lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
 }
-void interpreter::pushobject(lua_State* L, int32 reference) {
-	if(!reference)
+void interpreter::pushobject(lua_State* L, int32 lua_ptr) {
+	if(!lua_ptr)
 		lua_pushnil(L);
 	else
-		lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
-}
-void interpreter::card2value(lua_State* L, card* pcard) {
-	pushobject(L, pcard);
-}
-void interpreter::group2value(lua_State* L, group* pgroup) {
-	pushobject(L, pgroup);
-}
-void interpreter::effect2value(lua_State* L, effect* peffect) {
-	pushobject(L, peffect);
-}
-void interpreter::function2value(lua_State* L, int32 func_ref) {
-	pushobject(L, func_ref);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, lua_ptr);
 }
 //Push all the elements of the table to the stack, +len(table) -0
 int interpreter::pushExpandedTable(lua_State * L, int32 table_index) {

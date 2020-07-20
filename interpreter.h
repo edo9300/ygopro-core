@@ -71,11 +71,7 @@ public:
 	void* get_ref_object(int32 ref_handler);
 
 	static void pushobject(lua_State* L, lua_obj* obj);
-	static void pushobject(lua_State* L, int32 reference);
-	static void card2value(lua_State* L, card* pcard);
-	static void group2value(lua_State* L, group* pgroup);
-	static void effect2value(lua_State* L, effect* peffect);
-	static void function2value(lua_State* L, int32 pointer);
+	static void pushobject(lua_State* L, int32 lua_ptr);
 	static int pushExpandedTable(lua_State* L, int32 table_index);
 	static int32 get_function_handle(lua_State* L, int32 index);
 	static void set_duel_info(lua_State* L, duel* pduel);

@@ -14,7 +14,7 @@
 int32 scriptlib::group_new(lua_State *L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	group* pgroup = pduel->new_group();
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::group_clone(lua_State *L) {
@@ -23,7 +23,7 @@ int32 scriptlib::group_clone(lua_State *L) {
 	auto pgroup = lua_get<group*>(L, 1);
 	duel* pduel = pgroup->pduel;
 	group* newgroup = pduel->new_group(pgroup->container);
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 int32 scriptlib::group_from_cards(lua_State *L) {
@@ -35,7 +35,7 @@ int32 scriptlib::group_from_cards(lua_State *L) {
 			pgroup->container.insert(pcard);
 		}
 	}
-	interpreter::group2value(L, pgroup);
+	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::group_delete(lua_State *L) {
@@ -98,7 +98,7 @@ int32 scriptlib::group_get_next(lua_State *L) {
 		if ((++pgroup->it) == pgroup->container.end())
 			lua_pushnil(L);
 		else
-			interpreter::card2value(L, *pgroup->it);
+			interpreter::pushobject(L, *pgroup->it);
 	}
 	return 1;
 }
@@ -107,7 +107,7 @@ int32 scriptlib::group_get_first(lua_State *L) {
 	check_param(L, PARAM_TYPE_GROUP, 1);
 	auto pgroup = lua_get<group*>(L, 1);
 	if (pgroup->container.size())
-		interpreter::card2value(L, *(pgroup->it = pgroup->container.begin()));
+		interpreter::pushobject(L, *(pgroup->it = pgroup->container.begin()));
 	else
 		lua_pushnil(L);
 	return 1;
@@ -122,7 +122,7 @@ int32 scriptlib::group_take_at_pos(lua_State *L) {
 	else {
 		auto cit = pgroup->container.begin();
 		std::advance(cit, pos);
-		interpreter::card2value(L, *cit);
+		interpreter::pushobject(L, *cit);
 	}
 	return 1;
 }
@@ -171,7 +171,7 @@ int32 scriptlib::group_filter(lua_State *L) {
 			new_group->container.insert(pcard);
 		}
 	}
-	interpreter::group2value(L, new_group);
+	interpreter::pushobject(L, new_group);
 	return 1;
 }
 int32 scriptlib::group_filter_count(lua_State *L) {
@@ -238,7 +238,7 @@ int32 scriptlib::group_filter_select(lua_State *L) {
 			lua_pushnil(L);
 		else {
 			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
+			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
 	});
@@ -277,7 +277,7 @@ int32 scriptlib::group_select(lua_State *L) {
 			lua_pushnil(L);
 		else {
 			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
-			interpreter::group2value(L, pgroup);
+			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
 	});
@@ -335,7 +335,7 @@ int32 scriptlib::group_select_unselect(lua_State *L) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			interpreter::card2value(L, pduel->game_field->return_cards.list[0]);
+			interpreter::pushobject(L, pduel->game_field->return_cards.list[0]);
 		}
 		return 1;
 	});
@@ -351,7 +351,7 @@ int32 scriptlib::group_random_select(lua_State *L) {
 	if(count > pgroup->container.size())
 		count = pgroup->container.size();
 	if(count == 0) {
-		interpreter::group2value(L, newgroup);
+		interpreter::pushobject(L, newgroup);
 		return 1;
 	}
 	if(count == pgroup->container.size())
@@ -369,7 +369,7 @@ int32 scriptlib::group_random_select(lua_State *L) {
 	for(auto& pcard : newgroup->container) {
 		message->write(pcard->get_info_location());
 	}
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 int32 scriptlib::group_is_exists(lua_State *L) {
@@ -460,7 +460,7 @@ int32 scriptlib::group_select_with_sum_equal(lua_State *L) {
 	if(!field::check_with_sum_limit_m(cv, acc, 0, min, max, mcount, nullptr)) {
 		pduel->game_field->core.must_select_cards.clear();
 		group* empty_group = pduel->new_group();
-		interpreter::group2value(L, empty_group);
+		interpreter::pushobject(L, empty_group);
 		return 1;
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, acc, playerid + (min << 16) + (max << 24));
@@ -468,7 +468,7 @@ int32 scriptlib::group_select_with_sum_equal(lua_State *L) {
 		duel* pduel = (duel*)ctx;
 		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
 		pduel->game_field->core.must_select_cards.clear();
-		interpreter::group2value(L, pgroup);
+		interpreter::pushobject(L, pgroup);
 		return 1;
 	});
 }
@@ -520,7 +520,7 @@ int32 scriptlib::group_select_with_sum_greater(lua_State *L) {
 	if(!field::check_with_sum_greater_limit_m(cv, acc, 0, 0xffff, mcount, nullptr)) {
 		pduel->game_field->core.must_select_cards.clear();
 		group* empty_group = pduel->new_group();
-		interpreter::group2value(L, empty_group);
+		interpreter::pushobject(L, empty_group);
 		return 1;
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, acc, playerid);
@@ -528,7 +528,7 @@ int32 scriptlib::group_select_with_sum_greater(lua_State *L) {
 		duel* pduel = (duel*)ctx;
 		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
 		pduel->game_field->core.must_select_cards.clear();
-		interpreter::group2value(L, pgroup);
+		interpreter::pushobject(L, pgroup);
 		return 1;
 	});
 }
@@ -557,7 +557,7 @@ int32 scriptlib::group_get_min_group(lua_State *L) {
 			min = op;
 		}
 	}
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	lua_pushinteger(L, min);
 	return 2;
 }
@@ -586,7 +586,7 @@ int32 scriptlib::group_get_max_group(lua_State *L) {
 			max = op;
 		}
 	}
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	lua_pushinteger(L, max);
 	return 2;
 }
@@ -705,7 +705,7 @@ int32 scriptlib::group_band(lua_State * L) {
 				cset.insert(pcard);
 		}
 	}
-	interpreter::group2value(L, pduel->new_group(cset));
+	interpreter::pushobject(L, pduel->new_group(cset));
 	return 1;
 }
 int32 scriptlib::group_add(lua_State * L) {
@@ -733,7 +733,7 @@ int32 scriptlib::group_add(lua_State * L) {
 	} else {
 		newgroup->container.insert(pgroup2->container.begin(), pgroup2->container.end());
 	}
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 int32 scriptlib::group_sub_const(lua_State * L) {
@@ -755,7 +755,7 @@ int32 scriptlib::group_sub_const(lua_State * L) {
 	} else {
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
 	}
-	interpreter::group2value(L, newgroup);
+	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 int32 scriptlib::group_sub(lua_State *L) {
@@ -847,7 +847,7 @@ int32 scriptlib::group_search_card(lua_State *L) {
 	uint32 extraargs = lua_gettop(L) - 2;
 	for(auto& pcard : pgroup->container)
 		if(pduel->lua->check_matching(pcard, 2, extraargs)) {
-			interpreter::card2value(L, pcard);
+			interpreter::pushobject(L, pcard);
 			return 1;
 		}
 	return 0;
@@ -880,8 +880,8 @@ int32 scriptlib::group_split(lua_State * L) {
 			notmatching.insert(pcard);
 		}
 	}
-	interpreter::group2value(L, new_group);
-	interpreter::group2value(L, pduel->new_group(notmatching));
+	interpreter::pushobject(L, new_group);
+	interpreter::pushobject(L, pduel->new_group(notmatching));
 	return 2;
 }
 int32 scriptlib::group_includes(lua_State * L) {
