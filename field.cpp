@@ -3063,6 +3063,8 @@ int32 field::check_trigger_effect(const chain& ch) const {
 		return FALSE;
 	if(peffect->code == EVENT_FLIP && infos.phase == PHASE_DAMAGE)
 		return TRUE;
+	if(pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))
+		return TRUE;
 	if((phandler->current.location & LOCATION_DECK) && !(ch.triggering_location == LOCATION_DECK))
 		return FALSE;
 	if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))

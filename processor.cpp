@@ -1344,7 +1344,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			if(phandler->is_has_relation(*clit)) //work around: position and control should be refreshed before raising event
 				clit->set_triggering_state(phandler);
 			uint8 tp = clit->triggering_player;
-			if(check_trigger_effect(*clit) && peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE)) {
+			if(check_trigger_effect(*clit) && peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE, FALSE, FALSE, pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE), pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))) {
 				if(tp == core.current_player)
 					core.select_chains.push_back(*clit);
 			} else {
@@ -1401,8 +1401,8 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 				clit->set_triggering_state(phandler);
 			}
 			uint8 tp = clit->triggering_player;
-			if(check_nonpublic_trigger(*clit) && check_trigger_effect(*clit)
-				&& peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE)
+			if((pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE) || check_nonpublic_trigger(*clit)) && check_trigger_effect(*clit)
+				&& peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE, FALSE, FALSE, pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE), pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))
 				&& check_spself_from_hand_trigger(*clit)) {
 				if(tp == core.current_player)
 					core.select_chains.push_back(*clit);
@@ -1468,8 +1468,8 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		// Obsolete ignition effect ruling
 		tevent e;
 		if(core.current_chain.size() == 0 &&
-		        (check_event(EVENT_SUMMON_SUCCESS, &e) || check_event(EVENT_SPSUMMON_SUCCESS, &e) || check_event(EVENT_FLIP_SUMMON_SUCCESS, &e))
-		        && e.reason_player == infos.turn_player) {
+		        (check_event(EVENT_SUMMON_SUCCESS, &e) || check_event(EVENT_SPSUMMON_SUCCESS, &e) || check_event(EVENT_FLIP_SUMMON_SUCCESS, &e)
+				 || check_event(EVENT_CHAIN_END, &e)) && e.reason_player == infos.turn_player) {
 			chain newchain;
 			tevent e;
 			e.event_cards = 0;
@@ -2376,6 +2376,7 @@ int32 field::process_idle_command(uint16 step) {
 		} else
 			add_process(PROCESSOR_FLIP_SUMMON, 0, 0, (group*)target, target->current.controler, 0);
 		target->set_status(STATUS_FORM_CHANGED, TRUE);
+		target->set_status(STATUS_CONTROL_CHANGED, FALSE);
 		core.units.begin()->step = -1;
 		return FALSE;
 	}
@@ -2438,6 +2439,7 @@ int32 field::process_idle_command(uint16 step) {
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
 		}
 		target->set_status(STATUS_FORM_CHANGED, TRUE);
+		target->set_status(STATUS_CONTROL_CHANGED, FALSE);
 		core.units.begin()->step = -1;
 		return FALSE;
 	}
@@ -2854,7 +2856,9 @@ int32 field::process_battle_command(uint16 step) {
 			return FALSE;
 		}
 		// replay
-		if(!core.attacker->is_affected_by_effect(EFFECT_MUST_ATTACK))
+		if(is_flag(DUEL_STORE_ATTACK_REPLAYS)) {
+			returns.at<int32>(0) = FALSE;
+		} else if(!core.attacker->is_affected_by_effect(EFFECT_MUST_ATTACK))
 			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 30);
 		else {
 			returns.at<int32>(0) = TRUE;
@@ -2872,7 +2876,7 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 13: {
-		if(core.attacker->fieldid_r == core.pre_field[0]) {
+		if(core.attacker->fieldid_r == core.pre_field[0] && !is_flag(DUEL_STORE_ATTACK_REPLAYS)) {
 			core.attacker->announce_count++;
 			core.attacker->announced_cards.addcard(core.attack_target);
 			attack_all_target_check();
@@ -2933,15 +2937,18 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_EVENT);
-		message->write<uint8>(0);
-		message->write<uint64>(40);
-		message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_EVENT);
-		message->write<uint8>(1);
-		message->write<uint64>(40);
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
+		if(!is_flag(DUEL_6_STEP_BATLLE_STEP) || (core.new_fchain.size() || core.new_ochain.size())) {
+			core.units.begin()->arg4 = core.new_fchain.size() || core.new_ochain.size();
+			message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(0);
+			message->write<uint64>(40);
+			message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(1);
+			message->write<uint64>(40);
+			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
+		}
 		return FALSE;
 	}
 	case 21: {
@@ -2970,16 +2977,18 @@ int32 field::process_battle_command(uint16 step) {
 		raise_event((card*)0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
-		auto message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_EVENT);
-		message->write<uint8>(0);
-		message->write<uint64>(41);
-		message = pduel->new_message(MSG_HINT);
-		message->write<uint8>(HINT_EVENT);
-		message->write<uint8>(1);
-		message->write<uint64>(41);
-		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
+		if(!is_flag(DUEL_6_STEP_BATLLE_STEP) || !core.units.begin()->arg4 || core.new_fchain.size() || core.new_ochain.size()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(0);
+			message->write<uint64>(41);
+			message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_EVENT);
+			message->write<uint8>(1);
+			message->write<uint64>(41);
+			core.hint_timing[infos.turn_player] = TIMING_DAMAGE_STEP;
+			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
+		}
 		return FALSE;
 	}
 	case 23: {
@@ -3009,7 +3018,7 @@ int32 field::process_battle_command(uint16 step) {
 		message->write<uint8>(1);
 		message->write<uint64>(42);
 		core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
+		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
 		return FALSE;
 	}
 	case 25: {
@@ -3106,7 +3115,6 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		process_single_event();
 		process_instant_event();
-		//this timing does not exist in Master Rule 3
 		core.damage_calculated = TRUE;
 		return FALSE;
 	}
@@ -3217,7 +3225,23 @@ int32 field::process_battle_command(uint16 step) {
 		}
 		core.selfdes_disabled = FALSE;
 		adjust_all();
-		//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3
+		if(is_flag(DUEL_6_STEP_BATLLE_STEP)) {
+			//EVENT_BATTLE_END was here, but this timing does not exist in Master Rule 3+
+			if(!core.effect_damage_step) {
+				auto message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_EVENT);
+				message->write<uint8>(0);
+				message->write<uint64>(45);
+				message = pduel->new_message(MSG_HINT);
+				message->write<uint8>(HINT_EVENT);
+				message->write<uint8>(1);
+				message->write<uint64>(45);
+				core.hint_timing[infos.turn_player] = TIMING_DAMAGE_CAL;
+				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
+			} else {
+				break_effect();
+			}
+		}
 		return FALSE;
 	}
 	case 31: {
@@ -3248,7 +3272,7 @@ int32 field::process_battle_command(uint16 step) {
 		message->write<uint64>(43);
 		core.hint_timing[0] |= TIMING_BATTLED;
 		core.hint_timing[1] |= TIMING_BATTLED;
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, TRUE);
+		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, is_flag(DUEL_SINGLE_CHAIN_IN_DAMAGE_SUBSTEP));
 		return FALSE;
 	}
 	case 33: {
@@ -3572,7 +3596,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 				reason_card = core.attack_target;
 				bd[0] = TRUE;
 			} else {
-				if(a != 0) {
+				if(a != 0 || is_flag(DUEL_0_ATK_DESTROYED)) {
 					bd[0] = TRUE;
 					bd[1] = TRUE;
 				}
@@ -4375,7 +4399,7 @@ int32 field::add_chain(uint16 step) {
 		auto& clit = core.current_chain.back();
 		int32 playerid = clit.triggering_player;
 		effect* peffect = clit.triggering_effect;
-		if(get_cteffect(peffect, playerid, TRUE)) {
+		if(!is_flag(DUEL_USE_TRAPS_IN_NEW_CHAIN) && get_cteffect(peffect, playerid, TRUE)) {
 			const bool damage_step = infos.phase == PHASE_DAMAGE && !peffect->is_flag(EFFECT_FLAG_DAMAGE_STEP);
 			const bool damage_cal = infos.phase == PHASE_DAMAGE_CAL && !peffect->is_flag(EFFECT_FLAG_DAMAGE_CAL);
 			if(damage_step || damage_cal) {
