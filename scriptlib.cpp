@@ -9,7 +9,7 @@
 #include "lua_obj.h"
 
 int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 retfalse) {
-	char* type = nullptr;
+	const char* type = nullptr;
 	switch (param_type) {
 	case PARAM_TYPE_CARD:
 	case PARAM_TYPE_GROUP:
