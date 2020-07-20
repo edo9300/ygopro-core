@@ -21,6 +21,7 @@
 #include <cstring>
 #include <cmath>
 
+class lua_obj;
 class card;
 class effect;
 class group;
@@ -69,6 +70,8 @@ public:
 	int32 clone_function_ref(int32 func_ref);
 	void* get_ref_object(int32 ref_handler);
 
+	static void pushobject(lua_State* L, lua_obj* obj);
+	static void pushobject(lua_State* L, int32 reference);
 	static void card2value(lua_State* L, card* pcard);
 	static void group2value(lua_State* L, group* pgroup);
 	static void effect2value(lua_State* L, effect* peffect);

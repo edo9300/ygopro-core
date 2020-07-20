@@ -9,6 +9,7 @@
 #define CARD_H_
 
 #include "common.h"
+#include "lua_obj.h"
 #include "effectset.h"
 #include "ocgapi.h"
 #include "duel.h"
@@ -61,7 +62,7 @@ struct card_state {
 	void set0xff();
 };
 
-class card {
+class card : public lua_obj {
 public:
 	struct effect_relation_hash {
 		inline std::size_t operator()(const std::pair<effect*, uint16>& v) const {
@@ -99,8 +100,6 @@ public:
 		uint8 location;
 		uint8 sequence;
 	};
-	int32 ref_handle;
-	duel* pduel;
 	card_data data;
 	card_state previous;
 	card_state temp;

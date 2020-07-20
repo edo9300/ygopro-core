@@ -9,6 +9,7 @@
 #define EFFECT_H_
 
 #include "common.h"
+#include "lua_obj.h"
 #include "field.h"
 #include <stdlib.h>
 #include <vector>
@@ -17,15 +18,12 @@
 class card;
 class duel;
 class group;
-class effect;
 struct tevent;
 enum effect_flag : uint32;
 enum effect_flag2 : uint32;
 
-class effect {
+class effect : public lua_obj {
 public:
-	int32 ref_handle;
-	duel* pduel;
 	card* owner;
 	card* handler;
 	uint8 effect_owner;

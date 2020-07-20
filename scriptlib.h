@@ -628,6 +628,11 @@ public:
 template<typename T, typename type>
 using EnableIf = typename std::enable_if_t<std::is_same<T, type>::value, T>;
 
+template<typename T>
+EnableIf<T, lua_obj*> lua_get(lua_State *L, int idx) {
+	return *reinterpret_cast<lua_obj**>(lua_touserdata(L, idx));
+}
+
 template<typename T, bool check = false>
 EnableIf<T,card*> lua_get(lua_State *L, int idx) {
 	if(check)

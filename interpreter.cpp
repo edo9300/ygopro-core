@@ -5,6 +5,7 @@
  *      Author: Argon
  */
 
+#include "lua_obj.h"
 #include "duel.h"
 #include "group.h"
 #include "card.h"
@@ -12,6 +13,7 @@
 #include "scriptlib.h"
 #include "interpreter.h"
 #include <cmath>
+
 static const struct luaL_Reg cardlib[] = {
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },
@@ -820,23 +822,11 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 		case PARAM_TYPE_BOOLEAN:
 			lua_pushboolean(L, (int32)it.first);
 			break;
-		case PARAM_TYPE_CARD: {
-			if (it.first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ((card*)it.first)->ref_handle);
-			else
-				lua_pushnil(L);
-			break;
-		}
-		case PARAM_TYPE_EFFECT: {
-			if (it.first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ((effect*)it.first)->ref_handle);
-			else
-				lua_pushnil(L);
-			break;
-		}
+		case PARAM_TYPE_CARD:
+		case PARAM_TYPE_EFFECT:
 		case PARAM_TYPE_GROUP: {
 			if (it.first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ((group*)it.first)->ref_handle);
+				lua_rawgeti(L, LUA_REGISTRYINDEX, reinterpret_cast<lua_obj*>(it.first)->ref_handle);
 			else
 				lua_pushnil(L);
 			break;
@@ -1316,29 +1306,29 @@ void* interpreter::get_ref_object(int32 ref_handler) {
 	return p;
 }
 //Convert a pointer to a lua value, +1 -0
-void interpreter::card2value(lua_State* L, card* pcard) {
-	if (!pcard || pcard->ref_handle == 0)
+void interpreter::pushobject(lua_State* L, lua_obj* obj) {
+	if(!obj || obj->ref_handle == 0)
 		lua_pushnil(L);
 	else
-		lua_rawgeti(L, LUA_REGISTRYINDEX, pcard->ref_handle);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
+}
+void interpreter::pushobject(lua_State* L, int32 reference) {
+	if(!reference)
+		lua_pushnil(L);
+	else
+		lua_rawgeti(L, LUA_REGISTRYINDEX, reference);
+}
+void interpreter::card2value(lua_State* L, card* pcard) {
+	pushobject(L, pcard);
 }
 void interpreter::group2value(lua_State* L, group* pgroup) {
-	if (!pgroup || pgroup->ref_handle == 0)
-		lua_pushnil(L);
-	else
-		lua_rawgeti(L, LUA_REGISTRYINDEX, pgroup->ref_handle);
+	pushobject(L, pgroup);
 }
 void interpreter::effect2value(lua_State* L, effect* peffect) {
-	if (!peffect || peffect->ref_handle == 0)
-		lua_pushnil(L);
-	else
-		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->ref_handle);
+	pushobject(L, peffect);
 }
 void interpreter::function2value(lua_State* L, int32 func_ref) {
-	if (!func_ref)
-		lua_pushnil(L);
-	else
-		lua_rawgeti(L, LUA_REGISTRYINDEX, func_ref);
+	pushobject(L, func_ref);
 }
 //Push all the elements of the table to the stack, +len(table) -0
 int interpreter::pushExpandedTable(lua_State * L, int32 table_index) {
