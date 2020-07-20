@@ -103,11 +103,11 @@ void field::change_target_param(uint8 chaincount, int32 param) {
 		chaincount = static_cast<uint8>(core.current_chain.size());
 	core.current_chain[chaincount - 1].target_param = param;
 }
-void field::remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint32 s, uint32 o, uint32 countertype, uint32 count) {
-	add_process(PROCESSOR_REMOVE_COUNTER, 0, NULL, (group*)pcard, (rplayer << 16) + (s << 8) + o, countertype, count, reason);
+void field::remove_counter(uint32 reason, card* pcard, uint32 rplayer, uint8 self, uint8 oppo, uint32 countertype, uint32 count) {
+	add_process(PROCESSOR_REMOVE_COUNTER, 0, NULL, (group*)pcard, (rplayer << 16) + (self << 8) + oppo, countertype, count, reason);
 }
-void field::remove_overlay_card(uint32 reason, group* pgroup, uint32 rplayer, uint32 s, uint32 o, uint16 min, uint16 max) {
-	add_process(PROCESSOR_REMOVE_OVERLAY, 0, NULL, pgroup, (rplayer << 16) + (s << 8) + o, (max << 16) + min, reason);
+void field::remove_overlay_card(uint32 reason, group* pgroup, uint32 rplayer, uint8 self, uint8 oppo, uint16 min, uint16 max) {
+	add_process(PROCESSOR_REMOVE_OVERLAY, 0, NULL, pgroup, (rplayer << 16) + (self << 8) + oppo, (max << 16) + min, reason);
 }
 void field::get_control(card_set* targets, effect* reason_effect, uint32 reason_player, uint32 playerid, uint32 reset_phase, uint32 reset_count, uint32 zone) {
 	group* ng = pduel->new_group(*targets);

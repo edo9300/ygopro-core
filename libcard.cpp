@@ -1179,7 +1179,7 @@ int32 scriptlib::card_is_not_tuner(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 2);
 	auto pcard = lua_get<card*>(L, 1);
 	auto scard = lua_get<card*>(L, 2);
-	int32 playerid = lua_tointeger(L, 3);
+	auto playerid = lua_get<uint8>(L, 3);
 	lua_pushboolean(L, pcard->is_not_tuner(scard, playerid));
 	return 1;
 }
@@ -1356,7 +1356,7 @@ int32 scriptlib::card_check_remove_overlay_card(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group(pcard);
-	int32 playerid = lua_tointeger(L, 2);
+	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	int32 count = lua_tointeger(L, 3);
@@ -1371,7 +1371,7 @@ int32 scriptlib::card_remove_overlay_card(lua_State *L) {
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
 	group* pgroup = pcard->pduel->new_group(pcard);
-	int32 playerid = lua_tointeger(L, 2);
+	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	int32 min = lua_tointeger(L, 3);
@@ -2560,7 +2560,7 @@ int32 scriptlib::card_remove_counter(lua_State *L) {
 	check_param_count(L, 5);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	card * pcard = lua_get<card*>(L, 1);
-	uint32 rplayer = lua_tointeger(L, 2);
+	auto rplayer = lua_get<uint8>(L, 2);
 	uint32 countertype = lua_tointeger(L, 3);
 	uint32 count = lua_tointeger(L, 4);
 	uint32 reason = lua_tointeger(L, 5);
@@ -2666,7 +2666,7 @@ int32 scriptlib::card_is_can_remove_counter(lua_State *L) {
 	check_param_count(L, 5);
 	check_param(L, PARAM_TYPE_CARD, 1);
 	auto pcard = lua_get<card*>(L, 1);
-	uint32 playerid = lua_tointeger(L, 2);
+	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	uint32 countertype = lua_tointeger(L, 3);

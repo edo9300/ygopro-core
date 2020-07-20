@@ -1212,7 +1212,7 @@ void field::next_player(uint8 playerid) {
 	message->write<uint32>(player[playerid].start_lp);
 	player[playerid].recharge = false;
 }
-bool field::is_flag(int32 flag) {
+bool field::is_flag(uint32 flag) {
 	return (core.duel_options & flag) == flag;
 }
 int32 field::get_pzone_index(uint8 seq) {
@@ -1876,7 +1876,7 @@ void field::ritual_release(card_set* material) {
 	release(&rel, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player);
 	send_to(&rem, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, POS_FACEUP);
 }
-void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, group* pgroup) {
+void field::get_overlay_group(uint8 playerid, uint8 self, uint8 oppo, card_set* pset, group* pgroup) {
 	if(pgroup) {
 		for(auto& pcard : pgroup->container) {
 			if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
@@ -1884,7 +1884,7 @@ void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, grou
 		}
 	} else {
 		for(int i = 0; i < 2; i++) {
-			if((i == self && s) || (i == (1 - self) && o)) {
+			if((i == playerid && self) || (i == (1 - playerid) && oppo)) {
 				for(auto& pcard : player[i].list_mzone) {
 					if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 						pset->insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
@@ -1893,7 +1893,7 @@ void field::get_overlay_group(uint8 self, uint8 s, uint8 o, card_set* pset, grou
 		}
 	}
 }
-int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup) {
+int32 field::get_overlay_count(uint8 playerid, uint8 self, uint8 oppo, group* pgroup) {
 	uint32 count = 0;
 	if(pgroup) {
 		for(auto& pcard : pgroup->container) {
@@ -1903,7 +1903,7 @@ int32 field::get_overlay_count(uint8 self, uint8 s, uint8 o, group* pgroup) {
 		return count;
 	}
 	for(int i = 0; i < 2; i++) {
-		if((i == self && s) || (i == (1 - self) && o)) {
+		if((i == playerid && self) || (i == (1 - playerid) && oppo)) {
 			for(auto& pcard : player[i].list_mzone) {
 				if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 					count += pcard->xyz_materials.size();
@@ -2252,16 +2252,16 @@ void field::restore_lp_cost() {
 	}
 }
 */
-uint32 field::get_field_counter(uint8 self, uint8 s, uint8 o, uint16 countertype) {
-	uint8 c = s;
+uint32 field::get_field_counter(uint8 playerid, uint8 self, uint8 oppo, uint16 countertype) {
+	uint8 c = self;
 	uint32 count = 0;
-	for(int32 p = 0; p < 2; ++p, self = 1 - self, c = o) {
+	for(int32 p = 0; p < 2; ++p, playerid = 1 - playerid, c = oppo) {
 		if(c) {
-			for(auto& pcard : player[self].list_mzone) {
+			for(auto& pcard : player[playerid].list_mzone) {
 				if(pcard)
 					count += pcard->get_counter(countertype);
 			}
-			for(auto& pcard : player[self].list_szone) {
+			for(auto& pcard : player[playerid].list_szone) {
 				if(pcard)
 					count += pcard->get_counter(countertype);
 			}
@@ -2751,8 +2751,8 @@ int32 field::is_player_can_place_counter(uint8 playerid, card * pcard, uint16 co
 	}
 	return TRUE;
 }
-int32 field::is_player_can_remove_counter(uint8 playerid, card * pcard, uint8 s, uint8 o, uint16 countertype, uint16 count, uint32 reason) {
-	if((pcard && pcard->get_counter(countertype) >= count) || (!pcard && get_field_counter(playerid, s, o, countertype) >= count))
+int32 field::is_player_can_remove_counter(uint8 playerid, card * pcard, uint8 self, uint8 oppo, uint16 countertype, uint16 count, uint32 reason) {
+	if((pcard && pcard->get_counter(countertype) >= count) || (!pcard && get_field_counter(playerid, self, oppo, countertype) >= count))
 		return TRUE;
 	auto pr = effects.continuous_effect.equal_range(EFFECT_RCOUNTER_REPLACE + countertype);
 	tevent e;
@@ -2770,8 +2770,8 @@ int32 field::is_player_can_remove_counter(uint8 playerid, card * pcard, uint8 s,
 	}
 	return FALSE;
 }
-int32 field::is_player_can_remove_overlay_card(uint8 playerid, group* pgroup, uint8 s, uint8 o, uint16 min, uint32 reason) {
-	if(get_overlay_count(playerid, s, o, pgroup) >= min)
+int32 field::is_player_can_remove_overlay_card(uint8 playerid, group* pgroup, uint8 self, uint8 oppo, uint16 min, uint32 reason) {
+	if(get_overlay_count(playerid, self, oppo, pgroup) >= min)
 		return TRUE;
 	auto pr = effects.continuous_effect.equal_range(EFFECT_OVERLAY_REMOVE_REPLACE);
 	tevent e;
@@ -2935,7 +2935,7 @@ int32 field::check_chain_target(uint8 chaincount, card * pcard) {
 	pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 	return pduel->lua->check_condition(peffect->target, 10);
 }
-chain* field::get_chain(uint32 chaincount) {
+chain* field::get_chain(uint8 chaincount) {
 	if(chaincount == 0 && core.continuous_chain.size() && (core.reason_effect->type & EFFECT_TYPE_CONTINUOUS))
 		return &core.continuous_chain.back();
 	if(chaincount == 0 || chaincount > core.current_chain.size()) {

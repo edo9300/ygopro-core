@@ -42,7 +42,7 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 	if(retfalse)
 		return FALSE;
 	luaL_error(L, "Parameter %d should be \"%s\".", index, type);
-	return false;
+	return FALSE;
 }
 
 int32 scriptlib::check_param_count(lua_State* L, int32 count) {
