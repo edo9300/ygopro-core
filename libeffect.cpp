@@ -208,9 +208,8 @@ int32 scriptlib::effect_set_hint_timing(lua_State *L) {
 }
 int32 scriptlib::effect_set_condition(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_EFFECT, 1);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
-	auto peffect = lua_get<effect*>(L, 1);
+	auto peffect = lua_get<effect*, true>(L, 1);
 	if(peffect->condition)
 		luaL_unref(L, LUA_REGISTRYINDEX, peffect->condition);
 	peffect->condition = interpreter::get_function_handle(L, 2);
@@ -218,9 +217,8 @@ int32 scriptlib::effect_set_condition(lua_State *L) {
 }
 int32 scriptlib::effect_set_target(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_EFFECT, 1);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
-	auto peffect = lua_get<effect*>(L, 1);
+	auto peffect = lua_get<effect*, true>(L, 1);
 	if(peffect->target)
 		luaL_unref(L, LUA_REGISTRYINDEX, peffect->target);
 	peffect->target = interpreter::get_function_handle(L, 2);
@@ -228,9 +226,8 @@ int32 scriptlib::effect_set_target(lua_State *L) {
 }
 int32 scriptlib::effect_set_cost(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_EFFECT, 1);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
-	auto peffect = lua_get<effect*>(L, 1);
+	auto peffect = lua_get<effect*, true>(L, 1);
 	if(peffect->cost)
 		luaL_unref(L, LUA_REGISTRYINDEX, peffect->cost);
 	peffect->cost = interpreter::get_function_handle(L, 2);
@@ -439,9 +436,8 @@ int32 scriptlib::effect_is_has_type(lua_State *L) {
 }
 int32 scriptlib::effect_is_activatable(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_EFFECT, 1);
+	auto peffect = lua_get<effect*, true>(L, 1);
 	auto playerid = lua_get<uint8>(L, 2);
-	auto peffect = lua_get<effect*>(L, 1);
 	bool neglect_loc = 0;
 	bool neglect_target = 0;
 	if(lua_gettop(L) > 2) {
