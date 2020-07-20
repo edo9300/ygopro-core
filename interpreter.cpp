@@ -765,7 +765,7 @@ int32 interpreter::load_card_script(uint32 code) {
 	//if script is not loaded, create and load it
 	if (lua_isnil(current_state, -1)) {
 		lua_pop(current_state, 1);
-		lua_pushnumber(current_state, code);
+		lua_pushinteger(current_state, code);
 		lua_setglobal(current_state, "self_code");
 		//create a table & set metatable
 		lua_createtable(current_state, 0, 0);
