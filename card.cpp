@@ -1396,6 +1396,16 @@ uint32 card::get_rscale() {
 	return rscale;
 }
 uint32 card::get_link_marker() {
+	auto rotate = [](uint32& marker) {
+		marker=(((marker & LINK_MARKER_BOTTOM_LEFT) ? LINK_MARKER_BOTTOM_RIGHT : 0) |
+			((marker & LINK_MARKER_BOTTOM) ? LINK_MARKER_RIGHT : 0) |
+			((marker & LINK_MARKER_BOTTOM_RIGHT) ? LINK_MARKER_TOP_RIGHT : 0) |
+			((marker & LINK_MARKER_RIGHT) ? LINK_MARKER_TOP : 0) |
+			((marker & LINK_MARKER_TOP_RIGHT) ? LINK_MARKER_TOP_LEFT : 0) |
+			((marker & LINK_MARKER_TOP) ? LINK_MARKER_LEFT : 0) |
+			((marker & LINK_MARKER_TOP_LEFT) ? LINK_MARKER_BOTTOM_LEFT : 0) |
+			((marker & LINK_MARKER_LEFT) ? LINK_MARKER_BOTTOM : 0));
+	};
 	if((current.position & POS_FACEDOWN) && (current.is_location(LOCATION_ONFIELD)))
 		return 0;
 	if (assume.find(ASSUME_LINKMARKER) != assume.end())
@@ -1405,7 +1415,7 @@ uint32 card::get_link_marker() {
 	if (temp.link_marker != 0xffffffff)
 		return temp.link_marker;
 	effect_set effects;
-	int32 link_marker = data.link_marker;
+	uint32 link_marker = data.link_marker;
 	temp.link_marker = data.link_marker;
 	filter_effect(EFFECT_ADD_LINKMARKER, &effects, FALSE);
 	filter_effect(EFFECT_REMOVE_LINKMARKER, &effects, FALSE);
@@ -1420,6 +1430,8 @@ uint32 card::get_link_marker() {
 		temp.link_marker = link_marker;
 	}
 	temp.link_marker = 0xffffffff;
+	if((current.position & POS_DEFENSE) && current.is_location(LOCATION_ONFIELD))
+		rotate(link_marker);
 	return link_marker;
 }
 int32 card::is_link_marker(uint32 dir, uint32 marker) {
