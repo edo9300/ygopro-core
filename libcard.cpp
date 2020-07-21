@@ -782,23 +782,23 @@ int32 scriptlib::card_is_summon_code(lua_State *L) {
 	codes.insert(code1);
 	if (code2)
 		codes.insert(code2);
-	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-		if (!eset[i]->operation)
+	for (const auto& peff : eset) {
+		if (!peff->operation)
 			continue;
 		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if (!pduel->lua->check_condition(eset[i]->operation, 3))
+		if (!pduel->lua->check_condition(peff->operation, 3))
 			continue;
-		if (eset[i]->code == EFFECT_ADD_CODE)
-			codes.insert(eset[i]->get_value(pcard));
-		else if (eset[i]->code == EFFECT_REMOVE_CODE) {
-			auto cit = codes.find(eset[i]->get_value(pcard));
+		if (peff->code == EFFECT_ADD_CODE)
+			codes.insert(peff->get_value(pcard));
+		else if (peff->code == EFFECT_REMOVE_CODE) {
+			auto cit = codes.find(peff->get_value(pcard));
 			if (cit != codes.end())
 				codes.erase(cit);
 		} else {
 			codes.clear();
-			codes.insert(eset[i]->get_value(pcard));
+			codes.insert(peff->get_value(pcard));
 		}
 	}
 	uint32 count = lua_gettop(L) - 4;
@@ -1348,9 +1348,9 @@ int32 scriptlib::card_is_has_effect(lua_State *L) {
 		if(check_player > PLAYER_NONE)
 			check_player = PLAYER_NONE;
 	}
-	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-		if(check_player == PLAYER_NONE || eset[i]->check_count_limit(check_player))
-			interpreter::pushobject(L, eset[i]);
+	for(const auto& peff : eset) {
+		if(check_player == PLAYER_NONE || peff->check_count_limit(check_player))
+			interpreter::pushobject(L, peff);
 		else
 			size--;
 	}

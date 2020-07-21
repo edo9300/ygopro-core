@@ -618,9 +618,9 @@ int32 field::process() {
 				core.units.pop_front();
 				return PROCESSOR_FLAG_CONTINUE;
 			}
-			for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-				core.select_effects.push_back(eset[i]);
-				core.select_options.push_back(eset[i]->description);
+			for(const auto& peff : eset) {
+				core.select_effects.push_back(peff);
+				core.select_options.push_back(peff->description);
 			}
 			if (core.select_options.size() == 1)
 				returns.at<int32>(0) = 0;
@@ -2202,29 +2202,29 @@ int32 field::process_idle_command(uint16 step) {
 		core.spsummonable_cards.clear();
 		effect_set eset;
 		filter_field_effect(EFFECT_SPSUMMON_PROC, &eset);
-		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-			card* pcard = eset[i]->get_handler();
-			if(!eset[i]->check_count_limit(pcard->current.controler))
+		for(const auto& peff : eset) {
+			card* pcard = peff->get_handler();
+			if(!peff->check_count_limit(pcard->current.controler))
 				continue;
 			if(pcard->current.controler == infos.turn_player && pcard->is_special_summonable(infos.turn_player, 0))
 				core.spsummonable_cards.push_back(pcard);
 		}
 		eset.clear();
 		filter_field_effect(EFFECT_SPSUMMON_PROC_G, &eset);
-		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-			card* pcard = eset[i]->get_handler();
-			if(!eset[i]->check_count_limit(infos.turn_player))
+		for(const auto& peff : eset) {
+			card* pcard = peff->get_handler();
+			if(!peff->check_count_limit(infos.turn_player))
 				continue;
-			if(pcard->current.controler != infos.turn_player && !eset[i]->is_flag(EFFECT_FLAG_BOTH_SIDE))
+			if(pcard->current.controler != infos.turn_player && !peff->is_flag(EFFECT_FLAG_BOTH_SIDE))
 				continue;
 			effect* oreason = core.reason_effect;
 			uint8 op = core.reason_player;
-			core.reason_effect = eset[i];
+			core.reason_effect = peff;
 			core.reason_player = pcard->current.controler;
 			save_lp_cost();
-			pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
+			pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-			if(pduel->lua->check_condition(eset[i]->condition, 2))
+			if(pduel->lua->check_condition(peff->condition, 2))
 				core.spsummonable_cards.push_back(pcard);
 			restore_lp_cost();
 			core.reason_effect = oreason;
@@ -2595,9 +2595,9 @@ int32 field::process_battle_command(uint16 step) {
 			chain newchain;
 			filter_player_effect(infos.turn_player, EFFECT_ATTACK_COST, &eset, FALSE);
 			core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
-			for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-				if(eset[i]->operation) {
-					newchain.triggering_effect = eset[i];
+			for(const auto& peff : eset) {
+				if(peff->operation) {
+					newchain.triggering_effect = peff;
 					core.tpchain.push_back(newchain);
 					core.attack_cancelable = FALSE;
 				}
@@ -3608,18 +3608,18 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 				if(eset.size()) {
 					pierce = true;
 					uint8 dp[2] = {};
-					for(uint32 i = 0; i < eset.size(); ++i)
-						dp[1 - eset[i]->get_handler_player()] = 1;
+					for(const auto& peff : eset)
+						dp[1 - peff->get_handler_player()] = 1;
 					if(dp[0])
 						core.battle_damage[0] = a - d;
 					if(dp[1])
 						core.battle_damage[1] = a - d;
 					bool double_damage = false;
 					//bool half_damage = false;
-					for(uint32 i = 0; i < eset.size(); ++i) {
-						if(eset[i]->get_value() == static_cast<int32>(DOUBLE_DAMAGE))
+					for(const auto& peff : eset) {
+						if(peff->get_value() == static_cast<int32>(DOUBLE_DAMAGE))
 							double_damage = true;
-						//if(eset[i]->get_value() == HALF_DAMAGE)
+						//if(peff->get_value() == HALF_DAMAGE)
 						//	half_damage = true;
 					}
 					//if(double_damage && half_damage) {
@@ -3705,15 +3705,15 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 						bool double_dam = false;
 						bool half_dam = false;
 						int32 dam_value = -1;
-						for(uint32 i = 0; i < eset.size(); ++i) {
+						for(const auto& peff : eset) {
 							int32 val = -1;
-							if(!eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
+							if(!peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 								pduel->lua->add_param(p, PARAM_TYPE_INT);
 								pduel->lua->add_param(core.attacker, PARAM_TYPE_CARD);
-								val = eset[i]->get_value(2);
-							} else if(eset[i]->is_target_player(p)) {
+								val = peff->get_value(2);
+							} else if(peff->is_target_player(p)) {
 								pduel->lua->add_param(core.attacker, PARAM_TYPE_CARD);
-								val = eset[i]->get_value(1);
+								val = peff->get_value(1);
 							}
 							if(val == 0) {
 								dam_value = 0;
@@ -3828,15 +3828,15 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 			bool double_dam = false;
 			bool half_dam = false;
 			int32 dam_value = -1;
-			for(uint32 i = 0; i < eset.size(); ++i) {
+			for(const auto& peff : eset) {
 				int32 val = -1;
-				if(!eset[i]->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
+				if(!peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 					pduel->lua->add_param(p, PARAM_TYPE_INT);
 					pduel->lua->add_param(reason_card, PARAM_TYPE_CARD);
-					val = eset[i]->get_value(2);
-				} else if(eset[i]->is_target_player(p)) {
+					val = peff->get_value(2);
+				} else if(peff->is_target_player(p)) {
 					pduel->lua->add_param(reason_card, PARAM_TYPE_CARD);
-					val = eset[i]->get_value(1);
+					val = peff->get_value(1);
 				}
 				if(val == 0) {
 					dam_value = 0;
@@ -4256,15 +4256,15 @@ int32 field::add_chain(uint16 step) {
 		card* phandler = peffect->get_handler();
 		effect_set eset;
 		filter_player_effect(clit.triggering_player, EFFECT_ACTIVATE_COST, &eset);
-		for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-			pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
+		for(const auto& peff : eset) {
+			pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(clit.triggering_effect, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(clit.triggering_player, PARAM_TYPE_INT);
-			if(!pduel->lua->check_condition(eset[i]->target, 3))
+			if(!pduel->lua->check_condition(peff->target, 3))
 				continue;
-			if(eset[i]->operation) {
+			if(peff->operation) {
 				core.sub_solving_event.push_back(clit.evt);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, eset[i], 0, clit.triggering_player, 0);
+				add_process(PROCESSOR_EXECUTE_OPERATION, 0, peff, 0, clit.triggering_player, 0);
 			}
 		}
 		if(peffect->type & EFFECT_TYPE_ACTIVATE) {
@@ -4285,16 +4285,16 @@ int32 field::add_chain(uint16 step) {
 				eset.clear();
 				phandler->filter_effect(ecode, &eset);
 				effect* pactin = 0;
-				for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-					if(!eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
-						pactin = eset[i];
+				for(const auto& peff : eset) {
+					if(!peff->is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
+						pactin = peff;
 						break;
 					}
 				}
 				if(!pactin) {
-					for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-						if(eset[i]->check_count_limit(phandler->current.controler)) {
-							eset[i]->dec_count(phandler->current.controler);
+					for(const auto& peff : eset) {
+						if(peff->check_count_limit(phandler->current.controler)) {
+							peff->dec_count(phandler->current.controler);
 							break;
 						}
 					}
@@ -4566,24 +4566,22 @@ int32 field::sort_chain(uint16 step, uint8 tp) {
 	case 1: {
 		if(returns.at<int8>(0) == -1)
 			return TRUE;
-		chain_list::iterator clit;
-		int32 i = 0, count;
 		if(tp) {
-			count = core.tpchain.size();
-			chain_array ch(count);
-			for(i = 0, clit = core.tpchain.begin(); i < count; ++clit, ++i)
-				ch[returns.at<int8>(i)] = *clit;
+			chain_array ch(core.tpchain.size());
+			int i = 0;
+			for(const auto& _ch : core.tpchain)
+				ch[returns.at<int8>(i++)] = _ch;
 			core.tpchain.clear();
-			for(i = 0; i < count; ++i)
-				core.tpchain.push_back(ch[i]);
+			for(const auto& _ch : ch)
+				core.tpchain.push_back(_ch);
 		} else {
-			count = core.ntpchain.size();
-			chain_array ch(count);
-			for(i = 0, clit = core.ntpchain.begin(); i < count; ++clit, ++i)
-				ch[returns.at<int8>(i)] = *clit;
+			chain_array ch(core.ntpchain.size());
+			int i = 0;
+			for(const auto& _ch : core.ntpchain)
+				ch[returns.at<int8>(i++)] = _ch;
 			core.ntpchain.clear();
-			for(i = 0; i < count; ++i)
-				core.ntpchain.push_back(ch[i]);
+			for(const auto& _ch : ch)
+				core.ntpchain.push_back(_ch);
 		}
 		return TRUE;
 	}
@@ -4980,23 +4978,23 @@ void field::refresh_location_info_instant() {
 	player[0].disabled_location = 0;
 	player[1].disabled_location = 0;
 	filter_field_effect(EFFECT_DISABLE_FIELD, &eset);
-	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-		uint32 value = eset[i]->get_value();
+	for(const auto& peff : eset) {
+		uint32 value = peff->get_value();
 		player[0].disabled_location |= value & 0xff7f;
 		player[1].disabled_location |= (value >> 16) & 0xff7f;
 	}
 	eset.clear();
 	filter_field_effect(EFFECT_USE_EXTRA_MZONE, &eset);
-	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-		uint32 p = eset[i]->get_handler_player();
-		uint32 value = eset[i]->get_value();
+	for(const auto& peff : eset) {
+		uint32 p = peff->get_handler_player();
+		uint32 value = peff->get_value();
 		player[p].disabled_location |= (value >> 16) & 0x1f;
 	}
 	eset.clear();
 	filter_field_effect(EFFECT_USE_EXTRA_SZONE, &eset);
-	for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-		uint32 p = eset[i]->get_handler_player();
-		uint32 value = eset[i]->get_value();
+	for(const auto& peff : eset) {
+		uint32 p = peff->get_handler_player();
+		uint32 value = peff->get_value();
 		player[p].disabled_location |= (value >> 8) & 0x1f00;
 	}
 	player[0].disabled_location |= (((player[1].disabled_location >> 5) & 1) << 6) | (((player[1].disabled_location >> 6) & 1) << 5);
@@ -5022,31 +5020,31 @@ int32 field::refresh_location_info(uint16 step) {
 		core.extra_mzone_effects.clear();
 		core.extra_szone_effects.clear();
 		filter_field_effect(EFFECT_DISABLE_FIELD, &eset);
-		for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-			uint32 value = eset[i]->get_value();
-			if(value && !eset[i]->is_flag(EFFECT_FLAG_REPEAT)) {
+		for(const auto& peff : eset) {
+			uint32 value = peff->get_value();
+			if(value && !peff->is_flag(EFFECT_FLAG_REPEAT)) {
 				player[0].disabled_location |= value & 0xff7f;
 				player[1].disabled_location |= (value >> 16) & 0xff7f;
 			} else
-				core.disfield_effects.push_back(eset[i]);
+				core.disfield_effects.push_back(peff);
 		}
 		eset.clear();
 		filter_field_effect(EFFECT_USE_EXTRA_MZONE, &eset);
-		for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-			uint32 p = eset[i]->get_handler_player();
-			uint32 value = eset[i]->get_value();
+		for(const auto& peff : eset) {
+			uint32 p = peff->get_handler_player();
+			uint32 value = peff->get_value();
 			player[p].disabled_location |= (value >> 16) & 0x1f;
 			if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
-				core.extra_mzone_effects.push_back(eset[i]);
+				core.extra_mzone_effects.push_back(peff);
 		}
 		eset.clear();
 		filter_field_effect(EFFECT_USE_EXTRA_SZONE, &eset);
-		for (effect_set::size_type i = 0; i < eset.size(); ++i) {
-			uint32 p = eset[i]->get_handler_player();
-			uint32 value = eset[i]->get_value();
+		for(const auto& peff : eset) {
+			uint32 p = peff->get_handler_player();
+			uint32 value = peff->get_value();
 			player[p].disabled_location |= (value >> 8) & 0x1f00;
 			if((uint32)field_used_count[(value >> 16) & 0x1f] < (value & 0xffff))
-				core.extra_szone_effects.push_back(eset[i]);
+				core.extra_szone_effects.push_back(peff);
 		}
 		return FALSE;
 	}

@@ -249,8 +249,8 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				bool available = false;
 				effect_set eset;
 				handler->filter_effect(ecode, &eset);
-				for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-					if(eset[i]->check_count_limit(playerid)) {
+				for(const auto& peff : eset) {
+					if(peff->check_count_limit(playerid)) {
 						available = true;
 						break;
 					}
@@ -334,24 +334,24 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 int32 effect::is_action_check(uint8 playerid) {
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, EFFECT_CANNOT_ACTIVATE, &eset);
-	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
+	for(const auto& peff : eset) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(eset[i]->check_value_condition(2))
+		if(peff->check_value_condition(2))
 			return FALSE;
 	}
 	eset.clear();
 	pduel->game_field->filter_player_effect(playerid, EFFECT_ACTIVATE_COST, &eset);
-	for(effect_set::size_type i = 0; i < eset.size(); ++i) {
-		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
+	for(const auto& peff : eset) {
+		pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(!pduel->lua->check_condition(eset[i]->target, 3))
+		if(!pduel->lua->check_condition(peff->target, 3))
 			continue;
-		pduel->lua->add_param(eset[i], PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if(!pduel->lua->check_condition(eset[i]->cost, 3))
+		if(!pduel->lua->check_condition(peff->cost, 3))
 			return FALSE;
 	}
 	return TRUE;
