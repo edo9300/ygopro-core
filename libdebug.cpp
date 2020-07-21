@@ -87,8 +87,7 @@ int32 scriptlib::debug_set_player_info(lua_State *L) {
 }
 int32 scriptlib::debug_pre_summon(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	auto pcard = lua_get<card*>(L, 1);
+	auto pcard = lua_get<card*, true>(L, 1);
 	auto summon_type = lua_get<uint32>(L, 2);
 	uint8 summon_location = 0;
 	if(lua_gettop(L) > 2)
@@ -98,10 +97,8 @@ int32 scriptlib::debug_pre_summon(lua_State *L) {
 }
 int32 scriptlib::debug_pre_equip(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	auto equip_card = lua_get<card*>(L, 1);
-	auto target = lua_get<card*>(L, 2);
+	auto equip_card = lua_get<card*, true>(L, 1);
+	auto target = lua_get<card*, true>(L, 2);
 	if((equip_card->current.location != LOCATION_SZONE)
 	        || (target->current.location != LOCATION_MZONE)
 	        || (target->current.position & POS_FACEDOWN))
@@ -116,19 +113,16 @@ int32 scriptlib::debug_pre_equip(lua_State *L) {
 }
 int32 scriptlib::debug_pre_set_target(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	check_param(L, PARAM_TYPE_CARD, 2);
-	auto t_card = lua_get<card*>(L, 1);
-	auto target = lua_get<card*>(L, 2);
+	auto t_card = lua_get<card*, true>(L, 1);
+	auto target = lua_get<card*, true>(L, 2);
 	t_card->add_card_target(target);
 	return 0;
 }
 int32 scriptlib::debug_pre_add_counter(lua_State *L) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_CARD, 1);
-	auto pcard = lua_get<card*>(L, 1);
+	auto pcard = lua_get<card*, true>(L, 1);
 	auto countertype = lua_get<uint16>(L, 2);
-	uint16 count = lua_get<uint16>(L, 3);
+	auto count = lua_get<uint16>(L, 3);
 	uint16 cttype = countertype & ~COUNTER_NEED_ENABLE;
 	auto pr = pcard->counters.emplace(cttype, card::counter_map::mapped_type());
 	auto cmit = pr.first;
