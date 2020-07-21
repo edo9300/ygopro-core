@@ -205,7 +205,7 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 			pduel->game_field->core.select_cards.push_back(pcard);
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32 status, lua_KContext ctx) {
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
@@ -241,7 +241,7 @@ int32 scriptlib::group_select(lua_State* L) {
 	auto max = lua_get<uint16>(L, 4);
 	pduel->game_field->core.select_cards.assign(cset.begin(), cset.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32 status, lua_KContext ctx) {
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
@@ -298,7 +298,7 @@ int32 scriptlib::group_select_unselect(lua_State* L) {
 		pduel->game_field->core.unselect_cards.push_back(*it);
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), finishable);
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32 status, lua_KContext ctx) {
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
@@ -426,7 +426,7 @@ int32 scriptlib::group_select_with_sum_equal(lua_State* L) {
 		return 1;
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, acc, playerid + (min << 16) + (max << 24));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32 status, lua_KContext ctx) {
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
 		pduel->game_field->core.must_select_cards.clear();
@@ -484,7 +484,7 @@ int32 scriptlib::group_select_with_sum_greater(lua_State* L) {
 		return 1;
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, acc, playerid);
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32 status, lua_KContext ctx) {
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
 		pduel->game_field->core.must_select_cards.clear();
