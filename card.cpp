@@ -1606,7 +1606,7 @@ int32 card::is_link_state() {
 		return TRUE;
 	return FALSE;
 }
-int32 card::is_mutual_linked(card * pcard, uint32 zones1, uint32 zones2) {
+int32 card::is_mutual_linked(card* pcard, uint32 zones1, uint32 zones2) {
 	int32 ret = FALSE;
 	if(!zones1)
 		zones1 = get_linked_zone();
@@ -1736,7 +1736,7 @@ int32 card::is_all_column() {
 		return TRUE;
 	return FALSE;
 }
-void card::equip(card *target, uint32 send_msg) {
+void card::equip(card* target, uint32 send_msg) {
 	if (equiping_target)
 		return;
 	target->equiping_cards.insert(this);
@@ -3631,7 +3631,7 @@ int32 card::is_destructable() {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_destructable_by_battle(card * pcard) {
+int32 card::is_destructable_by_battle(card* pcard) {
 	if(is_affected_by_effect(EFFECT_INDESTRUCTABLE_BATTLE, pcard))
 		return FALSE;
 	return TRUE;
@@ -3733,7 +3733,7 @@ int32 card::is_removeable_as_cost(uint8 playerid, int32 pos) {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_releasable_by_summon(uint8 playerid, card *pcard) {
+int32 card::is_releasable_by_summon(uint8 playerid, card* pcard) {
 	if(is_status(STATUS_SUMMONING))
 		return FALSE;
 	if(overlay_target)
@@ -4153,7 +4153,7 @@ int32 card::is_can_be_link_material(card* scard, uint8 playerid) {
 	}
 	return TRUE;
 }
-int32 card::is_can_be_material(card * scard, uint64 sumtype, uint8 playerid) {
+int32 card::is_can_be_material(card* scard, uint64 sumtype, uint8 playerid) {
 	if(sumtype & SUMMON_TYPE_FUSION)
 		return is_can_be_fusion_material(scard, sumtype, playerid);
 	if(sumtype & SUMMON_TYPE_SYNCHRO)

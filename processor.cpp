@@ -749,7 +749,7 @@ int32 field::process() {
 	}
 	return PROCESSOR_FLAG_CONTINUE;
 }
-int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 triggering_player) {
+int32 field::execute_cost(uint16 step, effect* triggering_effect, uint8 triggering_player) {
 	if(!triggering_effect->cost) {
 		core.solving_event.splice(core.solving_event.begin(), core.sub_solving_event);
 		pduel->lua->params.clear();
@@ -802,7 +802,7 @@ int32 field::execute_cost(uint16 step, effect * triggering_effect, uint8 trigger
 	}
 	return FALSE;
 }
-int32 field::execute_operation(uint16 step, effect * triggering_effect, uint8 triggering_player) {
+int32 field::execute_operation(uint16 step, effect* triggering_effect, uint8 triggering_player) {
 	if(!triggering_effect->operation) {
 		core.solving_event.splice(core.solving_event.begin(), core.sub_solving_event);
 		pduel->lua->params.clear();
@@ -858,7 +858,7 @@ int32 field::execute_operation(uint16 step, effect * triggering_effect, uint8 tr
 	}
 	return FALSE;
 }
-int32 field::execute_target(uint16 step, effect * triggering_effect, uint8 triggering_player) {
+int32 field::execute_target(uint16 step, effect* triggering_effect, uint8 triggering_player) {
 	if(!triggering_effect->target) {
 		core.solving_event.splice(core.solving_event.begin(), core.sub_solving_event);
 		pduel->lua->params.clear();
@@ -945,7 +945,7 @@ void field::raise_event(card_set* event_cards, uint32 event_code, effect* reason
 	new_event.event_value = event_value;
 	core.queue_event.push_back(new_event);
 }
-void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32 event_code, effect * reason_effect, uint32 reason, uint8 reason_player, uint8 event_player, uint32 event_value) {
+void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32 event_code, effect* reason_effect, uint32 reason, uint8 reason_player, uint8 event_player, uint32 event_value) {
 	tevent new_event;
 	new_event.trigger_card = trigger_card;
 	if (event_cards) {
@@ -962,7 +962,7 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 	new_event.event_value = event_value;
 	core.single_event.push_back(new_event);
 }
-int32 field::check_event(uint32 code, tevent * pe) {
+int32 field::check_event(uint32 code, tevent* pe) {
 	for(const auto& ev : core.point_event) {
 		if(ev.event_code == code) {
 			if(pe)

@@ -1480,7 +1480,7 @@ int32 field::trap_monster_adjust(uint16 step) {
 	}
 	return TRUE;
 }
-int32 field::equip(uint16 step, uint8 equip_player, card * equip_card, card * target, uint32 up, uint32 is_step) {
+int32 field::equip(uint16 step, uint8 equip_player, card* equip_card, card* target, uint32 up, uint32 is_step) {
 	switch(step) {
 	case 0: {
 		returns.at<int32>(0) = FALSE;
@@ -2104,7 +2104,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 	}
 	return TRUE;
 }
-int32 field::flip_summon(uint16 step, uint8 sumplayer, card * target) {
+int32 field::flip_summon(uint16 step, uint8 sumplayer, card* target) {
 	switch(step) {
 	case 0: {
 		if(target->current.location != LOCATION_MZONE)
@@ -2503,7 +2503,7 @@ int32 field::mset(uint16 step, uint8 setplayer, card* target, effect* proc, uint
 	}
 	return TRUE;
 }
-int32 field::sset(uint16 step, uint8 setplayer, uint8 toplayer, card * target, effect* reason_effect) {
+int32 field::sset(uint16 step, uint8 setplayer, uint8 toplayer, card* target, effect* reason_effect) {
 	switch(step) {
 	case 0: {
 		if(!(target->data.type & TYPE_FIELD) && get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON_TOFIELD) <= 0)
@@ -3480,7 +3480,7 @@ int32 field::destroy_replace(uint16 step, group* targets, card* target, uint8 ba
 	}
 	return TRUE;
 }
-int32 field::destroy(uint16 step, group * targets, effect * reason_effect, uint32 reason, uint8 reason_player) {
+int32 field::destroy(uint16 step, group* targets, effect* reason_effect, uint32 reason, uint8 reason_player) {
 	switch(step) {
 	case 0: {
 		card_set extra;
@@ -3831,7 +3831,7 @@ int32 field::release_replace(uint16 step, group* targets, card* target) {
 	}
 	return TRUE;
 }
-int32 field::release(uint16 step, group * targets, effect * reason_effect, uint32 reason, uint8 reason_player) {
+int32 field::release(uint16 step, group* targets, effect* reason_effect, uint32 reason, uint8 reason_player) {
 	switch(step) {
 	case 0: {
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
@@ -3902,7 +3902,7 @@ int32 field::release(uint16 step, group * targets, effect * reason_effect, uint3
 	}
 	return TRUE;
 }
-int32 field::send_replace(uint16 step, group * targets, card * target) {
+int32 field::send_replace(uint16 step, group* targets, card* target) {
 	uint8 playerid = target->sendto_param.playerid;
 	uint8 dest = target->sendto_param.location;
 	if(targets->container.find(target) == targets->container.end())
@@ -3923,7 +3923,7 @@ int32 field::send_replace(uint16 step, group * targets, card * target) {
 	}
 	return TRUE;
 }
-int32 field::send_to(uint16 step, group * targets, effect * reason_effect, uint32 reason, uint8 reason_player) {
+int32 field::send_to(uint16 step, group* targets, effect* reason_effect, uint32 reason, uint8 reason_player) {
 	struct exargs {
 		group* targets;
 		card_set leave, detach;
@@ -4803,7 +4803,7 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 	}
 	return TRUE;
 }
-int32 field::change_position(uint16 step, group * targets, effect * reason_effect, uint8 reason_player, uint32 enable) {
+int32 field::change_position(uint16 step, group* targets, effect* reason_effect, uint8 reason_player, uint32 enable) {
 	switch(step) {
 	case 0: {
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
@@ -5625,7 +5625,7 @@ int32 field::select_tribute_cards(int16 step, card* target, uint8 playerid, uint
 	}
 	return TRUE;
 }
-int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player, uint8 playerid, uint8 count) {
+int32 field::toss_coin(uint16 step, effect* reason_effect, uint8 reason_player, uint8 playerid, uint8 count) {
 	switch(step) {
 	case 0: {
 		effect_set eset;
@@ -5698,7 +5698,7 @@ int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player,
 	}
 	return TRUE;
 }
-int32 field::toss_dice(uint16 step, effect * reason_effect, uint8 reason_player, uint8 playerid, uint8 count1, uint8 count2) {
+int32 field::toss_dice(uint16 step, effect* reason_effect, uint8 reason_player, uint8 playerid, uint8 count1, uint8 count2) {
 	switch(step) {
 	case 0: {
 		effect_set eset;

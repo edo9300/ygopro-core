@@ -199,7 +199,7 @@ public:
 	uint32 get_linked_zone(bool free = false);
 	void get_linked_cards(card_set* cset, uint32 zones = 0);
 	uint32 get_mutual_linked_zone();
-	void get_mutual_linked_cards(card_set * cset);
+	void get_mutual_linked_cards(card_set* cset);
 	int32 is_link_state();
 	int32 is_mutual_linked(card* pcard, uint32 zones1 = 0, uint32 zones2 = 0);
 	int32 is_extra_link_state();
@@ -211,7 +211,7 @@ public:
 	void get_column_cards(card_set* cset, int32 left, int32 right);
 	int32 is_all_column();
 
-	void equip(card *target, uint32 send_msg = TRUE);
+	void equip(card* target, uint32 send_msg = TRUE);
 	void unequip();
 	int32 get_union_count();
 	int32 get_old_union_count();

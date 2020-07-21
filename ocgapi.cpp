@@ -225,7 +225,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 	return DUEL->query_buffer.data();
 }
 
-OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
+OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
 	auto& query = DUEL->query_buffer;
 	query.clear();
 	//insert_value<int8_t>(query, MSG_RELOAD_FIELD);
@@ -280,5 +280,5 @@ OCGAPI void * OCG_DuelQueryField(OCG_Duel duel, uint32_t * length) {
 void DefaultLogHandler(void* payload, const char* string, int type) {
 }
 
-void DefaultCardReaderDone(void * payload, OCG_CardData * data) {
+void DefaultCardReaderDone(void* payload, OCG_CardData* data) {
 }

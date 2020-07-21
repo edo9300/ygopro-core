@@ -2546,7 +2546,7 @@ int32 field::is_player_can_discard_deck_as_cost(uint8 playerid, int32 count) {
 	}
 	return TRUE;
 }
-int32 field::is_player_can_discard_hand(uint8 playerid, card * pcard, effect * peffect, uint32 reason) {
+int32 field::is_player_can_discard_hand(uint8 playerid, card* pcard, effect* peffect, uint32 reason) {
 	if(pcard->current.location != LOCATION_HAND)
 		return FALSE;
 	effect_set eset;
@@ -2572,7 +2572,7 @@ int32 field::is_player_can_action(uint8 playerid, uint32 actionlimit) {
 	}
 	return TRUE;
 }
-int32 field::is_player_can_summon(uint32 sumtype, uint8 playerid, card * pcard, uint8 toplayer) {
+int32 field::is_player_can_summon(uint32 sumtype, uint8 playerid, card* pcard, uint8 toplayer) {
 	effect_set eset;
 	sumtype |= SUMMON_TYPE_NORMAL;
 	filter_player_effect(playerid, EFFECT_CANNOT_SUMMON, &eset);
@@ -2590,7 +2590,7 @@ int32 field::is_player_can_summon(uint32 sumtype, uint8 playerid, card * pcard, 
 	}
 	return TRUE;
 }
-int32 field::is_player_can_mset(uint32 sumtype, uint8 playerid, card * pcard, uint8 toplayer) {
+int32 field::is_player_can_mset(uint32 sumtype, uint8 playerid, card* pcard, uint8 toplayer) {
 	effect_set eset;
 	sumtype |= SUMMON_TYPE_NORMAL;
 	filter_player_effect(playerid, EFFECT_CANNOT_MSET, &eset);
@@ -2608,7 +2608,7 @@ int32 field::is_player_can_mset(uint32 sumtype, uint8 playerid, card * pcard, ui
 	}
 	return TRUE;
 }
-int32 field::is_player_can_sset(uint8 playerid, card * pcard) {
+int32 field::is_player_can_sset(uint8 playerid, card* pcard) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_SSET, &eset);
 	for(const auto& peff : eset) {
@@ -2691,7 +2691,7 @@ int32 field::is_player_can_spsummon(effect* peffect, uint32 sumtype, uint8 sumpo
 		return FALSE;
 	return TRUE;
 }
-int32 field::is_player_can_flipsummon(uint8 playerid, card * pcard) {
+int32 field::is_player_can_flipsummon(uint8 playerid, card* pcard) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_FLIP_SUMMON, &eset);
 	for(const auto& peff : eset) {
@@ -2711,7 +2711,7 @@ int32 field::is_player_can_spsummon_monster(uint8 playerid, uint8 toplayer, uint
 	temp_card->data = {};
 	return result;
 }
-int32 field::is_player_can_release(uint8 playerid, card * pcard) {
+int32 field::is_player_can_release(uint8 playerid, card* pcard) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_RELEASE, &eset);
 	for(const auto& peff : eset) {
@@ -2737,7 +2737,7 @@ int32 field::is_player_can_spsummon_count(uint8 playerid, uint32 count) {
 	}
 	return check_spsummon_counter(playerid, count);
 }
-int32 field::is_player_can_place_counter(uint8 playerid, card * pcard, uint16 countertype, uint16 count) {
+int32 field::is_player_can_place_counter(uint8 playerid, card* pcard, uint16 countertype, uint16 count) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_PLACE_COUNTER, &eset);
 	for(const auto& peff : eset) {
@@ -2751,7 +2751,7 @@ int32 field::is_player_can_place_counter(uint8 playerid, card * pcard, uint16 co
 	}
 	return TRUE;
 }
-int32 field::is_player_can_remove_counter(uint8 playerid, card * pcard, uint8 self, uint8 oppo, uint16 countertype, uint16 count, uint32 reason) {
+int32 field::is_player_can_remove_counter(uint8 playerid, card* pcard, uint8 self, uint8 oppo, uint16 countertype, uint16 count, uint32 reason) {
 	if((pcard && pcard->get_counter(countertype) >= count) || (!pcard && get_field_counter(playerid, self, oppo, countertype) >= count))
 		return TRUE;
 	auto pr = effects.continuous_effect.equal_range(EFFECT_RCOUNTER_REPLACE + countertype);
@@ -2789,7 +2789,7 @@ int32 field::is_player_can_remove_overlay_card(uint8 playerid, group* pgroup, ui
 	}
 	return FALSE;
 }
-int32 field::is_player_can_send_to_grave(uint8 playerid, card * pcard) {
+int32 field::is_player_can_send_to_grave(uint8 playerid, card* pcard) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_TO_GRAVE, &eset);
 	for(const auto& peff : eset) {
@@ -2803,7 +2803,7 @@ int32 field::is_player_can_send_to_grave(uint8 playerid, card * pcard) {
 	}
 	return TRUE;
 }
-int32 field::is_player_can_send_to_hand(uint8 playerid, card * pcard) {
+int32 field::is_player_can_send_to_hand(uint8 playerid, card* pcard) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_TO_HAND, &eset);
 	for(const auto& peff : eset) {
@@ -2820,7 +2820,7 @@ int32 field::is_player_can_send_to_hand(uint8 playerid, card * pcard) {
 		return FALSE;
 	return TRUE;
 }
-int32 field::is_player_can_send_to_deck(uint8 playerid, card * pcard) {
+int32 field::is_player_can_send_to_deck(uint8 playerid, card* pcard) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_TO_DECK, &eset);
 	for(const auto& peff : eset) {
@@ -2834,7 +2834,7 @@ int32 field::is_player_can_send_to_deck(uint8 playerid, card * pcard) {
 	}
 	return TRUE;
 }
-int32 field::is_player_can_remove(uint8 playerid, card * pcard, uint32 reason) {
+int32 field::is_player_can_remove(uint8 playerid, card* pcard, uint32 reason) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_REMOVE, &eset);
 	for(const auto& peff : eset) {
@@ -2911,7 +2911,7 @@ int32 field::is_chain_disabled(uint8 chaincount) {
 	}
 	return FALSE;
 }
-int32 field::check_chain_target(uint8 chaincount, card * pcard) {
+int32 field::check_chain_target(uint8 chaincount, card* pcard) {
 	if(chaincount > core.current_chain.size())
 		return FALSE;
 	chain* pchain;
