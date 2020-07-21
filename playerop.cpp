@@ -883,7 +883,7 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 								break;\
 							}
 static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcodes) {
-	std::stack<int32> stack;
+	std::stack<int64> stack;
 	for(auto& opcode : opcodes) {
 		switch(opcode) {
 		BINARY_OP(OPCODE_ADD, +);
