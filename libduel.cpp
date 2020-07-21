@@ -3765,14 +3765,14 @@ int32 scriptlib::duel_rock_paper_scissors(lua_State * L) {
 }
 int32 scriptlib::duel_get_coin_result(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
-	for(int32 i = 0; i < 5; ++i)
-		lua_pushinteger(L, pduel->game_field->core.coin_result[i]);
+	for(const auto& coin : pduel->game_field->core.coin_result)
+		lua_pushinteger(L, coin);
 	return 5;
 }
 int32 scriptlib::duel_get_dice_result(lua_State * L) {
 	duel* pduel = interpreter::get_duel_info(L);
-	for(int32 i = 0; i < 5; ++i)
-		lua_pushinteger(L, pduel->game_field->core.dice_result[i]);
+	for(const auto& dice : pduel->game_field->core.dice_result)
+		lua_pushinteger(L, dice);
 	return 5;
 }
 int32 scriptlib::duel_set_coin_result(lua_State * L) {

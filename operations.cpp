@@ -383,7 +383,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 	switch(step) {
 	case 0: {
 		card_vector cv;
-		uint32 drawed = 0;
+		uint32 drawn = 0;
 		uint32 public_count = 0;
 		if(!(reason & REASON_RULE) && !is_player_can_draw(playerid)) {
 			returns.at<int32>(0) = 0;
@@ -395,7 +395,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 				core.overdraw[playerid] = TRUE;
 				break;
 			}
-			drawed++;
+			drawn++;
 			card* pcard = player[playerid].list_main.back();
 			pcard->enable_field_effect(false);
 			pcard->cancel_field_effect();
@@ -421,18 +421,18 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 		}
 		core.hint_timing[playerid] |= TIMING_DRAW + TIMING_TOHAND;
 		adjust_instant();
-		core.units.begin()->arg2 = (core.units.begin()->arg2 & 0xff000000) + drawed;
-		card_set* drawed_set = new card_set;
-		core.units.begin()->ptarget = (group*)drawed_set;
-		drawed_set->insert(cv.begin(), cv.end());
-		if(drawed) {
+		core.units.begin()->arg2 = (core.units.begin()->arg2 & 0xff000000) + drawn;
+		card_set* drawn_set = new card_set;
+		core.units.begin()->ptarget = (group*)drawn_set;
+		drawn_set->insert(cv.begin(), cv.end());
+		if(drawn) {
 			if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
 				if(player[playerid].list_main.size()) {
 					card* ptop = player[playerid].list_main.back();
 					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 						auto message = pduel->new_message(MSG_DECK_TOP);
 						message->write<uint8>(playerid);
-						message->write<uint32>(drawed);
+						message->write<uint32>(drawn);
 						message->write<uint32>(ptop->data.code);
 						message->write<uint32>(ptop->current.position);
 					}
@@ -440,16 +440,16 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 			}
 			auto message = pduel->new_message(MSG_DRAW);
 			message->write<uint8>(playerid);
-			message->write<uint32>(drawed);
-			for(uint32 i = 0; i < drawed; ++i) {
-				message->write<uint32>(cv[i]->data.code);
-				message->write<uint32>(cv[i]->current.position);
+			message->write<uint32>(drawn);
+			for(const auto& pcard : *drawn_set) {
+				message->write<uint32>(pcard->data.code);
+				message->write<uint32>(pcard->current.position);
 			}
-			if(core.deck_reversed && (public_count < drawed)) {
+			if(core.deck_reversed && (public_count < drawn)) {
 				auto message = pduel->new_message(MSG_CONFIRM_CARDS);
 				message->write<uint8>(1 - playerid);
-				message->write<uint32>(drawed_set->size());
-				for(auto& pcard : *drawed_set) {
+				message->write<uint32>(drawn_set->size());
+				for(auto& pcard : *drawn_set) {
 					message->write<uint32>(pcard->data.code);
 					message->write<uint8>(pcard->current.controler);
 					message->write<uint8>(pcard->current.location);
@@ -457,7 +457,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 				}
 				shuffle(playerid, LOCATION_HAND);
 			}
-			for (auto& pcard : *drawed_set) {
+			for (auto& pcard : *drawn_set) {
 				if(pcard->owner != pcard->current.controler) {
 					effect* deffect = pduel->new_effect();
 					deffect->owner = pcard;
@@ -473,17 +473,17 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 				raise_single_event(pcard, 0, EVENT_MOVE, reason_effect, reason, reason_player, playerid, 0);
 			}
 			process_single_event();
-			raise_event(drawed_set, EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawed);
-			raise_event(drawed_set, EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawed);
-			raise_event(drawed_set, EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawed);
+			raise_event(drawn_set, EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set, EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set, EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
 			process_instant_event();
 		}
 		return FALSE;
 	}
 	case 1: {
-		card_set* drawed_set = (card_set*)core.units.begin()->ptarget;
-		core.operated_set.swap(*drawed_set);
-		delete drawed_set;
+		card_set* drawn_set = (card_set*)core.units.begin()->ptarget;
+		core.operated_set.swap(*drawn_set);
+		delete drawn_set;
 		returns.at<int32>(0) = count;
 		return TRUE;
 	}
@@ -1821,26 +1821,30 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 				message->write<uint8>(0);
 				message->write<uint64>(pdec->handler->data.code);
 			}
-			for(effect_set::size_type i = 0; i < eset.size() && min > 0; ++i) {
-				if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT) && eset[i]->count_limit > 0 && eset[i]->target) {
-					int32 dec = eset[i]->get_value(target);
+			for(const auto& peffect : eset) {
+				if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peffect->count_limit > 0 && peffect->target) {
+					int32 dec = peffect->get_value(target);
 					min -= dec & 0xffff;
-					eset[i]->dec_count();
+					peffect->dec_count();
 					auto message = pduel->new_message(MSG_HINT);
 					message->write<uint8>(HINT_CARD);
 					message->write<uint8>(0);
-					message->write<uint64>(eset[i]->handler->data.code);
+					message->write<uint64>(peffect->handler->data.code);
+					if(min <= 0)
+						break;
 				}
 			}
-			for(effect_set::size_type i = 0; i < eset.size() && min > 0; ++i) {
-				if(eset[i]->is_flag(EFFECT_FLAG_COUNT_LIMIT) && eset[i]->count_limit > 0 && !eset[i]->target) {
-					int32 dec = eset[i]->get_value(target);
+			for(const auto& peffect : eset) {
+				if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peffect->count_limit > 0 && !peffect->target) {
+					int32 dec = peffect->get_value(target);
 					min -= dec & 0xffff;
-					eset[i]->dec_count();
+					peffect->dec_count();
 					auto message = pduel->new_message(MSG_HINT);
 					message->write<uint8>(HINT_CARD);
 					message->write<uint8>(0);
-					message->write<uint64>(eset[i]->handler->data.code);
+					message->write<uint64>(peffect->handler->data.code);
+					if(min <= 0)
+						break;
 				}
 			}
 		}
@@ -2702,10 +2706,8 @@ int32 field::sset_g(uint16 step, uint8 setplayer, uint8 toplayer, group* ptarget
 		message->write<uint8>(LOCATION_SZONE);
 		message->write<uint8>(ct);
 		uint8 i = 0;
-		for(auto cit = core.operated_set.begin(); cit != core.operated_set.end(); ++cit) {
-			card* pcard = *cit;
-			uint8 seq = core.set_group_seq[i];
-			i++;
+		for(const auto& pcard : core.operated_set) {
+			uint8 seq = core.set_group_seq[i++];
 			if(pcard->data.type & TYPE_FIELD)
 				continue;
 			message->write(pcard->get_info_location());
@@ -5635,8 +5637,8 @@ int32 field::toss_coin(uint16 step, effect * reason_effect, uint8 reason_player,
 		e.reason = 0;
 		e.reason_effect = reason_effect;
 		e.reason_player = reason_player;
-		for(uint8 i = 0; i < 5; ++i)
-			core.coin_result[i] = 0;
+		for(auto& coin : core.coin_result)
+			coin = 0;
 		auto pr = effects.continuous_effect.equal_range(EFFECT_TOSS_COIN_REPLACE);
 		for(auto eit = pr.first; eit != pr.second;) {
 			effect* pe = eit->second;
@@ -5708,8 +5710,8 @@ int32 field::toss_dice(uint16 step, effect * reason_effect, uint8 reason_player,
 		e.reason = 0;
 		e.reason_effect = reason_effect;
 		e.reason_player = reason_player;
-		for(int32 i = 0; i < 5; ++i)
-			core.dice_result[i] = 0;
+		for(auto& dice : core.dice_result)
+			dice = 0;
 		auto pr = effects.continuous_effect.equal_range(EFFECT_TOSS_DICE_REPLACE);
 		for(auto eit = pr.first; eit != pr.second;) {
 			effect* pe = eit->second;
