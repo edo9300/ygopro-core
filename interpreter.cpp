@@ -664,9 +664,9 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 interpreter::~interpreter() {
 	lua_close(lua_state);
 }
-int32 interpreter::register_card(card *pcard) {
+int32 interpreter::register_card(card* pcard) {
 	//create a card in by userdata
-	card ** ppcard = (card**) lua_newuserdata(lua_state, sizeof(card*));
+	card** ppcard = static_cast<card**>(lua_newuserdata(lua_state, sizeof(card*)));
 	*ppcard = pcard;
 	pcard->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
 	//some userdata may be created in script like token so use current_state
@@ -690,20 +690,10 @@ int32 interpreter::register_card(card *pcard) {
 	pcard->cardid = pduel->game_field->infos.card_id++;
 	return OPERATION_SUCCESS;
 }
-void interpreter::register_effect(effect *peffect) {
-	if (!peffect)
-		return;
-	//create a effect in by userdata
-	effect ** ppeffect = (effect**) lua_newuserdata(lua_state, sizeof(effect*));
-	*ppeffect = peffect;
-	peffect->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-	//set metatable of pointer to base script
-	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, peffect->ref_handle);
-	lua_getglobal(lua_state, "Effect");
-	lua_setmetatable(lua_state, -2);
-	lua_pop(lua_state, 1);
+void interpreter::register_effect(effect* peffect) {
+	register_obj(peffect, "Effect");
 }
-void interpreter::unregister_effect(effect *peffect) {
+void interpreter::unregister_effect(effect* peffect) {
 	if (!peffect)
 		return;
 	if(peffect->condition)
@@ -719,24 +709,27 @@ void interpreter::unregister_effect(effect *peffect) {
 	luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->ref_handle);
 	peffect->ref_handle = 0;
 }
-void interpreter::register_group(group *pgroup) {
-	if (!pgroup)
-		return;
-	//create a group in by userdata
-	group ** ppgroup = (group**) lua_newuserdata(lua_state, sizeof(group*));
-	*ppgroup = pgroup;
-	pgroup->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-	//set metatable of pointer to base script
-	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
-	lua_getglobal(lua_state, "Group");
-	lua_setmetatable(lua_state, -2);
-	lua_pop(lua_state, 1);
+void interpreter::register_group(group* pgroup) {
+	register_obj(pgroup, "Group");
 }
-void interpreter::unregister_group(group *pgroup) {
+void interpreter::unregister_group(group* pgroup) {
 	if (!pgroup)
 		return;
 	luaL_unref(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
 	pgroup->ref_handle = 0;
+}
+void interpreter::register_obj(lua_obj* obj, const char* tablename) {
+	if(!obj)
+		return;
+	//create a group in by userdata
+	lua_obj** pobj = static_cast<lua_obj**>(lua_newuserdata(lua_state, sizeof(lua_obj*)));
+	*pobj = obj;
+	obj->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+	//set metatable of pointer to base script
+	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, obj->ref_handle);
+	lua_getglobal(lua_state, tablename);
+	lua_setmetatable(lua_state, -2);
+	lua_pop(lua_state, 1);
 }
 /*
 If no script_name is given, then the api will use the buffer as reference
@@ -797,10 +790,7 @@ int32 interpreter::load_card_script(uint32 code) {
 	return OPERATION_SUCCESS;
 }
 void interpreter::add_param(void* param, int32 type, bool front) {
-	if(front)
-		params.emplace_front((lua_Integer)param, type);
-	else
-		params.emplace_back((lua_Integer)param, type);
+	add_param(reinterpret_cast<lua_Integer>(param), type, front);
 }
 void interpreter::add_param(lua_Integer param, int32 type, bool front) {
 	if(front)
@@ -811,32 +801,26 @@ void interpreter::add_param(lua_Integer param, int32 type, bool front) {
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	int32 pushed = 0;
 	for (const auto& it : params) {
-		uint32 type = it.second;
-		switch(type) {
+		switch(it.second) {
 		case PARAM_TYPE_INT:
 			lua_pushinteger(L, it.first);
 			break;
 		case PARAM_TYPE_STRING:
-			lua_pushstring(L, (const char*)it.first);
+			lua_pushstring(L, reinterpret_cast<const char*>(it.first));
 			break;
 		case PARAM_TYPE_BOOLEAN:
-			lua_pushboolean(L, (int32)it.first);
+			lua_pushboolean(L, static_cast<bool>(it.first));
 			break;
 		case PARAM_TYPE_CARD:
 		case PARAM_TYPE_EFFECT:
-		case PARAM_TYPE_GROUP: {
-			if (it.first)
-				lua_rawgeti(L, LUA_REGISTRYINDEX, reinterpret_cast<lua_obj*>(it.first)->ref_handle);
-			else
-				lua_pushnil(L);
+		case PARAM_TYPE_GROUP:
+			pushobject(L, reinterpret_cast<lua_obj*>(it.first));
 			break;
-		}
-		case PARAM_TYPE_FUNCTION: {
-			pushobject(L, it.first);
+		case PARAM_TYPE_FUNCTION:
+			pushobject(L, static_cast<int32>(it.first));
 			break;
-		}
-		case PARAM_TYPE_INDEX: {
-			int32 index = (int32)it.first;
+		case PARAM_TYPE_INDEX:
+			auto index = static_cast<int32>(it.first);
 			if(index > 0)
 				lua_pushvalue(L, index);
 			else if(is_coroutine) {
@@ -850,7 +834,6 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 				lua_pushvalue(L, index - pushed - 1);
 			}
 			break;
-		}
 		}
 		pushed++;
 	}
@@ -1050,7 +1033,7 @@ int32 interpreter::check_matching(card* pcard, int32 findex, int32 extraargs) {
 	}
 	return result;
 }
-int32 interpreter::check_matching_table(card * pcard, int32 findex, int32 table_index) {
+int32 interpreter::check_matching_table(card* pcard, int32 findex, int32 table_index) {
 	if(!findex || lua_isnil(current_state, findex) || !lua_istable(current_state, table_index))
 		return TRUE;
 	no_action++;
@@ -1216,7 +1199,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count, std::vector<i
 	}
 	return is_success;
 }
-int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32 * yield_value, uint16 step) {
+int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step) {
 	*yield_value = 0;
 	if (!f) {
 		interpreter::print_stacktrace(current_state);
@@ -1301,7 +1284,7 @@ void* interpreter::get_ref_object(int32 ref_handler) {
 	if(ref_handler == 0)
 		return nullptr;
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, ref_handler);
-	void* p = *(void**)lua_touserdata(current_state, -1);
+	void* p = *reinterpret_cast<void**>(lua_touserdata(current_state, -1));
 	lua_pop(current_state, 1);
 	return p;
 }
@@ -1319,7 +1302,7 @@ void interpreter::pushobject(lua_State* L, int32 lua_ptr) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, lua_ptr);
 }
 //Push all the elements of the table to the stack, +len(table) -0
-int interpreter::pushExpandedTable(lua_State * L, int32 table_index) {
+int interpreter::pushExpandedTable(lua_State* L, int32 table_index) {
 	lua_pushnil(L);
 	int extraargs = 0;
 	while(lua_next(L, table_index) != 0) {
@@ -1339,14 +1322,14 @@ void interpreter::set_duel_info(lua_State* L, duel* pduel) {
 	lua_pushlightuserdata(L, pduel);
 	luaL_ref(L, LUA_REGISTRYINDEX);
 }
-duel* interpreter::get_duel_info(lua_State * L) {
+duel* interpreter::get_duel_info(lua_State* L) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, 3);
 	duel* pduel = (duel*)lua_topointer(L, -1);
 	lua_pop(L, 1);
 	return pduel;
 }
 
-void interpreter::print_stacktrace(lua_State * L) {
+void interpreter::print_stacktrace(lua_State* L) {
 	const char cmp[]="stack traceback:";
 	static std::vector<char> buffer;
 	duel* pduel = interpreter::get_duel_info(L);

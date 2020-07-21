@@ -8,14 +8,18 @@
 #include "duel.h"
 #include "lua_obj.h"
 
-int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 retfalse) {
+int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 retfalse, void* retobj) {
 	const char* type = nullptr;
+	lua_obj* obj = nullptr;
 	switch (param_type) {
 	case PARAM_TYPE_CARD:
 	case PARAM_TYPE_GROUP:
 	case PARAM_TYPE_EFFECT:
-		if(lua_isuserdata(L, index) && lua_get<lua_obj*>(L, index)->lua_type == param_type)
+		if((obj = lua_get<lua_obj*>(L, index)) && obj->lua_type == param_type) {
+			if(retobj)
+				*(lua_obj**)retobj = obj;
 			return TRUE;
+		}
 		type = param_type == PARAM_TYPE_CARD ? "Card" : param_type == PARAM_TYPE_GROUP ? "Group" : "Effect";
 		break;
 	case PARAM_TYPE_FUNCTION:

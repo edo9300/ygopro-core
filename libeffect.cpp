@@ -183,9 +183,10 @@ int32 scriptlib::effect_set_label_object(lua_State *L) {
 		peffect->label_object = 0;
 		return 0;
 	}
-	if(!check_param(L, PARAM_TYPE_CARD, 2, TRUE) || !check_param(L, PARAM_TYPE_EFFECT, 2, TRUE) || !check_param(L, PARAM_TYPE_GROUP, 2, TRUE))
+	if(auto obj = lua_get<lua_obj*>(L, 2))
+		peffect->label_object = obj->ref_handle;
+	else
 		luaL_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\".");
-	peffect->label_object = lua_get<lua_obj*>(L, 2)->ref_handle;
 	return 0;
 }
 int32 scriptlib::effect_set_category(lua_State *L) {

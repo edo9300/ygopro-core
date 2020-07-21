@@ -45,11 +45,12 @@ public:
 	explicit interpreter(duel* pd);
 	~interpreter();
 
-	int32 register_card(card *pcard);
+	int32 register_card(card* pcard);
 	void register_effect(effect* peffect);
 	void unregister_effect(effect* peffect);
 	void register_group(group* pgroup);
 	void unregister_group(group* pgroup);
+	void register_obj(lua_obj* obj, const char* tablename);
 
 	int32 load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	int32 load_card_script(uint32 code);
@@ -57,8 +58,8 @@ public:
 	void add_param(lua_Integer  param, int32 type, bool front = false);
 	void push_param(lua_State* L, bool is_coroutine = false);
 	int32 call_function(int32 f, uint32 param_count, int32 ret_count);
-	int32 call_card_function(card *pcard, const char *f, uint32 param_count, int32 ret_count, bool forced = true);
-	int32 call_code_function(uint32 code, const char *f, uint32 param_count, int32 ret_count);
+	int32 call_card_function(card* pcard, const char* f, uint32 param_count, int32 ret_count, bool forced = true);
+	int32 call_code_function(uint32 code, const char* f, uint32 param_count, int32 ret_count);
 	int32 check_condition(int32 f, uint32 param_count);
 	int32 check_matching(card* pcard, int32 findex, int32 extraargs);
 	int32 check_matching_table(card* pcard, int32 findex, int32 table_index);

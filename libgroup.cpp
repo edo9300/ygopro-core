@@ -136,11 +136,9 @@ int32 scriptlib::group_filter(lua_State *L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	field::card_set cset(pgroup->container);
-	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE)) {
-		auto pexception = lua_get<card*>(L, 3);
+	if(auto pexception = lua_get<card*>(L, 3))
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE)) {
-		auto pexgroup = lua_get<group*>(L, 3);
+	else if(auto pexgroup = lua_get<group*>(L, 3)) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -160,11 +158,9 @@ int32 scriptlib::group_filter_count(lua_State *L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	field::card_set cset(pgroup->container);
-	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE)) {
-		auto pexception = lua_get<card*>(L, 3);
+	if(auto pexception = lua_get<card*>(L, 3))
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE)) {
-		auto pexgroup = lua_get<group*>(L, 3);
+	else if(auto pexgroup = lua_get<group*>(L, 3)) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -190,11 +186,9 @@ int32 scriptlib::group_filter_select(lua_State *L) {
 		cancelable = lua_get<bool>(L, lastarg);
 		lastarg++;
 	}
-	if(check_param(L, PARAM_TYPE_CARD, lastarg, TRUE)) {
-		auto pexception = lua_get<card*>(L, lastarg);
+	if(auto pexception = lua_get<card*>(L, lastarg))
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, lastarg, TRUE)) {
-		auto pexgroup = lua_get<group*>(L, lastarg);
+	else if(auto pexgroup = lua_get<group*>(L, lastarg)) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -233,11 +227,9 @@ int32 scriptlib::group_select(lua_State *L) {
 		cancelable = lua_get<bool>(L, lastarg);
 		lastarg++;
 	}
-	if(check_param(L, PARAM_TYPE_CARD, lastarg, TRUE)) {
-		auto pexception = lua_get<card*>(L, lastarg);
+	if(auto pexception = lua_get<card*>(L, lastarg))
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, lastarg, TRUE)) {
-		auto pexgroup = lua_get<group*>(L, lastarg);
+	else if(auto pexgroup = lua_get<group*>(L, lastarg)) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -352,11 +344,9 @@ int32 scriptlib::group_is_exists(lua_State *L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	field::card_set cset(pgroup->container);
-	if(check_param(L, PARAM_TYPE_CARD, 4, TRUE)) {
-		auto pexception = lua_get<card*>(L, 4);
+	if(auto pexception = lua_get<card*>(L, 4))
 		cset.erase(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, 4, TRUE)) {
-		auto pexgroup = lua_get<group*>(L, 4);
+	else if(auto pexgroup = lua_get<group*>(L, 4)) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -632,25 +622,32 @@ int32 scriptlib::group_merge(lua_State *L) {
 	pgroup->container.insert(mgroup->container.begin(), mgroup->container.end());
 	return 0;
 }
-int32 scriptlib::group_band(lua_State * L) {
+void get_groupcard(lua_State* L, group*& pgroup1, group*& pgroup2, card*& pcard) {
+	auto obj1 = lua_get<lua_obj*>(L, 1);
+	auto obj2 = lua_get<lua_obj*>(L, 1);
+	uint32 type = 0;
+	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0)
+		luaL_error(L, "At least 1 parameter should be \"Group\".");
+	if((type & ~(PARAM_TYPE_GROUP | PARAM_TYPE_CARD)) != 0)
+		luaL_error(L, "A paremeter isn't \"Group\" nor \"Card\".");
+	if(obj1->lua_type == PARAM_TYPE_CARD) {
+		pcard = static_cast<card*>(obj1);
+		pgroup1 = static_cast<group*>(obj2);
+	} else if(obj2->lua_type == PARAM_TYPE_CARD) {
+		pgroup1 = static_cast<group*>(obj1);
+		pcard = static_cast<card*>(obj2);
+	} else {
+		pgroup1 = static_cast<group*>(obj1);
+		pgroup2 = static_cast<group*>(obj2);
+	}
+}
+int32 scriptlib::group_band(lua_State* L) {
 	check_param_count(L, 2);
 	group* pgroup1 = nullptr;
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
-	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && !check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
-		luaL_error(L, "At least 1 parameter should be \"Group\".");
-	}
-	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && check_param(L, PARAM_TYPE_CARD, 1)) {
-		pcard = lua_get<card*>(L, 1);
-		pgroup1 = lua_get<group*>(L, 2);
-	} else if(!check_param(L, PARAM_TYPE_GROUP, 2, TRUE) && check_param(L, PARAM_TYPE_CARD, 2)) {
-		pgroup1 = lua_get<group*>(L, 1);
-		pcard = lua_get<card*>(L, 2);
-	} else {
-		pgroup1 = lua_get<group*>(L, 1);
-		pgroup2 = lua_get<group*>(L, 2);
-	}
-	duel* pduel = interpreter::get_duel_info(L);
+	get_groupcard(L, pgroup1, pgroup2, pcard);
+	duel* pduel = pgroup1->pduel;
 	field::card_set cset;
 	if(pcard) {
 		if(pgroup1->container.count(pcard)) {
@@ -673,20 +670,8 @@ int32 scriptlib::group_add(lua_State * L) {
 	group* pgroup1 = nullptr;
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
-	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && !check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
-		luaL_error(L, "At least 1 parameter should be \"Group\".");
-	}
-	if(!check_param(L, PARAM_TYPE_GROUP, 1, TRUE) && check_param(L, PARAM_TYPE_CARD, 1)) {
-		pcard = lua_get<card*>(L, 1);
-		pgroup1 = lua_get<group*>(L, 2);
-	} else if(!check_param(L, PARAM_TYPE_GROUP, 2, TRUE) && check_param(L, PARAM_TYPE_CARD, 2)) {
-		pgroup1 = lua_get<group*>(L, 1);
-		pcard = lua_get<card*>(L, 2);
-	} else {
-		pgroup1 = lua_get<group*>(L, 1);
-		pgroup2 = lua_get<group*>(L, 2);
-	}
-	duel* pduel = interpreter::get_duel_info(L);
+	get_groupcard(L, pgroup1, pgroup2, pcard);
+	duel* pduel = pgroup1->pduel;
 	group* newgroup = pduel->new_group(pgroup1->container);
 	if(pcard) {
 		newgroup->container.insert(pcard);
@@ -703,17 +688,14 @@ int32 scriptlib::group_sub_const(lua_State * L) {
 	card* pcard = nullptr;
 	duel* pduel = pgroup1->pduel;
 	group* newgroup = pduel->new_group(pgroup1->container);
-	if(check_param(L, PARAM_TYPE_GROUP, 2, TRUE)) {
-		pgroup2 = lua_get<group*>(L, 2);
+	if(pgroup2 = lua_get<group*>(L, 2)) {
 		for(auto& pcard : pgroup2->container) {
 			newgroup->container.erase(pcard);
 		}
-	} else if(check_param(L, PARAM_TYPE_CARD, 2, TRUE)) {
-		pcard = lua_get<card*>(L, 2);
+	} else if(pcard = lua_get<card*>(L, 2))
 		newgroup->container.erase(pcard);
-	} else {
+	else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
-	}
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
@@ -778,10 +760,7 @@ int32 scriptlib::group_is_contains(lua_State *L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	auto pcard = lua_get<card*, true>(L, 2);
-	if(pgroup->container.find(pcard) != pgroup->container.end())
-		lua_pushboolean(L, 1);
-	else
-		lua_pushboolean(L, 0);
+	lua_pushboolean(L, pgroup->container.find(pcard) != pgroup->container.end());
 	return 1;
 }
 int32 scriptlib::group_search_card(lua_State *L) {
@@ -803,12 +782,10 @@ int32 scriptlib::group_split(lua_State * L) {
 	auto pgroup = lua_get<group*, true>(L, 1);
 	field::card_set cset(pgroup->container);
 	field::card_set notmatching;
-	if(check_param(L, PARAM_TYPE_CARD, 3, TRUE)) {
-		auto pexception = lua_get<card*>(L, 3);
+	if(auto pexception = lua_get<card*>(L, 3)) {
 		cset.erase(pexception);
 		notmatching.insert(pexception);
-	} else if(check_param(L, PARAM_TYPE_GROUP, 3, TRUE)) {
-		auto pexgroup = lua_get<group*>(L, 3);
+	} else if(auto pexgroup = lua_get<group*>(L, 3)) {
 		for(auto& pcard : pexgroup->container) {
 			cset.erase(pcard);
 			notmatching.insert(pcard);
