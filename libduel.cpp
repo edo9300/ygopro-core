@@ -181,7 +181,7 @@ int32 scriptlib::duel_destroy(lua_State* L) {
 	group* pgroup = 0;
 	duel* pduel = 0;
 	if(pcard = lua_get<card*>(L, 1))
-		pcard = lua_get<card*>(L, 1);
+		pduel = pcard->pduel;
 	else if(pgroup = lua_get<group*>(L, 1))
 		pduel = pgroup->pduel;
 	else
