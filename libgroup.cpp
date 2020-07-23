@@ -182,7 +182,7 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 	field::card_set cset(pgroup->container);
 	bool cancelable = false;
 	uint8_t lastarg = 6;
-	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+	if(lua_isboolean(L, lastarg)) {
 		cancelable = lua_get<bool, false>(L, lastarg);
 		lastarg++;
 	}
@@ -223,7 +223,7 @@ int32 scriptlib::group_select(lua_State* L) {
 	field::card_set cset(pgroup->container);
 	bool cancelable = false;
 	uint8_t lastarg = 5;
-	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+	if(lua_isboolean(L, lastarg)) {
 		cancelable = lua_get<bool, false>(L, lastarg);
 		lastarg++;
 	}

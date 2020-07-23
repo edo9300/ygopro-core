@@ -2373,7 +2373,7 @@ int32 scriptlib::duel_select_matching_cards(lua_State* L) {
 	group* pexgroup = 0;
 	bool cancelable = true;
 	uint8 lastarg = 8;
-	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+	if(lua_isboolean(L, lastarg)) {
 		check_param_count(L, 9);
 		cancelable = lua_get<bool, true>(L, lastarg);
 		lastarg++;
@@ -2456,7 +2456,7 @@ int32 check_release_group(lua_State* L, uint8 use_hand) {
 	card* to_check = nullptr;
 	uint8 toplayer = playerid;
 	bool use_oppo = false;
-	if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+	if(lua_isboolean(L, lastarg)) {
 		use_hand = lua_get<bool>(L, lastarg);
 		lastarg++;
 		max = lua_get<uint16>(L, lastarg, min);
@@ -2503,7 +2503,7 @@ int32 select_release_group(lua_State* L, uint8 use_hand) {
 	uint8 toplayer = playerid;
 	uint8 zone = 0xff;
 	bool use_oppo = false;
-	if(scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+	if(lua_isboolean(L, lastarg)) {
 		use_hand = lua_get<bool>(L, lastarg);
 		lastarg++;
 		cancelable = lua_get<bool, false>(L, lastarg);
@@ -2689,7 +2689,7 @@ int32 scriptlib::duel_select_target(lua_State* L) {
 	group* pexgroup = 0;
 	bool cancelable = false;
 	uint8_t lastarg = 8;
-	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
+	if(lua_isboolean(L, lastarg)) {
 		check_param_count(L, 9);
 		cancelable = lua_get<bool, false>(L, lastarg);
 		lastarg++;
@@ -3148,7 +3148,7 @@ int32 scriptlib::duel_select_option(lua_State* L) {
 	auto playerid = lua_get<uint8>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	uint8 i = !!check_param(L, PARAM_TYPE_BOOLEAN, 2, TRUE);
+	uint8 i = lua_isboolean(L, 2);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_options.clear();
 	for(; i < count; ++i)
