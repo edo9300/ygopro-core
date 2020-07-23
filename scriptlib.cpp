@@ -38,7 +38,7 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 		type = "Int";
 		break;
 	case PARAM_TYPE_BOOLEAN:
-		if(lua_isboolean(L, index))
+		if(lua_gettop(L) >= index)
 			return TRUE;
 		type = "boolean";
 		break;
