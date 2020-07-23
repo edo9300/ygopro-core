@@ -630,6 +630,8 @@ using EnableIf = typename std::enable_if_t<std::is_same<T, type>::value, T>;
 
 template<typename T>
 EnableIf<T, lua_obj*> lua_get(lua_State* L, int idx) {
+	if(lua_gettop(L) < idx)
+		return nullptr;
 	if(auto obj = lua_touserdata(L, idx))
 		return *reinterpret_cast<lua_obj**>(obj);
 	return nullptr;
@@ -637,6 +639,8 @@ EnableIf<T, lua_obj*> lua_get(lua_State* L, int idx) {
 
 template<typename T, bool check = false>
 EnableIf<T,card*> lua_get(lua_State* L, int idx) {
+	if(!check && lua_gettop(L) < idx)
+		return nullptr;
 	card* ret = nullptr;
 	scriptlib::check_param(L, PARAM_TYPE_CARD, idx, !check, &ret);
 	return ret;
@@ -644,6 +648,8 @@ EnableIf<T,card*> lua_get(lua_State* L, int idx) {
 
 template<typename T, bool check = false>
 EnableIf<T, group*> lua_get(lua_State* L, int idx) {
+	if(!check && lua_gettop(L) < idx)
+		return nullptr;
 	group* ret = nullptr;
 	scriptlib::check_param(L, PARAM_TYPE_GROUP, idx, !check, &ret);
 	return ret;
@@ -651,23 +657,50 @@ EnableIf<T, group*> lua_get(lua_State* L, int idx) {
 
 template<typename T, bool check = false>
 EnableIf<T, effect*> lua_get(lua_State* L, int idx) {
+	if(!check && lua_gettop(L) < idx)
+		return nullptr;
 	effect* ret = nullptr;
 	scriptlib::check_param(L, PARAM_TYPE_EFFECT, idx, !check, &ret);
 	return ret;
 }
 
-template<typename T, bool check = false>
+template<typename T>
 EnableIf<T, bool> lua_get(lua_State* L, int idx) {
-	if(check)
-		scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, idx);
+	scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, idx);
 	return lua_toboolean(L, idx);
 }
 
-template<typename T, bool check = false>
+template<typename T, bool def>
+EnableIf<T, bool> lua_get(lua_State* L, int idx) {
+	if(!scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, idx, TRUE))
+		return def;
+	return lua_toboolean(L, idx);
+}
+
+template<typename T>
 typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
 lua_get(lua_State* L, int idx) {
-	if(check)
-		scriptlib::check_param(L, PARAM_TYPE_INT, idx);
+	scriptlib::check_param(L, PARAM_TYPE_INT, idx);
+	if(lua_isinteger(L, idx))
+		return static_cast<T>(lua_tointeger(L, idx));
+	return static_cast<T>(std::round(lua_tonumber(L, idx)));
+}
+
+template<typename T>
+typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
+lua_get(lua_State* L, int idx, T chk) {
+	if(lua_gettop(L) < idx || !scriptlib::check_param(L, PARAM_TYPE_INT, idx, TRUE))
+		return chk;
+	if(lua_isinteger(L, idx))
+		return static_cast<T>(lua_tointeger(L, idx));
+	return static_cast<T>(std::round(lua_tonumber(L, idx)));
+}
+
+template<typename T, T def>
+typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
+lua_get(lua_State* L, int idx) {
+	if(lua_gettop(L) < idx || !scriptlib::check_param(L, PARAM_TYPE_INT, idx, TRUE))
+		return def;
 	if(lua_isinteger(L, idx))
 		return static_cast<T>(lua_tointeger(L, idx));
 	return static_cast<T>(std::round(lua_tonumber(L, idx)));

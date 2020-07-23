@@ -101,11 +101,11 @@ public:
 	void set_activate_location();
 	void set_active_type();
 	uint32 get_active_type();
-	bool is_flag(effect_flag flag) const {
-		return !!(this->flag[0] & flag);
+	bool is_flag(effect_flag _flag) const {
+		return !!(this->flag[0] & _flag);
 	}
-	bool is_flag(effect_flag2 flag) const {
-		return !!(this->flag[1] & flag);
+	bool is_flag(effect_flag2 _flag) const {
+		return !!(this->flag[1] & _flag);
 	}
 };
 

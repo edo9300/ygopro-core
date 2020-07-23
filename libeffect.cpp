@@ -103,12 +103,10 @@ int32 scriptlib::effect_set_count_limit(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto v = lua_get<uint8>(L, 2);
-	uint32 code = 0;
-	if(lua_gettop(L) >= 3)
-		code = lua_get<uint32>(L, 3);
+	auto code = lua_get<uint32, 0>(L, 3);
 	uint32 flag = 0;
 	if(lua_gettop(L) >= 4)
-		flag = lua_get<uint32>(L, 4);
+		flag = lua_get<uint32, 0>(L, 4);
 	else {
 		flag = code & 0xf0000000;
 		code &= 0xfffffff;
@@ -130,7 +128,7 @@ int32 scriptlib::effect_set_reset(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto v = lua_get<uint32>(L, 2);
-	auto c = lua_get<uint16>(L, 3);
+	auto c = lua_get<uint16, 0>(L, 3);
 	if(c == 0)
 		c = 1;
 	if(v & (RESET_PHASE) && !(v & (RESET_SELF_TURN | RESET_OPPO_TURN)))
@@ -163,7 +161,7 @@ int32 scriptlib::effect_set_property(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto v1 = lua_get<uint32>(L, 2);
-	auto v2 = lua_get<uint32>(L, 3);
+	auto v2 = lua_get<uint32, 0>(L, 3);
 	peffect->flag[0] = (peffect->flag[0] & 0x4f) | (v1 & ~0x4f);
 	peffect->flag[1] = v2;
 	return 0;
@@ -199,10 +197,8 @@ int32 scriptlib::effect_set_category(lua_State* L) {
 int32 scriptlib::effect_set_hint_timing(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	uint32 vs = lua_get<uint32>(L, 2);
-	uint32 vo = vs;
-	if(lua_gettop(L) >= 3)
-		vo = lua_get<uint32>(L, 3);
+	auto vs = lua_get<uint32>(L, 2);
+	auto vo = lua_get<uint32>(L, 3, vs);
 	peffect->hint_timing[0] = vs;
 	peffect->hint_timing[1] = vo;
 	return 0;
@@ -439,13 +435,8 @@ int32 scriptlib::effect_is_activatable(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto playerid = lua_get<uint8>(L, 2);
-	bool neglect_loc = 0;
-	bool neglect_target = 0;
-	if(lua_gettop(L) > 2) {
-		neglect_loc = lua_get<bool>(L, 3);
-		if (lua_gettop(L) > 3)
-			neglect_target = lua_get<bool>(L, 4);
-	}
+	bool neglect_loc = lua_get<bool, false>(L, 3);
+	bool neglect_target = lua_get<bool, false>(L, 4);
 	lua_pushboolean(L, peffect->is_activateable(playerid, peffect->pduel->game_field->nil_event, 0, 0, neglect_target, neglect_loc));
 	return 1;
 }
@@ -478,13 +469,8 @@ int32 scriptlib::effect_use_count_limit(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto p = lua_get<uint8>(L, 2);
-	uint32 count = 1;
-	bool oath_only = 0;
-	if(lua_gettop(L) > 2) {
-		count = lua_get<uint32>(L, 3);
-		if (lua_gettop(L) > 3)
-			oath_only = lua_get<bool>(L, 4);
-	}
+	auto count = lua_get<uint32, 1>(L, 3);
+	bool oath_only = lua_get<bool, false>(L, 4);
 	if (!oath_only || peffect->count_flag & EFFECT_COUNT_CODE_OATH)
 		while(count) {
 			peffect->dec_count(p);

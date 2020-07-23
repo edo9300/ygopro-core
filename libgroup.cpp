@@ -180,10 +180,10 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 3);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	field::card_set cset(pgroup->container);
-	uint8_t cancelable = FALSE;
+	bool cancelable = false;
 	uint8_t lastarg = 6;
 	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
-		cancelable = lua_get<bool>(L, lastarg);
+		cancelable = lua_get<bool, false>(L, lastarg);
 		lastarg++;
 	}
 	if(auto pexception = lua_get<card*>(L, lastarg))
@@ -221,10 +221,10 @@ int32 scriptlib::group_select(lua_State* L) {
 	check_param_count(L, 5);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	field::card_set cset(pgroup->container);
-	uint8_t cancelable = FALSE;
+	bool cancelable = false;
 	uint8_t lastarg = 5;
 	if(check_param(L, PARAM_TYPE_BOOLEAN, lastarg, TRUE)) {
-		cancelable = lua_get<bool>(L, lastarg);
+		cancelable = lua_get<bool, false>(L, lastarg);
 		lastarg++;
 	}
 	if(auto pexception = lua_get<card*>(L, lastarg))
@@ -271,14 +271,8 @@ int32 scriptlib::group_select_unselect(lua_State* L) {
 				return 0;
 		}
 	}
-	uint32 finishable = FALSE;
-	if(lua_gettop(L) > 3) {
-		finishable = lua_get<bool>(L, 4);
-	}
-	uint32 cancelable = FALSE;
-	if(lua_gettop(L) > 4) {
-		cancelable = lua_get<bool>(L, 5);
-	}
+	bool finishable = lua_get<bool, false>(L, 4);
+	bool cancelable = lua_get<bool, false>(L, 5);
 	uint16 min = 1;
 	if(lua_gettop(L) > 5) {
 		min = lua_get<uint16>(L, 6);
@@ -574,10 +568,9 @@ int32 scriptlib::group_get_class(lua_State* L) {
 	lua_newtable(L);
 	int i = 1;
 	for(auto& val : er) {
-		lua_pushinteger(L, i);
+		lua_pushinteger(L, i++);
 		lua_pushinteger(L, val);
 		lua_settable(L, -3);
-		i++;
 	}
 	return 1;
 }

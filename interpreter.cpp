@@ -983,7 +983,7 @@ int32 interpreter::check_condition(int32 f, uint32 param_count) {
 	no_action++;
 	call_depth++;
 	if (call_function(f, param_count, 1)) {
-		int32 result = lua_get<bool>(current_state, -1);
+		int32 result = lua_toboolean(current_state, -1);
 		lua_pop(current_state, 1);
 		no_action--;
 		call_depth--;
@@ -1023,7 +1023,7 @@ int32 interpreter::check_matching(card* pcard, int32 findex, int32 extraargs) {
 		}
 		return OPERATION_FAIL;
 	}
-	int32 result = lua_get<bool>(current_state, -1);
+	int32 result = lua_toboolean(current_state, -1);
 	lua_pop(current_state, 1);
 	no_action--;
 	call_depth--;
@@ -1054,7 +1054,7 @@ int32 interpreter::check_matching_table(card* pcard, int32 findex, int32 table_i
 		}
 		return OPERATION_FAIL;
 	}
-	int32 result = lua_get<bool>(current_state, -1);
+	int32 result = lua_toboolean(current_state, -1);
 	lua_pop(current_state, 1);
 	no_action--;
 	call_depth--;
@@ -1250,7 +1250,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
-			*yield_value = lua_isboolean(rthread, -1) ? lua_get<bool>(rthread, -1) : lua_tointeger(rthread, -1);
+			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : lua_tointeger(rthread, -1);
 		current_state = lua_state;
 		call_depth--;
 		if(call_depth == 0) {

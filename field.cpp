@@ -978,7 +978,7 @@ void field::shuffle(uint8 playerid, uint8 location) {
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
 			card* ptop = svector.back();
 			if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
-				auto message = pduel->new_message(MSG_DECK_TOP);
+				message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8>(playerid);
 				message->write<uint32>(0);
 				message->write<uint32>(ptop->data.code);
@@ -1971,7 +1971,7 @@ void field::adjust_self_destroy_set() {
 		p = 1 - p;
 	}
 	card_set cset;
-	for(uint8 p = 0; p < 2; ++p) {
+	for(p = 0; p < 2; ++p) {
 		for(auto& pcard : player[p].list_mzone) {
 			if(pcard && pcard->is_position(POS_FACEUP) && !pcard->is_status(STATUS_BATTLE_DESTROYED))
 				cset.insert(pcard);
@@ -2436,10 +2436,10 @@ int32 field::check_tribute(card* pcard, int32 min, int32 max, group* mg, uint8 t
 	int32 ct = get_tofield_count(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 	if(ct <= 0 && max <= 0)
 		return FALSE;
-	for(auto& pcard : (static_cast<int>(ex_list.size()) >= min) ? ex_list : release_list) {
-		if(pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer) {
+	for(auto& _pcard : (static_cast<int>(ex_list.size()) >= min) ? ex_list : release_list) {
+		if(_pcard->current.location == LOCATION_MZONE && _pcard->current.controler == toplayer) {
 			s++;
-			if((zone >> pcard->current.sequence) & 1)
+			if((zone >> _pcard->current.sequence) & 1)
 				ct++;
 		}
 	}
