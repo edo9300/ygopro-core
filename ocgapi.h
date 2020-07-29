@@ -8,7 +8,7 @@
 #define EXTERN_C
 #endif
 
-#if defined(WIN32) && defined(OCGCORE_EXPORT_FUNCTIONS)
+#if defined(_WIN32) && defined(OCGCORE_EXPORT_FUNCTIONS)
 #define OCGAPI EXTERN_C __declspec(dllexport)
 #else
 #define OCGAPI EXTERN_C
