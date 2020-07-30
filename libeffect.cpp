@@ -415,7 +415,7 @@ int32 scriptlib::effect_is_has_property(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto tflag1 = lua_get<uint32>(L, 2);
-	auto tflag2 = lua_get<uint32>(L, 3);
+	auto tflag2 = lua_get<uint32, 0>(L, 3);
 	lua_pushboolean(L, ((!tflag1 || (peffect->flag[0] & tflag1)) && (!tflag2 || (peffect->flag[1] & tflag2))));
 	return 1;
 }
