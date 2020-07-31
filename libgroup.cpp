@@ -617,7 +617,7 @@ int32 scriptlib::group_merge(lua_State* L) {
 }
 void get_groupcard(lua_State* L, group*& pgroup1, group*& pgroup2, card*& pcard) {
 	auto obj1 = lua_get<lua_obj*>(L, 1);
-	auto obj2 = lua_get<lua_obj*>(L, 1);
+	auto obj2 = lua_get<lua_obj*>(L, 2);
 	uint32 type = 0;
 	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0)
 		luaL_error(L, "At least 1 parameter should be \"Group\".");

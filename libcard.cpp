@@ -792,8 +792,7 @@ int32 scriptlib::card_is_set_card(lua_State* L) {
 		if (lua_gettop(L) > 2 && !lua_isnil(L, 3))
 			scard = lua_get<card*, true>(L, 3);
 		auto sumtype = lua_get<uint64, 0>(L, 4);
-		if (lua_gettop(L) > 4)
-			playerid = lua_get<uint8>(L, 5);
+		playerid = lua_get<uint8, PLAYER_NONE>(L, 5);
 		lua_pushboolean(L, pcard->is_sumon_set_card(set_code, scard, sumtype, playerid));
 	} else
 		lua_pushboolean(L, pcard->is_set_card(set_code));
@@ -2258,11 +2257,11 @@ int32 scriptlib::card_add_monster_attribute(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto type = lua_get<uint32>(L, 2);
-	auto attribute = lua_get<uint32>(L, 3);
-	auto race = lua_get<uint32>(L, 4);
-	auto level = lua_get<uint32>(L, 5);
-	auto atk = lua_get<int32>(L, 6);
-	auto def = lua_get<int32>(L, 7);
+	auto attribute = lua_get<uint32, 0>(L, 3);
+	auto race = lua_get<uint32, 0>(L, 4);
+	auto level = lua_get<uint32, 0>(L, 5);
+	auto atk = lua_get<int32, 0>(L, 6);
+	auto def = lua_get<int32, 0>(L, 7);
 	duel* pduel = pcard->pduel;
 	pcard->set_status(STATUS_NO_LEVEL, FALSE);
 	// pre-monster

@@ -1440,7 +1440,7 @@ uint32 card::get_link_marker() {
 		temp.link_marker = link_marker;
 	}
 	temp.link_marker = 0xffffffff;
-	if((current.position & POS_DEFENSE) && current.is_location(LOCATION_ONFIELD))
+	if((current.position & POS_ATTACK) == 0 && current.is_location(LOCATION_ONFIELD))
 		rotate(link_marker);
 	return link_marker;
 }
