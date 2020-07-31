@@ -745,8 +745,6 @@ int32 scriptlib::card_is_summon_code(lua_State* L) {
 	pcard->filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
 	pcard->filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
 	pcard->filter_effect(EFFECT_CHANGE_CODE, &eset);
-	if(!eset.size())
-		return card_is_code(L);
 	uint32 code1 = pcard->get_code();
 	uint32 code2 = pcard->get_another_code();
 	codes.insert(code1);
@@ -1290,7 +1288,7 @@ int32 scriptlib::card_register_effect(lua_State* L) {
 int32 scriptlib::card_is_has_effect(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
-	auto code = lua_get<uint8>(L, 2);
+	auto code = lua_get<uint32>(L, 2);
 	if(!pcard) {
 		lua_pushnil(L);
 		return 1;
