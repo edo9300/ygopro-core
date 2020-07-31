@@ -487,9 +487,7 @@ int32 scriptlib::duel_sendto_hand(lua_State* L) {
 		pduel = pgroup->pduel;
 	else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
-	auto playerid = lua_get<uint8>(L, 2);
-	if(lua_isnil(L, 2) || (playerid != 0 && playerid != 1))
-		playerid = PLAYER_NONE;
+	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 2);
 	auto reason = lua_get<uint32>(L, 3);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_HAND, 0, POS_FACEUP);
@@ -513,9 +511,7 @@ int32 scriptlib::duel_sendto_deck(lua_State* L) {
 		pduel = pgroup->pduel;
 	else
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
-	auto playerid = lua_get<uint8>(L, 2);
-	if(lua_isnil(L, 2) || (playerid != 0 && playerid != 1))
-		playerid = PLAYER_NONE;
+	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 2);
 	auto sequence = lua_get<int32>(L, 3);
 	auto reason = lua_get<uint32>(L, 4);
 	uint16 location = (sequence == -2) ? 0 : LOCATION_DECK;
