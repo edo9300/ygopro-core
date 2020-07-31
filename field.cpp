@@ -887,7 +887,7 @@ int32 field::check_extra_link(int32 playerid, card* pcard, int32 sequence) {
 	pcard->current.controler = playerid;
 	pcard->current.location = LOCATION_MZONE;
 	pcard->current.sequence = sequence;
-	pcard->current.position = POS_FACEUP;
+	pcard->current.position = POS_FACEUP_ATTACK;
 	int32 ret = pcard->is_extra_link_state();
 	player[playerid].list_mzone[sequence] = 0;
 	pcard->current.controler = cur_controler;
