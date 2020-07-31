@@ -1127,7 +1127,7 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 		if(lua_isboolean(current_state, index))
 			return_value = lua_get<bool>(current_state, index);
 		else
-			return_value = lua_get<int32>(current_state, index);
+			return_value = lua_get<int32, 0>(current_state, index);
 		result->push_back(return_value);
 	}
 	lua_settop(current_state, stack_top);
@@ -1151,7 +1151,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count) {
 		if(lua_isboolean(current_state, -1))
 			result = lua_get<bool>(current_state, -1);
 		else
-			result = lua_get<int32>(current_state, -1);
+			result = lua_get<int32, 0>(current_state, -1);
 		lua_pop(current_state, 1);
 		no_action--;
 		call_depth--;
@@ -1185,7 +1185,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count, std::vector<i
 			if(lua_isboolean(current_state, index))
 				return_value = lua_get<bool>(current_state, index);
 			else
-				return_value = lua_get<int32>(current_state, index);
+				return_value = lua_get<int32, 0>(current_state, index);
 			result->push_back(return_value);
 		}
 		lua_settop(current_state, stack_top);
