@@ -451,7 +451,7 @@ int32 scriptlib::duel_special_summon_step(lua_State* L) {
 	check_param_count(L, 7);
 	auto pcard = lua_get<card*, true>(L, 1);
 	duel* pduel = pcard->pduel;
-	auto sumtype = lua_get<uint8>(L, 2);
+	auto sumtype = lua_get<uint32>(L, 2);
 	auto sumplayer = lua_get<uint8>(L, 3);
 	auto playerid = lua_get<uint8>(L, 4);
 	auto nocheck = lua_get<bool>(L, 5);
