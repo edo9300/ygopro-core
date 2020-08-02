@@ -1524,6 +1524,9 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 	auto szonechk = [&checkc](auto pcard)->bool {
 		return checkc(pcard, [](auto pcard)->bool {return !pcard->is_status(STATUS_ACTIVATE_DISABLED); });
 	};
+	auto pzonechk = [&checkc](auto pcard)->bool {
+		return checkc(pcard, [](auto pcard)->bool {return pcard->current.pzone && !pcard->is_status(STATUS_ACTIVATE_DISABLED); });
+	};
 	auto check_list = [](auto& list, auto func)->bool {
 		for(const auto& pcard : list)
 			if(func(pcard))
@@ -1537,7 +1540,7 @@ int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, ui
 			return TRUE;
 		if((location & LOCATION_FZONE) && szonechk(player[self].list_szone[5]))
 			return TRUE;
-		if((location & LOCATION_PZONE) && (szonechk(player[self].list_szone[get_pzone_index(0)]) || szonechk(player[self].list_szone[get_pzone_index(1)])))
+		if((location & LOCATION_PZONE) && (pzonechk(player[self].list_szone[get_pzone_index(0)]) || pzonechk(player[self].list_szone[get_pzone_index(1)])))
 			return TRUE;
 		if((location & LOCATION_DECK) && check_list(player[self].list_main, checkc))
 			return TRUE;
