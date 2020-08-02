@@ -1497,56 +1497,61 @@ void field::filter_player_effect(uint8 playerid, uint32 code, effect_set* eset, 
 	if(sort)
 		std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
-#define CHECKC(extra)do { if(pcard && extra\
-						&& pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))\
-						&& pduel->lua->check_matching(pcard, findex, extraargs)\
-						&& (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {\
-							if(pret) {\
-								*pret = pcard;\
-								return TRUE;\
-							}\
-							count++;\
-							if(fcount && count >= fcount)\
-								return TRUE;\
-							if(pgroup)\
-								pgroup->container.insert(pcard);\
-						}}while(0)
-#define CHECKL(list, extra)do { for(auto& pcard : list)	CHECKC(extra);}while(0)
-
 int32 field::filter_matching_card(int32 findex, uint8 self, uint32 location1, uint32 location2, group* pgroup, card* pexception, group* pexgroup, uint32 extraargs, card** pret, int32 fcount, int32 is_target) {
 	if(self != 0 && self != 1)
 		return FALSE;
 	int32 count = 0;
-	uint32 location = location1;
-	for(uint32 p = 0; p < 2; ++p, location = location2, self = 1 - self) {
-		if(location & LOCATION_MZONE) CHECKL(player[self].list_mzone, !pcard->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP));
-		if(location & LOCATION_SZONE)
-			CHECKL(player[self].list_szone, !pcard->is_status(STATUS_ACTIVATE_DISABLED));
-		if(location & LOCATION_FZONE) {
-			card* pcard = player[self].list_szone[5];
-			CHECKC(!pcard->is_status(STATUS_ACTIVATE_DISABLED));
+	auto checkc = [&](auto* pcard, bool(*extrafil)(card* pcard)=nullptr)->bool {
+		if(pcard && (!extrafil || extrafil(pcard))
+		   && pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
+		   && pduel->lua->check_matching(pcard, findex, extraargs)
+		   && (!is_target || pcard->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
+			if(pret) {
+				*pret = pcard;
+				return true;
+			}
+			count++;
+			if(fcount && count >= fcount)
+				return true;
+			if(pgroup)
+				pgroup->container.insert(pcard);
 		}
-		if(location & LOCATION_PZONE) {
-			card* pcard = player[self].list_szone[get_pzone_index(0)];
-			CHECKC(pcard->current.pzone && !pcard->is_status(STATUS_ACTIVATE_DISABLED));
-			pcard = player[self].list_szone[get_pzone_index(1)];
-			CHECKC(pcard->current.pzone && !pcard->is_status(STATUS_ACTIVATE_DISABLED));
-		}
-		if(location & LOCATION_DECK)
-			CHECKL(player[self].list_main, true);
-		if(location & LOCATION_EXTRA)
-			CHECKL(player[self].list_extra, true);
-		if(location & LOCATION_HAND)
-			CHECKL(player[self].list_hand, true);
-		if(location & LOCATION_GRAVE)
-			CHECKL(player[self].list_grave, true);
-		if(location & LOCATION_REMOVED)
-			CHECKL(player[self].list_remove, true);
+		return false;
+	};
+	auto mzonechk = [&checkc](auto pcard)->bool {
+		return checkc(pcard, [](auto pcard)->bool {return !pcard->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP); });
+	};
+	auto szonechk = [&checkc](auto pcard)->bool {
+		return checkc(pcard, [](auto pcard)->bool {return !pcard->is_status(STATUS_ACTIVATE_DISABLED); });
+	};
+	auto check_list = [](auto& list, auto func)->bool {
+		for(const auto& pcard : list)
+			if(func(pcard))
+				return true;
+		return false;
+	};
+	for(uint32 p = 0, location = location1; p < 2; ++p, location = location2, self = 1 - self) {
+		if((location & LOCATION_MZONE) && check_list(player[self].list_mzone, mzonechk))
+			return TRUE;
+		if((location & LOCATION_SZONE) && check_list(player[self].list_szone, szonechk))
+			return TRUE;
+		if((location & LOCATION_FZONE) && szonechk(player[self].list_szone[5]))
+			return TRUE;
+		if((location & LOCATION_PZONE) && (szonechk(player[self].list_szone[get_pzone_index(0)]) || szonechk(player[self].list_szone[get_pzone_index(1)])))
+			return TRUE;
+		if((location & LOCATION_DECK) && check_list(player[self].list_main, checkc))
+			return TRUE;
+		if((location & LOCATION_EXTRA) && check_list(player[self].list_extra, checkc))
+			return TRUE;
+		if((location & LOCATION_HAND) && check_list(player[self].list_hand, checkc))
+			return TRUE;
+		if((location & LOCATION_GRAVE) && check_list(player[self].list_grave, checkc))
+			return TRUE;
+		if((location & LOCATION_REMOVED) && check_list(player[self].list_remove, checkc))
+			return TRUE;
 	}
 	return FALSE;
 }
-#undef CHECKL
-#undef CHECKC
 // Duel.GetFieldGroup(), Duel.GetFieldGroupCount()
 int32 field::filter_field_card(uint8 self, uint32 location1, uint32 location2, group* pgroup) {
 	if(self != 0 && self != 1)
