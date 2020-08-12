@@ -441,7 +441,7 @@ int32 field::draw(uint16 step, effect* reason_effect, uint32 reason, uint8 reaso
 			auto message = pduel->new_message(MSG_DRAW);
 			message->write<uint8>(playerid);
 			message->write<uint32>(drawn);
-			for(const auto& pcard : *drawn_set) {
+			for(const auto& pcard : cv) {
 				message->write<uint32>(pcard->data.code);
 				message->write<uint32>(pcard->current.position);
 			}
