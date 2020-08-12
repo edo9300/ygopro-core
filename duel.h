@@ -73,6 +73,8 @@ public:
 	std::unordered_set<effect*> uncopy;
 
 	std::unordered_map<uint32_t, card_data> data_cache;
+
+	std::unordered_map<uint32_t/* hashed string */, uint8_t/*0 = not loaded, 1 = loaded correctly, 2 = failed to load*/> loaded_scripts;
 	
 	duel() {};
 	duel(OCG_DuelOptions options);

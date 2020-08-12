@@ -4143,14 +4143,34 @@ int32 scriptlib::duel_get_card_from_cardid(lua_State* L) {
 	return 0;
 }
 int32 scriptlib::duel_load_script(lua_State* L) {
+	check_param_count(L, 1);
 	duel* pduel = interpreter::get_duel_info(L);
 	lua_getglobal(L, "tostring");
-	lua_pushvalue(L, -2);
+	lua_pushvalue(L, 1);
 	lua_pcall(L, 1, 1, 0);
 	char strbuffer[256];
 	interpreter::sprintf(strbuffer, "%s", lua_tostring(L, -1));
+	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
+		auto hash = [](const char* str)->uint32_t {
+			uint32_t hash = 5381, c;
+			while(c = *str++)
+				hash = (((hash << 5) + hash) + c) & 0xffffffff; /* hash * 33 + c */
+			return hash;
+		}(strbuffer);
+		if(pduel->loaded_scripts[hash])
+			lua_pushboolean(L, pduel->loaded_scripts[hash] == 1);
+		else {
+			auto res = pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), strbuffer);
+			lua_pushboolean(L, res);
+			pduel->loaded_scripts[hash] = res ? 1 : 2;
+		}
+		return 1;
+	}
 	lua_pushboolean(L, pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), strbuffer));
-	return 1;
+	lua_getglobal(L, "edopro_exports");
+	lua_pushnil(L);
+	lua_setglobal(L, "edopro_exports");
+	return 2;
 }
 int32 scriptlib::duel_tag_swap(lua_State* L) {
 	check_action_permission(L);
