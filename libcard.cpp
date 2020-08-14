@@ -1693,7 +1693,8 @@ int32 scriptlib::card_is_able_to_hand(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
-	lua_pushboolean(L, pcard->is_capable_send_to_hand(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, pduel->game_field->core.reason_player);
+	lua_pushboolean(L, pcard->is_capable_send_to_hand(p);
 	return 1;
 }
 int32 scriptlib::card_is_able_to_grave(lua_State* L) {
