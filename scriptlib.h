@@ -512,6 +512,7 @@ public:
 	static int32 duel_get_first_matching_card(lua_State* L);
 	static int32 duel_is_existing_matching_card(lua_State* L);
 	static int32 duel_select_matching_cards(lua_State* L);
+	static int32 duel_select_cards_code(lua_State* L);
 	static int32 duel_get_release_group(lua_State* L);
 	static int32 duel_get_release_group_count(lua_State* L);
 	static int32 duel_check_release_group(lua_State* L);

@@ -217,7 +217,7 @@ int32 field::select_option(uint16 step, uint8 playerid) {
 		return TRUE;
 	}
 }
-bool field::parse_response_cards(uint8 cancelable) {
+bool field::parse_response_cards(uint8 cancelable, uint8 sort) {
 	int type = returns.at<int32>(0);
 	if(type == -1) {
 		if(cancelable) {
@@ -247,13 +247,16 @@ bool field::parse_response_cards(uint8 cancelable) {
 			return false;
 		}
 	}
-	std::sort(list.begin(), list.end());
-	auto ip = std::unique(list.begin(), list.end());
-	bool res = (ip == list.end());
-	list.resize(std::distance(list.begin(), ip));
-	return res;
+	if(sort) {
+		std::sort(list.begin(), list.end());
+		auto ip = std::unique(list.begin(), list.end());
+		bool res = (ip == list.end());
+		list.resize(std::distance(list.begin(), ip));
+		return res;
+	}
+	return true;
 }
-int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max) {
+int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 use_code) {
 	if(step == 0) {
 		return_cards.clear();
 		returns.clear();
@@ -281,14 +284,20 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		message->write<uint32>(min);
 		message->write<uint32>(max);
 		message->write<uint32>((uint32)core.select_cards.size());
-		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
+		if(!use_code)
+			std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(auto& pcard : core.select_cards) {
-			message->write<uint32>(pcard->data.code);
-			message->write(pcard->get_info_location());
+			if(use_code) {
+				message->write<uint32>((uint32)(uintptr_t)pcard);
+				message->write(loc_info{});
+			} else {
+				message->write<uint32>(pcard->data.code);
+				message->write(pcard->get_info_location());
+			}
 		}
 		return FALSE;
 	} else {
-		if(!parse_response_cards(cancelable || min == 0)) {
+		if(!parse_response_cards(cancelable || min == 0, !use_code)) {
 			return_cards.clear();
 			pduel->new_message(MSG_RETRY);
 			return FALSE;

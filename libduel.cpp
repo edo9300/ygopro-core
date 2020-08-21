@@ -2401,6 +2401,32 @@ int32 scriptlib::duel_select_matching_cards(lua_State* L) {
 		return 1;
 	});
 }
+int32 scriptlib::duel_select_cards_code(lua_State * L) {
+	check_action_permission(L);
+	check_param_count(L, 5);
+	duel* pduel = interpreter::get_duel_info(L);
+	pduel->game_field->core.select_cards.clear();
+	auto playerid = lua_get<uint8>(L, 1);
+	if(playerid != 0 && playerid != 1)
+		return 0;
+	auto min = lua_get<uint16>(L, 2);
+	auto max = lua_get<uint16>(L, 3);
+	bool cancelable = lua_get<bool>(L, 4);
+	for(int32 i = 5, tot = lua_gettop(L); i <= tot; ++i)
+		pduel->game_field->core.select_cards.push_back((card*)(uintptr_t)lua_get<uint32>(L, i));
+	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), TRUE);
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
+		duel* pduel = (duel*)ctx;
+		if(pduel->game_field->return_cards.canceled) {
+			lua_pushnil(L);
+			return 1;
+		}  else {
+			for(auto& code : pduel->game_field->return_cards.list)
+				lua_pushinteger(L, (uint32)(uintptr_t)code);
+			return (int)pduel->game_field->return_cards.list.size();
+		}
+	});
+}
 /**
 * \brief Duel.GetReleaseGroup
 * \param playerid

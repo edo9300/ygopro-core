@@ -611,8 +611,8 @@ public:
 	int32 select_effect_yes_no(uint16 step, uint8 playerid, uint64 description, card* pcard);
 	int32 select_yes_no(uint16 step, uint8 playerid, uint64 description);
 	int32 select_option(uint16 step, uint8 playerid);
-	bool parse_response_cards(uint8 cancelable = FALSE);
-	int32 select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max);
+	bool parse_response_cards(uint8 cancelable = FALSE, uint8 sort = TRUE);
+	int32 select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 use_code);
 	int32 select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 min, uint8 max, uint8 finishable);
 	int32 select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 forced);
 	int32 select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count);

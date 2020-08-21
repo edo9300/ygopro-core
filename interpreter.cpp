@@ -512,6 +512,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "GetFirstMatchingCard", scriptlib::duel_get_first_matching_card },
 	{ "IsExistingMatchingCard", scriptlib::duel_is_existing_matching_card },
 	{ "SelectMatchingCard", scriptlib::duel_select_matching_cards },
+	{ "SelectCardsFromCodes", scriptlib::duel_select_cards_code },
 	{ "GetReleaseGroup", scriptlib::duel_get_release_group },
 	{ "GetReleaseGroupCount", scriptlib::duel_get_release_group_count },
 	{ "CheckReleaseGroup", scriptlib::duel_check_release_group },
