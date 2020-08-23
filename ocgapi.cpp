@@ -189,40 +189,44 @@ OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) 
 }
 
 OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {
-	DUEL->query_buffer.clear();
-	if(info.loc & LOCATION_OVERLAY) {
-		insert_value<int16>(DUEL->query_buffer, 0);
-	} else {
-		auto& player = DUEL->game_field->player[info.con];
-		field::card_vector* lst;
-		if(info.loc == LOCATION_MZONE)
-			lst = &player.list_mzone;
-		else if(info.loc == LOCATION_SZONE)
-			lst = &player.list_szone;
-		else if(info.loc == LOCATION_HAND)
-			lst = &player.list_hand;
-		else if(info.loc == LOCATION_GRAVE)
-			lst = &player.list_grave;
-		else if(info.loc == LOCATION_REMOVED)
-			lst = &player.list_remove;
-		else if(info.loc == LOCATION_EXTRA)
-			lst = &player.list_extra;
-		else if(info.loc == LOCATION_DECK)
-			lst = &player.list_main;
-		for(auto& pcard : *lst) {
+	auto& buffer = DUEL->query_buffer;
+	auto populate = [&flags = info.flags, &buffer](const field::card_vector& list) {
+		for(auto& pcard : list) {
 			if(pcard == nullptr) {
-				insert_value<int16>(DUEL->query_buffer, 0);
+				insert_value<int16>(buffer, 0);
 			} else {
-				pcard->get_infos(info.flags);
+				pcard->get_infos(flags);
 			}
 		}
+	};
+	buffer.clear();
+	if(info.con <= 1u) {
+		if(info.loc & LOCATION_OVERLAY) {
+			insert_value<int16>(buffer, 0);
+		} else {
+			auto& player = DUEL->game_field->player[info.con];
+			if(info.loc == LOCATION_MZONE)
+				populate(player.list_mzone);
+			else if(info.loc == LOCATION_SZONE)
+				populate(player.list_szone);
+			else if(info.loc == LOCATION_HAND)
+				populate(player.list_hand);
+			else if(info.loc == LOCATION_GRAVE)
+				populate(player.list_grave);
+			else if(info.loc == LOCATION_REMOVED)
+				populate(player.list_remove);
+			else if(info.loc == LOCATION_EXTRA)
+				populate(player.list_extra);
+			else if(info.loc == LOCATION_DECK)
+				populate(player.list_main);
+		}
+		std::vector<uint8_t> tmp_vector;
+		insert_value<uint32_t>(tmp_vector, buffer.size());
+		buffer.insert(buffer.begin(), tmp_vector.begin(), tmp_vector.end());
 	}
-	std::vector<uint8_t> tmp_vector;
-	insert_value<uint32_t>(tmp_vector, DUEL->query_buffer.size());
-	DUEL->query_buffer.insert(DUEL->query_buffer.begin(), tmp_vector.begin(), tmp_vector.end());
 	if(length)
-		*length = DUEL->query_buffer.size();
-	return DUEL->query_buffer.data();
+		*length = buffer.size();
+	return buffer.data();
 }
 
 OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
@@ -277,8 +281,8 @@ OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
 	return query.data();
 }
 
-void DefaultLogHandler(void* payload, const char* string, int type) {
+void DefaultLogHandler(void* /*payload*/, const char* /*string*/, int /*type*/) {
 }
 
-void DefaultCardReaderDone(void* payload, OCG_CardData* data) {
+void DefaultCardReaderDone(void* /*payload*/, OCG_CardData* /*data*/) {
 }

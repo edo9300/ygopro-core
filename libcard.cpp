@@ -1458,7 +1458,7 @@ int32 scriptlib::card_is_relate_to_chain(lua_State* L) {
 	auto chain_count = lua_get<uint8>(L, 2);
 	duel* pduel = pcard->pduel;
 	if(chain_count > pduel->game_field->core.current_chain.size() || chain_count < 1)
-		chain_count = pduel->game_field->core.current_chain.size();
+		chain_count = (uint8)pduel->game_field->core.current_chain.size();
 	lua_pushboolean(L, pcard->is_has_relation(pduel->game_field->core.current_chain[chain_count - 1]));
 	return 1;
 }
@@ -2330,7 +2330,7 @@ int32 scriptlib::card_add_monster_attribute(lua_State* L) {
 	}
 	return 0;
 }
-int32 scriptlib::card_add_monster_attribute_complete(lua_State* L) {
+int32 scriptlib::card_add_monster_attribute_complete(lua_State* /*L*/) {
 	return 0;
 }
 int32 scriptlib::card_cancel_to_grave(lua_State* L) {

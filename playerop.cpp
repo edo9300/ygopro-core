@@ -363,9 +363,9 @@ int32 field::select_unselect_card(uint16 step, uint8 playerid, uint8 cancelable,
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
-		int32 max = (int32)(core.select_cards.size() + core.unselect_cards.size());
+		int32 _max = (int32)(core.select_cards.size() + core.unselect_cards.size());
 		int retval = returns.at<int32>(1);
-		if(retval < 0 || retval >= max){
+		if(retval < 0 || retval >= _max){
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
