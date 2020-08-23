@@ -15,7 +15,7 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 	case PARAM_TYPE_CARD:
 	case PARAM_TYPE_GROUP:
 	case PARAM_TYPE_EFFECT:
-		if((obj = lua_get<lua_obj*>(L, index)) && obj->lua_type == param_type) {
+		if((obj = lua_get<lua_obj*>(L, index)) != nullptr && obj->lua_type == param_type) {
 			if(retobj)
 				*(lua_obj**)retobj = obj;
 			return TRUE;
@@ -45,7 +45,14 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 	}
 	if(retfalse)
 		return FALSE;
-	luaL_error(L, "Parameter %d should be \"%s\".", index, type);
+	if(param_type == PARAM_TYPE_INT) {
+		interpreter::print_stacktrace(L);
+		duel* pduel = interpreter::get_duel_info(L);
+		sprintf(pduel->strbuffer, "Parameter %d should be \"%s\".", index, type);
+		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
+	} else {
+		luaL_error(L, "Parameter %d should be \"%s\".", index, type);
+	}
 	return FALSE;
 }
 
