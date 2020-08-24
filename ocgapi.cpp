@@ -132,7 +132,7 @@ OCGAPI int OCG_LoadScript(OCG_Duel duel, const char* buffer, uint32_t length, co
 }
 
 OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
-	if(team != 0 && team != 1)
+	if(team > 1)
 		return 0;
 	auto& player = DUEL->game_field->player[team];
 	if(loc == LOCATION_HAND)

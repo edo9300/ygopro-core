@@ -5416,7 +5416,7 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		if(core.operated_set.find(pcard) == core.operated_set.end()) {
 			core.operated_set.insert(pcard);
 			if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-				core.units.begin()->peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
+				core.units.begin()->peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_NONSUM);
 		} else {
 			core.operated_set.erase(pcard);
 			if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
@@ -5427,6 +5427,8 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
 			if(core.units.begin()->ptr1)
 				delete core.units.begin()->ptr1;
+			if(core.units.begin()->peffect)
+				core.dec_count_reserve.push_back(core.units.begin()->peffect);
 			return TRUE;
 		}
 		core.units.begin()->step = 1;
