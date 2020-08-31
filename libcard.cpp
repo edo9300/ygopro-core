@@ -2336,7 +2336,7 @@ int32 scriptlib::card_add_monster_attribute_complete(lua_State* /*L*/) {
 int32 scriptlib::card_cancel_to_grave(lua_State* L) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	bool cancel = lua_get<bool, false>(L, 2);
+	bool cancel = lua_get<bool, true>(L, 2);
 	if(cancel)
 		pcard->set_status(STATUS_LEAVE_CONFIRMED, FALSE);
 	else {
