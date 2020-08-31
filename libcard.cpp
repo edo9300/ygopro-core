@@ -1613,7 +1613,7 @@ inline int32 spsummonable_rule(lua_State* L, uint32 cardtype, uint32 sumtype, ui
 		must = pcard->pduel->new_group(_pcard);
 	else
 		must = lua_get<group*>(L, 2 + offset);
-	if(auto _pcard = lua_get<card*>(L, 2 + offset))
+	if(auto _pcard = lua_get<card*>(L, 3 + offset))
 		materials = pcard->pduel->new_group(_pcard);
 	else
 		materials = lua_get<group*>(L, 3 + offset);
