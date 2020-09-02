@@ -2183,7 +2183,7 @@ int32 card::copy_effect(uint32 code, uint32 reset, uint32 count) {
 	}
 	return pduel->game_field->infos.copy_id - 1;
 }
-int32 card::replace_effect(uint32 code, uint32 reset, uint32 count) {
+int32 card::replace_effect(uint32 code, uint32 reset, uint32 count, bool recreating) {
 	if(pduel->read_card(code)->type & TYPE_NORMAL)
 		return -1;
 	if(is_status(STATUS_EFFECT_REPLACED))
@@ -2199,7 +2199,9 @@ int32 card::replace_effect(uint32 code, uint32 reset, uint32 count) {
 	uint8 crc = pduel->game_field->core.copy_reset_count;
 	pduel->game_field->core.copy_reset = reset;
 	pduel->game_field->core.copy_reset_count = count;
-	set_status(STATUS_INITIALIZING | STATUS_COPYING_EFFECT, TRUE);
+	set_status(STATUS_INITIALIZING, TRUE);
+	if(!recreating)
+		set_status(STATUS_COPYING_EFFECT, TRUE);
 	pduel->lua->load_card_script(code);
 	pduel->lua->add_param(this, PARAM_TYPE_CARD);
 	pduel->lua->call_code_function(code, "initial_effect", 1, 0);

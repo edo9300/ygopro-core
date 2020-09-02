@@ -2534,7 +2534,7 @@ int32 scriptlib::card_recreate(lua_State* L) {
 		pcard->data.rscale = lua_get<uint32>(L, 12, pcard->data.rscale);
 		pcard->data.link_marker = lua_get<uint32>(L, 13, pcard->data.link_marker);
 		if (lua_get<bool, false>(L, 14))
-			pcard->replace_effect(code, 0, 0);
+			pcard->replace_effect(code, 0, 0, true);
 	}
 	return 0;
 }
