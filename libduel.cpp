@@ -969,7 +969,7 @@ int32 scriptlib::duel_check_event(lua_State* L) {
 	check_param_count(L, 1);
 	duel* pduel = interpreter::get_duel_info(L);
 	auto ev = lua_get<uint32>(L, 1);
-	if(!lua_get<bool>(L, 2)) {
+	if(!/*bool get_info = */lua_get<bool, false>(L, 2)) {
 		lua_pushboolean(L, pduel->game_field->check_event(ev));
 		return 1;
 	} else {
