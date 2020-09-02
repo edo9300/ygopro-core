@@ -3411,7 +3411,7 @@ int32 scriptlib::duel_announce_level(lua_State* L) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8>(L, 1);
 	auto min = lua_get<uint32, 1>(L, 2);
-	auto max = lua_get<uint32, 12>(L, 2);
+	auto max = lua_get<uint32, 12>(L, 3);
 	auto paramcount = lua_gettop(L);
 	if(min > max)
 		std::swap(min, max);
