@@ -288,8 +288,8 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 			std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(auto& pcard : core.select_cards) {
 			if(use_code) {
-				message->write<uint32>((uint32)(uintptr_t)pcard);
 				message->write(loc_info{});
+				message->write<uint32>(((std::pair<uint32_t, uint32_t>*)pcard)->first);
 			} else {
 				message->write<uint32>(pcard->data.code);
 				message->write(pcard->get_info_location());

@@ -2403,7 +2403,7 @@ int32 scriptlib::duel_select_matching_cards(lua_State* L) {
 }
 int32 scriptlib::duel_select_cards_code(lua_State * L) {
 	check_action_permission(L);
-	check_param_count(L, 5);
+	check_param_count(L, 6);
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_cards.clear();
 	auto playerid = lua_get<uint8>(L, 1);
@@ -2412,17 +2412,37 @@ int32 scriptlib::duel_select_cards_code(lua_State * L) {
 	auto min = lua_get<uint16>(L, 2);
 	auto max = lua_get<uint16>(L, 3);
 	bool cancelable = lua_get<bool>(L, 4);
-	for(int32 i = 5, tot = lua_gettop(L); i <= tot; ++i)
-		pduel->game_field->core.select_cards.push_back((card*)(uintptr_t)lua_get<uint32>(L, i));
+	//bool ret_index = lua_get<bool>(L, 5);
+	for(int32 i = 6, tot = lua_gettop(L); i <= tot; ++i) {
+		auto cardobj = new std::pair<uint32_t, uint32_t>(lua_get<uint32>(L, i), i - 5);
+		pduel->game_field->core.select_cards.push_back((card*)cardobj);
+	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), TRUE);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled) {
+			for(auto& obj : pduel->game_field->core.select_cards)
+				delete obj;
 			lua_pushnil(L);
 			return 1;
 		}  else {
-			for(auto& code : pduel->game_field->return_cards.list)
-				lua_pushinteger(L, (uint32)(uintptr_t)code);
+			bool ret_index = lua_get<bool>(L, 5);
+			for(auto& code : pduel->game_field->return_cards.list) {
+				auto obj = (std::pair<uint32_t, uint32_t>*)code;
+				if(ret_index) {
+					lua_newtable(L);
+					lua_pushinteger(L, 1);
+				}
+				lua_pushinteger(L, obj->first);
+				if(ret_index) {
+					lua_settable(L, -3);
+					lua_pushinteger(L, 2);
+					lua_pushinteger(L, obj->second);
+					lua_settable(L, -3);
+				}
+			}
+			for(auto& obj : pduel->game_field->core.select_cards)
+				delete ((std::pair<uint32_t, uint32_t>*)obj);
 			return (int)pduel->game_field->return_cards.list.size();
 		}
 	});
