@@ -478,3 +478,18 @@ int32 scriptlib::effect_use_count_limit(lua_State* L) {
 		}
 	return 0;
 }
+
+int32 scriptlib::effect_get_lua_ref(lua_State* L) {
+	lua_pushinteger(L, lua_get<effect*>(L, 1)->ref_handle);
+	return 1;
+}
+
+int32 scriptlib::effect_from_lua_ref(lua_State* L) {
+	auto ref = lua_get<int32>(L, 1);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	auto obj = lua_get<lua_obj*>(L, -1);
+	if(!obj || obj->lua_type != PARAM_TYPE_EFFECT)
+		luaL_error(L, "Parameter 1 should be a lua reference to an Effect.");
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	return 1;
+}

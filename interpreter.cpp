@@ -275,6 +275,8 @@ static const struct luaL_Reg cardlib[] = {
 	{ "LinkMarker", scriptlib::card_link_marker },
 	{ "Recreate", scriptlib::card_recreate },
 	{ "Cover", scriptlib::card_cover },
+	{ "GetLuaRef", scriptlib::card_get_lua_ref },
+	{ "FromLuaRef", scriptlib::card_from_lua_ref },
 	{ NULL, NULL }
 };
 
@@ -332,6 +334,8 @@ static const struct luaL_Reg effectlib[] = {
 	{ "GetActivateSequence", scriptlib::effect_get_activate_sequence },
 	{ "CheckCountLimit", scriptlib::effect_check_count_limit },
 	{ "UseCountLimit", scriptlib::effect_use_count_limit },
+	{ "GetLuaRef", scriptlib::effect_get_lua_ref },
+	{ "FromLuaRef", scriptlib::effect_from_lua_ref },
 	{ NULL, NULL }
 };
 
@@ -380,6 +384,8 @@ static const struct luaL_Reg grouplib[] = {
 	{ "SearchCard", scriptlib::group_search_card },
 	{ "Split", scriptlib::group_split },
 	{ "Includes", scriptlib::group_includes },
+	{ "GetLuaRef", scriptlib::group_get_lua_ref },
+	{ "FromLuaRef", scriptlib::group_from_lua_ref },
 	{ NULL, NULL }
 };
 

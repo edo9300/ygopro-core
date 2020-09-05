@@ -2548,3 +2548,18 @@ int32 scriptlib::card_cover(lua_State* L) {
 		lua_pushinteger(L, pcard->cover);
 	return 1;
 }
+
+int32 scriptlib::card_get_lua_ref(lua_State* L) {
+	lua_pushinteger(L, lua_get<card*>(L, 1)->ref_handle);
+	return 1;
+}
+
+int32 scriptlib::card_from_lua_ref(lua_State* L) {
+	auto ref = lua_get<int32>(L, 1);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	auto obj = lua_get<lua_obj*>(L, -1);
+	if(!obj || obj->lua_type != PARAM_TYPE_CARD)
+		luaL_error(L, "Parameter 1 should be a lua reference to a Card.");
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	return 1;
+}

@@ -749,6 +749,19 @@ int32 scriptlib::group_less_equal_than(lua_State* L) {
 	lua_pushboolean(L, pgroup->container.size() <= sgroup->container.size());
 	return 1;
 }
+int32 scriptlib::group_get_lua_ref(lua_State* L) {
+	lua_pushinteger(L, lua_get<group*>(L, 1)->ref_handle);
+	return 1;
+}
+int32 scriptlib::group_from_lua_ref(lua_State* L) {
+	auto ref = lua_get<int32>(L, 1);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	auto obj = lua_get<lua_obj*>(L, -1);
+	if(!obj || obj->lua_type != PARAM_TYPE_GROUP)
+		luaL_error(L, "Parameter 1 should be a lua reference to a Group.");
+	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	return 1;
+}
 int32 scriptlib::group_is_contains(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
