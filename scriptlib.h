@@ -278,8 +278,6 @@ public:
 	static int32 card_link_marker(lua_State* L);
 	static int32 card_recreate(lua_State* L);
 	static int32 card_cover(lua_State* L);
-	static int32 card_get_lua_ref(lua_State* L);
-	static int32 card_from_lua_ref(lua_State* L);
 
 	//Effect functions
 	static int32 effect_new(lua_State* L);
@@ -335,8 +333,6 @@ public:
 	static int32 effect_get_activate_sequence(lua_State* L);
 	static int32 effect_check_count_limit(lua_State* L);
 	static int32 effect_use_count_limit(lua_State* L);
-	static int32 effect_get_lua_ref(lua_State* L);
-	static int32 effect_from_lua_ref(lua_State* L);
 
 	//Group functions
 	static int32 group_new(lua_State* L);
@@ -384,8 +380,6 @@ public:
 	static int32 group_equal_size(lua_State* L);
 	static int32 group_less_than(lua_State* L);
 	static int32 group_less_equal_than(lua_State* L);
-	static int32 group_get_lua_ref(lua_State* L);
-	static int32 group_from_lua_ref(lua_State* L);
 
 	//Duel functions
 	static int32 duel_enable_global_flag(lua_State* L);

@@ -643,7 +643,7 @@ int32 scriptlib::group_band(lua_State* L) {
 	duel* pduel = pgroup1->pduel;
 	field::card_set cset;
 	if(pcard) {
-		if(pgroup1->container.count(pcard)) {
+		if(pgroup1->container.find(pcard) != pgroup1->container.end()) {
 			cset.insert(pcard);
 		}
 	} else {
@@ -651,7 +651,7 @@ int32 scriptlib::group_band(lua_State* L) {
 			std::swap(pgroup1, pgroup2);
 		}
 		for(const auto& pcard : pgroup1->container) {
-			if(pgroup2->container.count(pcard))
+			if(pgroup2->container.find(pcard) != pgroup2->container.end())
 				cset.insert(pcard);
 		}
 	}
@@ -749,19 +749,6 @@ int32 scriptlib::group_less_equal_than(lua_State* L) {
 	lua_pushboolean(L, pgroup->container.size() <= sgroup->container.size());
 	return 1;
 }
-int32 scriptlib::group_get_lua_ref(lua_State* L) {
-	lua_pushinteger(L, lua_get<group*>(L, 1)->ref_handle);
-	return 1;
-}
-int32 scriptlib::group_from_lua_ref(lua_State* L) {
-	auto ref = lua_get<int32>(L, 1);
-	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-	auto obj = lua_get<lua_obj*>(L, -1);
-	if(!obj || obj->lua_type != PARAM_TYPE_GROUP)
-		luaL_error(L, "Parameter 1 should be a lua reference to a Group.");
-	lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-	return 1;
-}
 int32 scriptlib::group_is_contains(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
@@ -815,13 +802,14 @@ int32 scriptlib::group_includes(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup1 = lua_get<group*, true>(L, 1);
 	auto pgroup2 = lua_get<group*, true>(L, 2);
-	auto& cset = pgroup1->container;
 	if(pgroup1->container.size() < pgroup2->container.size()) {
 		lua_pushboolean(L, FALSE);
 	} else {
 		int res = TRUE;
+		auto& cset = pgroup1->container;
+		auto end = cset.end();
 		for(auto& pcard : pgroup2->container) {
-			if(!cset.count(pcard)) {
+			if(cset.find(pcard) == end) {
 				res = FALSE;
 				break;
 			}

@@ -14,6 +14,29 @@
 #include "interpreter.h"
 #include <cmath>
 
+template<typename T>
+struct objref {
+	static int32 get_lua_ref(lua_State* L) {
+		lua_pushinteger(L, lua_get<T>(L, 1)->ref_handle);
+		return 1;
+	}
+	static int32 from_lua_ref(lua_State* L) {
+		auto ref = lua_get<int32>(L, 1);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+		auto obj = lua_get<T, true>(L, -1);
+		if(!obj) {
+			if(std::is_same<T,card*>::value)
+				luaL_error(L, "Parameter 1 should be a lua reference to a Card.");
+			else if(std::is_same<T, group*>::value)
+				luaL_error(L, "Parameter 1 should be a lua reference to a Group.");
+			else if(std::is_same<T, effect*>::value)
+				luaL_error(L, "Parameter 1 should be a lua reference to a Effect.");
+		}
+		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+		return 1;
+	}
+};
+
 static const struct luaL_Reg cardlib[] = {
 	{ "GetCode", scriptlib::card_get_code },
 	{ "GetOriginalCode", scriptlib::card_get_origin_code },
@@ -275,8 +298,8 @@ static const struct luaL_Reg cardlib[] = {
 	{ "LinkMarker", scriptlib::card_link_marker },
 	{ "Recreate", scriptlib::card_recreate },
 	{ "Cover", scriptlib::card_cover },
-	{ "GetLuaRef", scriptlib::card_get_lua_ref },
-	{ "FromLuaRef", scriptlib::card_from_lua_ref },
+	{ "GetLuaRef", objref<card*>::get_lua_ref },
+	{ "FromLuaRef", objref<card*>::from_lua_ref },
 	{ NULL, NULL }
 };
 
@@ -334,8 +357,8 @@ static const struct luaL_Reg effectlib[] = {
 	{ "GetActivateSequence", scriptlib::effect_get_activate_sequence },
 	{ "CheckCountLimit", scriptlib::effect_check_count_limit },
 	{ "UseCountLimit", scriptlib::effect_use_count_limit },
-	{ "GetLuaRef", scriptlib::effect_get_lua_ref },
-	{ "FromLuaRef", scriptlib::effect_from_lua_ref },
+	{ "GetLuaRef", objref<effect*>::get_lua_ref },
+	{ "FromLuaRef", objref<effect*>::from_lua_ref },
 	{ NULL, NULL }
 };
 
@@ -384,8 +407,8 @@ static const struct luaL_Reg grouplib[] = {
 	{ "SearchCard", scriptlib::group_search_card },
 	{ "Split", scriptlib::group_split },
 	{ "Includes", scriptlib::group_includes },
-	{ "GetLuaRef", scriptlib::group_get_lua_ref },
-	{ "FromLuaRef", scriptlib::group_from_lua_ref },
+	{ "GetLuaRef", objref<group*>::get_lua_ref },
+	{ "FromLuaRef", objref<group*>::from_lua_ref },
 	{ NULL, NULL }
 };
 
