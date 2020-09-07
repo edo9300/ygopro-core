@@ -2367,11 +2367,11 @@ int32 scriptlib::duel_select_matching_cards(lua_State* L) {
 		check_param(L, PARAM_TYPE_FUNCTION, 2);
 	card* pexception = 0;
 	group* pexgroup = 0;
-	bool cancelable = true;
+	bool cancelable = false;
 	uint8 lastarg = 8;
 	if(lua_isboolean(L, lastarg)) {
 		check_param_count(L, 9);
-		cancelable = lua_get<bool, true>(L, lastarg);
+		cancelable = lua_get<bool, false>(L, lastarg);
 		lastarg++;
 	}
 	if(!(pexception = lua_get<card*>(L, lastarg)))
