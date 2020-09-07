@@ -1276,7 +1276,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	}
 	push_param(rthread, true);
 	current_state = rthread;
-	int32 result = lua_resumec(rthread, 0, param_count, &result);
+	int32 result = lua_resume(rthread, 0, param_count);
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
