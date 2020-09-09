@@ -2087,7 +2087,7 @@ int32 scriptlib::duel_skip_phase(lua_State* L) {
 	auto phase = lua_get<uint16>(L, 2);
 	auto reset = lua_get<uint32>(L, 3);
 	auto count = lua_get<uint16>(L, 4);
-	auto value = lua_get<uint32>(L, 5);
+	auto value = lua_get<uint32, 0>(L, 5);
 	if(count <= 0)
 		count = 1;
 	duel* pduel = interpreter::get_duel_info(L);
