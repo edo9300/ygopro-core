@@ -5325,8 +5325,9 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		return FALSE;
 	}
 	case 1: {
-		if(core.units.begin()->ptr1)
-			delete core.units.begin()->ptr1;
+		card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
+		if(must_choose_one)
+			delete must_choose_one;
 		if(return_cards.canceled)
 			return TRUE;
 		int32 count = return_cards.list.size();
@@ -5406,8 +5407,9 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 				core.dec_count_reserve.push_back(core.units.begin()->peffect);
 			return_cards.list.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
-			if(core.units.begin()->ptr1)
-				delete core.units.begin()->ptr1;
+			card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
+			if(must_choose_one)
+				delete must_choose_one;
 			if(core.operated_set.size())
 				return_cards.canceled = false;
 			return TRUE;
@@ -5425,8 +5427,9 @@ int32 field::select_release_cards(int16 step, uint8 playerid, uint8 cancelable, 
 		if(core.operated_set.size() == max) {
 			return_cards.list.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
-			if(core.units.begin()->ptr1)
-				delete core.units.begin()->ptr1;
+			card_set* must_choose_one = (card_set*)core.units.begin()->ptr1;
+			if(must_choose_one)
+				delete must_choose_one;
 			if(core.units.begin()->peffect)
 				core.dec_count_reserve.push_back(core.units.begin()->peffect);
 			return TRUE;
