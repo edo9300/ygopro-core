@@ -2754,7 +2754,9 @@ int32 field::is_player_can_place_counter(uint8 playerid, card* pcard, uint16 cou
 		pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if (pduel->lua->check_condition(peff->target, 3))
+		pduel->lua->add_param(countertype, PARAM_TYPE_INT);
+		pduel->lua->add_param(count, PARAM_TYPE_INT);
+		if (pduel->lua->check_condition(peff->target, 5))
 			return FALSE;
 	}
 	return TRUE;
