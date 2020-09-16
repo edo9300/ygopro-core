@@ -249,9 +249,9 @@ uint32 card::second_code(uint32 code){
 // return: the current card name
 // for double-name card, it returns printed name
 uint32 card::get_code() {
-    auto search = assume.find(ASSUME_CODE);
-    if(search != assume.end())
-        return search->second;
+	auto search = assume.find(ASSUME_CODE);
+	if(search != assume.end())
+		return search->second;
 	if (temp.code != 0xffffffff)
 		return temp.code;
 	effect_set effects;
@@ -1957,7 +1957,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_SET_ATTACK || rm->second->code == EFFECT_SET_ATTACK_FINAL || rm->second->code == EFFECT_SET_BASE_ATTACK)
-				        && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+						&& !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -1965,7 +1965,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_UPDATE_ATTACK || rm->second->code == EFFECT_SET_ATTACK
-				        || rm->second->code == EFFECT_SET_ATTACK_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+								|| rm->second->code == EFFECT_SET_ATTACK_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -1973,7 +1973,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_SET_DEFENSE || rm->second->code == EFFECT_SET_DEFENSE_FINAL || rm->second->code == EFFECT_SET_BASE_DEFENSE)
-				        && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+								&& !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -1981,7 +1981,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_UPDATE_DEFENSE || rm->second->code == EFFECT_SET_DEFENSE
-				        || rm->second->code == EFFECT_SET_DEFENSE_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+								|| rm->second->code == EFFECT_SET_DEFENSE_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -2672,7 +2672,7 @@ void card::filter_effect(int32 code, effect_set* eset, uint8 sort) {
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
-		        && peffect->is_target(this) && is_affect_by_effect(peffect))
+						&& peffect->is_target(this) && is_affect_by_effect(peffect))
 			eset->push_back(peffect);
 	}
 	if(sort)
@@ -2975,7 +2975,7 @@ void card::filter_spsummon_procedure(uint8 playerid, effect_set* peset, uint32 s
 				sumeffect = peffect;
 			uint32 sumtype = peffect->get_value(this);
 			if((!summon_type || summon_type == sumtype)
-			        && pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
+							&& pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
 				peset->push_back(peffect);
 		}
 	}
@@ -3053,7 +3053,7 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))
-		        && peffect->get_value(target))
+						&& peffect->get_value(target))
 			return peffect;
 	}
 	for (auto& pcard : equiping_cards) {
@@ -3096,7 +3096,7 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
-		        && peffect->is_target(this) && is_affect_by_effect(peffect) && peffect->get_value(target))
+						&& peffect->is_target(this) && is_affect_by_effect(peffect) && peffect->get_value(target))
 			return peffect;
 	}
 	return 0;
@@ -3362,7 +3362,7 @@ int32 card::is_can_be_summoned(uint8 playerid, uint8 ignore_count, effect* peffe
 	if(!is_summonable_card())
 		return FALSE;
 	if(!ignore_count && (pduel->game_field->core.extra_summon[playerid] || !is_affected_by_effect(EFFECT_EXTRA_SUMMON_COUNT))
-	        && pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
+					&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
@@ -3373,10 +3373,10 @@ int32 card::is_can_be_summoned(uint8 playerid, uint8 ignore_count, effect* peffe
 	}
 	if(current.location == LOCATION_MZONE) {
 		if(is_position(POS_FACEDOWN)
-		        || !is_affected_by_effect(EFFECT_GEMINI_SUMMONABLE)
-		        || is_affected_by_effect(EFFECT_GEMINI_STATUS)
-		        || !pduel->game_field->is_player_can_summon(SUMMON_TYPE_GEMINI, playerid, this, playerid)
-		        || is_affected_by_effect(EFFECT_CANNOT_SUMMON)) {
+						|| !is_affected_by_effect(EFFECT_GEMINI_SUMMONABLE)
+						|| is_affected_by_effect(EFFECT_GEMINI_STATUS)
+						|| !pduel->game_field->is_player_can_summon(SUMMON_TYPE_GEMINI, playerid, this, playerid)
+						|| is_affected_by_effect(EFFECT_CANNOT_SUMMON)) {
 			pduel->game_field->restore_lp_cost();
 			return FALSE;
 		}
@@ -3574,7 +3574,7 @@ int32 card::is_setable_mzone(uint8 playerid, uint8 ignore_count, effect* peffect
 	if(is_affected_by_effect(EFFECT_CANNOT_MSET))
 		return FALSE;
 	if(!ignore_count && (pduel->game_field->core.extra_summon[playerid] || !is_affected_by_effect(EFFECT_EXTRA_SET_COUNT))
-	        && pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
+					&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
 		return FALSE;
 	pduel->game_field->save_lp_cost();
 	if(!check_cost_condition(EFFECT_MSET_COST, playerid)) {
