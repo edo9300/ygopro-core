@@ -1717,7 +1717,7 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 				ch.set_triggering_state(phandler);
 			}
 			if(ch.triggering_player == priority && !phandler->is_status(STATUS_CHAINING)
-				&& (ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN) || ch.triggering_location == LOCATION_DECK)
+				&& ((ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN)) || ch.triggering_location == LOCATION_DECK)
 				&& phandler->is_has_relation(ch) && peffect->is_chainable(priority) && peffect->is_activateable(priority, ch.evt, TRUE)
 				&& check_spself_from_hand_trigger(ch))
 				core.select_chains.push_back(ch);

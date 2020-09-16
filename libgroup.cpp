@@ -364,8 +364,8 @@ int32 scriptlib::group_check_with_sum_equal(lua_State* L) {
 	auto pgroup = lua_get<group*, true>(L, 1);
 	duel* pduel = pgroup->pduel;
 	auto acc = lua_get<uint32>(L, 3);
-	auto min = lua_get<uint16>(L, 4);
-	auto max = lua_get<uint16>(L, 5);
+	auto min = lua_get<int32>(L, 4);
+	auto max = lua_get<int32>(L, 5);
 	if(min < 0)
 		min = 0;
 	if(max < min)
@@ -396,8 +396,8 @@ int32 scriptlib::group_select_with_sum_equal(lua_State* L) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto acc = lua_get<uint32>(L, 4);
-	auto min = lua_get<uint16>(L, 5);
-	auto max = lua_get<uint16>(L, 6);
+	auto min = lua_get<int32>(L, 5);
+	auto max = lua_get<int32>(L, 6);
 	if(min < 0)
 		min = 0;
 	if(max < min)

@@ -289,7 +289,7 @@ int32 field::select_card(uint16 step, uint8 playerid, uint8 cancelable, uint8 mi
 		for(auto& pcard : core.select_cards) {
 			if(use_code) {
 				message->write<uint32>(((std::pair<uint32_t, uint32_t>*)pcard)->first);
-				message->write(loc_info{ playerid });
+				message->write(loc_info{ playerid, 0, 0, 0 });
 			} else {
 				message->write<uint32>(pcard->data.code);
 				message->write(pcard->get_info_location());

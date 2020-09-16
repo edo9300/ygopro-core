@@ -2028,7 +2028,7 @@ int32 card::add_effect(effect* peffect) {
 	peffect->handler = this;
 	if((peffect->type & EFFECT_TYPE_FIELD)) {
 		if(peffect->in_range(this)
-			|| current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE)))
+			|| (current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE))))
 			pduel->game_field->add_effect(peffect);
 	}
 	if (current.controler != PLAYER_NONE && !check_target.empty()) {
@@ -2098,7 +2098,7 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 		}
 		field_effect.erase(it);
 		if(peffect->in_range(this)
-			|| current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE)))
+			|| (current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE))))
 			pduel->game_field->remove_effect(peffect);
 	}
 	if ((current.controler != PLAYER_NONE) && !get_status(STATUS_DISABLED | STATUS_FORBIDDEN) && !check_target.empty()) {

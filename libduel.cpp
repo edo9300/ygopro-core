@@ -2571,7 +2571,7 @@ int32 select_release_group(lua_State* L, uint8 use_hand) {
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
 	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, 2, extraargs, pexception, pexgroup, use_oppo);
-	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, 0, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
+	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, (group*)to_check, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		if(pduel->game_field->return_cards.canceled)
@@ -3583,8 +3583,8 @@ int32 scriptlib::duel_toss_dice(lua_State* L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	auto playerid = lua_get<uint8>(L, 1);
 	auto count1 = lua_get<uint8>(L, 2);
-	uint8 count2 = lua_get<uint8, 0>(L, 3);
-	if((playerid != 0 && playerid != 1) || count1 <= 0 || count2 < 0)
+	auto count2 = lua_get<uint8, 0>(L, 3);
+	if((playerid != 0 && playerid != 1) || count1 <= 0)
 		return 0;
 	if(count1 > 5)
 		count1 = 5;

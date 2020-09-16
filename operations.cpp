@@ -3238,7 +3238,7 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 			}
 		}
 		if((target->current.location == LOCATION_MZONE)
-			|| !(positions & POS_FACEDOWN) && check_unique_onfield(target, playerid, LOCATION_MZONE)
+			|| (!(positions & POS_FACEDOWN) && check_unique_onfield(target, playerid, LOCATION_MZONE))
 			|| !is_player_can_spsummon(core.reason_effect, target->summon_info & 0xff00ffff, positions, target->summon_player, playerid, target)
 			|| (!nocheck && !(target->data.type & TYPE_MONSTER))) {
 			core.units.begin()->step = 4;
