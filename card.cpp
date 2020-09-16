@@ -350,7 +350,7 @@ int32 card::is_set_card(uint32 set_code) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for(auto& setcode : setcodes) {
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	//add set code
@@ -369,7 +369,7 @@ int32 card::is_set_card(uint32 set_code) {
 		return FALSE;
 	}
 	for(auto& setcode : setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	return FALSE;
@@ -378,7 +378,7 @@ int32 card::is_origin_set_card(uint32 set_code) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for (auto& setcode : data.setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	return FALSE;
@@ -392,13 +392,13 @@ int32 card::is_pre_set_card(uint32 set_code) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for(auto& setcode : setcodes) {
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	//add set code
 	setcodes = previous.setcodes;
 	for(auto& setcode : setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	//another code
@@ -408,7 +408,7 @@ int32 card::is_pre_set_card(uint32 set_code) {
 		return FALSE;
 	}
 	for(auto& setcode : setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	return FALSE;
@@ -468,7 +468,7 @@ int32 card::is_sumon_set_card(uint32 set_code, card* scard, uint64 sumtype, uint
 	if (!changed && is_set_card(set_code))
 		return TRUE;
 	for (uint16 setcode : setcodes)
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	return FALSE;
 }
@@ -1242,7 +1242,7 @@ uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 			if((lev & 0xfff) == lv || ((lev >> 16) & 0xfff) == lv)
 				return TRUE;
 		} else {
-			if(std::find(res.begin(), res.end(), lv) != res.end())
+			if(std::find(res.begin(), res.end(), (int32)lv) != res.end())
 				return TRUE;
 		}
 	}
@@ -1664,19 +1664,19 @@ int32 card::is_extra_link_state() {
 int32 card::is_position(int32 pos) {
 	return current.position & pos;
 }
-void card::set_status(uint32 status, int32 enabled) {
+void card::set_status(uint32 _status, int32 enabled) {
 	if (enabled)
-		this->status |= status;
+		this->status |= _status;
 	else
-		this->status &= ~status;
+		this->status &= ~_status;
 }
 // match at least 1 status
-int32 card::get_status(uint32 status) {
-	return this->status & status;
+int32 card::get_status(uint32 _status) {
+	return this->status & _status;
 }
 // match all status
-int32 card::is_status(uint32 status) {
-	if ((this->status & status) == status)
+int32 card::is_status(uint32 _status) {
+	if ((this->status & _status) == _status)
 		return TRUE;
 	return FALSE;
 }
@@ -1694,7 +1694,7 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 		seq = (seq == 6) ? pduel->game_field->get_pzone_index(0) : pduel->game_field->get_pzone_index(1);
 	int32 seq1 = seq - left < 0 ? 0 : seq - left;
 	int32 seq2 = seq + right > 4 ? 4 : seq + right;
-	auto chkextra = [seq = current.sequence, mzone = (current.location == LOCATION_MZONE)](int s)->bool { 
+	auto chkextra = [seq = current.sequence, mzone = (current.location == LOCATION_MZONE)](uint8 s)->bool { 
 		return !mzone || seq < 5 || seq != s;
 	};
 	if (loc1 & LOCATION_MZONE) {
@@ -1832,7 +1832,7 @@ void card::xyz_overlay(card_set* materials) {
 		auto& list = player[playerid].list_main;
 		auto& prevcount = s[playerid];
 		card* ptop = nullptr;
-		if(list.empty() || msg->data.size() == 1 || ((ptop = list.back()) &&
+		if(list.empty() || msg->data.size() == 1 || ((ptop = list.back()) != nullptr &&
 			!rev && ptop->current.position != POS_FACEUP_DEFENSE))
 			msg->data.clear();
 		else {
@@ -2413,7 +2413,7 @@ void card::release_relation(effect* peffect) {
 	}
 	relate_effect.erase(std::make_pair(peffect, (uint16)0));
 }
-int32 card::leave_field_redirect(uint32 reason) {
+int32 card::leave_field_redirect(uint32 /*reason*/) {
 	effect_set es;
 	uint32 redirect;
 	if(data.type & TYPE_TOKEN)
@@ -2430,7 +2430,7 @@ int32 card::leave_field_redirect(uint32 reason) {
 	}
 	return 0;
 }
-int32 card::destination_redirect(uint8 destination, uint32 reason) {
+int32 card::destination_redirect(uint8 destination, uint32 /*reason*/) {
 	effect_set es;
 	uint32 redirect;
 	if(data.type & TYPE_TOKEN)
@@ -2901,7 +2901,7 @@ int32 card::filter_set_procedure(uint8 playerid, effect_set* peset, uint8 ignore
 		return FALSE;
 	if(!ignore_count && !pduel->game_field->core.extra_summon[playerid]
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
-		effect_set eset;
+		eset.clear();
 		filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
 		for(const auto& peff : eset) {
 			std::vector<int32> retval;
@@ -3961,7 +3961,7 @@ int32 card::is_capable_change_position(uint8 playerid) {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_capable_change_position_by_effect(uint8 playerid) {
+int32 card::is_capable_change_position_by_effect(uint8 /*playerid*/) {
 	if((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER))
 		return FALSE;
 	return TRUE;
@@ -4068,7 +4068,7 @@ int32 card::is_can_be_fusion_material(card* fcard, uint64 summon_type, uint8 pla
 	}
 	return TRUE;
 }
-int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner) {
+int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* /*tuner*/) {
 	if(data.type & (TYPE_XYZ | TYPE_LINK) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return FALSE;
 	if(!(get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & TYPE_MONSTER))
