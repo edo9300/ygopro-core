@@ -1448,6 +1448,11 @@ int32 field::trap_monster_adjust(uint16 step) {
 			to_grave_set->insert(pcard);
 			core.trap_monster_adjust_set[check_player].erase(pcard);
 		}
+		if(!core.units.begin()->arg1) {
+			core.units.begin()->arg1 = 1;
+			core.units.begin()->step = 0;
+		}
+		return FALSE;
 	}
 	case 3: {
 		if(!core.units.begin()->arg1) {
