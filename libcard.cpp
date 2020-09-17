@@ -2388,7 +2388,7 @@ int32 scriptlib::card_set_hint(lua_State* L) {
 	auto message = pduel->new_message(MSG_CARD_HINT);
 	message->write(pcard->get_info_location());
 	message->write<uint8>(type);
-	message->write<uint32>(value);
+	message->write<uint64>(value);
 	return 0;
 }
 int32 scriptlib::card_reverse_in_deck(lua_State* L) {

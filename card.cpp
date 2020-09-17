@@ -2357,7 +2357,7 @@ void card::count_turn(uint16 ct) {
 	auto message = pduel->new_message(MSG_CARD_HINT);
 	message->write(get_info_location());
 	message->write<uint8>(CHINT_TURN);
-	message->write<uint32>(ct);
+	message->write<uint64>(ct);
 }
 void card::create_relation(card* target, uint32 reset) {
 	if (relations.find(target) != relations.end())
