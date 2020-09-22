@@ -98,10 +98,6 @@ public:
 #define COROUTINE_YIELD		2
 #define COROUTINE_ERROR		3
 
-#if LUA_VERSION_NUM <= 503
-#define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs)
-#else
-#define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs, res)
-#endif
+static_assert(LUA_VERSION_NUM == 503, "Lua 5.3 is required, the core won't work with other lua versions");
 
 #endif /* INTERPRETER_H_ */

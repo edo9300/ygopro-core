@@ -810,19 +810,19 @@ int32 field::get_forced_zones(card* pcard, uint8 playerid, uint8 location, uint3
 			pduel->lua->add_param(peff, PARAM_TYPE_EFFECT, TRUE);
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
+			pduel->lua->add_param(reason, PARAM_TYPE_INT);
 			if(!pduel->lua->check_condition(peff->operation, 4))
 				continue;
 		}
 		if(peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
+			pduel->lua->add_param(reason, PARAM_TYPE_INT);
 			res &= peff->get_value(3);
 		} else {
 			pduel->lua->add_param(playerid, PARAM_TYPE_INT);
 			pduel->lua->add_param(uplayer, PARAM_TYPE_INT);
-			pduel->lua->add_param(LOCATION_REASON_TOFIELD, PARAM_TYPE_INT);
+			pduel->lua->add_param(reason, PARAM_TYPE_INT);
 			res &= peff->get_value(pcard, 3);
 		}
 	}
@@ -967,10 +967,10 @@ void field::shuffle(uint8 playerid, uint8 location) {
 				for(auto& i : pcard->indexer) {
 					effect* peffect = i.first;
 					if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
-						auto message = pduel->new_message(MSG_CARD_HINT);
-						message->write(pcard->get_info_location());
-						message->write<uint8>(CHINT_DESC_ADD);
-						message->write<uint64>(peffect->description);
+						auto _message = pduel->new_message(MSG_CARD_HINT);
+						_message->write(pcard->get_info_location());
+						_message->write<uint8>(CHINT_DESC_ADD);
+						_message->write<uint64>(peffect->description);
 					}
 				}
 			}
@@ -1714,15 +1714,15 @@ int32 field::get_release_list(uint8 playerid, card_set* release_list, card_set* 
 	}
 	return rcount + ex_oneof_max;
 }
-int32 field::check_release_list(uint8 playerid, int32 min, int32 max, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg, uint8 check_field, uint8 to_player, uint8 zone, card* to_check, uint8 use_oppo) {
+int32 field::check_release_list(uint8 playerid, int32 min, int32 /*max*/, int32 use_con, int32 use_hand, int32 fun, int32 exarg, card* exc, group* exg, uint8 check_field, uint8 to_player, uint8 zone, card* to_check, uint8 use_oppo) {
 	card_set relcard;
 	//card_set relcard_must;
 	card_set relcard_oneof;
 	bool has_to_choose_one = false;
 	card_set must_choose_one;
-	uint32 rcount = get_release_list(playerid, &relcard, &relcard, &relcard_oneof, use_con, use_hand, fun, exarg, exc, exg, use_oppo);
+	int32 rcount = get_release_list(playerid, &relcard, &relcard, &relcard_oneof, use_con, use_hand, fun, exarg, exc, exg, use_oppo);
 	if(check_field) {
-		uint32 ct = 0;
+		int32 ct = 0;
 		zone &= (0x1f & get_forced_zones(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON_TOFIELD));
 		ct = get_useable_count(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON_TOFIELD, zone);
 		if(ct < min) {
@@ -2366,7 +2366,7 @@ int32 field::get_attack_target(card* pcard, card_vector* v, uint8 chain_attack, 
 	if(!chain_attack && pcard->announce_count > extra_count
 		&& (!extra_count_m || pcard->announce_count > extra_count_m || pcard->announced_cards.findcard(0))) {
 		effect* peffect;
-		if((peffect = pcard->is_affected_by_effect(EFFECT_ATTACK_ALL)) && pcard->attack_all_target) {
+		if((peffect = pcard->is_affected_by_effect(EFFECT_ATTACK_ALL)) != nullptr && pcard->attack_all_target) {
 			for(auto& atarget : *pv) {
 				if(!atarget)
 					continue;
@@ -2762,7 +2762,9 @@ int32 field::is_player_can_place_counter(uint8 playerid, card* pcard, uint16 cou
 		pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
-		if (pduel->lua->check_condition(peff->target, 3))
+		pduel->lua->add_param(countertype, PARAM_TYPE_INT);
+		pduel->lua->add_param(count, PARAM_TYPE_INT);
+		if (pduel->lua->check_condition(peff->target, 5))
 			return FALSE;
 	}
 	return TRUE;
@@ -2955,7 +2957,7 @@ chain* field::get_chain(uint8 chaincount) {
 	if(chaincount == 0 && core.continuous_chain.size() && (core.reason_effect->type & EFFECT_TYPE_CONTINUOUS))
 		return &core.continuous_chain.back();
 	if(chaincount == 0 || chaincount > core.current_chain.size()) {
-		chaincount = core.current_chain.size();
+		chaincount = (uint8)core.current_chain.size();
 		if(chaincount == 0)
 			return 0;
 	}
@@ -3032,7 +3034,7 @@ int32 field::check_cteffect_hint(effect* peffect, uint8 playerid) {
 		if(!feffect->in_range(phandler))
 			continue;
 		uint32 code = efit.first;
-		if(code == EVENT_FREE_CHAIN || code == (EVENT_PHASE | infos.phase)) {
+		if(code == EVENT_FREE_CHAIN || code == (uint32)(EVENT_PHASE | infos.phase)) {
 			nil_event.event_code = code;
 			if(get_cteffect_evt(feffect, playerid, nil_event, FALSE)
 				&& (code != EVENT_FREE_CHAIN || check_hint_timing(feffect)))

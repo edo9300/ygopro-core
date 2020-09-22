@@ -626,6 +626,14 @@ public:
 	static int32 debug_print_stacktrace(lua_State* L);
 };
 
+//Visual Studio raises a warning on const conditional expressions.
+//In these templated functions those warnings will be wrongly raised
+//so they can be safely disabled
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4127)
+#endif
+
 template<typename T, typename type>
 using EnableIf = typename std::enable_if_t<std::is_same<T, type>::value, T>;
 
@@ -639,7 +647,7 @@ EnableIf<T, lua_obj*> lua_get(lua_State* L, int idx) {
 }
 
 template<typename T, bool check = false>
-EnableIf<T,card*> lua_get(lua_State* L, int idx) {
+EnableIf<T, card*> lua_get(lua_State* L, int idx) {
 	if(!check && lua_gettop(L) < idx)
 		return nullptr;
 	card* ret = nullptr;
@@ -706,5 +714,9 @@ lua_get(lua_State* L, int idx) {
 		return static_cast<T>(lua_tointeger(L, idx));
 	return static_cast<T>(std::round(lua_tonumber(L, idx)));
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif /* SCRIPTLIB_H_ */

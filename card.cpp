@@ -249,9 +249,9 @@ uint32 card::second_code(uint32 code){
 // return: the current card name
 // for double-name card, it returns printed name
 uint32 card::get_code() {
-    auto search = assume.find(ASSUME_CODE);
-    if(search != assume.end())
-        return search->second;
+	auto search = assume.find(ASSUME_CODE);
+	if(search != assume.end())
+		return search->second;
 	if (temp.code != 0xffffffff)
 		return temp.code;
 	effect_set effects;
@@ -350,7 +350,7 @@ int32 card::is_set_card(uint32 set_code) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for(auto& setcode : setcodes) {
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	//add set code
@@ -369,7 +369,7 @@ int32 card::is_set_card(uint32 set_code) {
 		return FALSE;
 	}
 	for(auto& setcode : setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	return FALSE;
@@ -378,7 +378,7 @@ int32 card::is_origin_set_card(uint32 set_code) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for (auto& setcode : data.setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	return FALSE;
@@ -392,13 +392,13 @@ int32 card::is_pre_set_card(uint32 set_code) {
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for(auto& setcode : setcodes) {
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	//add set code
 	setcodes = previous.setcodes;
 	for(auto& setcode : setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	//another code
@@ -408,7 +408,7 @@ int32 card::is_pre_set_card(uint32 set_code) {
 		return FALSE;
 	}
 	for(auto& setcode : setcodes) {
-		if((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	}
 	return FALSE;
@@ -468,7 +468,7 @@ int32 card::is_sumon_set_card(uint32 set_code, card* scard, uint64 sumtype, uint
 	if (!changed && is_set_card(set_code))
 		return TRUE;
 	for (uint16 setcode : setcodes)
-		if ((setcode & 0xfff) == settype && (setcode & 0xf000 & setsubtype) == setsubtype)
+		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
 	return FALSE;
 }
@@ -1242,7 +1242,7 @@ uint32 card::check_xyz_level(card* pcard, uint32 lv) {
 			if((lev & 0xfff) == lv || ((lev >> 16) & 0xfff) == lv)
 				return TRUE;
 		} else {
-			if(std::find(res.begin(), res.end(), lv) != res.end())
+			if(std::find(res.begin(), res.end(), (int32)lv) != res.end())
 				return TRUE;
 		}
 	}
@@ -1664,19 +1664,19 @@ int32 card::is_extra_link_state() {
 int32 card::is_position(int32 pos) {
 	return current.position & pos;
 }
-void card::set_status(uint32 status, int32 enabled) {
+void card::set_status(uint32 _status, int32 enabled) {
 	if (enabled)
-		this->status |= status;
+		this->status |= _status;
 	else
-		this->status &= ~status;
+		this->status &= ~_status;
 }
 // match at least 1 status
-int32 card::get_status(uint32 status) {
-	return this->status & status;
+int32 card::get_status(uint32 _status) {
+	return this->status & _status;
 }
 // match all status
-int32 card::is_status(uint32 status) {
-	if ((this->status & status) == status)
+int32 card::is_status(uint32 _status) {
+	if ((this->status & _status) == _status)
 		return TRUE;
 	return FALSE;
 }
@@ -1694,7 +1694,7 @@ uint32 card::get_column_zone(int32 loc1, int32 left, int32 right) {
 		seq = (seq == 6) ? pduel->game_field->get_pzone_index(0) : pduel->game_field->get_pzone_index(1);
 	int32 seq1 = seq - left < 0 ? 0 : seq - left;
 	int32 seq2 = seq + right > 4 ? 4 : seq + right;
-	auto chkextra = [seq = current.sequence, mzone = (current.location == LOCATION_MZONE)](int s)->bool { 
+	auto chkextra = [seq = current.sequence, mzone = (current.location == LOCATION_MZONE)](uint8 s)->bool { 
 		return !mzone || seq < 5 || seq != s;
 	};
 	if (loc1 & LOCATION_MZONE) {
@@ -1832,7 +1832,7 @@ void card::xyz_overlay(card_set* materials) {
 		auto& list = player[playerid].list_main;
 		auto& prevcount = s[playerid];
 		card* ptop = nullptr;
-		if(list.empty() || msg->data.size() == 1 || ((ptop = list.back()) &&
+		if(list.empty() || msg->data.size() == 1 || ((ptop = list.back()) != nullptr &&
 			!rev && ptop->current.position != POS_FACEUP_DEFENSE))
 			msg->data.clear();
 		else {
@@ -1959,7 +1959,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_SET_ATTACK || rm->second->code == EFFECT_SET_ATTACK_FINAL || rm->second->code == EFFECT_SET_BASE_ATTACK)
-				        && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+						&& !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -1967,7 +1967,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_UPDATE_ATTACK || rm->second->code == EFFECT_SET_ATTACK
-				        || rm->second->code == EFFECT_SET_ATTACK_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+								|| rm->second->code == EFFECT_SET_ATTACK_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -1975,7 +1975,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_SET_DEFENSE || rm->second->code == EFFECT_SET_DEFENSE_FINAL || rm->second->code == EFFECT_SET_BASE_DEFENSE)
-				        && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+								&& !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -1983,7 +1983,7 @@ int32 card::add_effect(effect* peffect) {
 			for(auto it = single_effect.begin(); it != single_effect.end();) {
 				auto rm = it++;
 				if((rm->second->code == EFFECT_UPDATE_DEFENSE || rm->second->code == EFFECT_SET_DEFENSE
-				        || rm->second->code == EFFECT_SET_DEFENSE_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+								|| rm->second->code == EFFECT_SET_DEFENSE_FINAL) && !rm->second->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 					remove_effect(rm->second);
 			}
 		}
@@ -2030,7 +2030,7 @@ int32 card::add_effect(effect* peffect) {
 	peffect->handler = this;
 	if((peffect->type & EFFECT_TYPE_FIELD)) {
 		if(peffect->in_range(this)
-			|| current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE)))
+			|| (current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE))))
 			pduel->game_field->add_effect(peffect);
 	}
 	if (current.controler != PLAYER_NONE && !check_target.empty()) {
@@ -2100,7 +2100,7 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 		}
 		field_effect.erase(it);
 		if(peffect->in_range(this)
-			|| current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE)))
+			|| (current.controler != PLAYER_NONE && ((peffect->range & LOCATION_HAND) && (peffect->type & EFFECT_TYPE_TRIGGER_O) && !(peffect->code & EVENT_PHASE))))
 			pduel->game_field->remove_effect(peffect);
 	}
 	if ((current.controler != PLAYER_NONE) && !get_status(STATUS_DISABLED | STATUS_FORBIDDEN) && !check_target.empty()) {
@@ -2359,7 +2359,7 @@ void card::count_turn(uint16 ct) {
 	auto message = pduel->new_message(MSG_CARD_HINT);
 	message->write(get_info_location());
 	message->write<uint8>(CHINT_TURN);
-	message->write<uint32>(ct);
+	message->write<uint64>(ct);
 }
 void card::create_relation(card* target, uint32 reset) {
 	if (relations.find(target) != relations.end())
@@ -2415,7 +2415,7 @@ void card::release_relation(effect* peffect) {
 	}
 	relate_effect.erase(std::make_pair(peffect, (uint16)0));
 }
-int32 card::leave_field_redirect(uint32 reason) {
+int32 card::leave_field_redirect(uint32 /*reason*/) {
 	effect_set es;
 	uint32 redirect;
 	if(data.type & TYPE_TOKEN)
@@ -2432,7 +2432,7 @@ int32 card::leave_field_redirect(uint32 reason) {
 	}
 	return 0;
 }
-int32 card::destination_redirect(uint8 destination, uint32 reason) {
+int32 card::destination_redirect(uint8 destination, uint32 /*reason*/) {
 	effect_set es;
 	uint32 redirect;
 	if(data.type & TYPE_TOKEN)
@@ -2674,7 +2674,7 @@ void card::filter_effect(int32 code, effect_set* eset, uint8 sort) {
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
-		        && peffect->is_target(this) && is_affect_by_effect(peffect))
+						&& peffect->is_target(this) && is_affect_by_effect(peffect))
 			eset->push_back(peffect);
 	}
 	if(sort)
@@ -2903,7 +2903,7 @@ int32 card::filter_set_procedure(uint8 playerid, effect_set* peset, uint8 ignore
 		return FALSE;
 	if(!ignore_count && !pduel->game_field->core.extra_summon[playerid]
 			&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid)) {
-		effect_set eset;
+		eset.clear();
 		filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
 		for(const auto& peff : eset) {
 			std::vector<int32> retval;
@@ -2977,7 +2977,7 @@ void card::filter_spsummon_procedure(uint8 playerid, effect_set* peset, uint32 s
 				sumeffect = peffect;
 			uint32 sumtype = peffect->get_value(this);
 			if((!summon_type || summon_type == sumtype)
-			        && pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
+							&& pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
 				peset->push_back(peffect);
 		}
 	}
@@ -3055,7 +3055,7 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))
-		        && peffect->get_value(target))
+						&& peffect->get_value(target))
 			return peffect;
 	}
 	for (auto& pcard : equiping_cards) {
@@ -3098,7 +3098,7 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	for (; rg.first != rg.second; ++rg.first) {
 		peffect = rg.first->second;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
-		        && peffect->is_target(this) && is_affect_by_effect(peffect) && peffect->get_value(target))
+						&& peffect->is_target(this) && is_affect_by_effect(peffect) && peffect->get_value(target))
 			return peffect;
 	}
 	return 0;
@@ -3364,7 +3364,7 @@ int32 card::is_can_be_summoned(uint8 playerid, uint8 ignore_count, effect* peffe
 	if(!is_summonable_card())
 		return FALSE;
 	if(!ignore_count && (pduel->game_field->core.extra_summon[playerid] || !is_affected_by_effect(EFFECT_EXTRA_SUMMON_COUNT))
-	        && pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
+					&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
@@ -3375,10 +3375,10 @@ int32 card::is_can_be_summoned(uint8 playerid, uint8 ignore_count, effect* peffe
 	}
 	if(current.location == LOCATION_MZONE) {
 		if(is_position(POS_FACEDOWN)
-		        || !is_affected_by_effect(EFFECT_GEMINI_SUMMONABLE)
-		        || is_affected_by_effect(EFFECT_GEMINI_STATUS)
-		        || !pduel->game_field->is_player_can_summon(SUMMON_TYPE_GEMINI, playerid, this, playerid)
-		        || is_affected_by_effect(EFFECT_CANNOT_SUMMON)) {
+						|| !is_affected_by_effect(EFFECT_GEMINI_SUMMONABLE)
+						|| is_affected_by_effect(EFFECT_GEMINI_STATUS)
+						|| !pduel->game_field->is_player_can_summon(SUMMON_TYPE_GEMINI, playerid, this, playerid)
+						|| is_affected_by_effect(EFFECT_CANNOT_SUMMON)) {
 			pduel->game_field->restore_lp_cost();
 			return FALSE;
 		}
@@ -3576,7 +3576,7 @@ int32 card::is_setable_mzone(uint8 playerid, uint8 ignore_count, effect* peffect
 	if(is_affected_by_effect(EFFECT_CANNOT_MSET))
 		return FALSE;
 	if(!ignore_count && (pduel->game_field->core.extra_summon[playerid] || !is_affected_by_effect(EFFECT_EXTRA_SET_COUNT))
-	        && pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
+					&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
 		return FALSE;
 	pduel->game_field->save_lp_cost();
 	if(!check_cost_condition(EFFECT_MSET_COST, playerid)) {
@@ -3963,7 +3963,7 @@ int32 card::is_capable_change_position(uint8 playerid) {
 		return FALSE;
 	return TRUE;
 }
-int32 card::is_capable_change_position_by_effect(uint8 playerid) {
+int32 card::is_capable_change_position_by_effect(uint8 /*playerid*/) {
 	if((data.type & TYPE_LINK) && (data.type & TYPE_MONSTER))
 		return FALSE;
 	return TRUE;
@@ -4070,7 +4070,7 @@ int32 card::is_can_be_fusion_material(card* fcard, uint64 summon_type, uint8 pla
 	}
 	return TRUE;
 }
-int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* tuner) {
+int32 card::is_can_be_synchro_material(card* scard, uint8 playerid, card* /*tuner*/) {
 	if(data.type & (TYPE_XYZ | TYPE_LINK) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return FALSE;
 	if(!(get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & TYPE_MONSTER))
