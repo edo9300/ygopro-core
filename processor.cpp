@@ -1889,7 +1889,8 @@ int32 field::process_instant_event() {
 			effect* peffect = eit->second;
 			++eit;
 			card* phandler = peffect->get_handler();
-			if(!phandler->is_status(STATUS_EFFECT_ENABLED) || !peffect->is_condition_check(phandler->current.controler, ev))
+			if(!phandler->is_status(STATUS_EFFECT_ENABLED) || !peffect->is_condition_check(phandler->current.controler, ev) || 
+			   pduel->game_field->core.just_sent_cards.find(phandler) != pduel->game_field->core.just_sent_cards.end())
 				continue;
 			peffect->set_activate_location();
 			newchain.flag = 0;
@@ -1910,7 +1911,8 @@ int32 field::process_instant_event() {
 			++eit;
 			card* phandler = peffect->get_handler();
 			bool act = phandler->is_status(STATUS_EFFECT_ENABLED) && peffect->is_condition_check(phandler->current.controler, ev);
-			if(!act && !(peffect->range & LOCATION_HAND))
+			if((!act && !(peffect->range & LOCATION_HAND)) ||
+			   pduel->game_field->core.just_sent_cards.find(phandler) != pduel->game_field->core.just_sent_cards.end())
 				continue;
 			peffect->set_activate_location();
 			newchain.flag = 0;
@@ -4474,7 +4476,7 @@ int32 field::add_chain(uint16 step) {
 		return FALSE;
 	}
 	case 7: {
-		break_effect();
+		break_effect(false);
 		auto& clit = core.current_chain.back();
 		effect* peffect = clit.triggering_effect;
 		card* phandler = peffect->get_handler();
@@ -4542,6 +4544,7 @@ int32 field::add_chain(uint16 step) {
 		message->write<uint8>(clit.chain_count);
 		raise_event(phandler, EVENT_CHAINING, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
 		process_instant_event();
+		core.just_sent_cards.clear();
 		if(core.new_chains.size())
 			add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
 		adjust_all();
@@ -4945,8 +4948,9 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	}
 	return TRUE;
 }
-int32 field::break_effect() {
-	core.just_sent_cards.clear();
+int32 field::break_effect(bool clear_sent) {
+	if(clear_sent)
+		core.just_sent_cards.clear();
 	core.hint_timing[0] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
 	core.hint_timing[1] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
 	for (auto chit = core.new_ochain.begin(); chit != core.new_ochain.end();) {

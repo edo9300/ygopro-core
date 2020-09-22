@@ -529,7 +529,7 @@ public:
 	void solve_continuous(uint8 playerid, effect* peffect, const tevent& e);
 	int32 solve_continuous(uint16 step);
 	int32 solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2);
-	int32 break_effect();
+	int32 break_effect(bool clear_sent = true);
 	void adjust_instant();
 	void adjust_all();
 	void refresh_location_info_instant();
