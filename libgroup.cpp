@@ -318,9 +318,10 @@ int32 scriptlib::group_random_select(lua_State* L) {
 	if(count == pgroup->container.size())
 		newgroup->container = pgroup->container;
 	else {
-		for(size_t i = 0; i < count; i++) {
+		while(newgroup->container.size() < count) {
+			int32 i = pduel->get_next_integer(0, (int32)pgroup->container.size() - 1);
 			auto cit = pgroup->container.begin();
-			std::advance(cit, pduel->get_next_integer(0, pgroup->container.size() - 1));
+			std::advance(cit, i);
 			newgroup->container.insert(*cit);
 		}
 	}
