@@ -2876,7 +2876,7 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 13: {
-		if(core.attacker->fieldid_r == core.pre_field[0] && !is_flag(DUEL_STORE_ATTACK_REPLAYS)) {
+		if(core.attacker->fieldid_r == core.pre_field[0] && (!is_flag(DUEL_STORE_ATTACK_REPLAYS) || core.attacker->is_status(STATUS_ATTACK_CANCELED))) {
 			core.attacker->announce_count++;
 			core.attacker->announced_cards.addcard(core.attack_target);
 			attack_all_target_check();
