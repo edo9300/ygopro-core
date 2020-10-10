@@ -4494,7 +4494,7 @@ int32 field::add_chain(uint16 step) {
 				phandler->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
 		}
 		if((phandler->get_type() & (TYPE_SPELL | TYPE_TRAP))
-				&& (phandler->data.type & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM | TYPE_LINK))
+				&& (phandler->get_type() & (TYPE_CONTINUOUS | TYPE_FIELD | TYPE_EQUIP | TYPE_PENDULUM | TYPE_LINK))
 				&& phandler->is_has_relation(clit) && phandler->current.location == LOCATION_SZONE
 				&& !peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
 			clit.flag |= CHAIN_CONTINUOUS_CARD;
