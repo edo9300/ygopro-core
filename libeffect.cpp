@@ -177,14 +177,23 @@ int32 scriptlib::effect_set_label(lua_State* L) {
 int32 scriptlib::effect_set_label_object(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
+	if(peffect->label_object) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
+		if(lua_istable(L, -1))
+			luaL_unref(L, LUA_REGISTRYINDEX, peffect->label_object);
+		lua_pop(L, 1);
+	}
 	if(lua_isnil(L, 2)) {
 		peffect->label_object = 0;
 		return 0;
 	}
 	if(auto obj = lua_get<lua_obj*>(L, 2))
 		peffect->label_object = obj->ref_handle;
-	else
-		luaL_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\".");
+	else if(lua_istable(L, 2)) {
+		lua_pushvalue(L, 2);
+		peffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
+	} else
+		luaL_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\" or \"table\".");
 	return 0;
 }
 int32 scriptlib::effect_set_category(lua_State* L) {
@@ -329,6 +338,7 @@ int32 scriptlib::effect_get_label_object(lua_State* L) {
 	}
 	lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
 	if(lua_isuserdata(L, -1))
+	if(lua_isuserdata(L, -1) || lua_istable(L, -1))
 		return 1;
 	else {
 		lua_pop(L, 1);
