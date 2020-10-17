@@ -3450,7 +3450,13 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 	duel* pduel = interpreter::get_duel_info(L);
 	pduel->game_field->core.select_options.clear();
 	auto paramcount = lua_gettop(L);
-	if(paramcount <= 2) {
+	if(lua_istable(L, 2)) {
+		lua_pushnil(L);
+		while(lua_next(L, 2) != 0) {
+			pduel->game_field->core.select_options.push_back(lua_get<uint64>(L, -1));
+			lua_pop(L, 1);
+		}
+	} else if(paramcount <= 2) {
 		uint32 ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
 		if(paramcount == 2)
 			ttype = lua_get<uint32>(L, 2);
@@ -3461,7 +3467,10 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 			pduel->game_field->core.select_options.push_back(lua_get<uint64>(L, i));
 	}
 	int32 stack_size = 0;
+	bool has_opcodes = false;
 	for(auto& it : pduel->game_field->core.select_options) {
+		if(it != OPCODE_ALLOW_ALIASES && it != OPCODE_ALLOW_TOKENS)
+			has_opcodes = true;
 		switch(it) {
 		case OPCODE_ADD:
 		case OPCODE_SUB:
@@ -3484,6 +3493,8 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 		case OPCODE_ISTYPE:
 		case OPCODE_ISRACE:
 		case OPCODE_ISATTRIBUTE:
+		case OPCODE_ALLOW_ALIASES:
+		case OPCODE_ALLOW_TOKENS:
 			break;
 		default:
 			stack_size += 1;
@@ -3492,8 +3503,12 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 		if(stack_size <= 0)
 			break;
 	}
-	if(stack_size != 1)
+	if(stack_size != 1 && has_opcodes)
 		return luaL_error(L, "Parameters are invalid.");
+	if(!has_opcodes) {
+		pduel->game_field->core.select_options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
+		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
+	}
 	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_CARD, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;

@@ -397,8 +397,8 @@ int32 field::select_chain(uint16 step, uint8 playerid, uint8 spe_count, uint8 fo
 		message->write<uint8>(playerid);
 		message->write<uint8>(spe_count);
 		message->write<uint8>(forced);
-		message->write<uint32>(pduel->game_field->core.hint_timing[playerid]);
-		message->write<uint32>(pduel->game_field->core.hint_timing[1 - playerid]);
+		message->write<uint32>(core.hint_timing[playerid]);
+		message->write<uint32>(core.hint_timing[1 - playerid]);
 		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
 		message->write<uint32>(core.select_chains.size());
 		for(const auto& ch : core.select_chains) {
@@ -893,6 +893,7 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 							}
 static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcodes) {
 	std::stack<int64> stack;
+	bool alias = false, token = false;
 	for(auto& opcode : opcodes) {
 		switch(opcode) {
 		BINARY_OP(OPCODE_ADD, +);
@@ -935,6 +936,14 @@ static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcod
 			}
 			break;
 		}
+		case OPCODE_ALLOW_ALIASES: {
+			alias = true;
+			break;
+		}
+		case OPCODE_ALLOW_TOKENS: {
+			token = true;
+			break;
+		}
 		default: {
 			stack.push(opcode);
 			break;
@@ -944,7 +953,7 @@ static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcod
 	if(stack.size() != 1 || stack.top() == 0)
 		return FALSE;
 	return cd->code == CARD_MARINE_DOLPHIN || cd->code == CARD_TWINKLE_MOSS
-		|| (!cd->alias && (cd->type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN));
+		|| ((alias || !cd->alias) && (token || ((cd->type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN))));
 }
 #undef BINARY_OP
 #undef UNARY_OP
