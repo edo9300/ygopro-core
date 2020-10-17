@@ -337,7 +337,6 @@ int32 scriptlib::effect_get_label_object(lua_State* L) {
 		return 1;
 	}
 	lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
-	if(lua_isuserdata(L, -1))
 	if(lua_isuserdata(L, -1) || lua_istable(L, -1))
 		return 1;
 	else {
