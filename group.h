@@ -17,7 +17,7 @@
 class card;
 class duel;
 
-class group : public lua_obj {
+class group : public lua_obj_helper<PARAM_TYPE_GROUP> {
 public:
 	typedef std::set<card*, card_sort> card_set;
 	card_set container;

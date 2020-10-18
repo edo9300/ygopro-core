@@ -22,7 +22,7 @@ struct tevent;
 enum effect_flag : uint32;
 enum effect_flag2 : uint32;
 
-class effect : public lua_obj {
+class effect : public lua_obj_helper<PARAM_TYPE_EFFECT> {
 public:
 	card* owner;
 	card* handler;

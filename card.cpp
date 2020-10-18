@@ -87,9 +87,7 @@ uint32 card::attacker_map::findcard(card* pcard) {
 	else
 		return it->second.second;
 }
-card::card(duel* pd) {
-	lua_type = PARAM_TYPE_CARD;
-	pduel = pd;
+card::card(duel* pd) : lua_obj_helper(pd) {
 	owner = PLAYER_NONE;
 	sendto_param.clear();
 	release_param = 0;

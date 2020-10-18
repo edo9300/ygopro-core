@@ -62,7 +62,7 @@ struct card_state {
 	void set0xff();
 };
 
-class card : public lua_obj {
+class card : public lua_obj_helper<PARAM_TYPE_CARD> {
 public:
 	struct effect_relation_hash {
 		inline std::size_t operator()(const std::pair<effect*, uint16>& v) const {

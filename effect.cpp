@@ -14,10 +14,7 @@
 bool effect_sort_id(const effect* e1, const effect* e2) {
 	return e1->id < e2->id;
 }
-effect::effect(duel* pd) {
-	lua_type = PARAM_TYPE_EFFECT;
-	ref_handle = 0;
-	pduel = pd;
+effect::effect(duel* pd) : lua_obj_helper(pd) {
 	owner = 0;
 	handler = 0;
 	description = 0;

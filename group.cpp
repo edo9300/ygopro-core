@@ -7,19 +7,18 @@
 
 #include "interpreter.h"
 #include "group.h"
-#include "card.h"
-#include "duel.h"
 
-group::group(duel* pd) {
-	lua_type = PARAM_TYPE_GROUP;
-	pduel = pd;
+group::group(duel* pd) :
+	lua_obj_helper(pd)
+{
 }
-group::group(duel* pd, card* pcard) {
-	container.insert(pcard);
-	lua_type = PARAM_TYPE_GROUP;
-	pduel = pd;
+
+group::group(duel* pd, card* pcard) :
+	lua_obj_helper(pd), container({ pcard })
+{
 }
-group::group(duel* pd, const card_set& cset): container(cset) {
-	lua_type = PARAM_TYPE_GROUP;
-	pduel = pd;
+
+group::group(duel* pd, const card_set& cset) :
+	lua_obj_helper(pd), container(cset)
+{
 }

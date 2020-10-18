@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "interpreter.h"
+#include "lua_obj.h"
 
 class scriptlib {
 public:
