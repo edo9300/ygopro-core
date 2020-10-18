@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "ocgapi.h"
+#include "group.h"
 #include <random>
 #include <set>
 #include <unordered_set>
