@@ -59,25 +59,6 @@ card* duel::new_card(uint32 code) {
 	lua->register_card(pcard);
 	return pcard;
 }
-group* duel::register_group(group* pgroup) {
-	groups.insert(pgroup);
-	if(lua->call_depth)
-		sgroups.insert(pgroup);
-	lua->register_group(pgroup);
-	return pgroup;
-}
-group* duel::new_group() {
-	group* pgroup = new group(this);
-	return register_group(pgroup);
-}
-group* duel::new_group(card* pcard) {
-	group* pgroup = new group(this, pcard);
-	return register_group(pgroup);
-}
-group* duel::new_group(const card_set& cset) {
-	group* pgroup = new group(this, cset);
-	return register_group(pgroup);
-}
 effect* duel::new_effect() {
 	effect* peffect = new effect(this);
 	effects.insert(peffect);

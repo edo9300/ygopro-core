@@ -76,15 +76,21 @@ public:
 
 	std::unordered_map<uint32_t/* hashed string */, uint8_t/*0 = not loaded, 1 = loaded correctly, 2 = failed to load*/> loaded_scripts;
 	
-	duel() {};
+	duel() = delete;
 	duel(OCG_DuelOptions options);
 	~duel();
 	void clear();
 	
 	card* new_card(uint32 code);
-	group* new_group();
-	group* new_group(card* pcard);
-	group* new_group(const card_set& cset);
+	template<typename... Args>
+	group* new_group(Args&&... args) {
+		group* pgroup = new group(this, std::forward<Args>(args)...);
+		groups.insert(pgroup);
+		if(lua->call_depth)
+			sgroups.insert(pgroup);
+		lua->register_group(pgroup);
+		return pgroup;
+	}
 	effect* new_effect();
 	void delete_card(card* pcard);
 	void delete_group(group* pgroup);
@@ -109,7 +115,6 @@ public:
 	OCG_DataReaderDone read_card_done;
 private:
 	std::deque<duel_message> messages;
-	group* register_group(group* pgroup);
 };
 
 #endif /* DUEL_H_ */
