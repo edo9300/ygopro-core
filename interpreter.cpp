@@ -1339,14 +1339,12 @@ void interpreter::pushobject(lua_State* L, int32 lua_ptr) {
 }
 //Push all the elements of the table to the stack, +len(table) -0
 int interpreter::pushExpandedTable(lua_State* L, int32 table_index) {
-	lua_pushnil(L);
 	int extraargs = 0;
-	while(lua_next(L, table_index) != 0) {
+	lua_table_iterate(L, table_index, [&extraargs, &L]() {
 		lua_pushvalue(L, -1);
 		lua_insert(L, -3);
-		lua_pop(L, 1);
 		extraargs++;
-	}
+	});
 	return extraargs;
 }
 int32 interpreter::get_function_handle(lua_State* L, int32 index) {

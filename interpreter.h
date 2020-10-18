@@ -84,6 +84,15 @@ public:
 	static inline int sprintf(char (&buffer)[N], const char* format, TR&&... args) {
 		return std::snprintf(buffer, N, format, std::forward<TR>(args)...);
 	}
+
+	template<typename T>
+	static inline void lua_table_iterate(lua_State* L, int idx, T&& func) {
+		lua_pushnil(L);
+		while(lua_next(L, idx) != 0) {
+			func();
+			lua_pop(L, 1);
+		}
+	}
 };
 
 #define	PARAM_TYPE_INT		0x01

@@ -2494,11 +2494,9 @@ int32 scriptlib::card_setcode(lua_State* L) {
 	if(lua_gettop(L) > 1) {
 		pcard->data.setcodes.clear();
 		if(lua_istable(L, 2)) {
-			lua_pushnil(L);
-			while(lua_next(L, 2) != 0) {
-				pcard->data.setcodes.insert(lua_get<uint16>(L, -1));
-				lua_pop(L, 1);
-			}
+			interpreter::lua_table_iterate(L, 2, [&setcodes = pcard->data.setcodes, &L](){
+				setcodes.insert(lua_get<uint16>(L, -1));
+			});
 		} else
 			pcard->data.setcodes.insert(lua_get<uint16>(L, 2));
 		return 0; 
@@ -2516,11 +2514,9 @@ int32 scriptlib::card_recreate(lua_State* L) {
 		pcard->data.alias = lua_get<uint32>(L, 3, pcard->data.alias);
 		if(lua_gettop(L) > 3 && !lua_isnil(L, 4)) {
 			if(lua_istable(L, 4)) {
-				lua_pushnil(L);
-				while(lua_next(L, 4) != 0) {
-					pcard->data.setcodes.insert(lua_get<uint16>(L, -1));
-					lua_pop(L, 1);
-				}
+				interpreter::lua_table_iterate(L, 4, [&setcodes = pcard->data.setcodes, &L]() {
+					setcodes.insert(lua_get<uint16>(L, -1));
+				});
 			} else
 				pcard->data.setcodes.insert(lua_get<uint16>(L, 4));
 		}

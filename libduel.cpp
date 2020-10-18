@@ -3451,11 +3451,9 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 	pduel->game_field->core.select_options.clear();
 	auto paramcount = lua_gettop(L);
 	if(lua_istable(L, 2)) {
-		lua_pushnil(L);
-		while(lua_next(L, 2) != 0) {
-			pduel->game_field->core.select_options.push_back(lua_get<uint64>(L, -1));
-			lua_pop(L, 1);
-		}
+		interpreter::lua_table_iterate(L, 2, [&options = pduel->game_field->core.select_options, L]() {
+			options.push_back(lua_get<uint64>(L, -1));
+		});
 	} else if(paramcount <= 2) {
 		uint32 ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
 		if(paramcount == 2)
@@ -3836,11 +3834,9 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State* L) {
 	dat.alias = 0;
 	if(!lua_isnil(L, 3)) {
 		if(lua_istable(L, 3)) {
-			lua_pushnil(L);
-			while(lua_next(L, 3) != 0) {
-				dat.setcodes.insert(lua_get<uint16>(L, -1));
-				lua_pop(L, 1);
-			}
+			interpreter::lua_table_iterate(L, 3, [&setcodes = dat.setcodes, &L]() {
+				setcodes.insert(lua_get<uint16>(L, -1));
+			});
 		} else
 			dat.setcodes.insert(lua_get<uint16>(L, 3));
 	}
