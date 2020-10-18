@@ -66,7 +66,7 @@ typedef struct OCG_DuelOptions {
 	OCG_LogHandler logHandler;
 	void* payload3; /* relayed to errorHandler */
 	OCG_DataReaderDone cardReaderDone;
-	void* payload4; /* relayed to cardReader */
+	void* payload4; /* relayed to cardReaderDone */
 }OCG_DuelOptions;
 
 typedef struct OCG_NewCardInfo {
