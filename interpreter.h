@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <list>
 #include <vector>
+#include <utility> //std::forward
 #include <cstdio>
 #include <cstring>
 #include <cmath>
@@ -80,8 +81,8 @@ public:
 	static void print_stacktrace(lua_State* L);
 
 	template <size_t N, typename... TR>
-	static int sprintf(char (&buffer)[N], const char* format, TR... args) {
-		return std::snprintf(buffer, N, format, args...);
+	static inline int sprintf(char (&buffer)[N], const char* format, TR&&... args) {
+		return std::snprintf(buffer, N, format, std::forward<TR>(args)...);
 	}
 };
 
