@@ -361,11 +361,9 @@ int32 card::is_set_card(uint32 set_code) {
 	}
 	//another code
 	uint32 code2 = get_another_code();
-	if (code2 != 0) {
-		setcodes = pduel->read_card(code2)->setcodes;
-	} else {
+	if (code2 == 0)
 		return FALSE;
-	}
+	setcodes = pduel->read_card(code2)->setcodes;
 	for(auto& setcode : setcodes) {
 		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
 			return TRUE;
@@ -384,9 +382,8 @@ int32 card::is_origin_set_card(uint32 set_code) {
 int32 card::is_pre_set_card(uint32 set_code) {
 	uint32 code = previous.code;
 	std::set<uint16> setcodes = data.setcodes;
-	if(code != data.code) {
+	if(code != data.code)
 		setcodes = pduel->read_card(code)->setcodes;
-	}
 	uint32 settype = set_code & 0xfff;
 	uint32 setsubtype = set_code & 0xf000;
 	for(auto& setcode : setcodes) {
