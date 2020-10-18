@@ -21,7 +21,7 @@ int32 scriptlib::group_clone(lua_State* L) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	duel* pduel = pgroup->pduel;
-	group* newgroup = pduel->new_group(pgroup->container);
+	group* newgroup = pduel->new_group(pgroup);
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
@@ -210,7 +210,7 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
@@ -246,7 +246,7 @@ int32 scriptlib::group_select(lua_State* L) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
@@ -423,7 +423,7 @@ int32 scriptlib::group_select_with_sum_equal(lua_State* L) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, acc, playerid + (min << 16) + (max << 24));
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
-		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+		group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 		pduel->game_field->core.must_select_cards.clear();
 		interpreter::pushobject(L, pgroup);
 		return 1;
@@ -481,7 +481,7 @@ int32 scriptlib::group_select_with_sum_greater(lua_State* L) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_SUM, 0, 0, 0, acc, playerid);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
-		group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+		group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 		pduel->game_field->core.must_select_cards.clear();
 		interpreter::pushobject(L, pgroup);
 		return 1;
@@ -666,7 +666,7 @@ int32 scriptlib::group_add(lua_State* L) {
 	card* pcard = nullptr;
 	get_groupcard(L, pgroup1, pgroup2, pcard);
 	duel* pduel = pgroup1->pduel;
-	group* newgroup = pduel->new_group(pgroup1->container);
+	group* newgroup = pduel->new_group(pgroup1);
 	if(pcard) {
 		newgroup->container.insert(pcard);
 	} else {
@@ -681,7 +681,7 @@ int32 scriptlib::group_sub_const(lua_State* L) {
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
 	duel* pduel = pgroup1->pduel;
-	group* newgroup = pduel->new_group(pgroup1->container);
+	group* newgroup = pduel->new_group(pgroup1);
 	if((pgroup2 = lua_get<group*>(L, 2)) != nullptr) {
 		for(auto& _pcard : pgroup2->container) {
 			newgroup->container.erase(_pcard);

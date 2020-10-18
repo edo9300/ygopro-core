@@ -305,7 +305,7 @@ inline int32 spsummon_rule(lua_State* L, uint32 summon_type, uint32 offset) {
 		must = pduel->new_group(_pcard);
 		must->is_readonly = TRUE;
 	} else if(auto pgroup = lua_get<group*>(L, 3 + offset)) {
-		must = pduel->new_group(pgroup->container);
+		must = pduel->new_group(pgroup);
 		must->is_readonly = TRUE;
 	}
 	group* materials = nullptr;
@@ -313,7 +313,7 @@ inline int32 spsummon_rule(lua_State* L, uint32 summon_type, uint32 offset) {
 		materials = pduel->new_group(_pcard);
 		materials->is_readonly = TRUE;
 	} else if(auto pgroup = lua_get<group*>(L, 4 + offset)) {
-		materials = pduel->new_group(pgroup->container);
+		materials = pduel->new_group(pgroup);
 		materials->is_readonly = TRUE;
 	}
 	auto minc = lua_get<uint16, 0>(L, 5 + offset);
@@ -2395,7 +2395,7 @@ int32 scriptlib::duel_select_matching_cards(lua_State* L) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
@@ -2577,7 +2577,7 @@ int32 select_release_group(lua_State* L, uint8 use_hand) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
@@ -2664,7 +2664,7 @@ int32 scriptlib::duel_select_tribute(lua_State* L) {
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
 		else {
-			group* pgroup = pduel->new_group(field::card_set(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end()));
+			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 			interpreter::pushobject(L, pgroup);
 		}
 		return 1;
@@ -2977,7 +2977,7 @@ int32 scriptlib::duel_set_operation_info(lua_State* L) {
 	if(!ch)
 		return 0;
 	if(pgroup) {
-		pg = pduel->new_group(pgroup->container);
+		pg = pduel->new_group(pgroup);
 		pg->is_readonly = TRUE;
 	} else if(pcard) {
 		pg = pduel->new_group(pcard);

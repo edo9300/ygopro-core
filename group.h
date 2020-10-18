@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <set>
 #include <list>
+#include <vector>
 
 class card;
 class duel;
@@ -31,6 +32,8 @@ public:
 	explicit group(duel* pd);
 	group(duel* pd, card* pcard);
 	group(duel* pd, const card_set& cset);
+	group(duel* pd, group* pgroup);
+	group(duel* pd, const std::vector<card*>& vcard);
 	~group() = default;
 };
 
