@@ -30,7 +30,7 @@ int32 field::negate_chain(uint8 chaincount) {
 		auto message = pduel->new_message(MSG_CHAIN_NEGATED);
 		message->write<uint8>(chaincount);
 		if(pchain.triggering_location == LOCATION_DECK
-				|| (!pduel->game_field->is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
+				|| (!is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
@@ -50,7 +50,7 @@ int32 field::disable_chain(uint8 chaincount) {
 		auto message = pduel->new_message(MSG_CHAIN_DISABLED);
 		message->write<uint8>(chaincount);
 		if(pchain.triggering_location == LOCATION_DECK
-				|| (!pduel->game_field->is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
+				|| (!is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
@@ -901,7 +901,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 chose_player,
 				change = false;
 			if(!pcard->is_affect_by_effect(reason_effect))
 				change = false;
-			if(!pduel->game_field->is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && ((pcard->get_type() & TYPE_TRAPMONSTER) && get_useable_count(pcard, playerid, LOCATION_SZONE, playerid, LOCATION_REASON_CONTROL) <= 0))
+			if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && ((pcard->get_type() & TYPE_TRAPMONSTER) && get_useable_count(pcard, playerid, LOCATION_SZONE, playerid, LOCATION_REASON_CONTROL) <= 0))
 				change = false;
 			if(!change)
 				targets->container.erase(pcard);
@@ -2004,7 +2004,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		message->write(target->get_info_location());
 		core.summon_state_count[sumplayer]++;
 		core.normalsummon_state_count[sumplayer]++;
-		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			check_card_counter(target, 1, sumplayer);
 			check_card_counter(target, 2, sumplayer);
 		}
@@ -2041,7 +2041,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 			core.units.begin()->step = 15;
 			return FALSE;
 		}
-		if(proc && !pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(proc && !is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			remove_oath_effect(proc);
 			if(proc->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (proc->count_code & EFFECT_COUNT_CODE_OATH)) {
 				dec_effect_code(proc->count_code, proc->count_flag, sumplayer);
@@ -2089,7 +2089,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		return FALSE;
 	}
 	case 18: {
-		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			check_card_counter(target, 1, sumplayer);
 			check_card_counter(target, 2, sumplayer);
 		}
@@ -2136,7 +2136,7 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card* target) {
 		target->current.position = POS_FACEUP_ATTACK;
 		target->fieldid = infos.field_id++;
 		core.phase_action = TRUE;
-		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			core.flipsummon_state_count[sumplayer]++;
 			check_card_counter(target, 4, sumplayer);
 		}
@@ -2184,7 +2184,7 @@ int32 field::flip_summon(uint16 step, uint8 sumplayer, card* target) {
 	}
 	case 4: {
 		pduel->new_message(MSG_FLIPSUMMONED);
-		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			core.flipsummon_state_count[sumplayer]++;
 			check_card_counter(target, 4, sumplayer);
 		}
@@ -2714,7 +2714,7 @@ int32 field::sset_g(uint16 step, uint8 setplayer, uint8 toplayer, group* ptarget
 			if(pcard->data.type & TYPE_FIELD)
 				continue;
 			message->write(pcard->get_info_location());
-			pduel->game_field->player[toplayer].list_szone[seq] = pcard;
+			player[toplayer].list_szone[seq] = pcard;
 			pcard->current.sequence = seq;
 		}
 		for(i = 0; i < ct; ++i) {
@@ -2874,11 +2874,11 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		target->current.reason_effect = peffect;
 		target->current.reason_player = sumplayer;
 		target->summon_player = sumplayer;
-		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			set_spsummon_counter(sumplayer);
 			check_card_counter(target, 3, sumplayer);
 		}
-		if(pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && target->spsummon_code)
+		if(is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && target->spsummon_code)
 			core.spsummon_once_map[sumplayer][target->spsummon_code]++;
 		break_effect();
 		return FALSE;
@@ -2942,7 +2942,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			delete peset;
 			core.units.begin()->ptr1 = nullptr;
 		}
-		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			effect* peffect = core.units.begin()->peffect;
 			remove_oath_effect(peffect);
 			if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_code & EFFECT_COUNT_CODE_OATH)) {
@@ -2991,11 +2991,11 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		return FALSE;
 	}
 	case 17: {
-		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			set_spsummon_counter(sumplayer);
 			check_card_counter(target, 3, sumplayer);
 		}
-		if(!pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && target->spsummon_code)
+		if(!is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && target->spsummon_code)
 			core.spsummon_once_map[sumplayer][target->spsummon_code]++;
 		raise_single_event(target, 0, EVENT_SPSUMMON_SUCCESS, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
 		process_single_event();
@@ -3083,7 +3083,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			}
 			positions &= eff->get_value();
 		}
-		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			check_card_counter(pcard, 3, sumplayer);
 		}
 		uint32 zone = 0xff;
@@ -3119,10 +3119,10 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	}
 	case 25: {
 		group* pgroup = core.units.begin()->ptarget; 
-		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			set_spsummon_counter(sumplayer);
 		}
-		if(pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
+		if(is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
 			std::set<uint32> spsummon_once_set;
 			for(auto& pcard : pgroup->container) {
 				if(pcard->spsummon_code)
@@ -3161,7 +3161,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			adjust_instant();
 		}
 		if(pgroup->container.size() == 0) {
-			if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 				effect* peffect = core.units.begin()->peffect;
 				remove_oath_effect(peffect);
 				if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_code & EFFECT_COUNT_CODE_OATH)) {
@@ -3200,11 +3200,11 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	case 28: {
 		group* pgroup = core.units.begin()->ptarget;
 		pduel->new_message(MSG_SPSUMMONED);
-		if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			set_spsummon_counter(sumplayer);
 			check_card_counter(pgroup, 3, sumplayer);
 		}
-		if(!pduel->game_field->is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
+		if(!is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE)) {
 			std::set<uint32> spsummon_once_set;
 			for(auto& pcard : pgroup->container) {
 				if(pcard->spsummon_code)
@@ -3294,13 +3294,13 @@ int32 field::special_summon_step(uint16 step, group* targets, card* target, uint
 		if(!targets)
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
-		if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			check_card_counter(target, 3, target->summon_player);
 		}
 		// UNUSED VARIABLE	
 		// uint32 move_player = (target->data.type & TYPE_TOKEN) ? target->owner : target->summon_player;
 		bool extra = !(zone & 0xff);
-		if(targets && pduel->game_field->is_flag(DUEL_EMZONE)) {
+		if(targets && is_flag(DUEL_EMZONE)) {
 			uint32 flag1, flag2;
 			int32 ct1 = get_tofield_count(target, playerid, LOCATION_MZONE, target->summon_player, LOCATION_REASON_TOFIELD, zone, &flag1);
 			int32 ct2 = get_spsummonable_count_fromex(target, playerid, target->summon_player, zone, &flag2);
@@ -3419,7 +3419,7 @@ int32 field::special_summon(uint16 step, effect* reason_effect, uint8 reason_pla
 	case 3: {
 		pduel->new_message(MSG_SPSUMMONED);
 		for(auto& pcard : targets->container) {
-			if(!pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 				check_card_counter(pcard, 3, pcard->summon_player);
 			}
 			if(!(pcard->current.position & POS_FACEDOWN))
@@ -4556,18 +4556,18 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 		if(location == LOCATION_SZONE && zone == (0x1 << 5) && (target->data.type & TYPE_FIELD)) {
 			card* pcard = get_field_card(playerid, LOCATION_SZONE, 5);
 			if(pcard) {
-				if(!pduel->game_field->is_flag(DUEL_1_FACEUP_FIELD))
+				if(!is_flag(DUEL_1_FACEUP_FIELD))
 					send_to(pcard, 0, REASON_RULE, pcard->current.controler, PLAYER_NONE, LOCATION_GRAVE, 0, 0);
 				else
 					destroy(pcard, 0, REASON_RULE, pcard->current.controler);
 				adjust_all();
 			}
-		} else if(pzone && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && pduel->game_field->is_flag(DUEL_PZONE)) {
+		} else if(pzone && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && is_flag(DUEL_PZONE)) {
 			uint32 flag = 0;
 			if(is_location_useable(playerid, LOCATION_PZONE, 0) && zone & 1)
-				flag |= 0x1u << (pduel->game_field->get_pzone_index(0) + 8);
+				flag |= 0x1u << (get_pzone_index(0) + 8);
 			if(is_location_useable(playerid, LOCATION_PZONE, 1) && zone & 2)
-				flag |= 0x1u << (pduel->game_field->get_pzone_index(1) + 8);
+				flag |= 0x1u << (get_pzone_index(1) + 8);
 			if(!flag)
 				return TRUE;
 			if(move_player != playerid)
@@ -4583,11 +4583,11 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 			uint32 lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
 			int32 ct = get_useable_count(target, playerid, location, move_player, lreason, zone, &flag);
 			if(location == LOCATION_MZONE && (zone & 0x60) && (zone != 0xff) && !rule) {
-				if((zone & 0x20) && pduel->game_field->is_location_useable(playerid, location, 5)) {
+				if((zone & 0x20) && is_location_useable(playerid, location, 5)) {
 					flag = flag & ~(1u << 5);
 					ct++;
 				}
-				if((zone & 0x40) && pduel->game_field->is_location_useable(playerid, location, 6)) {
+				if((zone & 0x40) && is_location_useable(playerid, location, 6)) {
 					flag = flag & ~(1u << 6);
 					ct++;
 				}
@@ -4609,7 +4609,7 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 					}
 				}
 			}
-			if(!pduel->game_field->is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && (ret == 2)) {
+			if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && (ret == 2)) {
 				returns.at<int8>(2) = target->previous.sequence;
 				return FALSE;
 			}
@@ -4769,7 +4769,7 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 				peffect->reset_flag = RESET_EVENT + 0x1fc0000;
 				peffect->value = TYPE_MONSTER | type;
 				target->add_effect(peffect);
-				if(!pduel->game_field->is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) &&(type & TYPE_TRAPMONSTER)) {
+				if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) &&(type & TYPE_TRAPMONSTER)) {
 					peffect = pduel->new_effect();
 					peffect->owner = target;
 					peffect->type = EFFECT_TYPE_FIELD;

@@ -2165,7 +2165,7 @@ void field::check_chain_counter(effect* peffect, int32 playerid, int32 chainid, 
 	}
 }
 void field::set_spsummon_counter(uint8 playerid, bool add, bool chain) {
-	if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+	if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 		if(add) {
 			core.spsummon_state_count[playerid]++;
 			if(chain)
@@ -2182,7 +2182,7 @@ void field::set_spsummon_counter(uint8 playerid, bool add, bool chain) {
 	if(core.global_flag & GLOBALFLAG_SPSUMMON_COUNT) {
 		for(auto& peffect : effects.spsummon_count_eff) {
 			card* pcard = peffect->get_handler();
-			if(pduel->game_field->is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 				if(add) {
 					if(peffect->is_available()) {
 						if(((playerid == pcard->current.controler) && peffect->s_range) || ((playerid != pcard->current.controler) && peffect->o_range)) {
