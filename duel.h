@@ -11,6 +11,7 @@
 #include "common.h"
 #include "ocgapi.h"
 #include "group.h"
+#include "interpreter.h"
 #include <random>
 #include <set>
 #include <unordered_set>
@@ -19,10 +20,8 @@
 #include <deque>
 
 class card;
-class group;
 class effect;
 class field;
-class interpreter;
 struct loc_info;
 
 struct card_data {
