@@ -81,7 +81,7 @@ public:
 	static void print_stacktrace(lua_State* L);
 
 #ifndef _MSC_VER
-#define __forceinline __attribute__((always_inline))
+#define __forceinline __attribute__((always_inline)) inline
 #endif
 	template <size_t N, typename... TR>
 	static __forceinline int sprintf(char (&buffer)[N], const char* format, TR&&... args) {
