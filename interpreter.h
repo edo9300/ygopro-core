@@ -80,8 +80,11 @@ public:
 	static duel* get_duel_info(lua_State* L);
 	static void print_stacktrace(lua_State* L);
 
+#ifndef _MSC_VER
+#define __forceinline __attribute__((always_inline))
+#endif
 	template <size_t N, typename... TR>
-	static inline int sprintf(char (&buffer)[N], const char* format, TR&&... args) {
+	static __forceinline int sprintf(char (&buffer)[N], const char* format, TR&&... args) {
 		return std::snprintf(buffer, N, format, std::forward<TR>(args)...);
 	}
 
