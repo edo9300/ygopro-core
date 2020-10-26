@@ -484,6 +484,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "DiscardDeck", scriptlib::duel_discard_deck },
 	{ "DiscardHand", scriptlib::duel_discard_hand },
 	{ "DisableShuffleCheck", scriptlib::duel_disable_shuffle_check },
+	{ "DisableSelfDestroyCheck", scriptlib::duel_disable_self_destroy_check  },
 	{ "ShuffleDeck", scriptlib::duel_shuffle_deck },
 	{ "ShuffleExtra", scriptlib::duel_shuffle_extra },
 	{ "ShuffleHand", scriptlib::duel_shuffle_hand },

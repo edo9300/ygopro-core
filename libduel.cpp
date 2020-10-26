@@ -1312,6 +1312,12 @@ int32 scriptlib::duel_disable_shuffle_check(lua_State* L) {
 	pduel->game_field->core.shuffle_check_disabled = disable;
 	return 0;
 }
+int32 scriptlib::duel_disable_self_destroy_check(lua_State* L) {
+	const auto pduel = lua_get<duel*>(L);
+	bool disable = lua_get<bool, true>(L, 1);
+	pduel->game_field->core.selfdes_disabled = disable;
+	return 0;
+}
 int32 scriptlib::duel_shuffle_deck(lua_State* L) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8>(L, 1);
