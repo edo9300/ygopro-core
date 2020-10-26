@@ -1890,7 +1890,7 @@ int32 field::process_instant_event() {
 			++eit;
 			card* phandler = peffect->get_handler();
 			if(!phandler->is_status(STATUS_EFFECT_ENABLED) || !peffect->is_condition_check(phandler->current.controler, ev) || 
-			   pduel->game_field->core.just_sent_cards.find(phandler) != pduel->game_field->core.just_sent_cards.end())
+			   (!(peffect->range & LOCATION_HAND) && core.just_sent_cards.find(phandler) != core.just_sent_cards.end()))
 				continue;
 			peffect->set_activate_location();
 			newchain.flag = 0;
@@ -1911,8 +1911,7 @@ int32 field::process_instant_event() {
 			++eit;
 			card* phandler = peffect->get_handler();
 			bool act = phandler->is_status(STATUS_EFFECT_ENABLED) && peffect->is_condition_check(phandler->current.controler, ev);
-			if((!act && !(peffect->range & LOCATION_HAND)) ||
-			   pduel->game_field->core.just_sent_cards.find(phandler) != pduel->game_field->core.just_sent_cards.end())
+			if(!(peffect->range & LOCATION_HAND) && (!act || core.just_sent_cards.find(phandler) != core.just_sent_cards.end()))
 				continue;
 			peffect->set_activate_location();
 			newchain.flag = 0;
