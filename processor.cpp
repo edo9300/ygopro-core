@@ -4962,6 +4962,58 @@ int32 field::break_effect() {
 	}
 	core.used_event.splice(core.used_event.end(), core.instant_event);
 	adjust_instant();
+	if(!is_flag(DUEL_RELAY) && !core.force_turn_end) {
+		uint32 winp = 5, rea = 1;
+		if(player[0].lp <= 0 && player[1].lp > 0 && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP)) {
+			winp = 1;
+			rea = 1;
+		}
+		if(core.overdraw[0] && !core.overdraw[1] && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK)) {
+			winp = 1;
+			rea = 2;
+		}
+		if(player[1].lp <= 0 && player[0].lp > 0 && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP)) {
+			winp = 0;
+			rea = 1;
+		}
+		if(core.overdraw[1] && !core.overdraw[0] && !is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK)) {
+			winp = 0;
+			rea = 2;
+		}
+		if(player[1].lp <= 0 && player[0].lp <= 0 && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))) {
+			if(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP))
+				winp = 0;
+			else if(is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_LP))
+				winp = 1;
+			else
+				winp = PLAYER_NONE;
+			rea = 1;
+		}
+		if(core.overdraw[1] && core.overdraw[0] && !(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK) && is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))) {
+			if(is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_DECK))
+				winp = 0;
+			else if(is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_DECK))
+				winp = 1;
+			else
+				winp = PLAYER_NONE;
+			rea = 2;
+		}
+		if(winp != 5) {
+			auto message = pduel->new_message(MSG_WIN);
+			message->write<uint8>(winp);
+			message->write<uint8>(rea);
+			core.overdraw[0] = core.overdraw[1] = FALSE;
+			core.win_player = 5;
+			core.win_reason = 0;
+		} else if(core.win_player != 5) {
+			auto message = pduel->new_message(MSG_WIN);
+			message->write<uint8>(core.win_player);
+			message->write<uint8>(core.win_reason);
+			core.win_player = 5;
+			core.win_reason = 0;
+			core.overdraw[0] = core.overdraw[1] = FALSE;
+		}
+	}
 	return 0;
 }
 void field::adjust_instant() {
