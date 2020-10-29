@@ -76,8 +76,11 @@ public:
 	static void pushobject(lua_State* L, int32 lua_ptr);
 	static int pushExpandedTable(lua_State* L, int32 table_index);
 	static int32 get_function_handle(lua_State* L, int32 index);
-	static void set_duel_info(lua_State* L, duel* pduel);
-	static duel* get_duel_info(lua_State* L);
+	static inline duel* get_duel_info(lua_State* L) {
+		duel* pduel;
+		memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);
+		return pduel;
+	}
 	static void print_stacktrace(lua_State* L);
 
 #ifndef _MSC_VER

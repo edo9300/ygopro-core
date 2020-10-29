@@ -661,7 +661,7 @@ interpreter::interpreter(duel* pd): coroutines(256) {
 	pduel = pd;
 	no_action = 0;
 	call_depth = 0;
-	set_duel_info(lua_state, pd);
+	memcpy(lua_getextraspace(lua_state), &pd, LUA_EXTRASPACE); //set_duel_info
 	//Initial
 	luaL_openlibs(lua_state);
 	lua_pushnil(lua_state);
@@ -1351,17 +1351,6 @@ int32 interpreter::get_function_handle(lua_State* L, int32 index) {
 	lua_pushvalue(L, index);
 	int32 ref = luaL_ref(L, LUA_REGISTRYINDEX);
 	return ref;
-}
-static const char key = 'k';
-void interpreter::set_duel_info(lua_State* L, duel* pduel) {
-	lua_pushlightuserdata(L, pduel);
-	lua_rawsetp(L, LUA_REGISTRYINDEX, &key);
-}
-duel* interpreter::get_duel_info(lua_State* L) {
-	lua_rawgetp(L, LUA_REGISTRYINDEX, &key);
-	duel* pduel = (duel*)lua_topointer(L, -1);
-	lua_pop(L, 1);
-	return pduel;
 }
 
 void interpreter::print_stacktrace(lua_State* L) {
