@@ -1369,11 +1369,9 @@ void interpreter::print_stacktrace(lua_State* L) {
 	luaL_traceback(L, L, NULL, 1);
 	size_t len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
-	if(!len || len == sizeof("stack traceback:")){
-		lua_pop(L, 1);
-		return;
+	if(len && len != sizeof("stack traceback:")) {
+		const char* string = lua_tostring(L, -1);
+		pduel->handle_message(pduel->handle_message_payload, string, OCG_LOG_TYPE_FOR_DEBUG);
 	}
-	const char* string = lua_tostring(L, -1);
-	pduel->handle_message(pduel->handle_message_payload, string, OCG_LOG_TYPE_FOR_DEBUG);
 	lua_pop(L, 1);
 }
