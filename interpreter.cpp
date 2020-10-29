@@ -32,7 +32,6 @@ struct objref {
 			else if(std::is_same<T, effect>::value)
 				luaL_error(L, "Parameter 1 should be a lua reference to an Effect.");
 		}
-		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 		return 1;
 	}
 };
