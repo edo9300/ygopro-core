@@ -1270,7 +1270,7 @@ int32 scriptlib::card_register_effect(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 2);
-	bool forced = lua_get<bool>(L, 3);
+	bool forced = lua_get<bool, false>(L, 3);
 	duel* pduel = pcard->pduel;
 	if(peffect->owner == pduel->game_field->temp_card)
 		return 0;
