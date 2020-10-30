@@ -3886,6 +3886,12 @@ int32 field::release(uint16 step, group* targets, effect* reason_effect, uint32 
 		return FALSE;
 	}
 	case 3: {
+		for(auto& peffect : core.dec_count_reserve) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8>(HINT_CARD);
+			message->write<uint8>(0);
+			message->write<uint64>(peffect->get_handler()->data.code);
+		}
 		group* sendtargets = pduel->new_group(targets->container);
 		sendtargets->is_readonly = TRUE;
 		operation_replace(EFFECT_SEND_REPLACE, 5, sendtargets);
