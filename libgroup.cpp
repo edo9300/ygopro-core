@@ -130,7 +130,9 @@ int32 scriptlib::group_for_each(lua_State* L) {
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		for(int32 i = 0; i < extraargs; ++i)
 			pduel->lua->add_param(-extraargs + i, PARAM_TYPE_INDEX);
+		pduel->lua->no_action--;
 		pduel->lua->call_function(f, 1 + extraargs, 0);
+		pduel->lua->no_action++;
 	}
 	luaL_unref(L, LUA_REGISTRYINDEX, f);
 	return 0;
