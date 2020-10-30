@@ -711,6 +711,7 @@ int32 scriptlib::duel_return_to_field(lua_State* L) {
 	});
 }
 int32 scriptlib::duel_move_sequence(lua_State* L) {
+	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
@@ -724,6 +725,7 @@ int32 scriptlib::duel_move_sequence(lua_State* L) {
 	return 0;
 }
 int32 scriptlib::duel_swap_sequence(lua_State* L) {
+	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard1 = lua_get<card*, true>(L, 1);
