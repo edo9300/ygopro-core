@@ -25,7 +25,7 @@ public:
 	card_set::iterator it;
 	uint32 is_readonly{ false };
 	
-	inline bool has_card(card* c) {
+	inline bool has_card(card* c) const {
 		return container.find(c) != container.end();
 	}
 	
@@ -34,6 +34,7 @@ public:
 	group(duel* pd, const card_set& cset);
 	group(duel* pd, group* pgroup);
 	group(duel* pd, const std::vector<card*>& vcard);
+	group(duel* pd, lua_obj* pobj);
 	~group() = default;
 };
 
