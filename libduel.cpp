@@ -2889,6 +2889,7 @@ int32 scriptlib::duel_get_operation_info(lua_State* L) {
 	chain* ch = pduel->game_field->get_chain(ct);
 	if(!ch)
 		return 0;
+	auto oit = ch->opinfos.find(cate);
 	if(oit != ch->opinfos.end()) {
 		optarget& opt = oit->second;
 		lua_pushboolean(L, 1);
