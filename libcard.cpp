@@ -1811,21 +1811,24 @@ int32 scriptlib::card_can_chain_attack(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
+	if(pcard != pduel->game_field->core.attacker) {
+		lua_pushboolean(L, 0);
+		return 1;
+	}
 	auto ac = lua_get<uint8, 2>(L, 2);
 	bool monsteronly = lua_get<bool, false>(L, 3);
-	card* attacker = pduel->game_field->core.attacker;
-	if(attacker->is_status(STATUS_BATTLE_DESTROYED)
-			|| attacker->current.controler != pduel->game_field->infos.turn_player
-			|| attacker->fieldid_r != pduel->game_field->core.pre_field[0]
-			|| !attacker->is_capable_attack_announce(pduel->game_field->infos.turn_player)
-			|| (ac != 0 && attacker->announce_count >= ac)
-			|| (ac == 2 && attacker->is_affected_by_effect(EFFECT_EXTRA_ATTACK))) {
+	if(pcard->is_status(STATUS_BATTLE_DESTROYED)
+			|| pcard->current.controler != pduel->game_field->infos.turn_player
+			|| pcard->fieldid_r != pduel->game_field->core.pre_field[0]
+			|| !pcard->is_capable_attack_announce(pduel->game_field->infos.turn_player)
+			|| (ac != 0 && pcard->announce_count >= ac)
+			|| (ac == 2 && pcard->is_affected_by_effect(EFFECT_EXTRA_ATTACK))) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
 	pduel->game_field->core.select_cards.clear();
-	pduel->game_field->get_attack_target(attacker, &pduel->game_field->core.select_cards, TRUE);
-	if(pduel->game_field->core.select_cards.size() == 0 && (monsteronly || attacker->direct_attackable == 0))
+	pduel->game_field->get_attack_target(pcard, &pduel->game_field->core.select_cards, TRUE);
+	if(pduel->game_field->core.select_cards.empty() && (monsteronly || !pcard->direct_attackable))
 		lua_pushboolean(L, 0);
 	else
 		lua_pushboolean(L, 1);
