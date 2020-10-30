@@ -12,21 +12,21 @@
 #include "duel.h"
 
 int32 scriptlib::group_new(lua_State* L) {
-	duel* pduel = interpreter::get_duel_info(L);
+	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::group_clone(lua_State* L) {
 	check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
 	group* newgroup = pduel->new_group(pgroup);
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 int32 scriptlib::group_from_cards(lua_State* L) {
-	duel* pduel = interpreter::get_duel_info(L);
+	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
 	for(int32 i = 0; i < lua_gettop(L); ++i) {
 		auto pcard = lua_get<card*>(L, i + 1);
@@ -37,20 +37,22 @@ int32 scriptlib::group_from_cards(lua_State* L) {
 }
 int32 scriptlib::group_delete(lua_State* L) {
 	check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	if(pgroup->is_readonly != 2)
 		return 0;
 	pgroup->is_readonly = 0;
-	pgroup->pduel->sgroups.insert(pgroup);
+	pduel->sgroups.insert(pgroup);
 	return 0;
 }
 int32 scriptlib::group_keep_alive(lua_State* L) {
 	check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	if(pgroup->is_readonly == 1)
 		return 0;
 	pgroup->is_readonly = 2;
-	pgroup->pduel->sgroups.erase(pgroup);
+	pduel->sgroups.erase(pgroup);
 	return 0;
 }
 int32 scriptlib::group_clear(lua_State* L) {
@@ -120,15 +122,17 @@ int32 scriptlib::group_get_count(lua_State* L) {
 int32 scriptlib::group_for_each(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	const auto pduel = lua_get<duel*>(L);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	int32 f = interpreter::get_function_handle(L, 2);
 	int32 extraargs = lua_gettop(L) - 2;
 	for (auto& pcard : pgroup->container) {
-		pgroup->pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 		for(int32 i = 0; i < extraargs; ++i)
-			pgroup->pduel->lua->add_param(-extraargs + i, PARAM_TYPE_INDEX);
-		pgroup->pduel->lua->call_function(f, 1 + extraargs, 0);
+			pduel->lua->add_param(-extraargs + i, PARAM_TYPE_INDEX);
+		pduel->lua->call_function(f, 1 + extraargs, 0);
 	}
+	luaL_unref(L, LUA_REGISTRYINDEX, f);
 	return 0;
 }
 int32 scriptlib::group_filter(lua_State* L) {
@@ -142,7 +146,7 @@ int32 scriptlib::group_filter(lua_State* L) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	group* new_group = pduel->new_group();
 	uint32 extraargs = lua_gettop(L) - 3;
 	for(auto& pcard : cset) {
@@ -164,7 +168,7 @@ int32 scriptlib::group_filter_count(lua_State* L) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	uint32 extraargs = lua_gettop(L) - 3;
 	uint32 count = 0;
 	for (auto& pcard : cset) {
@@ -192,7 +196,7 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -233,7 +237,7 @@ int32 scriptlib::group_select(lua_State* L) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -257,7 +261,7 @@ int32 scriptlib::group_select_unselect(lua_State* L) {
 	check_param_count(L, 3);
 	auto pgroup1 = lua_get<group*, true>(L, 1);
 	auto pgroup2 = lua_get<group*, true>(L, 2);
-	duel* pduel = pgroup1->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8>(L, 3);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -307,7 +311,7 @@ int32 scriptlib::group_random_select(lua_State* L) {
 	auto pgroup = lua_get<group*, true>(L, 1);
 	auto playerid = lua_get<uint8>(L, 2);
 	size_t count = lua_get<uint32>(L, 3);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	group* newgroup = pduel->new_group();
 	if(count > pgroup->container.size())
 		count = pgroup->container.size();
@@ -345,7 +349,7 @@ int32 scriptlib::group_is_exists(lua_State* L) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto count = lua_get<uint16>(L, 3);
 	uint32 extraargs = lua_gettop(L) - 4;
 	uint32 fcount = 0;
@@ -363,7 +367,7 @@ int32 scriptlib::group_check_with_sum_equal(lua_State* L) {
 	check_param_count(L, 5);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto acc = lua_get<uint32>(L, 3);
 	auto min = lua_get<int32>(L, 4);
 	auto max = lua_get<int32>(L, 5);
@@ -392,7 +396,7 @@ int32 scriptlib::group_select_with_sum_equal(lua_State* L) {
 	check_param_count(L, 6);
 	check_param(L, PARAM_TYPE_FUNCTION, 3);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -433,7 +437,7 @@ int32 scriptlib::group_check_with_sum_greater(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto acc = lua_get<uint32>(L, 3);
 	int32 extraargs = lua_gettop(L) - 3;
 	field::card_vector cv(pduel->game_field->core.must_select_cards);
@@ -456,7 +460,7 @@ int32 scriptlib::group_select_with_sum_greater(lua_State* L) {
 	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_FUNCTION, 3);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -491,7 +495,7 @@ int32 scriptlib::group_get_min_group(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	if(pgroup->container.size() == 0)
 		return 0;
 	group* newgroup = pduel->new_group();
@@ -519,7 +523,7 @@ int32 scriptlib::group_get_max_group(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	if(pgroup->container.size() == 0)
 		return 0;
 	group* newgroup = pduel->new_group();
@@ -547,7 +551,7 @@ int32 scriptlib::group_get_sum(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	int32 extraargs = lua_gettop(L) - 2;
 	int32 sum = 0;
 	for(auto& pcard : pgroup->container) {
@@ -560,7 +564,7 @@ int32 scriptlib::group_get_class(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	int32 extraargs = lua_gettop(L) - 2;
 	std::set<uint32> er;
 	for(auto& pcard : pgroup->container) {
@@ -579,7 +583,7 @@ int32 scriptlib::group_get_class_count(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	int32 extraargs = lua_gettop(L) - 2;
 	std::set<uint32> er;
 	for(auto& pcard : pgroup->container) {
@@ -592,10 +596,8 @@ int32 scriptlib::group_remove(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	card* pexception = 0;
-	if(!lua_isnil(L, 3))
-		pexception = lua_get<card*, true>(L, 3);
-	duel* pduel = pgroup->pduel;
+	auto pexception = lua_get<card*>(L, 3);
+	const auto pduel = lua_get<duel*>(L);
 	uint32 extraargs = lua_gettop(L) - 3;
 	if(pgroup->is_readonly == 1)
 		return 0;
@@ -641,10 +643,10 @@ int32 scriptlib::group_band(lua_State* L) {
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
 	get_groupcard(L, pgroup1, pgroup2, pcard);
-	duel* pduel = pgroup1->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	field::card_set cset;
 	if(pcard) {
-		if(pgroup1->container.find(pcard) != pgroup1->container.end()) {
+		if(pgroup1->has_card(pcard)) {
 			cset.insert(pcard);
 		}
 	} else {
@@ -652,7 +654,7 @@ int32 scriptlib::group_band(lua_State* L) {
 			std::swap(pgroup1, pgroup2);
 		}
 		for(const auto& _pcard : pgroup1->container) {
-			if(pgroup2->container.find(_pcard) != pgroup2->container.end())
+			if(pgroup2->has_card(_pcard))
 				cset.insert(_pcard);
 		}
 	}
@@ -665,7 +667,7 @@ int32 scriptlib::group_add(lua_State* L) {
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
 	get_groupcard(L, pgroup1, pgroup2, pcard);
-	duel* pduel = pgroup1->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	group* newgroup = pduel->new_group(pgroup1);
 	if(pcard) {
 		newgroup->container.insert(pcard);
@@ -680,7 +682,7 @@ int32 scriptlib::group_sub_const(lua_State* L) {
 	auto pgroup1 = lua_get<group*, true>(L, 1);
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
-	duel* pduel = pgroup1->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	group* newgroup = pduel->new_group(pgroup1);
 	if((pgroup2 = lua_get<group*>(L, 2)) != nullptr) {
 		for(auto& _pcard : pgroup2->container) {
@@ -752,16 +754,16 @@ int32 scriptlib::group_less_equal_than(lua_State* L) {
 }
 int32 scriptlib::group_is_contains(lua_State* L) {
 	check_param_count(L, 2);
-	auto pgroup = lua_get<group*, true>(L, 1);
+	const auto pgroup = lua_get<group*, true>(L, 1);
 	auto pcard = lua_get<card*, true>(L, 2);
-	lua_pushboolean(L, pgroup->container.find(pcard) != pgroup->container.end());
+	lua_pushboolean(L, pgroup->has_card(pcard));
 	return 1;
 }
 int32 scriptlib::group_search_card(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	uint32 extraargs = lua_gettop(L) - 2;
 	for(auto& pcard : pgroup->container)
 		if(pduel->lua->check_matching(pcard, 2, extraargs)) {
@@ -785,7 +787,7 @@ int32 scriptlib::group_split(lua_State* L) {
 			notmatching.insert(pcard);
 		}
 	}
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	group* new_group = pduel->new_group();
 	uint32 extraargs = lua_gettop(L) - 3;
 	for(auto& pcard : cset) {
@@ -823,7 +825,7 @@ int32 scriptlib::group_get_bin_class_count(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	duel* pduel = pgroup->pduel;
+	const auto pduel = lua_get<duel*>(L);
 	int32 extraargs = lua_gettop(L) - 2;
 	int32 er = 0;
 	for(auto& pcard : pgroup->container) {

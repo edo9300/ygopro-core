@@ -47,7 +47,7 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 		return FALSE;
 	if(param_type == PARAM_TYPE_INT) {
 		interpreter::print_stacktrace(L);
-		duel* pduel = interpreter::get_duel_info(L);
+		const auto pduel = lua_get<duel*>(L);
 		sprintf(pduel->strbuffer, "Parameter %d should be \"%s\".", index, type);
 		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
 	} else {
@@ -62,7 +62,7 @@ int32 scriptlib::check_param_count(lua_State* L, int32 count) {
 	return TRUE;
 }
 int32 scriptlib::check_action_permission(lua_State* L) {
-	duel* pduel = interpreter::get_duel_info(L);
+	const auto pduel = lua_get<duel*>(L);
 	if(pduel->lua->no_action)
 		luaL_error(L, "Action is not allowed here.");
 	return TRUE;

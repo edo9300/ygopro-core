@@ -1353,7 +1353,7 @@ int32 interpreter::get_function_handle(lua_State* L, int32 index) {
 }
 
 void interpreter::print_stacktrace(lua_State* L) {
-	duel* pduel = interpreter::get_duel_info(L);
+	const auto pduel = lua_get<duel*>(L);
 	luaL_traceback(L, L, NULL, 1);
 	size_t len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
