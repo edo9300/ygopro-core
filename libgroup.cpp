@@ -598,7 +598,9 @@ int32 scriptlib::group_remove(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	auto pexception = lua_get<card*>(L, 3);
+	card* pexception = 0;
+	if(!lua_isnil(L, 3))
+		pexception = lua_get<card*, true>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	uint32 extraargs = lua_gettop(L) - 3;
 	if(pgroup->is_readonly == 1)
