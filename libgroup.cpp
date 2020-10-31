@@ -654,13 +654,8 @@ int32 scriptlib::group_band(lua_State* L) {
 			cset.insert(pcard);
 		}
 	} else {
-		if(pgroup1->container.size() < pgroup2->container.size()) {
-			std::swap(pgroup1, pgroup2);
-		}
-		for(const auto& _pcard : pgroup1->container) {
-			if(pgroup2->has_card(_pcard))
-				cset.insert(_pcard);
-		}
+		std::set_intersection(pgroup1->container.cbegin(), pgroup1->container.cend(), pgroup2->container.cbegin(), pgroup2->container.cend(),
+							  std::inserter(cset, cset.begin()), card_sort());
 	}
 	interpreter::pushobject(L, pduel->new_group(cset));
 	return 1;
