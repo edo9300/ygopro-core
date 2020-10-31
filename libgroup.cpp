@@ -598,13 +598,13 @@ int32 scriptlib::group_remove(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
+	if(pgroup->is_readonly == 1)
+		return 0;
 	card* pexception = 0;
 	if(!lua_isnil(L, 3))
 		pexception = lua_get<card*, true>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	uint32 extraargs = lua_gettop(L) - 3;
-	if(pgroup->is_readonly == 1)
-		return 0;
 	for (auto cit = pgroup->container.begin(); cit != pgroup->container.end();) {
 		auto rm = cit++;
 		if((*rm) != pexception && pduel->lua->check_matching(*rm, 2, extraargs)) {
@@ -616,9 +616,9 @@ int32 scriptlib::group_remove(lua_State* L) {
 int32 scriptlib::group_merge(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	auto mgroup = lua_get<group*, true>(L, 2);
 	if(pgroup->is_readonly == 1)
 		return 0;
+	auto mgroup = lua_get<group*, true>(L, 2);
 	pgroup->container.insert(mgroup->container.begin(), mgroup->container.end());
 	return 0;
 }
@@ -702,9 +702,9 @@ int32 scriptlib::group_sub_const(lua_State* L) {
 int32 scriptlib::group_sub(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	auto sgroup = lua_get<group*, true>(L, 2);
 	if(pgroup->is_readonly == 1)
 		return 0;
+	auto sgroup = lua_get<group*, true>(L, 2);
 	for (auto& pcard : sgroup->container) {
 		pgroup->container.erase(pcard);
 	}
@@ -809,20 +809,12 @@ int32 scriptlib::group_includes(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup1 = lua_get<group*, true>(L, 1);
 	auto pgroup2 = lua_get<group*, true>(L, 2);
-	if(pgroup1->container.size() < pgroup2->container.size()) {
-		lua_pushboolean(L, FALSE);
-	} else {
-		int res = TRUE;
-		auto& cset = pgroup1->container;
-		auto end = cset.end();
-		for(auto& pcard : pgroup2->container) {
-			if(cset.find(pcard) == end) {
-				res = FALSE;
-				break;
-			}
-		}
-		lua_pushboolean(L, res);
-	}
+	int res = TRUE;
+	if(pgroup1->container.size() < pgroup2->container.size())
+		res = FALSE;
+	else if (!pgroup2->container.empty())
+		res = std::includes(pgroup1->container.cbegin(), pgroup1->container.cend(), pgroup2->container.cbegin(), pgroup2->container.cend(), card_sort());
+	lua_pushboolean(L, res);
 	return 1;
 }
 int32 scriptlib::group_get_bin_class_count(lua_State* L) {
