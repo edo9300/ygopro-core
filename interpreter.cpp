@@ -484,7 +484,7 @@ static const struct luaL_Reg duellib[] = {
 	{ "DiscardDeck", scriptlib::duel_discard_deck },
 	{ "DiscardHand", scriptlib::duel_discard_hand },
 	{ "DisableShuffleCheck", scriptlib::duel_disable_shuffle_check },
-	{ "DisableSelfDestroyCheck", scriptlib::duel_disable_self_destroy_check  },
+	{ "DisableSelfDestroyCheck", scriptlib::duel_disable_self_destroy_check },
 	{ "ShuffleDeck", scriptlib::duel_shuffle_deck },
 	{ "ShuffleExtra", scriptlib::duel_shuffle_extra },
 	{ "ShuffleHand", scriptlib::duel_shuffle_hand },
@@ -1281,8 +1281,9 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 		}
 	}
 	push_param(rthread, true);
+	auto prev_state = current_state;
 	current_state = rthread;
-	int32 result = lua_resume(rthread, 0, param_count);
+	int32 result = lua_resumec(rthread, prev_state, param_count, &result);
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
