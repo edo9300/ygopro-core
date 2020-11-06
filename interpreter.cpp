@@ -767,12 +767,6 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename) {
 	lua_setmetatable(lua_state, -2);
 	lua_pop(lua_state, 1);
 }
-/*
-If no script_name is given, then the api will use the buffer as reference
-for the script name to load. If a script_name is given, the api will use
-the buffer and the len passed as the script buffer, without calling the
-script reader.
-*/
 int32 interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	int32 error;
 	if(!buffer)
