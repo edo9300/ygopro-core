@@ -732,5 +732,11 @@ inline void get_card_or_group(lua_State* L, int idx, card*& pcard, group*& pgrou
 	if((pcard = lua_get<card*>(L, idx)) == nullptr && (pgroup = lua_get<group*>(L, idx)) == nullptr)
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
 }
+//always return a string, whereas lua might return nullptr
+inline const char* lua_tostring_or_empty(lua_State *L, int idx) {
+	size_t retlen = 0;
+	auto str = lua_tolstring(L, idx, &retlen);
+	return (!str || retlen == 0) ? "" : str;
+}
 
 #endif /* SCRIPTLIB_H_ */

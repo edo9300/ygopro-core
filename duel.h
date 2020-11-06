@@ -49,7 +49,7 @@ public:
 		uint8_t message;
 		duel_message() :message(0) {};
 		duel_message(uint8_t _message);
-		void write(void* buff, size_t size);
+		void write(const void* buff, size_t size);
 		void write(loc_info loc);
 		template<typename T>
 		void write(T data) {
@@ -57,7 +57,6 @@ public:
 		}
 	};
 	typedef std::set<card*, card_sort> card_set;
-	char strbuffer[256];
 	std::vector<uint8_t> buff;
 	std::vector<uint8_t> query_buffer;
 	interpreter* lua;

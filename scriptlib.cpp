@@ -47,9 +47,10 @@ int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 
 		return FALSE;
 	if(param_type == PARAM_TYPE_INT) {
 		interpreter::print_stacktrace(L);
+		char buffer[70];
+		sprintf(buffer, "Parameter %d should be \"%s\".", index, type);
 		const auto pduel = lua_get<duel*>(L);
-		sprintf(pduel->strbuffer, "Parameter %d should be \"%s\".", index, type);
-		pduel->handle_message(pduel->handle_message_payload, pduel->strbuffer, OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(pduel->handle_message_payload, buffer, OCG_LOG_TYPE_ERROR);
 	} else {
 		luaL_error(L, "Parameter %d should be \"%s\".", index, type);
 	}

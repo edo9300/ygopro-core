@@ -29,11 +29,11 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
 	}
 	if(options.logHandler == nullptr) {
-		options.logHandler = &DefaultLogHandler;
+		options.logHandler = DefaultLogHandler;
 		options.payload3 = nullptr;
 	}
 	if(options.cardReaderDone == nullptr) {
-		options.cardReaderDone = &DefaultCardReaderDone;
+		options.cardReaderDone = DefaultCardReaderDone;
 		options.payload4 = nullptr;
 	}
 	auto duelPtr = new class duel(options);

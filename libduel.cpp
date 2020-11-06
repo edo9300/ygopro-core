@@ -4093,25 +4093,24 @@ int32 scriptlib::duel_load_script(lua_State* L) {
 	lua_getglobal(L, "tostring");
 	lua_pushvalue(L, 1);
 	lua_pcall(L, 1, 1, 0);
-	char strbuffer[256];
-	interpreter::sprintf(strbuffer, "%s", lua_tostring(L, -1));
+	auto string = lua_tostring_or_empty(L, -1);
 	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
 		auto hash = [](const char* str)->uint32_t {
 			uint32_t hash = 5381, c;
 			while((c = *str++) != 0)
 				hash = (((hash << 5) + hash) + c) & 0xffffffff; /* hash * 33 + c */
 			return hash;
-		}(strbuffer);
+		}(string);
 		if(pduel->loaded_scripts[hash])
 			lua_pushboolean(L, pduel->loaded_scripts[hash] == 1);
 		else {
-			auto res = pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), strbuffer);
+			auto res = pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), string);
 			lua_pushboolean(L, res);
 			pduel->loaded_scripts[hash] = res ? 1 : 2;
 		}
 		return 1;
 	}
-	lua_pushboolean(L, pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), strbuffer));
+	lua_pushboolean(L, pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), string));
 	lua_getglobal(L, "edopro_exports");
 	lua_pushnil(L);
 	lua_setglobal(L, "edopro_exports");
