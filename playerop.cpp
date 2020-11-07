@@ -776,7 +776,7 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 	} else {
 		if(returns.at<int8>(0) == -1)
 			return TRUE;
-		byte c[64] = {};
+		bool c[64] = {};
 		uint8 m = static_cast<uint8>(core.select_cards.size());
 		for(uint8 i = 0; i < m; ++i) {
 			int8 v = returns.at<int8>(i);
@@ -784,7 +784,7 @@ int32 field::sort_card(int16 step, uint8 playerid, uint8 is_chain) {
 				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
-			c[v] = 1;
+			c[v] = true;
 		}
 		return TRUE;
 	}
