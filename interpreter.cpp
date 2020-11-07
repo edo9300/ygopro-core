@@ -1267,7 +1267,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	if (result == 0) {
 		coroutines.erase(f);
 		if(yield_value)
-			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : lua_tointeger(rthread, -1);
+			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : (uint32)lua_tointeger(rthread, -1);
 		current_state = lua_state;
 		call_depth--;
 		if(call_depth == 0) {
@@ -1336,7 +1336,7 @@ int32 interpreter::get_function_handle(lua_State* L, int32 index) {
 void interpreter::print_stacktrace(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	luaL_traceback(L, L, NULL, 1);
-	size_t len = lua_rawlen(L, -1);
+	auto len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
 	if(len && len != sizeof("stack traceback:"))
 		pduel->handle_message(pduel->handle_message_payload, lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FOR_DEBUG);

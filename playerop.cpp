@@ -870,9 +870,9 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 }
 #define BINARY_OP(opcode,op) case opcode: {\
 								if (stack.size() >= 2) {\
-									int32 rhs = stack.top();\
+									int32 rhs = (int32)stack.top();\
 									stack.pop();\
-									int32 lhs = stack.top();\
+									int32 lhs = (int32)stack.top();\
 									stack.pop();\
 									stack.push(lhs op rhs);\
 								}\
@@ -880,7 +880,7 @@ int32 field::announce_attribute(int16 step, uint8 playerid, int32 count, int32 a
 							}
 #define UNARY_OP(opcode,op) case opcode: {\
 								if (stack.size() >= 1) {\
-									int32 val = stack.top();\
+									int32 val = (int32)stack.top();\
 									stack.pop();\
 									stack.push(op val);\
 								}\
@@ -921,7 +921,7 @@ static int32 is_declarable(const card_data* cd, const std::vector<uint64>& opcod
 		//GET_OP(OPCODE_GETSETCARD, setcode);
 		case OPCODE_ISSETCARD: {
 			if(stack.size() >= 1) {
-				int32 set_code = stack.top();
+				int32 set_code = (int32)stack.top();
 				stack.pop();
 				bool res = false;
 				uint16 settype = set_code & 0xfff;

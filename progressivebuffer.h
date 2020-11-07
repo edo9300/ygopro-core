@@ -28,7 +28,7 @@ public:
 		return *(T*)(data.data() + _Pos * valsize);
 	}
 	bool bitGet(const size_t _Pos) {
-		int pos = std::floor(_Pos / 8);
+		int pos = (int)std::floor(_Pos / 8);
 		int index = _Pos % 8;
 		size_t size = pos + 1;
 		if(data.size() < size) {
@@ -38,7 +38,7 @@ public:
 		return !!(data[pos] & (1 << index));
 	}
 	void bitSet(const size_t _Pos, bool set = true) {
-		int pos = std::floor(_Pos / 8);
+		int pos = (int)std::floor(_Pos / 8);
 		int index = _Pos % 8;
 		size_t size = pos + 1;
 		if(data.size() < size) {

@@ -63,7 +63,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 		if(game_field->is_location_useable(info.con, info.loc, info.seq)) {
 			card* pcard = DUEL->new_card(info.code);
 			pcard->owner = info.team;
-			game_field->add_card(info.con, pcard, info.loc, info.seq);
+			game_field->add_card(info.con, pcard, (uint8_t)info.loc, (uint8_t)info.seq);
 			pcard->current.position = info.pos;
 			if(!(info.loc & LOCATION_ONFIELD) || (info.pos & POS_FACEUP)) {
 				pcard->enable_field_effect(true);
@@ -86,7 +86,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 			player.extra_lists_hand.resize(info.duelist + 1);
 			player.extra_extra_p_count.resize(info.duelist + 1);
 		}
-		pcard->current.location = info.loc;
+		pcard->current.location = (uint8_t)info.loc;
 		pcard->owner = info.team;
 		pcard->current.controler = info.team;
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
@@ -157,12 +157,15 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 	return count;
 }
 template<typename T>
-void insert_value(std::vector<uint8_t>& vec, const T& _val) {
-	T val = _val;
+void insert_value_int(std::vector<uint8_t>& vec, T val) {
 	const auto vec_size = vec.size();
 	const auto val_size = sizeof(T);
 	vec.resize(vec_size + val_size);
 	std::memcpy(&vec[vec_size], &val, val_size);
+}
+template<typename T, typename T2>
+__forceinline void insert_value(std::vector<uint8_t>& vec, T2 val) {
+	insert_value_int<T>(vec, static_cast<T>(val));
 }
 
 OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {

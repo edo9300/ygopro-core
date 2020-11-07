@@ -130,7 +130,7 @@ int32 duel::get_next_integer(int32 l, int32 h) {
 	} while(n <= lim);
 	return static_cast<int32>((n % range) + l);
 }
-duel::duel_message* duel::new_message(uint32_t message) {
+duel::duel_message* duel::new_message(uint8_t message) {
 	messages.emplace_back(message);
 	return &(messages.back());
 }
@@ -150,7 +150,7 @@ card_data const* duel::read_card(uint32_t code, card_data* copyable) {
 	return ret;
 }
 duel::duel_message::duel_message(uint8_t _message) :message(_message) {
-	write(message);
+	write<uint8_t>(message);
 }
 void duel::duel_message::write(const void* buff, size_t size) {
 	if(size) {

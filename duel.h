@@ -44,6 +44,11 @@ struct card_data {
 class duel {
 public:
 	class duel_message {
+	private:
+		template<typename T>
+		void write_internal(T data) {
+			write(&data, sizeof(T));
+		}
 	public:
 		std::vector<uint8_t> data;
 		uint8_t message;
@@ -51,9 +56,9 @@ public:
 		duel_message(uint8_t _message);
 		void write(const void* buff, size_t size);
 		void write(loc_info loc);
-		template<typename T>
-		void write(T data) {
-			write(&data, sizeof(T));
+		template<typename T, typename T2>
+		__forceinline void write(T2 data) {
+			write_internal<T>(static_cast<T>(data));
 		}
 	};
 	typedef std::set<card*, card_sort> card_set;
@@ -101,7 +106,7 @@ public:
 	void clear_buffer();
 	void set_response(const void* resp, size_t len);
 	int32 get_next_integer(int32 l, int32 h);
-	duel_message* new_message(uint32_t message);
+	duel_message* new_message(uint8_t message);
 	card_data const* read_card(uint32_t code, card_data* copyable = nullptr);
 	void* read_card_payload;
 	void* read_script_payload;
