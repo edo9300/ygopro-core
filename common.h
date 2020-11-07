@@ -10,6 +10,8 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4244)
+#else
+#define __forceinline __attribute__((always_inline)) inline
 #endif
 
 #include <cstdint>
