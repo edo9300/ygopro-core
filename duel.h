@@ -96,7 +96,6 @@ public:
 	void delete_effect(effect* peffect);
 	void release_script_group();
 	void restore_assumes();
-	int32 read_buffer(byte* buf);
 	void generate_buffer();
 	void write_buffer(void* data, size_t size);
 	void clear_buffer();

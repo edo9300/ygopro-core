@@ -80,13 +80,6 @@ void duel::delete_effect(effect* peffect) {
 	effects.erase(peffect);
 	delete peffect;
 }
-int32 duel::read_buffer(byte* buf) {
-	generate_buffer();
-	if(buf != nullptr)
-		if(buff.size())
-			std::memcpy(buf, buff.data(), buff.size());
-	return buff.size();
-}
 void duel::generate_buffer() {
 	for(auto& message : messages) {
 		uint32_t size = message.data.size();
