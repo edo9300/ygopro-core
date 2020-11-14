@@ -16,10 +16,20 @@ local ocgcore_config=function()
 end
 
 if not subproject then
+newoption {
+	trigger = "oldwindows",
+	description = "Use some tricks to support up to windows 2000"
+}
 	workspace "ocgcore"
 	location "build"
 	language "C++"
-	objdir "obj"	
+	objdir "obj"
+	if _OPTIONS["oldwindows"] then
+		filter "action:vs*"
+			toolset "v141_xp"
+
+		filter {}
+	end
 	configurations { "Debug", "Release" }
 	
 	filter "system:windows"
@@ -75,6 +85,13 @@ project "ocgcoreshared"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
 	ocgcore_config()
+	if _OPTIONS["oldwindows"] then
+		filter {}
+		files { "./overwrites/overwrites.cpp", "./overwrites/loader.asm" }
+		filter "files:**.asm"
+			exceptionhandling 'SEH'
+		filter {}
+	end
 	
 	filter "system:linux"
 		links "lua:static"
