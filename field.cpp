@@ -3067,7 +3067,7 @@ int32 field::check_nonpublic_trigger(chain& ch) {
 		ch.flag |= CHAIN_HAND_TRIGGER;
 		core.new_ochain_h.push_back(ch);
 		//TCG segoc
-		if(!is_flag(TCG_SEGOC_NONPUBLIC) && ((ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN))
+		if(!is_flag(DUEL_TCG_SEGOC_NONPUBLIC) && ((ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN))
 			|| ch.triggering_location == LOCATION_DECK
 			|| (peffect->range && !peffect->in_range(ch))))
 			return FALSE;

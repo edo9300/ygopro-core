@@ -1365,7 +1365,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		if(core.select_chains.size() == 0) {
 			returns.at<int32>(0) = -1;
 		} else {
-			if(is_flag(TCG_SEGOC_FIRSTTRIGGER)) { //tcg segoc
+			if(is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER)) { //tcg segoc
 				std::sort(core.select_chains.begin(), core.select_chains.end(), [](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
 				auto pred = [id = core.select_chains.front().event_id](const chain& ch) {
 					return ch.event_id == id;
@@ -1437,10 +1437,10 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			core.units.begin()->step = 5;
 			return FALSE;
 		} else {
-			if(is_flag(TCG_SEGOC_NONPUBLIC))
+			if(is_flag(DUEL_TCG_SEGOC_NONPUBLIC))
 				core.new_ochain_h.clear();
 			//tcg segoc
-			if(is_flag(TCG_SEGOC_FIRSTTRIGGER)) {
+			if(is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER)) {
 				std::sort(core.select_chains.begin(), core.select_chains.end(), [](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
 				auto pred = [id = core.select_chains.front().event_id](const chain& ch) {
 					return ch.event_id == id;
@@ -1464,7 +1464,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		return FALSE;
 	}
 	case 6: {
-		if(returns.at<int32>(0) == -2 || (returns.at<int32>(0) == -1 && !is_flag(TCG_SEGOC_FIRSTTRIGGER))) {
+		if(returns.at<int32>(0) == -2 || (returns.at<int32>(0) == -1 && !is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER))) {
 			for(const auto& ch : core.select_chains) {
 				ch.triggering_effect->active_type = 0;
 				core.new_ochain_s.remove_if([chain_id = ch.chain_id](chain ch) { return ch.chain_id == chain_id; });
