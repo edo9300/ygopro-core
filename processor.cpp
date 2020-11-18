@@ -930,6 +930,7 @@ void field::raise_event(card* event_card, uint32 event_code, effect* reason_effe
 	new_event.reason_player = reason_player;
 	new_event.event_player = event_player;
 	new_event.event_value = event_value;
+	new_event.global_id = infos.event_id;
 	core.queue_event.push_back(new_event);
 }
 void field::raise_event(card_set* event_cards, uint32 event_code, effect* reason_effect, uint32 reason, uint8 reason_player, uint8 event_player, uint32 event_value) {
@@ -947,6 +948,7 @@ void field::raise_event(card_set* event_cards, uint32 event_code, effect* reason
 	new_event.reason_player = reason_player;
 	new_event.event_player = event_player;
 	new_event.event_value = event_value;
+	new_event.global_id = infos.event_id;
 	core.queue_event.push_back(new_event);
 }
 void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32 event_code, effect* reason_effect, uint32 reason, uint8 reason_player, uint8 event_player, uint32 event_value) {
@@ -964,6 +966,7 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 	new_event.reason_player = reason_player;
 	new_event.event_player = event_player;
 	new_event.event_value = event_value;
+	new_event.global_id = infos.event_id;
 	core.single_event.push_back(new_event);
 }
 int32 field::check_event(uint32 code, tevent* pe) {
@@ -1358,12 +1361,23 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			}
 			++clit;
 		}
+		//TCG SEGOC
 		if(core.select_chains.size() == 0) {
 			returns.at<int32>(0) = -1;
-		} else if(core.select_chains.size() == 1) {
-			returns.at<int32>(0) = 0;
 		} else {
-			add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, core.current_player, 0x7f | 0x10000);
+			if(is_flag(TCG_SEGOC_FIRSTTRIGGER)) { //tcg segoc
+				std::sort(core.select_chains.begin(), core.select_chains.end(), [](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
+				auto pred = [id = core.select_chains.front().event_id](const chain& ch) {
+					return ch.event_id == id;
+				};
+				auto endit = std::find_if_not(core.select_chains.begin(), core.select_chains.end(), pred);
+				core.select_chains.erase(endit, core.select_chains.end());
+			}
+			if(core.select_chains.size() == 1) {
+				returns.at<int32>(0) = 0;
+			} else {
+				add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, core.current_player, 0x7f | 0x10000);
+			}
 		}
 		return FALSE;
 	}
@@ -1417,17 +1431,31 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			}
 			++clit;
 		}
+		//TCG SEGOC
 		if(core.select_chains.size() == 0) {
-			returns.at<int32>(0) = -1;
+			returns.at<int32>(0) = -2;
 			core.units.begin()->step = 5;
-			return FALSE;
-		} else if(core.select_chains.size() == 1 && !core.current_chain.size()) {
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains[0].triggering_effect->get_handler(), core.current_player, 221);
 			return FALSE;
 		} else {
-			add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, core.current_player, 0x7f);
-			core.units.begin()->step = 5;
-			return FALSE;
+			if(is_flag(TCG_SEGOC_NONPUBLIC))
+				core.new_ochain_h.clear();
+			//tcg segoc
+			if(is_flag(TCG_SEGOC_FIRSTTRIGGER)) {
+				std::sort(core.select_chains.begin(), core.select_chains.end(), [](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
+				auto pred = [id = core.select_chains.front().event_id](const chain& ch) {
+					return ch.event_id == id;
+				};
+				auto endit = std::find_if_not(core.select_chains.begin(), core.select_chains.end(), pred);
+				core.select_chains.erase(endit, core.select_chains.end());
+			}
+			if(core.select_chains.size() == 1 && !core.current_chain.size()) {
+				add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains[0].triggering_effect->get_handler(), core.current_player, 221);
+				return FALSE;
+			} else {
+				add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, core.current_player, 0x7f);
+				core.units.begin()->step = 5;
+				return FALSE;
+			}
 		}
 		return FALSE;
 	}
@@ -1436,7 +1464,7 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		return FALSE;
 	}
 	case 6: {
-		if(returns.at<int32>(0) == -1) {
+		if(returns.at<int32>(0) == -2 || (returns.at<int32>(0) == -1 && !is_flag(TCG_SEGOC_FIRSTTRIGGER))) {
 			for(const auto& ch : core.select_chains) {
 				ch.triggering_effect->active_type = 0;
 				core.new_ochain_s.remove_if([chain_id = ch.chain_id](chain ch) { return ch.chain_id == chain_id; });
@@ -1448,6 +1476,12 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 				core.current_player = infos.turn_player;
 				core.units.begin()->step = 6;
 			}
+			return FALSE;
+		} else if(returns.at<int32>(0) == -1) {
+			//TCG SEGOC
+			chain discardedchain = core.select_chains[0];
+			core.new_ochain_s.remove_if([event_id = discardedchain.event_id](chain ch) { return ch.event_id == event_id; });
+			core.units.begin()->step = 3;
 			return FALSE;
 		}
 		chain newchain = core.select_chains[returns.at<int32>(0)];
@@ -1899,6 +1933,7 @@ int32 field::process_instant_event() {
 			peffect->set_activate_location();
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
+			newchain.event_id = ev.global_id;
 			newchain.evt = ev;
 			newchain.triggering_effect = peffect;
 			newchain.set_triggering_state(phandler);
@@ -1920,6 +1955,7 @@ int32 field::process_instant_event() {
 			peffect->set_activate_location();
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
+			newchain.event_id = ev.global_id;
 			newchain.evt = ev;
 			newchain.triggering_effect = peffect;
 			newchain.set_triggering_state(phandler);
@@ -2067,6 +2103,7 @@ int32 field::process_single_event(effect* peffect, const tevent& e, chain_list& 
 		chain newchain;
 		newchain.flag = 0;
 		newchain.chain_id = infos.field_id++;
+		newchain.event_id = e.global_id;
 		newchain.evt = e;
 		newchain.triggering_effect = peffect;
 		newchain.set_triggering_state(phandler);
@@ -5022,10 +5059,12 @@ int32 field::break_effect(bool clear_sent) {
 	return 0;
 }
 void field::adjust_instant() {
+	infos.event_id++;
 	adjust_disable_check_list();
 	adjust_self_destroy_set();
 }
 void field::adjust_all() {
+	infos.event_id++;
 	core.readjust_map.clear();
 	add_process(PROCESSOR_ADJUST, 0, 0, 0, 0, 0);
 }

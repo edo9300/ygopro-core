@@ -36,6 +36,7 @@ struct tevent {
 	uint32 reason;
 	uint8 event_player;
 	uint8 reason_player;
+	uint32 global_id;
 	bool operator< (const tevent& v) const;
 };
 struct optarget {
@@ -64,6 +65,7 @@ struct chain {
 	tevent evt;
 	opmap opinfos;
 	uint32 flag;
+	uint32 event_id;
 	static bool chain_operation_sort(const chain& c1, const chain& c2);
 	void set_triggering_state(card* pcard);
 };
@@ -120,6 +122,7 @@ struct field_effect {
 	grant_effect_container grant_effect;
 };
 struct field_info {
+	int32 event_id;
 	int32 field_id;
 	int16 copy_id;
 	int16 turn_id;

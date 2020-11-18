@@ -41,6 +41,7 @@ bool tevent::operator< (const tevent& v) const {
 }
 field::field(duel* pduel) {
 	this->pduel = pduel;
+	infos.event_id = 1;
 	infos.field_id = 1;
 	infos.copy_id = 1;
 	infos.can_shuffle = TRUE;
@@ -3065,9 +3066,10 @@ int32 field::check_nonpublic_trigger(chain& ch) {
 			|| (peffect->range & (LOCATION_HAND | LOCATION_DECK)))) {
 		ch.flag |= CHAIN_HAND_TRIGGER;
 		core.new_ochain_h.push_back(ch);
-		if((ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN))
+		//TCG segoc
+		if(!is_flag(TCG_SEGOC_NONPUBLIC) && ((ch.triggering_location == LOCATION_HAND && phandler->is_position(POS_FACEDOWN))
 			|| ch.triggering_location == LOCATION_DECK
-			|| (peffect->range && !peffect->in_range(ch)))
+			|| (peffect->range && !peffect->in_range(ch))))
 			return FALSE;
 	}
 	return TRUE;
