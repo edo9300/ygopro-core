@@ -106,10 +106,11 @@ void duel::restore_assumes() {
 	assumes.clear();
 }
 void duel::write_buffer(void* data, size_t size) {
-	const auto vec_size = buff.size();
-	buff.resize(vec_size + size);
-	if(size)
+	if(size) {
+		const auto vec_size = buff.size();
+		buff.resize(vec_size + size);
 		std::memcpy(&buff[vec_size], data, size);
+	}
 }
 void duel::clear_buffer() {
 	buff.clear();

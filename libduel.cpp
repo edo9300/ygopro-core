@@ -3543,7 +3543,7 @@ int32 scriptlib::duel_set_dice_result(lua_State* L) {
 }
 int32 scriptlib::duel_is_duel_type(lua_State* L) {
 	check_param_count(L, 1);
-	auto duel_type = lua_get<uint32>(L, 1);
+	auto duel_type = lua_get<uint64>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->is_flag(duel_type));
 	return 1;

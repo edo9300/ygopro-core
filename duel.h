@@ -81,7 +81,7 @@ public:
 	std::unordered_map<uint32_t/* hashed string */, uint8_t/*0 = not loaded, 1 = loaded correctly, 2 = failed to load*/> loaded_scripts;
 	
 	duel() = delete;
-	duel(OCG_DuelOptions options);
+	explicit duel(OCG_DuelOptions options);
 	~duel();
 	void clear();
 	

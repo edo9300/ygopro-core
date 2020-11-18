@@ -288,7 +288,7 @@ struct processor {
 	int32 summon_count[2];
 	uint8 extra_summon[2];
 	int32 spe_effect[2];
-	int32 duel_options;
+	uint64 duel_options;
 	uint32 copy_reset;
 	uint8 copy_reset_count;
 	uint32 last_control_changed_id;
@@ -401,7 +401,7 @@ public:
 	bool relay_check(uint8 playerid);
 	void next_player(uint8 playerid);
 
-	bool is_flag(uint32 flag);
+	bool is_flag(uint64 flag);
 	int32 get_pzone_index(uint8 seq);
 
 	void add_effect(effect* peffect, uint8 owner_player = 2);
