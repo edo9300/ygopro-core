@@ -161,33 +161,8 @@ void SListUnlock(PSLIST_HEADER ListHead) {
 }
 
 //Note: ListHead->Next.N== first node
-MAKELOADER(InterlockedPopEntrySList, PSLIST_ENTRY, (PSLIST_HEADER ListHead), (ListHead)) {
-	PSLIST_ENTRY ret;
-	SListLock(ListHead);
-	if(!ListHead->Next.Next) ret = nullptr;
-	else {
-		ret = ListHead->Next.Next;
-		ListHead->Next.Next = ret->Next;
-		ListHead->Depth--;
-		ListHead->Sequence++;
-	}
-	SListUnlock(ListHead);
-	return ret;
-}
 
-MAKELOADER(InterlockedPushEntrySList, PSLIST_ENTRY, (PSLIST_HEADER ListHead, PSLIST_ENTRY ListEntry),(ListHead, ListEntry)) {
-	PSLIST_ENTRY ret;
-	SListLock(ListHead);
-	ret = ListHead->Next.Next;
-	ListEntry->Next = ret;
-	ListHead->Next.Next = ListEntry;
-	ListHead->Depth++;
-	ListHead->Sequence++;
-	SListUnlock(ListHead);
-	return ret;
-}
-
-MAKELOADER(InterlockedFlushSList, PSLIST_ENTRY, (PSLIST_HEADER ListHead), (ListHead)) {
+extern "C" PSLIST_ENTRY __stdcall handledInterlockedFlushSList(PSLIST_HEADER ListHead) {
 	PSLIST_ENTRY ret;
 	SListLock(ListHead);
 	ret = ListHead->Next.Next;
@@ -223,40 +198,6 @@ extern "C" void __stdcall handledInitializeSListHead(PSLIST_HEADER ListHead) {
 	return internalimplInitializeSListHead(ListHead);
 }
 
-MAKELOADER(QueryDepthSList, USHORT, (PSLIST_HEADER ListHead), (ListHead)) {
-	PSLIST_ENTRY n;
-	USHORT depth = 0;
-	SListLock(ListHead);
-	n = ListHead->Next.Next;
-	while(n) {
-		depth++;
-		n = n->Next;
-	}
-	SListUnlock(ListHead);
-	return depth;
-}
-
-MAKELOADER(ConvertFiberToThread, BOOL,(),()) {
-	PVOID Fiber;
-	if(NtCurrentTeb2k()->HasFiberData) {
-		NtCurrentTeb2k()->HasFiberData = FALSE;
-		Fiber = NtCurrentTeb2k()->NtTib.FiberData;
-		if(Fiber) {
-			NtCurrentTeb2k()->NtTib.FiberData = nullptr;
-			HeapFree(GetProcessHeap(), 0, Fiber);
-		}
-		return TRUE;
-	} else {
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-}
-
-MAKELOADER(GetNumaHighestNodeNumber, BOOL, (PULONG HighestNodeNumber), (HighestNodeNumber)) {
-	*HighestNodeNumber = 0;
-	return TRUE;
-}
-
 static BOOL IncLoadCount(HMODULE hMod) {
 	WCHAR path[MAX_PATH];
 	DWORD c = GetModuleFileNameW(hMod, path, MAX_PATH);
@@ -285,54 +226,6 @@ MAKELOADER(GetModuleHandleExW, BOOL, (DWORD dwFlags, LPCWSTR lpModuleName, HMODU
 
 	LoaderLock(FALSE);
 	return TRUE;
-}
-
-/*
-first call will be from irrlicht, no overwrite, 2nd will be from the crt,
-if not spoofed, the runtime will abort as windows 2k isn't supported
-*/
-extern "C" BOOL __stdcall handledGetVersionExW(LPOSVERSIONINFOW lpVersionInfo) {
-	static auto basefunc = GETFUNC(GetVersionExW);;
-	static int firstrun = 0;
-	constexpr static OSVERSIONINFOW winxp{ sizeof(OSVERSIONINFOW), 5, 1 };
-	if(!basefunc) {
-		*lpVersionInfo = winxp;
-		return TRUE;
-	}
-	auto ret = basefunc(lpVersionInfo);
-	//spoof win2k to the c runtime
-	if(firstrun == 1 && (lpVersionInfo->dwMajorVersion <= 5 || (lpVersionInfo->dwMajorVersion == 5 && lpVersionInfo->dwMinorVersion == 0))) {
-		firstrun++;
-		*lpVersionInfo = winxp;
-		return TRUE;
-	} else if(firstrun == 0)
-		firstrun++;
-	return ret;
-}
-
-MAKELOADER(GetModuleHandleExA, BOOL, (DWORD dwFlags, LPCSTR lpModuleName, HMODULE* phModule), (dwFlags, lpModuleName, phModule)) {
-	if(!(dwFlags & GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS) && lpModuleName) {
-		LoaderLock(TRUE);
-		*phModule = GetModuleHandleA(lpModuleName);
-		if(*phModule == nullptr) {
-			LoaderLock(FALSE);
-			return FALSE;
-		}
-		if(!(dwFlags & GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT) ||
-		   dwFlags & GET_MODULE_HANDLE_EX_FLAG_PIN) {
-			//How to pin? We'll just inc the LoadCount and hope
-			IncLoadCount(*phModule);
-		}
-		LoaderLock(FALSE);
-		return TRUE;
-	}
-	return internalimplGetModuleHandleExW(dwFlags, (LPCWSTR)lpModuleName, phModule);
-}
-
-MAKELOADER(GetLogicalProcessorInformation, BOOL, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION Buffer, PDWORD ReturnedLength), (Buffer, ReturnedLength)) {
-	*ReturnedLength = 0;
-	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-	return FALSE;
 }
 
 MAKELOADER(EncodePointer, PVOID, (PVOID ptr), (ptr)) {
