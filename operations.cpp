@@ -3471,7 +3471,7 @@ int32 field::destroy_replace(uint16 /*step*/, group* targets, card* target, uint
 		targets->container.erase(target);
 		return TRUE;
 	}
-	if(targets->has_card(target))
+	if(!targets->has_card(target))
 		return TRUE;
 	returns.at<int32>(0) = FALSE;
 	effect_set eset;
@@ -3825,7 +3825,7 @@ int32 field::release_replace(uint16 /*step*/, group* targets, card* target) {
 		targets->container.erase(target);
 		return TRUE;
 	}
-	if(targets->has_card(target))
+	if(!targets->has_card(target))
 		return TRUE;
 	if(!(target->current.reason & REASON_RULE)) {
 		returns.at<int32>(0) = FALSE;
@@ -3916,7 +3916,7 @@ int32 field::release(uint16 step, group* targets, effect* reason_effect, uint32 
 int32 field::send_replace(uint16 /*step*/, group* targets, card* target) {
 	uint8 playerid = target->sendto_param.playerid;
 	uint8 dest = target->sendto_param.location;
-	if(targets->has_card(target))
+	if(!targets->has_card(target))
 		return TRUE;
 	if(target->current.location == dest && target->current.controler == playerid) {
 		target->current.reason = target->temp.reason;
