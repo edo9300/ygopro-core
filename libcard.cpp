@@ -1494,7 +1494,7 @@ int32 scriptlib::card_copy_effect(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto code = lua_get<uint32>(L, 2);
 	auto reset = lua_get<uint32>(L, 3);
-	auto count = lua_get<uint8>(L, 4);
+	auto count = lua_get<uint8, 1>(L, 4);
 	if(count == 0)
 		count = 1;
 	if(reset & RESET_PHASE && !(reset & (RESET_SELF_TURN | RESET_OPPO_TURN)))
