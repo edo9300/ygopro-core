@@ -901,7 +901,7 @@ int32 field::get_control(uint16 step, effect* reason_effect, uint8 chose_player,
 				change = false;
 			if(!pcard->is_capable_change_control())
 				change = false;
-			if(!pcard->is_affect_by_effect(reason_effect))
+			if(reason_effect && !pcard->is_affect_by_effect(reason_effect))
 				change = false;
 			if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && ((pcard->get_type() & TYPE_TRAPMONSTER) && get_useable_count(pcard, playerid, LOCATION_SZONE, playerid, LOCATION_REASON_CONTROL) <= 0))
 				change = false;
