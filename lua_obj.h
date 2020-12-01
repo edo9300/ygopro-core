@@ -19,9 +19,7 @@ public:
 	uint8_t lua_type{ 0 };
 	int32_t ref_handle{ 0 };
 	duel* pduel{ nullptr };
-	template<uint8_t _Type>
-	friend class lua_obj_helper;
-private:
+protected:
 	lua_obj(uint8_t _lua_type, duel* _pduel) :lua_type(_lua_type), pduel(_pduel) {};
 };
 
