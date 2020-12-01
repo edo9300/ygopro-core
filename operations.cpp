@@ -1029,7 +1029,7 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 				return FALSE;
 			if(!pcard->is_capable_change_control())
 				return FALSE;
-			if(!pcard->is_affect_by_effect(reason_effect))
+			if((reason_effect && !pcard->is_affect_by_effect(reason_effect)))
 				return FALSE;
 		}
 		for(auto& pcard : targets2->container) {
@@ -1041,7 +1041,7 @@ int32 field::swap_control(uint16 step, effect* reason_effect, uint8 reason_playe
 				return FALSE;
 			if(!pcard->is_capable_change_control())
 				return FALSE;
-			if(!pcard->is_affect_by_effect(reason_effect))
+			if((reason_effect && !pcard->is_affect_by_effect(reason_effect)))
 				return FALSE;
 		}
 		int32 ct = get_useable_count(NULL, p1, LOCATION_MZONE, reason_player, LOCATION_REASON_CONTROL);
@@ -4828,7 +4828,7 @@ int32 field::change_position(uint16 step, group* targets, effect* reason_effect,
 			if((pcard->current.location != LOCATION_MZONE && pcard->current.location != LOCATION_SZONE)
 				|| ((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER))
 				|| pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)
-				|| !pcard->is_affect_by_effect(reason_effect) || npos == opos
+				|| (reason_effect && !pcard->is_affect_by_effect(reason_effect)) || npos == opos
 				|| (!(pcard->data.type & TYPE_TOKEN) && (opos & POS_FACEUP) && (npos & POS_FACEDOWN) && !pcard->is_capable_turn_set(reason_player))
 				|| (reason_effect && pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))) {
 				targets->container.erase(pcard);
