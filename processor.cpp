@@ -2413,7 +2413,6 @@ int32 field::process_idle_command(uint16 step) {
 		} else
 			add_process(PROCESSOR_FLIP_SUMMON, 0, 0, (group*)target, target->current.controler, 0);
 		target->set_status(STATUS_FORM_CHANGED, TRUE);
-		target->set_status(STATUS_CONTROL_CHANGED, FALSE);
 		core.units.begin()->step = -1;
 		return FALSE;
 	}
@@ -2476,7 +2475,6 @@ int32 field::process_idle_command(uint16 step) {
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
 		}
 		target->set_status(STATUS_FORM_CHANGED, TRUE);
-		target->set_status(STATUS_CONTROL_CHANGED, FALSE);
 		core.units.begin()->step = -1;
 		return FALSE;
 	}
