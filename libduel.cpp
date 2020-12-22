@@ -3338,7 +3338,7 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 	pduel->game_field->core.select_options.clear();
 	auto paramcount = lua_gettop(L);
 	if(lua_istable(L, 2)) {
-		interpreter::lua_table_iterate(L, 2, [&options = pduel->game_field->core.select_options, L]() {
+		lua_table_iterate(L, 2, [&options = pduel->game_field->core.select_options, L] {
 			options.push_back(lua_get<uint64>(L, -1));
 		});
 	} else if(paramcount <= 2) {
@@ -3721,7 +3721,7 @@ int32 scriptlib::duel_is_player_can_spsummon_monster(lua_State* L) {
 	dat.alias = 0;
 	if(!lua_isnil(L, 3)) {
 		if(lua_istable(L, 3)) {
-			interpreter::lua_table_iterate(L, 3, [&setcodes = dat.setcodes, &L]() {
+			lua_table_iterate(L, 3, [&setcodes = dat.setcodes, &L] {
 				setcodes.insert(lua_get<uint16>(L, -1));
 			});
 		} else

@@ -739,4 +739,13 @@ inline const char* lua_tostring_or_empty(lua_State *L, int idx) {
 	return (!str || retlen == 0) ? "" : str;
 }
 
+template<typename T>
+inline void lua_table_iterate(lua_State* L, int idx, T&& func) {
+	lua_pushnil(L);
+	while(lua_next(L, idx) != 0) {
+		func();
+		lua_pop(L, 1);
+	}
+}
+
 #endif /* SCRIPTLIB_H_ */

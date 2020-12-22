@@ -1320,7 +1320,7 @@ void interpreter::pushobject(lua_State* L, int32 lua_ptr) {
 //Push all the elements of the table to the stack, +len(table) -0
 int interpreter::pushExpandedTable(lua_State* L, int32 table_index) {
 	int extraargs = 0;
-	lua_table_iterate(L, table_index, [&extraargs, &L]() {
+	lua_table_iterate(L, table_index, [&extraargs, &L] {
 		lua_pushvalue(L, -1);
 		lua_insert(L, -3);
 		extraargs++;
