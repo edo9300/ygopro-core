@@ -787,7 +787,7 @@ int32 interpreter::load_card_script(uint32 code) {
 	sprintf(class_name, "c%u", code);
 	lua_getglobal(current_state, class_name);
 	//if script is not loaded, create and load it
-	if (lua_isnil(current_state, -1)) {
+	if (lua_isnoneornil(current_state, -1)) {
 		lua_pop(current_state, 1);
 		lua_pushinteger(current_state, code);
 		lua_setglobal(current_state, "self_code");
@@ -1026,7 +1026,7 @@ int32 interpreter::check_condition(int32 f, uint32 param_count) {
 	return OPERATION_FAIL;
 }
 int32 interpreter::check_matching(card* pcard, int32 findex, int32 extraargs) {
-	if(!findex || lua_isnil(current_state, findex))
+	if(!findex || lua_isnoneornil(current_state, findex))
 		return TRUE;
 	no_action++;
 	call_depth++;
@@ -1087,7 +1087,7 @@ int32 interpreter::check_matching_table(card* pcard, int32 findex, int32 table_i
 	return result;
 }
 int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraargs) {
-	if(!findex || lua_isnil(current_state, findex))
+	if(!findex || lua_isnoneornil(current_state, findex))
 		return 0;
 	no_action++;
 	call_depth++;
@@ -1118,7 +1118,7 @@ int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraarg
 	return result;
 }
 int32 interpreter::get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result) {
-	if(!findex || lua_isnil(current_state, findex))
+	if(!findex || lua_isnoneornil(current_state, findex))
 		return 0;
 	no_action++;
 	call_depth++;

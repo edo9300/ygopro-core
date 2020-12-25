@@ -184,7 +184,7 @@ int32 scriptlib::effect_set_label_object(lua_State* L) {
 			luaL_unref(L, LUA_REGISTRYINDEX, peffect->label_object);
 		lua_pop(L, 1);
 	}
-	if(lua_isnil(L, 2)) {
+	if(lua_isnoneornil(L, 2)) {
 		peffect->label_object = 0;
 		return 0;
 	}
@@ -262,7 +262,7 @@ int32 scriptlib::effect_set_operation(lua_State* L) {
 	auto peffect = lua_get<effect*, true>(L, 1);
 	if(peffect->operation)
 		luaL_unref(L, LUA_REGISTRYINDEX, peffect->operation);
-	if(!lua_isnil(L, 2)) {
+	if(!lua_isnoneornil(L, 2)) {
 		check_param(L, PARAM_TYPE_FUNCTION, 2);
 		peffect->operation = interpreter::get_function_handle(L, 2);
 	} else

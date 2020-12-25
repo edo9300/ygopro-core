@@ -601,7 +601,7 @@ int32 scriptlib::group_remove(lua_State* L) {
 	if(pgroup->is_readonly == 1)
 		return 0;
 	card* pexception = 0;
-	if(!lua_isnil(L, 3))
+	if(!lua_isnoneornil(L, 3))
 		pexception = lua_get<card*, true>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	uint32 extraargs = lua_gettop(L) - 3;
