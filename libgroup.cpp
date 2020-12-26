@@ -29,7 +29,7 @@ int32 scriptlib::group_from_cards(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
 	for(int32 i = 0; i < lua_gettop(L); ++i) {
-		auto pcard = lua_get<card*>(L, i + 1);
+		auto pcard = lua_get<card*, true>(L, i + 1);
 		pgroup->container.insert(pcard);
 	}
 	interpreter::pushobject(L, pgroup);
