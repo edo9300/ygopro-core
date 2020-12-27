@@ -198,7 +198,7 @@ int32 scriptlib::duel_remove(lua_State* L) {
 	group* pgroup = nullptr;
 	get_card_or_group(L, 1, pcard, pgroup);
 	const auto pduel = lua_get<duel*>(L);
-	auto pos = lua_get<uint8>(L, 2);
+	auto pos = lua_get<uint8, 0>(L, 2);
 	auto reason = lua_get<uint32>(L, 3);
 	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 4);
 	if (pcard)
