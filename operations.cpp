@@ -3498,7 +3498,7 @@ int32 field::destroy(uint16 step, group* targets, effect* reason_effect, uint32 
 				indestructable_set.insert(pcard);
 				continue;
 			}
-			if(!(pcard->current.reason & (REASON_RULE | REASON_COST))) {
+			if(!pcard->current.reason_effect || pcard->is_affect_by_effect(pcard->current.reason_effect)) {
 				bool is_destructable = true;
 				if(pcard->is_affect_by_effect(pcard->current.reason_effect)) {
 					effect* indestructable_effect = pcard->check_indestructable_by_effect(pcard->current.reason_effect, pcard->current.reason_player);

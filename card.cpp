@@ -3626,9 +3626,9 @@ int32 card::is_setable_szone(uint8 playerid, uint8 ignore_fd) {
 }
 // return: this is affected by peffect or not
 int32 card::is_affect_by_effect(effect* peffect) {
-	if(is_status(STATUS_SUMMONING) && peffect->code != EFFECT_CANNOT_DISABLE_SUMMON && peffect->code != EFFECT_CANNOT_DISABLE_SPSUMMON)
+	if(is_status(STATUS_SUMMONING) && (peffect && peffect->code != EFFECT_CANNOT_DISABLE_SUMMON && peffect->code != EFFECT_CANNOT_DISABLE_SPSUMMON))
 		return FALSE;
-	if(peffect->is_flag(EFFECT_FLAG_IGNORE_IMMUNE))
+	if(!peffect || peffect->is_flag(EFFECT_FLAG_IGNORE_IMMUNE))
 		return TRUE;
 	if(peffect->is_immuned(this))
 		return FALSE;
