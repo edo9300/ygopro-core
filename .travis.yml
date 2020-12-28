@@ -22,10 +22,10 @@ matrix:
     os: linux
     compiler: gcc
     env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-gcc7
-  - name: "Bionic LLVM7"
-    os: linux
-    compiler: clang
-    env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-llvm7
+  # - name: "Bionic LLVM7"
+    # os: linux
+    # compiler: clang
+    # env: DEPLOY_BRANCH=travis-core-$TRAVIS_OS_NAME-llvm7
   - name: "Mojave"
     os: osx
     osx_image: xcode10.3
