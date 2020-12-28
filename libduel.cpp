@@ -2957,8 +2957,8 @@ int32 scriptlib::duel_get_overlay_group(lua_State* L) {
 	auto rplayer = lua_get<uint8>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	auto self = lua_get<bool>(L, 2);
-	auto oppo = lua_get<bool>(L, 3);
+	auto self = lua_get<uint8>(L, 2);
+	auto oppo = lua_get<uint8>(L, 3);
 	group* targetsgroup = lua_get<group*>(L, 4);
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
