@@ -3310,7 +3310,7 @@ int32 scriptlib::duel_announce_level(lua_State* L) {
 		for(int32 j = 4; j <= paramcount; ++j)
 			excluded.insert(lua_get<uint32>(L, j));
 		auto it = excluded.begin();
-		while(*it < min) it++;
+		while(it != excluded.end() && *it < min) it++;
 		for(uint32 i = min; i <= max; ++i) {
 			if(it != excluded.end() && *it == i) {
 				it++;
