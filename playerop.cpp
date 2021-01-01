@@ -1003,3 +1003,50 @@ int32 field::announce_number(int16 step, uint8 playerid) {
 		return TRUE;
 	}
 }
+int32 field::rock_paper_scissors(uint16 step, uint8 repeat) {
+	auto checkvalid = [this] {
+		const auto ret = returns.at<int32>(0);
+		if(ret < 1 || ret>3) {
+			pduel->new_message(MSG_RETRY);
+			core.units.begin()->step--;
+			return false;
+		}
+		return true;
+	};
+	switch(step) {
+	case 0: {
+		auto message = pduel->new_message(MSG_ROCK_PAPER_SCISSORS);
+		message->write<uint8>(0);
+		return FALSE;
+	}
+	case 1: {
+		if(checkvalid()) {
+			core.units.begin()->arg2 = returns.at<int32>(0);
+			auto message = pduel->new_message(MSG_ROCK_PAPER_SCISSORS);
+			message->write<uint8>(1);
+		}
+		return FALSE;
+	}
+	case 2: {
+		if(!checkvalid())
+			return FALSE;
+		int32 hand0 = core.units.begin()->arg2;
+		int32 hand1 = returns.at<int32>(0);
+		auto message = pduel->new_message(MSG_HAND_RES);
+		message->write<uint8>(hand0 + (hand1 << 2));
+		if(hand0 == hand1) {
+			if(repeat) {
+				core.units.begin()->step = -1;
+				return FALSE;
+			} else
+				returns.at<int32>(0) = PLAYER_NONE;
+		} else if((hand0 == 1 && hand1 == 2) || (hand0 == 2 && hand1 == 3) || (hand0 == 3 && hand1 == 1)) {
+			returns.at<int32>(0) = 1;
+		} else {
+			returns.at<int32>(0) = 0;
+		}
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
