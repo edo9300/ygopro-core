@@ -607,8 +607,11 @@ int32 field::process() {
 	case PROCESSOR_ROCK_PAPER_SCISSORS: {
 		if (rock_paper_scissors(it->step, it->arg1)) {
 			core.units.pop_front();
-		} else
+			return PROCESSOR_FLAG_CONTINUE;
+		} else {
 			it->step++;
+			return PROCESSOR_FLAG_WAITING;
+		}
 		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELECT_FUSION: {
