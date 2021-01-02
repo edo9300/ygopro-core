@@ -2647,31 +2647,35 @@ void card::clear_card_target() {
 void card::filter_effect(int32 code, effect_set* eset, uint8 sort) {
 	effect* peffect;
 	auto rg = single_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
-		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
+	for(auto eit = rg.first; eit != rg.second;) {
+		peffect = eit->second;
+		++eit;
+		if(peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
 			eset->push_back(peffect);
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->is_available() && is_affect_by_effect(peffect))
 				eset->push_back(peffect);
 		}
 	}
 	for(auto& pcard : effect_target_owner) {
 		rg = pcard->target_effect.equal_range(code);
-		for(; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if(peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect))
 				eset->push_back(peffect);
 		}
 	}
 	for (auto& pcard : xyz_materials) {
 		rg = pcard->xmaterial_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if (peffect->is_available() && is_affect_by_effect(peffect))
@@ -2679,8 +2683,9 @@ void card::filter_effect(int32 code, effect_set* eset, uint8 sort) {
 		}
 	}
 	rg = pduel->game_field->effects.aura_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
+	for(auto eit = rg.first; eit != rg.second;) {
+		peffect = eit->second;
+		++eit;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
 						&& peffect->is_target(this) && is_affect_by_effect(peffect))
 			eset->push_back(peffect);
@@ -3017,31 +3022,35 @@ void card::filter_spsummon_procedure_g(uint8 playerid, effect_set* peset) {
 effect* card::is_affected_by_effect(int32 code) {
 	effect* peffect;
 	auto rg = single_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
+	for(auto eit = rg.first; eit != rg.second;) {
+		peffect = eit->second;
+		++eit;
 		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
 			return peffect;
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->is_available() && is_affect_by_effect(peffect))
 				return peffect;
 		}
 	}
 	for (auto& pcard : effect_target_owner) {
 		rg = pcard->target_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect))
 				return peffect;
 		}
 	}
 	for (auto& pcard : xyz_materials) {
 		rg = pcard->xmaterial_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if (peffect->is_available() && is_affect_by_effect(peffect))
@@ -3049,8 +3058,9 @@ effect* card::is_affected_by_effect(int32 code) {
 		}
 	}
 	rg = pduel->game_field->effects.aura_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
+	for(auto eit = rg.first; eit != rg.second;) {
+		peffect = eit->second;
+		++eit;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
 			&& peffect->is_available() && is_affect_by_effect(peffect))
 			return peffect;
@@ -3060,24 +3070,27 @@ effect* card::is_affected_by_effect(int32 code) {
 effect* card::is_affected_by_effect(int32 code, card* target) {
 	effect* peffect;
 	auto rg = single_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
+	for(auto eit = rg.first; eit != rg.second;) {
+		peffect = eit->second;
+		++eit;
 		if (peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))
 						&& peffect->get_value(target))
 			return peffect;
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->is_available() && is_affect_by_effect(peffect) && peffect->get_value(target))
 				return peffect;
 		}
 	}
 	for (auto& pcard : equiping_cards) {
 		rg = pcard->equip_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if (peffect->is_available() && is_affect_by_effect(peffect) && peffect->get_value(target))
@@ -3086,16 +3099,18 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 	}
 	for (auto& pcard : effect_target_owner) {
 		rg = pcard->target_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect) && peffect->get_value(target))
 				return peffect;
 		}
 	}
 	for (auto& pcard : xyz_materials) {
 		rg = pcard->xmaterial_effect.equal_range(code);
-		for (; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if (peffect->is_available() && is_affect_by_effect(peffect) && peffect->get_value(target))
@@ -3103,8 +3118,9 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 		}
 	}
 	rg = pduel->game_field->effects.aura_effect.equal_range(code);
-	for (; rg.first != rg.second; ++rg.first) {
-		peffect = rg.first->second;
+	for(auto eit = rg.first; eit != rg.second;) {
+		peffect = eit->second;
+		++eit;
 		if (!peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_available()
 						&& peffect->is_target(this) && is_affect_by_effect(peffect) && peffect->get_value(target))
 			return peffect;
@@ -3114,8 +3130,9 @@ effect* card::is_affected_by_effect(int32 code, card* target) {
 int32 card::get_card_effect(uint32 code) {
 	effect* peffect;
 	int32 i = 0;
-	for (auto rg = single_effect.begin(); rg != single_effect.end(); ++rg) {
+	for (auto rg = single_effect.begin(); rg != single_effect.end();) {
 		peffect = rg->second;
+		rg++;
 		if ((code == 0 || peffect->code == code) && peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))) {
 			interpreter::pushobject(pduel->lua->current_state, peffect);
 			i++;
@@ -3129,8 +3146,9 @@ int32 card::get_card_effect(uint32 code) {
 		}
 	}
 	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
-		for (auto rg = (*cit)->equip_effect.begin(); rg != (*cit)->equip_effect.end(); ++rg) {
+		for (auto rg = (*cit)->equip_effect.begin(); rg != (*cit)->equip_effect.end();) {
 			peffect = rg->second;
+			rg++;
 			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
 				interpreter::pushobject(pduel->lua->current_state, peffect);
 				i++;
@@ -3139,8 +3157,9 @@ int32 card::get_card_effect(uint32 code) {
 	}
 	for(auto& pcard : effect_target_owner) {
 		auto rg = pcard->target_effect.equal_range(code);
-		for(; rg.first != rg.second; ++rg.first) {
-			peffect = rg.first->second;
+		for(auto eit = rg.first; eit != rg.second;) {
+			peffect = eit->second;
+			++eit;
 			if((code == 0 || peffect->code == code) && peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect)) {
 				interpreter::pushobject(pduel->lua->current_state, peffect);
 				i++;
@@ -3148,8 +3167,9 @@ int32 card::get_card_effect(uint32 code) {
 		}
 	}
 	for (auto cit = xyz_materials.begin(); cit != xyz_materials.end(); ++cit) {
-		for (auto rg = (*cit)->xmaterial_effect.begin(); rg != (*cit)->xmaterial_effect.end(); ++rg) {
+		for (auto rg = (*cit)->xmaterial_effect.begin(); rg != (*cit)->xmaterial_effect.end();) {
 			peffect = rg->second;
+			rg++;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
 			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
@@ -3158,8 +3178,9 @@ int32 card::get_card_effect(uint32 code) {
 			}
 		}
 	}
-	for (auto rg = pduel->game_field->effects.aura_effect.begin(); rg != pduel->game_field->effects.aura_effect.end(); ++rg) {
+	for (auto rg = pduel->game_field->effects.aura_effect.begin(); rg != pduel->game_field->effects.aura_effect.end();) {
 		peffect = rg->second;
+		rg++;
 		if ((code == 0 || peffect->code == code) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
 			&& peffect->is_available() && is_affect_by_effect(peffect)) {
 			interpreter::pushobject(pduel->lua->current_state, peffect);
