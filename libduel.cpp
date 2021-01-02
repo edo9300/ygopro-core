@@ -2876,6 +2876,10 @@ int32 scriptlib::duel_set_operation_info(lua_State* L) {
 	optarget opt{ nullptr, count, playerid, param };
 	if(pobj && (pobj->lua_type & (PARAM_TYPE_CARD | PARAM_TYPE_GROUP))) {
 		opt.op_cards = pduel->new_group(pobj);
+		// spear creting and similar stuff, they set CATEGORY_SPECIAL_SUMMON with PLAYER_ALL to increase the summon counters
+		// and the core always assume the group is exactly 2 cards
+		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2)
+			luaL_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
 		opt.op_cards->is_readonly = TRUE;
 	}
 	auto omit = ch->opinfos.find(cate);
