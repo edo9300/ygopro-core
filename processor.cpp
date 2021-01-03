@@ -612,7 +612,6 @@ int32 field::process() {
 			it->step++;
 			return PROCESSOR_FLAG_WAITING;
 		}
-		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_SELECT_FUSION: {
 		if(it->step == 0) {
