@@ -655,7 +655,7 @@ static const struct luaL_Reg debuglib[] = {
 	{ NULL, NULL }
 };
 
-interpreter::interpreter(duel* pd): coroutines(256) {
+interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 	lua_state = luaL_newstate();
 	current_state = lua_state;
 	pduel = pd;
@@ -742,6 +742,10 @@ void interpreter::unregister_effect(effect* peffect) {
 			luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
 		lua_pop(lua_state, 1);
 	}
+	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, peffect->ref_handle);
+	lua_obj** lobj = static_cast<lua_obj**>(lua_touserdata(lua_state, -1));
+	*lobj = &deleted;
+	lua_pop(lua_state, 1);
 	luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->ref_handle);
 	peffect->ref_handle = 0;
 }
@@ -751,6 +755,10 @@ void interpreter::register_group(group* pgroup) {
 void interpreter::unregister_group(group* pgroup) {
 	if (!pgroup)
 		return;
+	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
+	lua_obj** lobj = static_cast<lua_obj**>(lua_touserdata(lua_state, -1));
+	*lobj = &deleted;
+	lua_pop(lua_state, 1);
 	luaL_unref(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
 	pgroup->ref_handle = 0;
 }

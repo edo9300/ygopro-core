@@ -338,7 +338,12 @@ int32 scriptlib::effect_get_label_object(lua_State* L) {
 		return 1;
 	}
 	lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
-	if(lua_isuserdata(L, -1) || lua_istable(L, -1))
+	if(auto obj = lua_touserdata(L, -1)) {
+		if((*static_cast<lua_obj**>(obj))->lua_type == PARAM_TYPE_DELETED)
+			luaL_error(L, "Attempting to access deleted object.");
+		return 1;
+	}
+	if(lua_istable(L, -1))
 		return 1;
 	else {
 		lua_pop(L, 1);

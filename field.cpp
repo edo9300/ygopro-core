@@ -2024,10 +2024,22 @@ void field::erase_grant_effect(effect* peffect) {
 	effects.grant_effect.erase(eit);
 }
 int32 field::adjust_grant_effect() {
+	auto CheckValidLabel = [this](int32 lref) {
+		if(!lref)
+			return false;
+		const auto L = pduel->lua->current_state;
+		bool res = false;
+		lua_rawgeti(L, LUA_REGISTRYINDEX, lref);
+		if(auto obj = lua_touserdata(L, -1)) {
+			res = (*static_cast<lua_obj**>(obj))->lua_type == PARAM_TYPE_EFFECT;
+		}
+		lua_pop(L, 1);
+		return res;
+	};
 	int32 adjusted = FALSE;
 	for(auto& eit : effects.grant_effect) {
 		effect* peffect = eit.first;
-		if(!peffect->label_object)
+		if(!CheckValidLabel(peffect->label_object))
 			continue;
 		card_set cset;
 		if(peffect->is_available())

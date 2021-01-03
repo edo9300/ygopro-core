@@ -21,12 +21,14 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include "lua_obj.h"
 
-class lua_obj;
 class card;
 class effect;
 class group;
 class duel;
+
+using lua_invalid = lua_obj_helper<PARAM_TYPE_DELETED>;
 
 class interpreter {
 public:
@@ -42,6 +44,7 @@ public:
 	coroutine_map coroutines;
 	int32 no_action;
 	int32 call_depth;
+	lua_invalid deleted;
 
 	explicit interpreter(duel* pd);
 	~interpreter();
