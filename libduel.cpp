@@ -381,11 +381,11 @@ int32 scriptlib::duel_create_token(lua_State* L) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8>(L, 1);
-	auto code = lua_get<uint32>(L, 2);
-	if(playerid != 0 && playerid != 1) {
+	if(playerid >= PLAYER_NONE) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
+	auto code = lua_get<uint32>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	card* pcard = pduel->new_card(code);
 	pcard->owner = playerid;
@@ -403,6 +403,8 @@ int32 scriptlib::duel_special_summon(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	auto sumtype = lua_get<uint32>(L, 2);
 	auto sumplayer = lua_get<uint8>(L, 3);
+	if(sumplayer >= PLAYER_NONE)
+		return 0;
 	auto playerid = lua_get<uint8>(L, 4);
 	auto nocheck = lua_get<bool>(L, 5);
 	auto nolimit = lua_get<bool>(L, 6);
@@ -427,6 +429,8 @@ int32 scriptlib::duel_special_summon_step(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto sumtype = lua_get<uint32>(L, 2);
 	auto sumplayer = lua_get<uint8>(L, 3);
+	if(sumplayer >= PLAYER_NONE)
+		return 0;
 	auto playerid = lua_get<uint8>(L, 4);
 	auto nocheck = lua_get<bool>(L, 5);
 	auto nolimit = lua_get<bool>(L, 6);
@@ -457,6 +461,8 @@ int32 scriptlib::duel_sendto_hand(lua_State* L) {
 	get_card_or_group(L, 1, pcard, pgroup);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 2);
+	if(playerid > PLAYER_NONE)
+		return 0;
 	auto reason = lua_get<uint32>(L, 3);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_HAND, 0, POS_FACEUP);
@@ -476,6 +482,8 @@ int32 scriptlib::duel_sendto_deck(lua_State* L) {
 	get_card_or_group(L, 1, pcard, pgroup);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 2);
+	if(playerid > PLAYER_NONE)
+		return 0;
 	auto sequence = lua_get<int32>(L, 3);
 	auto reason = lua_get<uint32>(L, 4);
 	uint16 location = (sequence == -2) ? 0 : LOCATION_DECK;
@@ -497,6 +505,8 @@ int32 scriptlib::duel_sendto_extra(lua_State* L) {
 	get_card_or_group(L, 1, pcard, pgroup);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 2);
+	if(playerid > PLAYER_NONE)
+		return 0;
 	auto reason = lua_get<uint32>(L, 3);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
@@ -519,6 +529,8 @@ int32 scriptlib::duel_sendto(lua_State* L) {
 	auto reason = lua_get<uint32>(L, 3);
 	auto pos = lua_get<uint8, POS_FACEUP>(L, 4);
 	auto playerid = lua_get<uint8, PLAYER_NONE>(L, 5);
+	if(playerid > PLAYER_NONE)
+		return 0;
 	auto sequence = lua_get<uint32, 0>(L, 6);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, pos, TRUE);
