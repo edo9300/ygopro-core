@@ -1332,7 +1332,7 @@ int32 field::self_destroy(uint16 step, card* ucard, int32 p) {
 				auto message = pduel->new_message(MSG_HINT);
 				message->write<uint8>(HINT_SELECTMSG);
 				message->write<uint8>(p);
-				message->write<uint32>(534);
+				message->write<uint64>(534);
 				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, p, 0x10001);
 			}
 			return FALSE;
@@ -1433,7 +1433,7 @@ int32 field::trap_monster_adjust(uint16 step) {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8>(HINT_SELECTMSG);
 			message->write<uint8>(check_player);
-			message->write<uint32>(502);
+			message->write<uint64>(502);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, check_player, ct + (ct << 16));
 		} else
 			core.units.begin()->step = 2;
@@ -4872,7 +4872,7 @@ int32 field::change_position(uint16 step, group* targets, effect* reason_effect,
 				auto message = pduel->new_message(MSG_HINT);
 				message->write<uint8>(HINT_SELECTMSG);
 				message->write<uint8>(playerid);
-				message->write<uint32>(502);
+				message->write<uint64>(502);
 				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, ct + (ct << 16));
 			}
 		} else

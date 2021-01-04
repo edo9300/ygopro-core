@@ -4038,9 +4038,9 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		raise_event((card*)0, EVENT_PREDRAW, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		message = pduel->new_message(MSG_HINT);
-		message->write<uint8_t>(HINT_EVENT);
-		message->write<uint8_t>(turn_player);
-		message->write<uint32_t>(27);
+		message->write<uint8>(HINT_EVENT);
+		message->write<uint8>(turn_player);
+		message->write<uint64>(27);
 		if(core.new_fchain.size() || core.new_ochain.size())
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		/*if(core.set_forced_attack)
