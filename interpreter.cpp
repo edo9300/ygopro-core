@@ -1245,6 +1245,7 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	lua_State* rthread;
 	if (it == coroutines.end()) {
 		rthread = lua_newthread(lua_state);
+		const auto threadref = luaL_ref(lua_state, LUA_REGISTRYINDEX);
 		pushobject(rthread, f);
 		if(!lua_isfunction(rthread, -1)) {
 			print_stacktrace(current_state);
@@ -1253,9 +1254,10 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 			return OPERATION_FAIL;
 		}
 		call_depth++;
-		coroutines.emplace(f, rthread);
+		auto ret = coroutines.emplace(f, std::make_pair(rthread, threadref));
+		it = ret.first;
 	} else {
-		rthread = it->second;
+		rthread = it->second.first;
 		if(step == 0) {
 			print_stacktrace(current_state);
 			pduel->handle_message(pduel->handle_message_payload, "recursive event trigger detected.", OCG_LOG_TYPE_ERROR);
@@ -1273,10 +1275,12 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	current_state = rthread;
 	int32 result = lua_resumec(rthread, prev_state, param_count, &result);
 	if (result == 0) {
-		coroutines.erase(f);
+		auto ref = it->second.second;
+		coroutines.erase(it);
 		if(yield_value)
 			*yield_value = lua_isboolean(rthread, -1) ? lua_toboolean(rthread, -1) : (uint32)lua_tointeger(rthread, -1);
 		current_state = lua_state;
+		luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
 		call_depth--;
 		if(call_depth == 0) {
 			pduel->release_script_group();
@@ -1286,11 +1290,13 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	} else if (result == LUA_YIELD) {
 		return COROUTINE_YIELD;
 	} else {
-		coroutines.erase(f);
+		auto ref = it->second.second;
+		coroutines.erase(it);
 		print_stacktrace(current_state);
 		pduel->handle_message(pduel->handle_message_payload, lua_tostring_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(rthread, 1);
 		current_state = lua_state;
+		luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
 		call_depth--;
 		if(call_depth == 0) {
 			pduel->release_script_group();

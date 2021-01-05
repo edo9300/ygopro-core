@@ -32,7 +32,7 @@ using lua_invalid = lua_obj_helper<PARAM_TYPE_DELETED>;
 
 class interpreter {
 public:
-	typedef std::unordered_map<int32, lua_State*> coroutine_map;
+	typedef std::unordered_map<int32, std::pair<lua_State*, int32>> coroutine_map;
 	typedef std::list<std::pair<lua_Integer, uint32>> param_list;
 	
 	duel* pduel;
