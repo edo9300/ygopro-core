@@ -33,8 +33,8 @@ using lua_invalid = lua_obj_helper<PARAM_TYPE_DELETED>;
 class interpreter {
 	char msgbuf[128];
 public:
-	typedef std::unordered_map<int32, std::pair<lua_State*, int32>> coroutine_map;
-	typedef std::list<std::pair<lua_Integer, uint32>> param_list;
+	using coroutine_map = std::unordered_map<int32, std::pair<lua_State*, int32>>;
+	using param_list = std::list<std::pair<lua_Integer, uint32>>;
 	
 	duel* pduel;
 	lua_State* lua_state;
@@ -74,6 +74,11 @@ public:
 	int32 call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step);
 	int32 clone_function_ref(int32 func_ref);
 	void* get_ref_object(int32 ref_handler);
+	int32 call_function(int param_count, int ret_count);
+	inline int32 ret_fail(const char* message);
+	inline int32 ret_fail(const char* message, bool error);
+	inline void deepen();
+	inline void flatten();
 
 	static void pushobject(lua_State* L, lua_obj* obj);
 	static void pushobject(lua_State* L, int32 lua_ptr);

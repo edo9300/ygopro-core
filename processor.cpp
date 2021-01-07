@@ -789,7 +789,7 @@ int32 field::execute_cost(uint16 step, effect* triggering_effect, uint8 triggeri
 	uint32 yield_value = 0;
 	int32 result = pduel->lua->call_coroutine(triggering_effect->cost, count, &yield_value, step);
 	returns.at<int32>(0) = yield_value;
-	if (result == COROUTINE_FINISH || result == COROUTINE_ERROR || result == OPERATION_FAIL) {
+	if (result != COROUTINE_YIELD) {
 		core.reason_effect = 0;
 		core.reason_player = PLAYER_NONE;
 		core.check_level--;
@@ -841,7 +841,7 @@ int32 field::execute_operation(uint16 step, effect* triggering_effect, uint8 tri
 	uint32 yield_value = 0;
 	int32 result = pduel->lua->call_coroutine(triggering_effect->operation, count, &yield_value, step);
 	returns.at<int32>(0) = yield_value;
-	if (result == COROUTINE_FINISH || result == COROUTINE_ERROR || result == OPERATION_FAIL) {
+	if (result != COROUTINE_YIELD) {
 		core.reason_effect = 0;
 		core.reason_player = PLAYER_NONE;
 		core.check_level--;
@@ -898,7 +898,7 @@ int32 field::execute_target(uint16 step, effect* triggering_effect, uint8 trigge
 	uint32 yield_value = 0;
 	int32 result = pduel->lua->call_coroutine(triggering_effect->target, count, &yield_value, step);
 	returns.at<int32>(0) = yield_value;
-	if (result == COROUTINE_FINISH || result == COROUTINE_ERROR || result == OPERATION_FAIL) {
+	if (result != COROUTINE_YIELD) {
 		core.reason_effect = 0;
 		core.reason_player = PLAYER_NONE;
 		core.check_level--;
