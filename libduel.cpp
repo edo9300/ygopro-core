@@ -4121,13 +4121,13 @@ int32 scriptlib::duel_load_script(lua_State* L) {
 		if(pduel->loaded_scripts[hash])
 			lua_pushboolean(L, pduel->loaded_scripts[hash] == 1);
 		else {
-			auto res = pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), string);
+			auto res = pduel->read_script(string);
 			lua_pushboolean(L, res);
 			pduel->loaded_scripts[hash] = res ? 1 : 2;
 		}
 		return 1;
 	}
-	lua_pushboolean(L, pduel->read_script(pduel->read_script_payload, static_cast<OCG_Duel>(pduel), string));
+	lua_pushboolean(L, pduel->read_script(string));
 	lua_getglobal(L, "edopro_exports");
 	lua_pushnil(L);
 	lua_setglobal(L, "edopro_exports");

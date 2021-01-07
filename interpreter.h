@@ -31,12 +31,12 @@ class duel;
 using lua_invalid = lua_obj_helper<PARAM_TYPE_DELETED>;
 
 class interpreter {
+	char msgbuf[128];
 public:
 	typedef std::unordered_map<int32, std::pair<lua_State*, int32>> coroutine_map;
 	typedef std::list<std::pair<lua_Integer, uint32>> param_list;
 	
 	duel* pduel;
-	char msgbuf[64];
 	lua_State* lua_state;
 	lua_State* current_state;
 	param_list params;
@@ -86,9 +86,11 @@ public:
 	}
 	static void print_stacktrace(lua_State* L);
 
-	template <size_t N, typename... TR>
-	static __forceinline int sprintf(char (&buffer)[N], const char* format, TR&&... args) {
-		return std::snprintf(buffer, N, format, std::forward<TR>(args)...);
+	template <typename... TR>
+	inline const char* format(const char* format, TR&&... args) {
+		if(std::snprintf(msgbuf, sizeof(msgbuf), format, std::forward<TR>(args)...) >= 0)
+			return msgbuf;
+		return "";
 	}
 };
 

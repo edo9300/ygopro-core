@@ -12,19 +12,15 @@
 #include "effect.h"
 #include "group.h"
 
-duel::duel(OCG_DuelOptions options) {
-	read_card_api = options.cardReader;
-	read_card_payload = options.payload1;
-	read_script = options.scriptReader;
-	read_script_payload = options.payload2;
-	handle_message = options.logHandler;
-	handle_message_payload = options.payload3;
-	read_card_done = options.cardReaderDone;
-	read_card_done_payload = options.payload4;
+duel::duel(OCG_DuelOptions options) :
+	read_card_callback(options.cardReader), read_script_callback(options.scriptReader),
+	handle_message_callback(options.logHandler), read_card_done_callback(options.cardReaderDone),
+	read_card_payload(options.payload1), read_script_payload(options.payload2),
+	handle_message_payload(options.payload3), read_card_done_payload(options.payload4)
+{
 	lua = new interpreter(this);
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);
-	clear_buffer();
 }
 duel::~duel() {
 	for(auto& pcard : cards)
@@ -33,8 +29,8 @@ duel::~duel() {
 		delete pgroup;
 	for(auto& peffect : effects)
 		delete peffect;
-	delete lua;
 	delete game_field;
+	delete lua;
 }
 void duel::clear() {
 	for(auto& pcard : cards)
@@ -146,9 +142,9 @@ card_data const* duel::read_card(uint32_t code, card_data* copyable) {
 		ret = &(search->second);
 	} else {
 		OCG_CardData data{};
-		read_card_api(read_card_payload, code, &data);
+		read_card_callback(read_card_payload, code, &data);
 		ret = &(data_cache.emplace(code, &data).first->second);
-		read_card_done(read_card_done_payload, &data);
+		read_card_done_callback(read_card_done_payload, &data);
 	}
 	if(copyable)
 		*copyable = *ret;

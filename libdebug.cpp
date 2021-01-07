@@ -10,14 +10,13 @@
 #include "duel.h"
 #include "field.h"
 #include "card.h"
-#include "effect.h"
 
 int32 scriptlib::debug_message(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_getglobal(L, "tostring");
 	lua_pushvalue(L, -2);
 	lua_pcall(L, 1, 1, 0);
-	pduel->handle_message(pduel->handle_message_payload, lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FROM_SCRIPT);
+	pduel->handle_message(lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FROM_SCRIPT);
 	return 0;
 }
 int32 scriptlib::debug_add_card(lua_State* L) {
