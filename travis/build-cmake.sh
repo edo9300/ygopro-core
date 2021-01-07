@@ -9,7 +9,8 @@ if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
         -DCMAKE_GENERATOR_PLATFORM=Win32 \
         -DCMAKE_BUILD_TYPE=$BUILD_CONFIG \
 		-DOCGCORE_OLD_WINDOWS=ON \
-		-T v141_xp
+		-T v141_xp \
+		/p:XPDeprecationWarning=false
 else
     cmake .. -DCMAKE_BUILD_TYPE=$BUILD_CONFIG
 fi
