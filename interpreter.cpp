@@ -694,12 +694,17 @@ interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 interpreter::~interpreter() {
 	lua_close(lua_state);
 }
+//creates a pointer to a lua_obj in the lua stack
+static inline lua_obj** create_object(lua_State* L) {
+	return static_cast<lua_obj**>(lua_newuserdata(L, sizeof(lua_obj*)));
+}
 int32 interpreter::register_card(card* pcard) {
 	//create a card in by userdata
-	card** ppcard = static_cast<card**>(lua_newuserdata(lua_state, sizeof(card*)));
+	lua_obj** ppcard = create_object(lua_state);
 	*ppcard = pcard;
 	pcard->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-	//some userdata may be created in script like token so use current_state
+	//creates the pointer in the main state, then after taking a reference
+	//pushes it in the stack of the current_state (probably for proper error stacktrace)
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, pcard->ref_handle);
 	//load script
 	if(pcard->data.alias && (pcard->data.alias < pcard->data.code + 10) && (pcard->data.code < pcard->data.alias + 10))
@@ -719,6 +724,16 @@ int32 interpreter::register_card(card* pcard) {
 	}
 	pcard->cardid = pduel->game_field->infos.card_id++;
 	return OPERATION_SUCCESS;
+}
+static inline void remove_object(lua_State* L, lua_obj* obj, lua_obj* replacement) {
+	if(!obj)
+		return;
+	lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
+	lua_obj** lobj = static_cast<lua_obj**>(lua_touserdata(L, -1));
+	*lobj = replacement;
+	lua_pop(L, 1);
+	luaL_unref(L, LUA_REGISTRYINDEX, obj->ref_handle);
+	obj->ref_handle = 0;
 }
 void interpreter::register_effect(effect* peffect) {
 	register_obj(peffect, "Effect");
@@ -742,38 +757,24 @@ void interpreter::unregister_effect(effect* peffect) {
 			luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
 		lua_pop(lua_state, 1);
 	}
-	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, peffect->ref_handle);
-	lua_obj** lobj = static_cast<lua_obj**>(lua_touserdata(lua_state, -1));
-	*lobj = &deleted;
-	lua_pop(lua_state, 1);
-	luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->ref_handle);
-	peffect->ref_handle = 0;
+	remove_object(lua_state, peffect, &deleted);
 }
 void interpreter::register_group(group* pgroup) {
 	register_obj(pgroup, "Group");
 }
 void interpreter::unregister_group(group* pgroup) {
-	if (!pgroup)
-		return;
-	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
-	lua_obj** lobj = static_cast<lua_obj**>(lua_touserdata(lua_state, -1));
-	*lobj = &deleted;
-	lua_pop(lua_state, 1);
-	luaL_unref(lua_state, LUA_REGISTRYINDEX, pgroup->ref_handle);
-	pgroup->ref_handle = 0;
+	remove_object(lua_state, pgroup, &deleted);
 }
 void interpreter::register_obj(lua_obj* obj, const char* tablename) {
 	if(!obj)
 		return;
-	//create a group in by userdata
-	lua_obj** pobj = static_cast<lua_obj**>(lua_newuserdata(lua_state, sizeof(lua_obj*)));
+	lua_obj** pobj = create_object(lua_state);
 	*pobj = obj;
-	obj->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-	//set metatable of pointer to base script
-	lua_rawgeti(lua_state, LUA_REGISTRYINDEX, obj->ref_handle);
+	//set metatable current lua object
 	lua_getglobal(lua_state, tablename);
 	lua_setmetatable(lua_state, -2);
-	lua_pop(lua_state, 1);
+	//pops the lua object from the stack and takes a reference of it
+	obj->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
 }
 int32 interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	int32 error;
