@@ -1850,15 +1850,16 @@ int32 field::get_draw_count(uint8 playerid) {
 	return count;
 }
 void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* material, bool check_level) {
+	auto mzonecheck = [&](card* pcard) {
+		return pcard && (!check_level || pcard->get_level()) && pcard->is_affect_by_effect(peffect)
+			&& pcard->is_releasable_by_effect(playerid, peffect);
+	};
 	for(auto& pcard : player[playerid].list_mzone) {
-		if(pcard && (!check_level || pcard->get_level()) && pcard->is_affect_by_effect(peffect)
-		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
+		if(mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid))
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[1 - playerid].list_mzone) {
-		if(pcard && (!check_level || pcard->get_level()) && pcard->is_affect_by_effect(peffect)
-		        && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE)
-		        && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_releasable_by_effect(playerid, peffect))
+		if(mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE))
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[playerid].list_hand)
@@ -1867,6 +1868,13 @@ void field::get_ritual_material(uint8 playerid, effect* peffect, card_set* mater
 	for(auto& pcard : player[playerid].list_grave)
 		if((pcard->data.type & TYPE_MONSTER) && pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL) && pcard->is_removeable(playerid, POS_FACEUP, REASON_EFFECT))
 			material->insert(pcard);
+	for(auto& pcard : player[playerid].list_mzone) {
+		if(!pcard)
+			continue;
+		for(auto& ppcard : pcard->xyz_materials)
+			if(ppcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL))
+				material->insert(ppcard);
+	}
 }
 void field::get_fusion_material(uint8 playerid, card_set* material) {
 	for(auto& pcard : player[playerid].list_mzone) {
@@ -1884,12 +1892,16 @@ void field::get_fusion_material(uint8 playerid, card_set* material) {
 void field::ritual_release(card_set* material) {
 	card_set rel;
 	card_set rem;
+	card_set overlay;
 	for(auto& pcard : *material) {
 		if(pcard->current.location == LOCATION_GRAVE)
 			rem.insert(pcard);
+		else if(pcard->current.location == LOCATION_OVERLAY)
+			overlay.insert(pcard);
 		else
 			rel.insert(pcard);
 	}
+	send_to(&overlay, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 	release(&rel, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player);
 	send_to(&rem, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, POS_FACEUP);
 }
