@@ -105,17 +105,7 @@ int32 scriptlib::effect_set_count_limit(lua_State* L) {
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto v = lua_get<uint8>(L, 2);
 	auto code = lua_get<uint32, 0>(L, 3);
-	uint32 flag = 0;
-	if(lua_gettop(L) >= 4)
-		flag = lua_get<uint32, 0>(L, 4);
-	else {
-		flag = code & 0xf0000000;
-		code &= 0xfffffff;
-		if(code == 1) {
-			flag |= EFFECT_COUNT_CODE_SINGLE;
-			code = 0;
-		}
-	}
+	uint32 flag = lua_get<uint32, 0>(L, 4);
 	if(v == 0)
 		v = 1;
 	peffect->flag[0] |= EFFECT_FLAG_COUNT_LIMIT;
