@@ -3126,7 +3126,7 @@ int32 scriptlib::duel_select_option(lua_State* L) {
 		duel* pduel = (duel*)ctx;
 		auto playerid = lua_get<uint8>(L, 1);
 		bool sel_hint = lua_get<bool, true>(L, 2);
-		if(sel_hint) {
+		if(sel_hint && !pduel->game_field->core.select_options.empty()) {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8>(HINT_OPSELECTED);
 			message->write<uint8>(playerid);
