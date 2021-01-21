@@ -79,6 +79,7 @@ field::field(duel* pduel) {
 	core.pre_field[1] = 0;
 	core.opp_mzone.clear();
 	core.summoning_card = 0;
+	core.summoning_proc_group_type = 0;
 	core.summon_depth = 0;
 	core.summon_cancelable = FALSE;
 	core.chain_limit.clear();

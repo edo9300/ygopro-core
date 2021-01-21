@@ -271,6 +271,7 @@ struct processor {
 	effect* reason_effect;
 	uint8 reason_player;
 	card* summoning_card;
+	uint32 summoning_proc_group_type;
 	uint8 summon_depth;
 	uint8 summon_cancelable;
 	card* attacker;
@@ -560,6 +561,7 @@ public:
 	void summon(uint32 sumplayer, card* target, effect* proc, uint32 ignore_count, uint32 min_tribute, uint32 zone = 0x1f);
 	void mset(uint32 setplayer, card* target, effect* proc, uint32 ignore_count, uint32 min_tribute, uint32 zone = 0x1f);
 	void special_summon_rule(uint32 sumplayer, card* target, uint32 summon_type);
+	void special_summon_rule_group(uint32 sumplayer, uint32 summon_type);
 	void special_summon(card_set* target, uint32 sumtype, uint32 sumplayer, uint32 playerid, uint32 nocheck, uint32 nolimit, uint32 positions, uint32 zone);
 	void special_summon_step(card* target, uint32 sumtype, uint32 sumplayer, uint32 playerid, uint32 nocheck, uint32 nolimit, uint32 positions, uint32 zone);
 	void special_summon_complete(effect* reason_effect, uint8 reason_player);
@@ -591,6 +593,7 @@ public:
 	int32 sset(uint16 step, uint8 setplayer, uint8 toplayer, card* ptarget, effect* reason_effect);
 	int32 sset_g(uint16 step, uint8 setplayer, uint8 toplayer, group* ptarget, uint8 confirm, effect* reason_effect);
 	int32 special_summon_rule(uint16 step, uint8 sumplayer, card* target, uint32 summon_type);
+	int32 special_summon_rule_group(uint16 step, uint8 sumplayer, uint32 summon_type);
 	int32 special_summon_step(uint16 step, group* targets, card* target, uint32 zone);
 	int32 special_summon(uint16 step, effect* reason_effect, uint8 reason_player, group* targets, uint32 zone);
 	int32 destroy_replace(uint16 step, group* targets, card* target, uint8 battle);
@@ -767,6 +770,7 @@ public:
 #define PROCESSOR_SSET				65
 #define PROCESSOR_SPSUMMON_STEP		66
 #define PROCESSOR_SSET_G			67
+#define PROCESSOR_SPSUMMON_RULE_G	68
 #define PROCESSOR_DRAW				70
 #define PROCESSOR_DAMAGE			71
 #define PROCESSOR_RECOVER			72

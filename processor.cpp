@@ -433,6 +433,13 @@ int32 field::process() {
 			it->step++;
 		return PROCESSOR_FLAG_CONTINUE;
 	}
+	case PROCESSOR_SPSUMMON_RULE_G: {
+		if (special_summon_rule_group(it->step, it->arg1, it->arg2))
+			core.units.pop_front();
+		else
+			it->step++;
+		return PROCESSOR_FLAG_CONTINUE;
+	}
 	case PROCESSOR_DRAW	: {
 		if (draw(it->step, it->peffect, it->arg1, (it->arg2 >> 28) & 0xf, (it->arg2 >> 24) & 0xf, it->arg2 & 0xffffff))
 			core.units.pop_front();
@@ -4947,9 +4954,10 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			core.chain_limit.clear();
 			return FALSE;
 		}
-		if(core.summoning_card)
+		if(core.summoning_card || core.summoning_proc_group_type)
 			core.subunits.push_back(core.reserved);
 		core.summoning_card = 0;
+		core.summoning_proc_group_type = 0;
 		core.units.begin()->step = -1;
 		return FALSE;
 	}
@@ -4970,9 +4978,10 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 		core.chain_limit_p.clear();
 		reset_chain();
-		if(core.summoning_card || core.effect_damage_step == 1)
+		if(core.summoning_card || core.summoning_proc_group_type || core.effect_damage_step == 1)
 			core.subunits.push_back(core.reserved);
-		core.summoning_card = 0;
+		core.summoning_proc_group_type = 0;
+		core.summoning_card = nullptr;
 		return FALSE;
 	}
 	case 13: {

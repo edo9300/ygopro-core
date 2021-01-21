@@ -328,6 +328,28 @@ int32 scriptlib::duel_procedure_summon(lua_State* L) {
 	auto sumtype = lua_get<uint32>(L, 3);
 	return spsummon_rule(L, sumtype, 1);
 }
+inline int32 spsummon_rule_group(lua_State* L, uint32 summon_type, uint32 offset) {
+	(void)offset;
+	scriptlib::check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	const auto playerid = lua_get<uint8>(L, 1);
+	pduel->game_field->core.summon_cancelable = FALSE;
+	pduel->game_field->special_summon_rule_group(playerid, summon_type);
+	if(pduel->game_field->core.current_chain.size()) {
+		pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+		pduel->game_field->core.subunits.pop_back();
+		pduel->game_field->core.summoning_proc_group_type = summon_type;
+	}
+	return lua_yield(L, 0);
+}
+int32 scriptlib::duel_pendulum_summon(lua_State* L) {
+	return spsummon_rule_group(L, SUMMON_TYPE_PENDULUM, 0);
+}
+int32 scriptlib::duel_procedure_summon_group(lua_State* L) {
+	scriptlib::check_param_count(L, 2);
+	auto sumtype = lua_get<uint32>(L, 2);
+	return spsummon_rule_group(L, sumtype, 1);
+}
 int32 scriptlib::duel_setm(lua_State* L) {
 	check_action_permission(L);
 	check_param_count(L, 4);
@@ -3871,6 +3893,52 @@ int32 scriptlib::duel_is_player_can_additional_summon(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->core.extra_summon[playerid] == 0);
 	return 1;
+}
+inline int32 is_player_can_procedure_summon_group(lua_State* L, uint32 summon_type, uint32 offset) {
+	(void)offset;
+	scriptlib::check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	const auto playerid = lua_get<uint8>(L, 1);
+	effect_set eset;
+	pduel->game_field->filter_field_effect(EFFECT_SPSUMMON_PROC_G, &eset);
+	for(const auto& peff : eset) {
+		if(peff->get_value() != summon_type)
+			continue;
+		card* pcard = peff->get_handler();
+		if(pcard->current.controler != playerid && !peff->is_flag(EFFECT_FLAG_BOTH_SIDE))
+			continue;
+		auto& core = pduel->game_field->core;
+		effect* oreason = core.reason_effect;
+		uint8 op = core.reason_player;
+		core.reason_effect = peff;
+		core.reason_player = pcard->current.controler;
+		pduel->game_field->save_lp_cost();
+		pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+		pduel->lua->add_param(TRUE, PARAM_TYPE_BOOLEAN);
+		pduel->lua->add_param(oreason, PARAM_TYPE_EFFECT);
+		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		if(pduel->lua->check_condition(peff->condition, 5)) {
+			pduel->game_field->restore_lp_cost();
+			core.reason_effect = oreason;
+			core.reason_player = op;
+			lua_pushboolean(L, TRUE);
+			return 1;
+		}
+		pduel->game_field->restore_lp_cost();
+		core.reason_effect = oreason;
+		core.reason_player = op;
+	}
+	lua_pushboolean(L, FALSE);
+	return 1;
+}
+int32 scriptlib::duel_is_player_can_pendulum_summon(lua_State* L) {
+	return is_player_can_procedure_summon_group(L, SUMMON_TYPE_PENDULUM, 0);
+}
+int32 scriptlib::duel_is_player_can_procedure_summon_group(lua_State* L) {
+	scriptlib::check_param_count(L, 2);
+	auto sumtype = lua_get<uint32>(L, 2);
+	return is_player_can_procedure_summon_group(L, sumtype, 1);
 }
 int32 scriptlib::duel_is_chain_negatable(lua_State* L) {
 	check_param_count(L, 1);

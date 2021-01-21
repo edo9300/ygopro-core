@@ -158,6 +158,9 @@ void field::mset(uint32 setplayer, card* target, effect* proc, uint32 ignore_cou
 void field::special_summon_rule(uint32 sumplayer, card* target, uint32 summon_type) {
 	add_process(PROCESSOR_SPSUMMON_RULE, 0, 0, (group*)target, sumplayer, summon_type);
 }
+void field::special_summon_rule_group(uint32 sumplayer, uint32 summon_type) {
+	add_process(PROCESSOR_SPSUMMON_RULE_G, 0, 0, nullptr, sumplayer, summon_type);
+}
 void field::special_summon(card_set* target, uint32 sumtype, uint32 sumplayer, uint32 playerid, uint32 nocheck, uint32 nolimit, uint32 positions, uint32 zone) {
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
@@ -3016,6 +3019,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			core.sub_solving_event.push_back(nil_event);
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
 			pduel->lua->add_param(core.units.begin()->ptarget, PARAM_TYPE_GROUP);
+			pduel->lua->add_param(core.units.begin()->arg3, PARAM_TYPE_BOOLEAN);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, sumplayer, 0);
 		}
 		peffect->dec_count(sumplayer);
@@ -3228,6 +3232,53 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 	}
 	}
 	return TRUE;
+}
+int32 field::special_summon_rule_group(uint16 step, uint8 sumplayer, uint32 summon_type) {
+	switch(step) {
+	case 0: {
+		effect_set eset;
+		filter_field_effect(EFFECT_SPSUMMON_PROC_G, &eset);
+		core.select_effects.clear();
+		core.select_options.clear();
+		for(const auto& peff : eset) {
+			if(peff->get_value() != summon_type)
+				continue;
+			card* pcard = peff->get_handler();
+			if(pcard->current.controler != sumplayer && !peff->is_flag(EFFECT_FLAG_BOTH_SIDE))
+				continue;
+			effect* oreason = core.reason_effect;
+			uint8 op = core.reason_player;
+			core.reason_effect = peff;
+			core.reason_player = pcard->current.controler;
+			save_lp_cost();
+			pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
+			pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
+			pduel->lua->add_param(TRUE, PARAM_TYPE_BOOLEAN);
+			pduel->lua->add_param(oreason, PARAM_TYPE_EFFECT);
+			pduel->lua->add_param(sumplayer, PARAM_TYPE_INT);
+			if(pduel->lua->check_condition(peff->condition, 5)) {
+				core.select_effects.push_back(peff);
+				core.select_options.push_back(peff->description);
+			}
+			restore_lp_cost();
+			core.reason_effect = oreason;
+			core.reason_player = op;
+		}
+		if(core.select_options.empty())
+			return TRUE;
+		if(core.select_options.size() == 1)
+			returns.at<int32>(0) = 0;
+		else
+			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, sumplayer, 0);
+		return FALSE;
+	}
+	case 1: {
+		effect* peffect = core.select_effects[returns.at<int32>(0)];
+		add_process(PROCESSOR_SPSUMMON_RULE, 20, peffect, (group*)peffect->get_handler(), sumplayer, summon_type, TRUE);
+		return TRUE;
+	}
+	}
+	return FALSE;
 }
 int32 field::special_summon_step(uint16 step, group* targets, card* target, uint32 zone) {
 	uint8 playerid = (target->spsummon_param >> 24) & 0xf;
