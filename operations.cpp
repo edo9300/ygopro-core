@@ -3241,7 +3241,7 @@ int32 field::special_summon_rule_group(uint16 step, uint8 sumplayer, uint32 summ
 		core.select_effects.clear();
 		core.select_options.clear();
 		for(const auto& peff : eset) {
-			if(peff->get_value() != summon_type)
+			if((uint32)peff->get_value() != summon_type)
 				continue;
 			card* pcard = peff->get_handler();
 			if(pcard->current.controler != sumplayer && !peff->is_flag(EFFECT_FLAG_BOTH_SIDE))
