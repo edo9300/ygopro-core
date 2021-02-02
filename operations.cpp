@@ -2888,6 +2888,14 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 		return FALSE;
 	}
 	case 5: {
+		if(core.shuffle_hand_check[0])
+			shuffle(0, LOCATION_HAND);
+		if(core.shuffle_hand_check[1])
+			shuffle(1, LOCATION_HAND);
+		if(core.shuffle_deck_check[0])
+			shuffle(0, LOCATION_DECK);
+		if(core.shuffle_deck_check[1])
+			shuffle(1, LOCATION_DECK);
 		set_control(target, target->current.controler, 0, 0);
 		core.phase_action = TRUE;
 		target->current.reason_effect = core.units.begin()->peffect;
