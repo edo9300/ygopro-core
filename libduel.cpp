@@ -1003,22 +1003,24 @@ int32 scriptlib::duel_check_timing(lua_State* L) {
 }
 int32 scriptlib::duel_get_environment(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
-	effect_set eset;
-	card* pcard = pduel->game_field->player[0].list_szone[5];
 	uint32 code = 0;
 	uint8 p = 2;
-	if(pcard == 0 || pcard->is_position(POS_FACEDOWN) || !pcard->get_status(STATUS_EFFECT_ENABLED))
-		pcard = pduel->game_field->player[1].list_szone[5];
-	if(pcard == 0 || pcard->is_position(POS_FACEDOWN) || !pcard->get_status(STATUS_EFFECT_ENABLED)) {
+	auto IsEnabled = [&](card* pcard) {
+		if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED)) {
+			code = pcard->get_code();
+			p = pcard->current.controler;
+			return true;
+		}
+		return false;
+	};
+	if(!IsEnabled(pduel->game_field->player[0].list_szone[5]) && !IsEnabled(pduel->game_field->player[1].list_szone[5])) {
+		effect_set eset;
 		pduel->game_field->filter_field_effect(EFFECT_CHANGE_ENVIRONMENT, &eset);
 		if(eset.size()) {
-			effect* peffect = eset.back();
+			const auto peffect = eset.back();
 			code = peffect->get_value();
 			p = peffect->get_handler_player();
 		}
-	} else {
-		code = pcard->get_code();
-		p = pcard->current.controler;
 	}
 	lua_pushinteger(L, code);
 	lua_pushinteger(L, p);
@@ -1032,59 +1034,62 @@ int32 scriptlib::duel_is_environment(lua_State* L) {
 	if(playerid != 0 && playerid != 1 && playerid != PLAYER_ALL)
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
-	int32 ret = 0, fc = 0;
-	if(loc & LOCATION_FZONE) {
-		card* pcard = pduel->game_field->player[0].list_szone[5];
-		if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED)) {
-			fc = 1;
-			if(code == pcard->get_code() && (playerid == 0 || playerid == PLAYER_ALL))
-				ret = 1;
+	auto RetTrue = [L] {
+		lua_pushboolean(L, TRUE);
+		return 1;
+	};
+	auto IsEnabled = [](card* pcard) { return pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED); };
+	auto CheckFzone = [&](uint8 player) {
+		if(playerid == player || playerid == PLAYER_ALL) {
+			const auto& pcard = pduel->game_field->player[player].list_szone[5];
+			if(IsEnabled(pcard) && code == pcard->get_code())
+				return true;
 		}
-		pcard = pduel->game_field->player[1].list_szone[5];
-		if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED)) {
-			fc = 1;
-			if(code == pcard->get_code() && (playerid == 1 || playerid == PLAYER_ALL))
-				ret = 1;
-		}
-	}
-	if(!ret && (loc & LOCATION_SZONE)) {
-		if(playerid == 0 || playerid == PLAYER_ALL) {
-			for(auto& pcard : pduel->game_field->player[0].list_szone) {
-				if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED) && code == pcard->get_code())
-					ret = 1;
+		return false;
+	};
+	auto CheckSzone = [&](uint8 player) {
+		if(playerid == player || playerid == PLAYER_ALL) {
+			for(auto& pcard : pduel->game_field->player[player].list_szone) {
+				if(IsEnabled(pcard) && code == pcard->get_code())
+					return true;
 			}
 		}
-		if(playerid == 1 || playerid == PLAYER_ALL) {
-			for(auto& pcard : pduel->game_field->player[1].list_szone) {
-				if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED) && code == pcard->get_code())
-					ret = 1;
+		return false;
+	};
+	auto CheckMzone = [&](uint8 player) {
+		if(playerid == player || playerid == PLAYER_ALL) {
+			for(auto& pcard : pduel->game_field->player[player].list_mzone) {
+				if(IsEnabled(pcard) && code == pcard->get_code())
+					return true;
 			}
 		}
-	}
-	if(!ret && (loc & LOCATION_MZONE)) {
-		if(playerid == 0 || playerid == PLAYER_ALL) {
-			for(auto& pcard : pduel->game_field->player[0].list_mzone) {
-				if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED) && code == pcard->get_code())
-					ret = 1;
-			}
-		}
-		if(playerid == 1 || playerid == PLAYER_ALL) {
-			for(auto& pcard : pduel->game_field->player[1].list_mzone) {
-				if(pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED) && code == pcard->get_code())
-					ret = 1;
-			}
-		}
-	}
-	if(!fc) {
+		return false;
+	};
+	auto ShouldApplyChangeEnv = [&]() {
+		if((loc & (LOCATION_FZONE | LOCATION_SZONE)) == 0)
+			return false;
+		return !(IsEnabled(pduel->game_field->player[0].list_szone[5]) || IsEnabled(pduel->game_field->player[1].list_szone[5]));
+	};
+
+	if(loc & LOCATION_FZONE && (CheckFzone(0) || CheckFzone(1)))
+		return RetTrue();
+
+	if(loc & LOCATION_SZONE && (CheckSzone(0) || CheckSzone(1)))
+		return RetTrue();
+
+	if(loc & LOCATION_MZONE && (CheckMzone(0) || CheckMzone(1)))
+		return RetTrue();
+
+	if(ShouldApplyChangeEnv()) {
 		effect_set eset;
 		pduel->game_field->filter_field_effect(EFFECT_CHANGE_ENVIRONMENT, &eset);
 		if(eset.size()) {
-			effect* peffect = eset.back();
-			if(code == (uint32)peffect->get_value() && (playerid == peffect->get_handler_player() || playerid == PLAYER_ALL))
-				ret = 1;
+			const auto& peffect = eset.back();
+			if((playerid == PLAYER_ALL || playerid == peffect->get_handler_player()) && code == (uint32)peffect->get_value())
+				return RetTrue();
 		}
 	}
-	lua_pushboolean(L, ret);
+	lua_pushboolean(L, FALSE);
 	return 1;
 }
 int32 scriptlib::duel_win(lua_State* L) {
@@ -2680,7 +2685,7 @@ int32 scriptlib::duel_select_target(lua_State* L) {
 	card* pexception = 0;
 	group* pexgroup = 0;
 	bool cancelable = false;
-	uint8_t lastarg = 8;
+	uint8 lastarg = 8;
 	if(lua_isboolean(L, lastarg)) {
 		check_param_count(L, 9);
 		cancelable = lua_get<bool, false>(L, lastarg);
@@ -3364,7 +3369,7 @@ int32 scriptlib::duel_announce_level(lua_State* L) {
 	}
 	if(pduel->game_field->core.select_options.empty())
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_NUMBER, 0, 0, 0, playerid + 0x10000, 0xc0001);
+	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_NUMBER, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
 		lua_pushinteger(L, pduel->game_field->core.select_options[pduel->game_field->returns.at<int32>(0)]);
