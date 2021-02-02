@@ -4595,6 +4595,7 @@ int32 field::add_chain(uint16 step) {
 		raise_event(phandler, EVENT_CHAINING, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
 		process_instant_event();
 		core.just_sent_cards.clear();
+		core.real_chain_count++;
 		if(core.new_chains.size())
 			add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
 		adjust_all();
@@ -4948,6 +4949,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		core.delayed_enable_set.clear();
 		adjust_all();
 		core.current_chain.pop_back();
+		if(--core.real_chain_count < 0)
+			core.real_chain_count = 0;
 		if(!core.current_chain.size()) {
 			for(auto& ch_lim : core.chain_limit)
 				luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);

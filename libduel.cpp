@@ -1906,7 +1906,9 @@ int32 scriptlib::duel_check_location(lua_State* L) {
 }
 int32 scriptlib::duel_get_current_chain(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
-	lua_pushinteger(L, pduel->game_field->core.current_chain.size());
+	const auto real = lua_get<bool, false>(L, 1);
+	const auto& core = pduel->game_field->core;
+	lua_pushinteger(L, real ? core.real_chain_count : core.current_chain.size());
 	return 1;
 }
 int32 scriptlib::duel_get_chain_info(lua_State* L) {
