@@ -4486,7 +4486,7 @@ int32 field::add_chain(uint16 step) {
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_OPSELECTED);
 		message->write<uint8>(playerid);
-		message->write<uint64>(core.select_options[returns.at<int32>(0)]);
+		message->write<uint64>(returns.at<int32>(0) >= core.select_options.size() ? core.select_options[returns.at<int32>(0)] : 65);
 		clit.triggering_effect = peffect;
 		clit.evt = ch.evt;
 		phandler->create_relation(clit);
