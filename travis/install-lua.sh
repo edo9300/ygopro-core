@@ -10,6 +10,9 @@ if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	cd "$VCPKG_ROOT"
 	curl --retry 5 --connect-timeout 30 --location --remote-header-name --output installed.zip "$VCPKG_CACHE_ZIP_URL"
 	unzip -uo installed.zip > /dev/null
+	mkdir ports
+	mkdir triplets
+	mkdir triplets/community
 	./vcpkg.exe integrate install
 else
 	cd /tmp
