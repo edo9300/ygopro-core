@@ -119,24 +119,6 @@ int32 scriptlib::group_get_count(lua_State* L) {
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
 }
-int32 scriptlib::group_for_each(lua_State* L) {
-	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_FUNCTION, 2);
-	const auto pduel = lua_get<duel*>(L);
-	auto pgroup = lua_get<group*, true>(L, 1);
-	int32 f = interpreter::get_function_handle(L, 2);
-	int32 extraargs = lua_gettop(L) - 2;
-	for (auto& pcard : pgroup->container) {
-		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-		for(int32 i = 0; i < extraargs; ++i)
-			pduel->lua->add_param(-extraargs + i, PARAM_TYPE_INDEX);
-		pduel->lua->no_action--;
-		pduel->lua->call_function(f, 1 + extraargs, 0);
-		pduel->lua->no_action++;
-	}
-	luaL_unref(L, LUA_REGISTRYINDEX, f);
-	return 0;
-}
 int32 scriptlib::group_filter(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
