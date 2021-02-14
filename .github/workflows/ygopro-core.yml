@@ -20,6 +20,7 @@ jobs:
       DEPLOY_BRANCH: travis-core-windows
       TRAVIS_OS_NAME: windows
       VCPKG_ROOT: /c/vcpkg2
+      VCPKG_DEFAULT_TRIPLET: x86-windows-static
     steps:
     - name: Set custom env vars
       shell: bash
@@ -44,7 +45,7 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
 
-  Linux-gcc-7-5-0:
+  Linux-gcc:
     runs-on: ubuntu-latest
     if: >-
       !(
