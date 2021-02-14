@@ -94,7 +94,11 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Install lua
+    - name: Replace not compatible Xcode Command Line Tools
+      shell: bash
+      run: |
+        sudo rm -rf /Library/Developer/CommandLineTools
+        xcode-select --install
       shell: bash
       run: ./travis/install-lua.sh
     - name: Build
