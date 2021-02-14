@@ -75,6 +75,39 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
 
+  Android:
+    runs-on: ubuntu-latest
+    if: >-
+      !(
+        contains(github.event.head_commit.message, '[ci skip]') ||
+        contains(github.event.head_commit.message, '[skip ci]') ||
+        contains(github.event.head_commit.message, '[actions skip]') ||
+        contains(github.event.head_commit.message, '[skip actions]')
+      )
+    env:
+      DEPLOY_BRANCH: travis-core-android
+      TRAVIS_OS_NAME: android
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install lua
+      shell: bash
+      run: |
+        cd ..
+        svn checkout https://github.com/edo9300/edopro-android/trunk/deps/lua
+    - name: Build
+      shell: bash
+      run: |
+        $ANDROID_HOME/ndk-bundle/ndk-build -j2
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' }}
+      shell: bash
+      run: ./travis/deploy.sh
+
   Mac-os:
     runs-on: macos-10.14
     if: >-

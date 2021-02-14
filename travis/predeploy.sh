@@ -7,6 +7,16 @@ cp LICENSE README.md $DEPLOY_DIR
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	mv build/$BUILD_CONFIG/ocgcore.dll build/$BUILD_CONFIG/ocgcore_static.lib $DEPLOY_DIR
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path $DEPLOY_DIR -DestinationPath ocgcore-$TRAVIS_OS_NAME"
+elif [[ "$TRAVIS_OS_NAME" == "android" ]]; then
+	ARCH=("armeabi-v7a" "arm64-v8a" "x86" "x86_64" )
+	OUTPUT=("libocgcorev7.so" "libocgcorev8.so" "libocgcorex86.so" "libocgcorex64.so")
+	for i in {0..3}; do
+		CORE="libs/${ARCH[i]}/libocgcore.so"
+		if [[ -f "$CORE" ]]; then
+			mv $CORE "$DEPLOY_DIR/${OUTPUT[i]}"
+		fi
+	done
+	tar -zcf ocgcore-$TRAVIS_OS_NAME.tar.gz $DEPLOY_DIR
 else
 	mv build/libocgcore_static.a $DEPLOY_DIR
 	if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
