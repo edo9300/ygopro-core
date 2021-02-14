@@ -1,0 +1,108 @@
+name: Build EDOPro
+on: [push, pull_request]
+env:
+  BUILD_CONFIG: Release
+  DEPENDENCIES_BASE_URL: https://github.com/kevinlul/edopro-vcpkg-cache/releases/download/20210211
+  DEPLOY_DIR: ocgcore
+  DEPLOY_REPO: ${{ secrets.DEPLOY_REPO }}
+  DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+jobs:
+  Windows:
+    runs-on: windows-2016
+    if: >-
+      !(
+        contains(github.event.head_commit.message, '[ci skip]') ||
+        contains(github.event.head_commit.message, '[skip ci]') ||
+        contains(github.event.head_commit.message, '[actions skip]') ||
+        contains(github.event.head_commit.message, '[skip actions]')
+      )
+    env:
+      DEPLOY_BRANCH: travis-core-windows
+      TRAVIS_OS_NAME: windows
+      VCPKG_ROOT: /c/vcpkg2
+    steps:
+    - name: Set custom env vars
+      shell: bash
+      run: |
+        echo "VCPKG_CACHE_ZIP_URL=$DEPENDENCIES_BASE_URL/installed_x86-windows-static.zip" >> $GITHUB_ENV
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install lua
+      shell: bash
+      run: ./travis/install-lua.sh
+    - name: Build
+      shell: bash
+      run: ./travis/build-cmake.sh
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' }}
+      shell: bash
+      run: ./ocgcore/travis/deploy.sh
+
+  Linux-gcc-7-5-0:
+    runs-on: ubuntu-latest
+    if: >-
+      !(
+        contains(github.event.head_commit.message, '[ci skip]') ||
+        contains(github.event.head_commit.message, '[skip ci]') ||
+        contains(github.event.head_commit.message, '[actions skip]') ||
+        contains(github.event.head_commit.message, '[skip actions]')
+      )
+    env:
+      DEPLOY_BRANCH: travis-core-linux-gcc7
+      TRAVIS_OS_NAME: linux
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install lua
+      shell: bash
+      run: ./travis/install-lua.sh
+    - name: Build
+      shell: bash
+      run: ./travis/build-cmake.sh
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' }}
+      shell: bash
+      run: ./ocgcore/travis/deploy.sh
+
+  Mac-os:
+    runs-on: macos-latest
+    if: >-
+      !(
+        contains(github.event.head_commit.message, '[ci skip]') ||
+        contains(github.event.head_commit.message, '[skip ci]') ||
+        contains(github.event.head_commit.message, '[actions skip]') ||
+        contains(github.event.head_commit.message, '[skip actions]')
+      )
+    env:
+      DEPLOY_BRANCH: travis-core-osx
+      TRAVIS_OS_NAME: osx
+      VCPKG_ROOT: ./vcpkg2
+      DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
+      MACOSX_DEPLOYMENT_TARGET: 10.11
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install lua
+      shell: bash
+      run: ./travis/install-lua.sh
+    - name: Build
+      shell: bash
+      run: ./travis/build-cmake.sh
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' }}
+      shell: bash
+      run: ./ocgcore/travis/deploy.sh
