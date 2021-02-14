@@ -99,6 +99,7 @@ jobs:
       run: |
         sudo rm -rf /Library/Developer/CommandLineTools
         xcode-select --install
+    - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
     - name: Build
