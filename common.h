@@ -395,6 +395,7 @@ struct card_sort {
 //Players
 #define PLAYER_NONE 2
 #define PLAYER_ALL  3
+#define PLAYER_SELFDES  5
 
 //Phases
 #define PHASE_DRAW          0x01

@@ -242,6 +242,8 @@ void field::add_card(uint8 playerid, card* pcard, uint8 location, uint8 sequence
 	pcard->fieldid = infos.field_id++;
 	pcard->fieldid_r = pcard->fieldid;
 	pcard->turnid = infos.turn_id;
+	if(check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
+		pcard->unique_fieldid = UINT_MAX;
 	if (location == LOCATION_MZONE)
 		player[playerid].used_location |= 1 << sequence;
 	if (location == LOCATION_SZONE)
@@ -381,8 +383,11 @@ void field::move_card(uint8 playerid, card* pcard, uint8 location, uint8 sequenc
 				if(message) {
 					message->write(pcard->get_info_location());
 					message->write<uint32>(pcard->current.reason);
-				} else
+				} else {
 					pcard->fieldid = infos.field_id++;
+					if(check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
+						pcard->unique_fieldid = UINT_MAX;
+				}
 				return;
 			} else if(location == LOCATION_HAND) {
 				if(preplayer == playerid)
@@ -468,6 +473,10 @@ void field::swap_card(card* pcard1, card* pcard2, uint8 new_sequence1, uint8 new
 		if(p1 != p2) {
 			pcard1->fieldid = infos.field_id++;
 			pcard2->fieldid = infos.field_id++;
+			if(check_unique_onfield(pcard1, pcard1->current.controler, pcard1->current.location))
+				pcard1->unique_fieldid = UINT_MAX;
+			if(check_unique_onfield(pcard2, pcard2->current.controler, pcard2->current.location))
+				pcard2->unique_fieldid = UINT_MAX;
 		}
 		if(l1 == LOCATION_MZONE) {
 			player[p1].list_mzone[s1] = 0;
