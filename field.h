@@ -66,6 +66,7 @@ struct chain {
 	opmap opinfos;
 	uint32 flag;
 	uint32 event_id;
+	bool was_just_sent;
 	static bool chain_operation_sort(const chain& c1, const chain& c2);
 	void set_triggering_state(card* pcard);
 };

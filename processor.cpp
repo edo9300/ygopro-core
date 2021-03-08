@@ -1360,7 +1360,10 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			if(phandler->is_has_relation(*clit)) //work around: position and control should be refreshed before raising event
 				clit->set_triggering_state(phandler);
 			uint8 tp = clit->triggering_player;
-			if(check_trigger_effect(*clit) && peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE, FALSE, FALSE, is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE), is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))) {
+			if((!clit->was_just_sent || phandler->current.location == LOCATION_HAND)
+			   && check_trigger_effect(*clit)
+			   && peffect->is_chainable(tp)
+			   && peffect->is_activateable(tp, clit->evt, TRUE, FALSE, FALSE, is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE), is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))) {
 				if(tp == core.current_player)
 					core.select_chains.push_back(*clit);
 			} else {
@@ -1428,9 +1431,12 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 				clit->set_triggering_state(phandler);
 			}
 			uint8 tp = clit->triggering_player;
-			if((is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE) || check_nonpublic_trigger(*clit)) && check_trigger_effect(*clit)
-				&& peffect->is_chainable(tp) && peffect->is_activateable(tp, clit->evt, TRUE, FALSE, FALSE, is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE), is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))
-				&& check_spself_from_hand_trigger(*clit)) {
+			if((!clit->was_just_sent || phandler->current.location == LOCATION_HAND)
+			   && (is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE) || check_nonpublic_trigger(*clit))
+			   && check_trigger_effect(*clit)
+			   && peffect->is_chainable(tp)
+			   && peffect->is_activateable(tp, clit->evt, TRUE, FALSE, FALSE, is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE), is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE))
+			   && check_spself_from_hand_trigger(*clit)) {
 				if(tp == core.current_player)
 					core.select_chains.push_back(*clit);
 			} else {
@@ -1887,7 +1893,7 @@ int32 field::process_quick_effect(int16 step, int32 skip_freechain, uint8 priori
 }
 int32 field::process_instant_event() {
 	auto check_simul = [&just_sent=core.just_sent_cards](effect* peffect, card* phandler) {
-		return (peffect->range & LOCATION_HAND) == 0 && (peffect->flag[1] & EFFECT_FLAG2_CHECK_SIMULTANEOUS) != 0 && just_sent.find(phandler) != just_sent.end();
+		return (peffect->flag[1] & EFFECT_FLAG2_CHECK_SIMULTANEOUS) != 0 && just_sent.find(phandler) != just_sent.end();
 	};
 	if(core.queue_event.size() == 0) {
 		/*if(core.set_forced_attack)
@@ -1936,11 +1942,13 @@ int32 field::process_instant_event() {
 		//triggers
 		pr = effects.trigger_f_effect.equal_range(ev.event_code);
 		for(auto eit = pr.first; eit != pr.second;) {
+			newchain.was_just_sent = false;
 			effect* peffect = eit->second;
 			++eit;
 			card* phandler = peffect->get_handler();
-			if(!phandler->is_status(STATUS_EFFECT_ENABLED) || !peffect->is_condition_check(phandler->current.controler, ev) ||
-			   check_simul(peffect, phandler))
+			if(!phandler->is_status(STATUS_EFFECT_ENABLED) || !peffect->is_condition_check(phandler->current.controler, ev))
+				continue;
+			if((newchain.was_just_sent = check_simul(peffect, phandler)) == true && (peffect->range & LOCATION_HAND) == 0)
 				continue;
 			peffect->set_activate_location();
 			newchain.flag = 0;
@@ -1958,11 +1966,14 @@ int32 field::process_instant_event() {
 		}
 		pr = effects.trigger_o_effect.equal_range(ev.event_code);
 		for(auto eit = pr.first; eit != pr.second;) {
+			newchain.was_just_sent = false;
 			effect* peffect = eit->second;
 			++eit;
 			card* phandler = peffect->get_handler();
 			bool act = phandler->is_status(STATUS_EFFECT_ENABLED) && peffect->is_condition_check(phandler->current.controler, ev);
-			if(!(peffect->range & LOCATION_HAND) && (!act || check_simul(peffect, phandler)))
+			if((newchain.was_just_sent = check_simul(peffect, phandler)) == true && (peffect->range & LOCATION_HAND) == 0)
+				continue;
+			if((peffect->range & LOCATION_HAND) == 0 && !act)
 				continue;
 			peffect->set_activate_location();
 			newchain.flag = 0;
