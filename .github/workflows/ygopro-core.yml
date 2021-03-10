@@ -46,7 +46,7 @@ jobs:
       run: ./travis/deploy.sh
 
   Linux-gcc:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     if: >-
       !(
         contains(github.event.head_commit.message, '[ci skip]') ||
