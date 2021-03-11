@@ -104,6 +104,7 @@ public:
 #define COROUTINE_ERROR		3
 
 static_assert(LUA_VERSION_NUM == 503 || LUA_VERSION_NUM == 504, "Lua 5.3 or 5.4 is required, the core won't work with other lua versions");
+static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers");
 #if LUA_VERSION_NUM <= 503
 #define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs)
 #else
