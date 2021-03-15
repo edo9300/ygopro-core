@@ -2198,7 +2198,7 @@ int32 scriptlib::card_is_can_be_synchro_material(lua_State* L) {
 	return 1;
 }
 int32 scriptlib::card_is_can_be_ritual_material(lua_State* L) {
-	check_param_count(L, 2);
+	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
 	card* scard = 0;
