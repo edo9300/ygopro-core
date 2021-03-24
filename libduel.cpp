@@ -2926,7 +2926,7 @@ int32 scriptlib::duel_set_operation_info(lua_State* L) {
 	auto omit = ch->opinfos.find(cate);
 	if(omit != ch->opinfos.end() && omit->second.op_cards)
 		pduel->delete_group(omit->second.op_cards);
-	ch->opinfos[cate] = opt;
+	ch->opinfos[cate] = std::move(opt);
 	return 0;
 }
 int32 scriptlib::duel_get_operation_info(lua_State* L) {
@@ -2939,6 +2939,55 @@ int32 scriptlib::duel_get_operation_info(lua_State* L) {
 		return 0;
 	auto oit = ch->opinfos.find(cate);
 	if(oit != ch->opinfos.end()) {
+		optarget& opt = oit->second;
+		lua_pushboolean(L, 1);
+		if(opt.op_cards)
+			interpreter::pushobject(L, opt.op_cards);
+		else
+			lua_pushnil(L);
+		lua_pushinteger(L, opt.op_count);
+		lua_pushinteger(L, opt.op_player);
+		lua_pushinteger(L, opt.op_param);
+		return 5;
+	} else {
+		lua_pushboolean(L, 0);
+		return 1;
+	}
+}
+int32 scriptlib::duel_set_possible_operation_info(lua_State* L) {
+	scriptlib::check_action_permission(L);
+	scriptlib::check_param_count(L, 6);
+	const auto pduel = lua_get<duel*>(L);
+	auto ct = lua_get<uint32>(L, 1);
+	auto cate = lua_get<uint32>(L, 2);
+	auto count = lua_get<uint8>(L, 4);
+	auto playerid = lua_get<uint8>(L, 5);
+	auto param = lua_get<int32>(L, 6);
+	auto pobj = lua_get<lua_obj*>(L, 3);
+	chain* ch = pduel->game_field->get_chain(ct);
+	if(!ch)
+		return 0;
+	optarget opt{ nullptr, count, playerid, param };
+	if(pobj && (pobj->lua_type & (PARAM_TYPE_CARD | PARAM_TYPE_GROUP))) {
+		opt.op_cards = pduel->new_group(pobj);
+		opt.op_cards->is_readonly = TRUE;
+	}
+	auto omit = ch->possibleopinfos.find(cate);
+	if(omit != ch->possibleopinfos.end() && omit->second.op_cards)
+		pduel->delete_group(omit->second.op_cards);
+	ch->possibleopinfos[cate] = std::move(opt);
+	return 0;
+}
+int32 scriptlib::duel_get_possible_operation_info(lua_State* L) {
+	scriptlib::check_param_count(L, 2);
+	auto ct = lua_get<uint32>(L, 1);
+	auto cate = lua_get<uint32>(L, 2);
+	const auto pduel = lua_get<duel*>(L);
+	chain* ch = pduel->game_field->get_chain(ct);
+	if(!ch)
+		return 0;
+	auto oit = ch->possibleopinfos.find(cate);
+	if(oit != ch->possibleopinfos.end()) {
 		optarget& opt = oit->second;
 		lua_pushboolean(L, 1);
 		if(opt.op_cards)
@@ -2977,6 +3026,11 @@ int32 scriptlib::duel_clear_operation_info(lua_State* L) {
 			pduel->delete_group(oit.second.op_cards);
 	}
 	ch->opinfos.clear();
+	for(auto& oit : ch->possibleopinfos) {
+		if(oit.second.op_cards)
+			pduel->delete_group(oit.second.op_cards);
+	}
+	ch->possibleopinfos.clear();
 	return 0;
 }
 int32 scriptlib::duel_overlay(lua_State* L) {

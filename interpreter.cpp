@@ -583,6 +583,8 @@ static constexpr luaL_Reg duellib[] = {
 	{ "SetTargetParam", scriptlib::duel_set_target_param },
 	{ "SetOperationInfo", scriptlib::duel_set_operation_info },
 	{ "GetOperationInfo", scriptlib::duel_get_operation_info },
+	{ "SetPossibleOperationInfo", scriptlib::duel_set_possible_operation_info },
+	{ "GetPossibleOperationInfo", scriptlib::duel_get_possible_operation_info },
 	{ "GetOperationCount", scriptlib::duel_get_operation_count },
 	{ "ClearOperationInfo", scriptlib::duel_clear_operation_info },
 	{ "Overlay", scriptlib::duel_overlay },

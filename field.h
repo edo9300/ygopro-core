@@ -64,6 +64,7 @@ struct chain {
 	uint8 disable_player;
 	tevent evt;
 	opmap opinfos;
+	opmap possibleopinfos;
 	uint32 flag;
 	uint32 event_id;
 	bool was_just_sent{ false };

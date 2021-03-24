@@ -543,6 +543,8 @@ public:
 	static int32 duel_set_target_param(lua_State* L);
 	static int32 duel_set_operation_info(lua_State* L);
 	static int32 duel_get_operation_info(lua_State* L);
+	static int32 duel_set_possible_operation_info(lua_State* L);
+	static int32 duel_get_possible_operation_info(lua_State* L);
 	static int32 duel_get_operation_count(lua_State* L);
 	static int32 duel_clear_operation_info(lua_State* L);
 	static int32 duel_overlay(lua_State* L);
