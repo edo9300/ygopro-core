@@ -179,7 +179,7 @@ struct processor {
 		int32 player;
 	};
 	typedef std::vector<chain_limit_t> chain_limit_list;
-	using action_counter_t = std::unordered_map<uint32, std::pair<Function, uint32>>;
+	using action_counter_t = std::unordered_map<uint32, std::pair<uint32, uint32>>;
 
 	processor_list units;
 	processor_list subunits;
