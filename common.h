@@ -30,9 +30,6 @@ typedef int8_t int8;
 #define ADD_BIT(x,y) ((x)|=(y))
 #define REMOVE_BIT(x,y) ((x)&=~(y))
 
-#define OPERATION_SUCCESS 1
-#define OPERATION_FAIL 0
-#define OPERATION_CANCELED -1
 #define TRUE 1
 #define FALSE 0
 #ifndef NULL

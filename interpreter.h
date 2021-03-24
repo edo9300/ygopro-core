@@ -49,34 +49,34 @@ public:
 	explicit interpreter(duel* pd);
 	~interpreter();
 
-	int32 register_card(card* pcard);
+	void register_card(card* pcard);
 	void register_effect(effect* peffect);
 	void unregister_effect(effect* peffect);
 	void register_group(group* pgroup);
 	void unregister_group(group* pgroup);
 	void register_obj(lua_obj* obj, const char* tablename);
 
-	int32 load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
-	int32 load_card_script(uint32 code);
+	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
+	bool load_card_script(uint32 code);
 	void add_param(void* param, int32 type, bool front = false);
 	void add_param(lua_Integer  param, int32 type, bool front = false);
 	void push_param(lua_State* L, bool is_coroutine = false);
-	int32 call_function(int32 f, uint32 param_count, int32 ret_count);
-	int32 call_card_function(card* pcard, const char* f, uint32 param_count, int32 ret_count, bool forced = true);
-	int32 call_code_function(uint32 code, const char* f, uint32 param_count, int32 ret_count);
-	int32 check_condition(int32 f, uint32 param_count);
-	int32 check_matching(card* pcard, int32 findex, int32 extraargs);
-	int32 check_matching_table(card* pcard, int32 findex, int32 table_index);
+	bool call_function(int32 f, uint32 param_count, int32 ret_count);
+	bool call_card_function(card* pcard, const char* f, uint32 param_count, int32 ret_count, bool forced = true);
+	bool call_code_function(uint32 code, const char* f, uint32 param_count, int32 ret_count);
+	bool check_condition(int32 f, uint32 param_count);
+	bool check_matching(card* pcard, int32 findex, int32 extraargs);
+	bool check_matching_table(card* pcard, int32 findex, int32 table_index);
 	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs);
-	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result);
+	bool get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result);
 	int32 get_function_value(int32 f, uint32 param_count);
-	int32 get_function_value(int32 f, uint32 param_count, std::vector<int32>* result);
+	bool get_function_value(int32 f, uint32 param_count, std::vector<int32>* result);
 	int32 call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step);
 	int32 clone_function_ref(int32 func_ref);
 	void* get_ref_object(int32 ref_handler);
-	int32 call_function(int param_count, int ret_count);
-	inline int32 ret_fail(const char* message);
-	inline int32 ret_fail(const char* message, bool error);
+	bool call_function(int param_count, int ret_count);
+	inline bool ret_fail(const char* message);
+	inline bool ret_fail(const char* message, bool error);
 	inline void deepen();
 	inline void flatten();
 
