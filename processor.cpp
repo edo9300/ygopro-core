@@ -1252,8 +1252,6 @@ int32 field::process_phase_event(int16 step, int32 phase) {
 		return FALSE;
 	}
 	case 3: {
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
@@ -1568,8 +1566,6 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 		core.new_ochain_h.clear();
 		core.full_event.clear();
 		core.delayed_quick.clear();
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		if(core.current_chain.size()) {
 			for(auto& ch : core.current_chain)
@@ -1577,8 +1573,6 @@ int32 field::process_point_event(int16 step, int32 skip_trigger, int32 skip_free
 			add_process(PROCESSOR_SOLVE_CHAIN, 0, 0, 0, skip_trigger | ((skip_freechain | skip_new) << 8), skip_new);
 		} else {
 			core.used_event.splice(core.used_event.end(), core.point_event);
-			for(auto& ch_lim_p : core.chain_limit_p)
-				luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 			core.chain_limit_p.clear();
 			reset_chain();
 			returns.at<int32>(0) = FALSE;
@@ -2382,8 +2376,6 @@ int32 field::process_idle_command(uint16 step) {
 		return TRUE;
 	}
 	case 2: {
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
@@ -2454,8 +2446,6 @@ int32 field::process_idle_command(uint16 step) {
 	}
 	case 10: {
 		//end announce
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		if(core.current_chain.size()) {
 			for(auto& ch : core.current_chain)
@@ -2528,7 +2518,7 @@ int32 field::process_battle_command(uint16 step) {
 			if(is_player_affected_by_effect(infos.turn_player, EFFECT_BP_TWICE))
 				core.units.begin()->arg2 = 1;
 			else core.units.begin()->arg2 = 0;
-			if(core.force_turn_end || !peffect->value) {
+			if(core.force_turn_end || peffect->value.Empty()) {
 				reset_phase(PHASE_BATTLE_STEP);
 				adjust_all();
 				infos.phase = PHASE_BATTLE;
@@ -2688,8 +2678,6 @@ int32 field::process_battle_command(uint16 step) {
 		return TRUE;
 	}
 	case 2: {
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
@@ -3420,8 +3408,6 @@ int32 field::process_battle_command(uint16 step) {
 		return FALSE;
 	}
 	case 40: {
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		if(core.current_chain.size()) {
 			for(auto& ch : core.current_chain)
@@ -4391,8 +4377,8 @@ int32 field::add_chain(uint16 step) {
 						loc = LOCATION_SZONE;
 					}
 				}
-				if(peffect->value && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
-					loc = peffect->value;
+				if(!peffect->value.Empty() && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
+					loc = peffect->value.GetInt();
 				if(loc > 0) {
 					phandler->enable_field_effect(false);
 					if(loc == LOCATION_MZONE) {
@@ -4420,8 +4406,6 @@ int32 field::add_chain(uint16 step) {
 		message->write<uint32>(clit.triggering_sequence);
 		message->write<uint64>(peffect->description);
 		message->write<uint32>(core.current_chain.size() + 1);
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		peffect->card_type = phandler->get_type();
 		if((peffect->card_type & (TYPE_TRAP | TYPE_MONSTER)) == (TYPE_TRAP | TYPE_MONSTER))
@@ -4836,7 +4820,8 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			}
 		}
 		if(cait->replace_op) {
-			core.units.begin()->arg4 = cait->triggering_effect->operation;
+			core.units.begin()->arg4 = TRUE;
+			cait->tmp_replace_reserve.swap(cait->triggering_effect->operation);
 			cait->triggering_effect->operation = cait->replace_op;
 		} else
 			core.units.begin()->arg4 = 0;
@@ -4851,7 +4836,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	case 3: {
 		effect* peffect = cait->triggering_effect;
 		if(core.units.begin()->arg4) {
-			peffect->operation = core.units.begin()->arg4;
+			peffect->operation = std::move(cait->tmp_replace_reserve);
 		}
 		core.special_summoning.clear();
 		core.equiping_cards.clear();
@@ -4963,8 +4948,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if(--core.real_chain_count < 0)
 			core.real_chain_count = 0;
 		if(!core.current_chain.size()) {
-			for(auto& ch_lim : core.chain_limit)
-				luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 			core.chain_limit.clear();
 			return FALSE;
 		}
@@ -4988,8 +4971,6 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 	case 12: {
 		core.used_event.splice(core.used_event.end(), core.point_event);
 		pduel->new_message(MSG_CHAIN_END);
-		for(auto& ch_lim_p : core.chain_limit_p)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 		core.chain_limit_p.clear();
 		reset_chain();
 		if(core.summoning_card || core.summoning_proc_group_type || core.effect_damage_step == 1)
@@ -5242,7 +5223,7 @@ int32 field::refresh_location_info(uint16 step) {
 		}
 		effect* peffect = core.units.begin()->peffect;
 		player[peffect->get_handler_player()].disabled_location |= mzone_flag;
-		peffect->value = (int32)(peffect->value | (mzone_flag << 16));
+		peffect->value = (int32)(peffect->value.GetInt() | (mzone_flag << 16));
 		core.units.begin()->step = 2;
 		return FALSE;
 	}
@@ -5281,7 +5262,7 @@ int32 field::refresh_location_info(uint16 step) {
 		}
 		effect* peffect = core.units.begin()->peffect;
 		player[peffect->get_handler_player()].disabled_location |= szone_flag << 8;
-		peffect->value = (int32)(peffect->value | (szone_flag << 16));
+		peffect->value = (int32)(peffect->value.GetInt() | (szone_flag << 16));
 		core.units.begin()->step = 4;
 		return FALSE;
 	}

@@ -130,7 +130,7 @@ public:
 	uint32 unique_fieldid;
 	uint32 unique_code;
 	uint32 unique_location;
-	int32 unique_function;
+	Function unique_function;
 	effect* unique_effect;
 	uint32 spsummon_code;
 	uint16 spsummon_counter[2];

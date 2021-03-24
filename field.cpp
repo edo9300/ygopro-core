@@ -2256,7 +2256,7 @@ int32 field::check_spsummon_counter(uint8 playerid, uint8 ct) {
 	if(core.global_flag & GLOBALFLAG_SPSUMMON_COUNT) {
 		for(auto& peffect : effects.spsummon_count_eff) {
 			card* pcard = peffect->get_handler();
-			uint16 val = (uint16)peffect->value;
+			uint16 val = (uint16)peffect->value.GetInt();
 			if(peffect->is_available()) {
 				if(pcard->spsummon_counter[playerid] + ct > val)
 					return FALSE;

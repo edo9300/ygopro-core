@@ -755,19 +755,7 @@ void interpreter::register_effect(effect* peffect) {
 	register_obj(peffect, "Effect");
 }
 void interpreter::unregister_effect(effect* peffect) {
-	if (!peffect)
-		return;
-	if(peffect->condition)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->condition);
-	if(peffect->cost)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->cost);
-	if(peffect->target)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->target);
-	if(peffect->operation)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->operation);
-	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->value);
-	if(peffect->label_object) {
+	if(peffect && peffect->label_object) {
 		lua_rawgeti(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
 		if(lua_istable(lua_state, -1))
 			luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
@@ -924,7 +912,7 @@ bool interpreter::call_function(int param_count, int ret_count) {
 	flatten();
 	return ret;
 }
-bool interpreter::call_function(int32 f, uint32 param_count, int32 ret_count) {
+bool interpreter::call_function(Lua_Callable f, uint32 param_count, int32 ret_count) {
 	if (!f)
 		return ret_fail(R"("CallFunction": attempt to call a null function.)");
 	if (param_count != params.size())
@@ -958,7 +946,7 @@ bool interpreter::call_code_function(uint32 code, const char* f, uint32 param_co
 	lua_remove(current_state, -2);
 	return call_function(param_count, ret_count);
 }
-bool interpreter::check_condition(int32 f, uint32 param_count) {
+bool interpreter::check_condition(Lua_Callable f, uint32 param_count) {
 	if(!f) {
 		params.clear();
 		return true;
@@ -1057,7 +1045,7 @@ bool interpreter::get_operation_value(card* pcard, int32 findex, int32 extraargs
 	flatten();
 	return ret;
 }
-int32 interpreter::get_function_value(int32 f, uint32 param_count) {
+int32 interpreter::get_function_value(Lua_Callable f, uint32 param_count) {
 	if(!f) {
 		params.clear();
 		return 0;
@@ -1074,7 +1062,7 @@ int32 interpreter::get_function_value(int32 f, uint32 param_count) {
 	flatten();
 	return result;
 }
-bool interpreter::get_function_value(int32 f, uint32 param_count, std::vector<int32>* result) {
+bool interpreter::get_function_value(Lua_Callable f, uint32 param_count, std::vector<int32>* result) {
 	if(!f) {
 		params.clear();
 		return false;
@@ -1098,13 +1086,14 @@ bool interpreter::get_function_value(int32 f, uint32 param_count, std::vector<in
 	flatten();
 	return res;
 }
-int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step) {
+int32 interpreter::call_coroutine(Lua_Callable _f, uint32 param_count, uint32* yield_value, uint16 step) {
 	if(yield_value)
 		*yield_value = 0;
-	if (!f)
+	if (!_f)
 		return ret_fail(R"("CallCoroutine": attempt to call a null function)");
 	if (param_count != params.size())
 		return ret_fail(R"("CallCoroutine": incorrect parameter count)");
+	const int32 f = _f->Value();
 	auto it = coroutines.find(f);
 	lua_State* rthread;
 	if (it == coroutines.end()) {
@@ -1154,11 +1143,6 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	}
 	return COROUTINE_YIELD;
 }
-int32 interpreter::clone_function_ref(int32 func_ref) {
-	lua_rawgeti(current_state, LUA_REGISTRYINDEX, func_ref);
-	int32 ref = luaL_ref(current_state, LUA_REGISTRYINDEX);
-	return ref;
-}
 void* interpreter::get_ref_object(int32 ref_handler) {
 	if(ref_handler == 0)
 		return nullptr;
@@ -1174,6 +1158,13 @@ void interpreter::pushobject(lua_State* L, lua_obj* obj) {
 		lua_pushnil(L);
 	else
 		lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
+}
+void interpreter::pushobject(lua_State* L, const Function& obj) {
+	const auto val = obj ? obj->Value() : 0;
+	if(!val)
+		lua_pushnil(L);
+	else
+		lua_rawgeti(L, LUA_REGISTRYINDEX, val);
 }
 void interpreter::pushobject(lua_State* L, int32 lua_ptr) {
 	if(!lua_ptr)
@@ -1191,11 +1182,6 @@ int interpreter::pushExpandedTable(lua_State* L, int32 table_index) {
 	});
 	return extraargs;
 }
-int32 interpreter::get_function_handle(lua_State* L, int32 index) {
-	lua_pushvalue(L, index);
-	int32 ref = luaL_ref(L, LUA_REGISTRYINDEX);
-	return ref;
-}
 
 void interpreter::print_stacktrace(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
@@ -1206,3 +1192,7 @@ void interpreter::print_stacktrace(lua_State* L) {
 		pduel->handle_message(lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FOR_DEBUG);
 	lua_pop(L, 1);
 }
+
+Lua_Function_s::~Lua_Function_s() {
+	luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, function);
+};

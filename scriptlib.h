@@ -643,10 +643,17 @@ template<typename T, typename type>
 using EnableIf = typename std::enable_if_t<std::is_same<T, type>::value, T>;
 
 template<typename T>
-inline duel* lua_get(lua_State* L) {
+inline EnableIf<T, duel*> lua_get(lua_State* L) {
 	duel* pduel = nullptr;
 	memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);
 	return pduel;
+}
+
+template<typename T>
+EnableIf<T, Function> lua_get(lua_State* L, int index) {
+	lua_pushvalue(L, index);
+	int32 ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	return std::make_shared<Lua_Function_s>(lua_get<duel*>(L), ref);
 }
 
 template<typename T>

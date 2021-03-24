@@ -56,7 +56,7 @@ int32 field::disable_chain(uint8 chaincount) {
 	}
 	return FALSE;
 }
-void field::change_chain_effect(uint8 chaincount, int32 rep_op) {
+void field::change_chain_effect(uint8 chaincount, Function& rep_op) {
 	if(core.current_chain.size() == 0)
 		return;
 	if(chaincount > core.current_chain.size() || chaincount < 1)
@@ -4722,7 +4722,7 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 					resetflag |= RESET_LEAVE;
 				effect* peffect = target->is_affected_by_effect(EFFECT_PRE_MONSTER);
 				if((location & LOCATION_ONFIELD) && (target->current.location & LOCATION_ONFIELD)
-					&& !(peffect && (peffect->value & TYPE_TRAP)) && ret != 2)
+					&& !(peffect && (peffect->value.GetInt() & TYPE_TRAP)) && ret != 2)
 					resetflag |= RESET_MSCHANGE;
 				target->reset(resetflag, RESET_EVENT);
 				target->clear_card_target();
@@ -4833,7 +4833,7 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 			}
 			effect* teffect;
 			if((teffect = target->is_affected_by_effect(EFFECT_PRE_MONSTER)) != nullptr) {
-				uint32 type = teffect->value;
+				uint32 type = teffect->value.GetInt();
 				if(type & TYPE_TRAP)
 					type |= TYPE_TRAPMONSTER | target->data.type;
 				target->reset(EFFECT_PRE_MONSTER, RESET_CODE);
@@ -5145,7 +5145,7 @@ int32 field::operation_replace(uint16 step, effect* replace_effect, group* targe
 		e.reason = pc->current.reason;
 		e.reason_effect = pc->current.reason_effect;
 		e.reason_player = pc->current.reason_player;
-		if(!replace_effect->is_activateable(replace_effect->get_handler_player(), e) || !replace_effect->value)
+		if(!replace_effect->is_activateable(replace_effect->get_handler_player(), e) || replace_effect->value.Empty())
 			return TRUE;
 		chain newchain;
 		newchain.chain_id = 0;
@@ -5257,7 +5257,7 @@ int32 field::operation_replace(uint16 step, effect* replace_effect, group* targe
 		e.reason = pc->current.reason;
 		e.reason_effect = pc->current.reason_effect;
 		e.reason_player = pc->current.reason_player;
-		if(!replace_effect->is_activateable(replace_effect->get_handler_player(), e) || !replace_effect->value)
+		if(!replace_effect->is_activateable(replace_effect->get_handler_player(), e) || replace_effect->value.Empty())
 			return TRUE;
 		chain newchain;
 		newchain.chain_id = 0;
@@ -5352,8 +5352,6 @@ int32 field::activate_effect(uint16 step, effect* peffect) {
 		return FALSE;
 	}
 	case 1: {
-		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);

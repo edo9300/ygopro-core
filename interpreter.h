@@ -21,12 +21,35 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <memory>
 #include "lua_obj.h"
 
 class card;
 class effect;
 class group;
 class duel;
+
+class Lua_Function_s {
+public:
+	Lua_Function_s(duel* d, int32 f) :pduel(d), function(f) {};
+	int32 Value() { return function; };
+	~Lua_Function_s();
+private:
+	duel* pduel;
+	int32 function;
+};
+
+using Function = std::shared_ptr<Lua_Function_s>;
+using Lua_Callable = const Function&;
+/*class Lua_Callable {
+public:
+	Lua_Callable(int32 f) :function(f) {};
+	Lua_Callable(const Function& f) :function(f->Value()) {};
+	int32 Get() { return function; };
+	bool Valid() { return function != 0; };
+private:
+	int32 function;
+};*/
 
 using lua_invalid = lua_obj_helper<PARAM_TYPE_DELETED>;
 
@@ -61,18 +84,17 @@ public:
 	void add_param(void* param, int32 type, bool front = false);
 	void add_param(lua_Integer  param, int32 type, bool front = false);
 	void push_param(lua_State* L, bool is_coroutine = false);
-	bool call_function(int32 f, uint32 param_count, int32 ret_count);
+	bool call_function(Lua_Callable f, uint32 param_count, int32 ret_count);
 	bool call_card_function(card* pcard, const char* f, uint32 param_count, int32 ret_count, bool forced = true);
 	bool call_code_function(uint32 code, const char* f, uint32 param_count, int32 ret_count);
-	bool check_condition(int32 f, uint32 param_count);
+	bool check_condition(Lua_Callable f, uint32 param_count);
 	bool check_matching(card* pcard, int32 findex, int32 extraargs);
 	bool check_matching_table(card* pcard, int32 findex, int32 table_index);
 	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs);
 	bool get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result);
-	int32 get_function_value(int32 f, uint32 param_count);
-	bool get_function_value(int32 f, uint32 param_count, std::vector<int32>* result);
-	int32 call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step);
-	int32 clone_function_ref(int32 func_ref);
+	int32 get_function_value(Lua_Callable f, uint32 param_count);
+	bool get_function_value(Lua_Callable f, uint32 param_count, std::vector<int32>* result);
+	int32 call_coroutine(Lua_Callable f, uint32 param_count, uint32* yield_value, uint16 step);
 	void* get_ref_object(int32 ref_handler);
 	bool call_function(int param_count, int ret_count);
 	inline bool ret_fail(const char* message);
@@ -81,9 +103,9 @@ public:
 	inline void flatten();
 
 	static void pushobject(lua_State* L, lua_obj* obj);
+	static void pushobject(lua_State* L, const Function& obj);
 	static void pushobject(lua_State* L, int32 lua_ptr);
 	static int pushExpandedTable(lua_State* L, int32 table_index);
-	static int32 get_function_handle(lua_State* L, int32 index);
 	static inline duel* get_duel_info(lua_State* L) {
 		duel* pduel;
 		memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);

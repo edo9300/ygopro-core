@@ -2265,10 +2265,10 @@ void card::reset(uint32 id, uint32 reset_type) {
 			| RESET_LEAVE | RESET_TOFIELD | RESET_TURN_SET | RESET_CONTROL)) {
 			auto pr = field_effect.equal_range(EFFECT_USE_EXTRA_MZONE);
 			for(; pr.first != pr.second; ++pr.first)
-				pr.first->second->value = pr.first->second->value & 0xffff;
+				pr.first->second->value = pr.first->second->value.GetInt() & 0xffff;
 			pr = field_effect.equal_range(EFFECT_USE_EXTRA_SZONE);
 			for(; pr.first != pr.second; ++pr.first)
-				pr.first->second->value = pr.first->second->value & 0xffff;
+				pr.first->second->value = pr.first->second->value.GetInt() & 0xffff;
 		}
 		if(id & RESET_TOFIELD) {
 			pre_equip_target = 0;
@@ -3243,7 +3243,7 @@ int32 card::check_fusion_substitute(card* fcard) {
 	if(eset.size() == 0)
 		return FALSE;
 	for(const auto& peffect : eset)
-		if(!peffect->value || peffect->get_value(fcard))
+		if(peffect->value.Empty() || peffect->get_value(fcard))
 			return TRUE;
 	return FALSE;
 }
@@ -3253,7 +3253,7 @@ int32 card::is_not_tuner(card* scard, uint8 playerid) {
 	effect_set eset;
 	filter_effect(EFFECT_NONTUNER, &eset);
 	for(const auto& peffect : eset)
-		if(!peffect->value || peffect->get_value(scard))
+		if(peffect->value.Empty() || peffect->get_value(scard))
 			return TRUE;
 	return FALSE;
 }

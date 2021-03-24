@@ -2108,7 +2108,7 @@ int32 scriptlib::card_enable_counter_permit(lua_State* L) {
 	peffect->code = EFFECT_COUNTER_PERMIT | countertype;
 	peffect->value = prange;
 	if(lua_gettop(L) > 3 && lua_isfunction(L, 4))
-		peffect->target = interpreter::get_function_handle(L, 4);
+		peffect->target = lua_get<Function>(L, 4);
 	pcard->add_effect(peffect);
 	return 0;
 }
@@ -2448,7 +2448,7 @@ int32 scriptlib::card_set_unique_onfield(lua_State* L) {
 	pcard->unique_pos[1] = lua_get<uint8>(L, 3);
 	if(lua_isfunction(L, 4)) {
 		pcard->unique_code = 1;
-		pcard->unique_function = interpreter::get_function_handle(L, 4);
+		pcard->unique_function = lua_get<Function>(L, 4);
 	} else
 		pcard->unique_code = lua_get<uint32>(L, 4);
 	auto location = lua_get<uint8, LOCATION_ONFIELD>(L, 5) & LOCATION_ONFIELD;

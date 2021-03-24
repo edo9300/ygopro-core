@@ -22,6 +22,22 @@ struct tevent;
 enum effect_flag : uint32;
 enum effect_flag2 : uint32;
 
+class FuncOrInt {
+	Function func{ nullptr };
+	int32 _int{ 0 };
+public:
+	FuncOrInt(Function f) :func(f) {};
+	FuncOrInt(int32 val) :_int(val) {};
+	bool operator==(int32 other) {
+		if(func != nullptr)
+			return false;
+		return _int == other;
+	}
+	bool Empty() { return func == nullptr && _int == 0; }
+	int32 GetInt() { return _int; }
+	Function GetFunc() { return func; }
+};
+
 class effect : public lua_obj_helper<PARAM_TYPE_EFFECT> {
 public:
 	card* owner;
@@ -52,11 +68,11 @@ public:
 	uint16 status;
 	std::vector<uint32> label;
 	int32 label_object;
-	int32 condition;
-	int32 cost;
-	int32 target;
-	int32 value;
-	int32 operation;
+	Function condition;
+	Function cost;
+	Function target;
+	FuncOrInt value;
+	Function operation;
 
 	explicit effect(duel* pd);
 	~effect() = default;

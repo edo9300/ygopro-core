@@ -792,16 +792,14 @@ int32 scriptlib::duel_set_chain_limit(lua_State* L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_FUNCTION, 1);
 	const auto pduel = lua_get<duel*>(L);
-	int32 f = interpreter::get_function_handle(L, 1);
-	pduel->game_field->core.chain_limit.emplace_back(f, pduel->game_field->core.reason_player);
+	pduel->game_field->core.chain_limit.emplace_back(lua_get<Function>(L, 1), pduel->game_field->core.reason_player);
 	return 0;
 }
 int32 scriptlib::duel_set_chain_limit_p(lua_State* L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_FUNCTION, 1);
 	const auto pduel = lua_get<duel*>(L);
-	int32 f = interpreter::get_function_handle(L, 1);
-	pduel->game_field->core.chain_limit_p.emplace_back(f, pduel->game_field->core.reason_player);
+	pduel->game_field->core.chain_limit_p.emplace_back(lua_get<Function>(L, 1), pduel->game_field->core.reason_player);
 	return 0;
 }
 int32 scriptlib::duel_get_chain_material(lua_State* L) {
@@ -1590,7 +1588,7 @@ int32 scriptlib::duel_change_effect(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	const auto pduel = lua_get<duel*>(L);
-	int32 pf = interpreter::get_function_handle(L, 2);
+	auto pf = lua_get<Function>(L, 2);
 	pduel->game_field->change_chain_effect(lua_get<uint8>(L, 1), pf);
 	return 0;
 }
@@ -4028,7 +4026,7 @@ int32 scriptlib::duel_add_custom_activity_counter(lua_State* L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 3);
 	auto counter_id = lua_get<uint32>(L, 1);
 	auto activity_type = lua_get<uint8>(L, 2);
-	int32 counter_filter = interpreter::get_function_handle(L, 3);
+	auto counter_filter = lua_get<Function>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	switch(activity_type) {
 		case 1: {

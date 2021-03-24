@@ -14,7 +14,7 @@
 bool effect_sort_id(const effect* e1, const effect* e2) {
 	return e1->id < e2->id;
 }
-effect::effect(duel* pd) : lua_obj_helper(pd) {
+effect::effect(duel* pd) : lua_obj_helper(pd), value(0) {
 	owner = 0;
 	handler = 0;
 	description = 0;
@@ -211,11 +211,11 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				if(!(handler->data.type & (TYPE_FIELD | TYPE_PENDULUM)) && is_flag(EFFECT_FLAG_LIMIT_ZONE) && !(zone & (1u << handler->current.sequence)))
 					return FALSE;
 			} else {
-				if(!(((handler->data.type & TYPE_FIELD) && (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && value<=0)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_FZONE)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_HAND)))) {
-					if (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_MZONE)) {
+				if(!(((handler->data.type & TYPE_FIELD) && (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && value.GetInt() <= 0)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value.GetInt() & LOCATION_FZONE)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value.GetInt() & LOCATION_HAND)))) {
+					if (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value.GetInt() & LOCATION_MZONE)) {
 						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
 							return FALSE;
-					} else if ((handler->data.type & TYPE_PENDULUM) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_PZONE))) {
+					} else if ((handler->data.type & TYPE_PENDULUM) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value.GetInt() & LOCATION_PZONE))) {
 						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
 							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
 						return FALSE;
@@ -521,7 +521,7 @@ int32 effect::is_player_effect_target(card* pcard) {
 }
 int32 effect::is_immuned(card* pcard) {
 	for (const auto& peffect : pcard->immune_effect) {
-		if(peffect->is_available() && peffect->value) {
+		if(peffect->is_available() && !peffect->value.Empty()) {
 			pduel->lua->add_param(this, PARAM_TYPE_EFFECT);
 			pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
 			if(peffect->check_value_condition(2))
@@ -633,72 +633,72 @@ uint8 effect::get_client_mode() const {
 int32 effect::get_value(uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		int32 res = pduel->lua->get_function_value(value, 1 + extraargs);
+		int32 res = pduel->lua->get_function_value(value.GetFunc(), 1 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return (int32)value;
+		return value.GetInt();
 	}
 }
 int32 effect::get_value(card* pcard, uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD, TRUE);
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		int32 res = pduel->lua->get_function_value(value, 2 + extraargs);
+		int32 res = pduel->lua->get_function_value(value.GetFunc(), 2 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return (int32)value;
+		return value.GetInt();
 	}
 }
 int32 effect::get_value(effect* peffect, uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT, TRUE);
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		int32 res = pduel->lua->get_function_value(value, 2 + extraargs);
+		int32 res = pduel->lua->get_function_value(value.GetFunc(), 2 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return (int32)value;
+		return value.GetInt();
 	}
 }
 void effect::get_value(uint32 extraargs, std::vector<int32>* result) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		pduel->lua->get_function_value(value, 1 + extraargs, result);
+		pduel->lua->get_function_value(value.GetFunc(), 1 + extraargs, result);
 	} else {
 		pduel->lua->params.clear();
-		result->push_back((int32)value);
+		result->push_back(value.GetInt());
 	}
 }
 void effect::get_value(card* pcard, uint32 extraargs, std::vector<int32>* result) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(pcard, PARAM_TYPE_CARD, TRUE);
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		pduel->lua->get_function_value(value, 2 + extraargs, result);
+		pduel->lua->get_function_value(value.GetFunc(), 2 + extraargs, result);
 	} else {
 		pduel->lua->params.clear();
-		result->push_back((int32)value);
+		result->push_back(value.GetInt());
 	}
 }
 void effect::get_value(effect* peffect, uint32 extraargs, std::vector<int32>* result) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(peffect, PARAM_TYPE_EFFECT, TRUE);
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		pduel->lua->get_function_value(value, 2 + extraargs, result);
+		pduel->lua->get_function_value(value.GetFunc(), 2 + extraargs, result);
 	} else {
 		pduel->lua->params.clear();
-		result->push_back((int32)value);
+		result->push_back(value.GetInt());
 	}
 }
 int32 effect::check_value_condition(uint32 extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param(this, PARAM_TYPE_EFFECT, TRUE);
-		int32 res = pduel->lua->check_condition(value, 1 + extraargs);
+		int32 res = pduel->lua->check_condition(value.GetFunc(), 1 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return (int32)value;
+		return value.GetInt();
 	}
 }
 void* effect::get_label_object() {
@@ -732,18 +732,14 @@ effect* effect::clone(int32 majestic) {
 	*ceffect = *this;
 	ceffect->ref_handle = ref;
 	ceffect->handler = 0;
-	if(condition)
-		ceffect->condition = pduel->lua->clone_function_ref(condition);
-	if(cost)
-		ceffect->cost = pduel->lua->clone_function_ref(cost);
-	if(target)
-		ceffect->target = pduel->lua->clone_function_ref(target);
-	if(operation)
-		ceffect->operation = pduel->lua->clone_function_ref(operation);
-	if(value && is_flag(EFFECT_FLAG_FUNC_VALUE))
-		ceffect->value = pduel->lua->clone_function_ref(value);
+	ceffect->condition = condition;
+	ceffect->cost = cost;
+	ceffect->target = target;
+	ceffect->operation = operation;
+	if(is_flag(EFFECT_FLAG_FUNC_VALUE))
+		ceffect->value = value;
 	if(majestic && is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) {
-		if(value && !is_flag(EFFECT_FLAG_FUNC_VALUE))
+		if(!value.Empty() && !is_flag(EFFECT_FLAG_FUNC_VALUE))
 			ceffect->value = value;
 		ceffect->label = label;
 		if(label_object)

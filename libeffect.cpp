@@ -207,36 +207,28 @@ int32 scriptlib::effect_set_condition(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->condition)
-		luaL_unref(L, LUA_REGISTRYINDEX, peffect->condition);
-	peffect->condition = interpreter::get_function_handle(L, 2);
+	peffect->condition = lua_get<Function>(L, 2);
 	return 0;
 }
 int32 scriptlib::effect_set_target(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->target)
-		luaL_unref(L, LUA_REGISTRYINDEX, peffect->target);
-	peffect->target = interpreter::get_function_handle(L, 2);
+	peffect->target = lua_get<Function>(L, 2);
 	return 0;
 }
 int32 scriptlib::effect_set_cost(lua_State* L) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->cost)
-		luaL_unref(L, LUA_REGISTRYINDEX, peffect->cost);
-	peffect->cost = interpreter::get_function_handle(L, 2);
+	peffect->cost = lua_get<Function>(L, 2);
 	return 0;
 }
 int32 scriptlib::effect_set_value(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
-		luaL_unref(L, LUA_REGISTRYINDEX, peffect->value);
 	if (lua_isfunction(L, 2)) {
-		peffect->value = interpreter::get_function_handle(L, 2);
+		peffect->value = lua_get<Function>(L, 2);
 		peffect->flag[0] |= EFFECT_FLAG_FUNC_VALUE;
 	} else {
 		peffect->flag[0] &= ~EFFECT_FLAG_FUNC_VALUE;
@@ -250,11 +242,9 @@ int32 scriptlib::effect_set_value(lua_State* L) {
 int32 scriptlib::effect_set_operation(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->operation)
-		luaL_unref(L, LUA_REGISTRYINDEX, peffect->operation);
 	if(!lua_isnoneornil(L, 2)) {
 		check_param(L, PARAM_TYPE_FUNCTION, 2);
-		peffect->operation = interpreter::get_function_handle(L, 2);
+		peffect->operation = lua_get<Function>(L, 2);
 	} else
 		peffect->operation = 0;
 	return 0;
@@ -393,9 +383,9 @@ int32 scriptlib::effect_get_value(lua_State* L) {
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	if(peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
-		interpreter::pushobject(L, peffect->value);
+		interpreter::pushobject(L, peffect->value.GetFunc());
 	else
-		lua_pushinteger(L, (int32)peffect->value);
+		lua_pushinteger(L, peffect->value.GetInt());
 	return 1;
 }
 int32 scriptlib::effect_get_operation(lua_State* L) {

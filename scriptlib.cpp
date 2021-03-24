@@ -68,3 +68,9 @@ int32 scriptlib::check_action_permission(lua_State* L) {
 		luaL_error(L, "Action is not allowed here.");
 	return TRUE;
 }
+
+Function get_lua_function(lua_State * L, int index) {
+	lua_pushvalue(L, index);
+	int32 ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	return std::make_shared<Lua_Function_s>(lua_get<duel*>(L), ref);
+}

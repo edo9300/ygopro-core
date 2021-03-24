@@ -57,7 +57,8 @@ struct chain {
 	card_state triggering_state;
 	effect* triggering_effect;
 	group* target_cards;
-	int32 replace_op;
+	Function replace_op;
+	Function tmp_replace_reserve;
 	uint8 target_player;
 	int32 target_param;
 	effect* disable_reason;
@@ -174,8 +175,8 @@ struct processor {
 	typedef std::set<card*, card_sort> card_set;
 	typedef std::set<std::pair<effect*, tevent>> delayed_effect_collection;
 	struct chain_limit_t {
-		chain_limit_t(int32 f, int32 p): function(f), player(p) {}
-		int32 function;
+		chain_limit_t(Function f, int32 p): function(f), player(p) {}
+		Function function;
 		int32 player;
 	};
 	typedef std::vector<chain_limit_t> chain_limit_list;
@@ -547,7 +548,7 @@ public:
 	//operations
 	int32 negate_chain(uint8 chaincount);
 	int32 disable_chain(uint8 chaincount);
-	void change_chain_effect(uint8 chaincount, int32 replace_op);
+	void change_chain_effect(uint8 chaincount, Function& replace_op);
 	void change_target(uint8 chaincount, group* targets);
 	void change_target_player(uint8 chaincount, uint8 playerid);
 	void change_target_param(uint8 chaincount, int32 param);
