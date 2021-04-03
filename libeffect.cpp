@@ -174,10 +174,9 @@ int32 scriptlib::effect_set_label_object(lua_State* L) {
 			luaL_unref(L, LUA_REGISTRYINDEX, peffect->label_object);
 		lua_pop(L, 1);
 	}
-	if(lua_isnoneornil(L, 2)) {
-		peffect->label_object = 0;
+	peffect->label_object = 0;
+	if(lua_isnoneornil(L, 2))
 		return 0;
-	}
 	if(auto obj = lua_get<lua_obj*>(L, 2))
 		peffect->label_object = obj->ref_handle;
 	else if(lua_istable(L, 2)) {
