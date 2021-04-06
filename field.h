@@ -102,7 +102,7 @@ struct field_effect {
 	typedef std::unordered_map<effect*, effect*> oath_effects;
 	typedef std::unordered_set<effect*> effect_collection;
 	typedef std::unordered_map<card*, effect*> gain_effects;
-	typedef std::unordered_map<effect*, gain_effects> grant_effect_container;
+	typedef std::map<effect*, gain_effects, effect_sort> grant_effect_container;
 
 	effect_container aura_effect;
 	effect_container ignition_effect;
