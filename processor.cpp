@@ -4814,7 +4814,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 			core.units.begin()->step = 3;
 			return FALSE;
 		}
-		if((peffect->type & EFFECT_TYPE_ACTIVATE) && pcard->is_has_relation(*cait)) {
+		if((peffect->type & EFFECT_TYPE_ACTIVATE) && pcard->is_has_relation(*cait) && !cait->replace_op) {
 			pcard->enable_field_effect(true);
 			if(is_flag(DUEL_1_FACEUP_FIELD)) {
 				if(pcard->data.type & TYPE_FIELD) {
