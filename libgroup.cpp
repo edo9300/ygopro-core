@@ -262,7 +262,14 @@ int32 scriptlib::group_select_unselect(lua_State* L) {
 		pduel->game_field->core.unselect_cards.push_back(*it);
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), finishable);
-	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
+		duel* pduel = (duel*)ctx;
+		if(pduel->game_field->return_cards.canceled)
+			lua_pushnil(L);
+		else
+			interpreter::pushobject(L, pduel->game_field->return_cards.list[0]);
+		return 1;
+	});
 }
 int32 scriptlib::group_random_select(lua_State* L) {
 	check_param_count(L, 3);
