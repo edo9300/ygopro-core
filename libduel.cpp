@@ -2344,16 +2344,7 @@ int32 scriptlib::duel_select_matching_cards(lua_State* L) {
 	pduel->game_field->filter_matching_card(2, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
-			interpreter::pushobject(L, pgroup);
-		}
-		return 1;
-	});
+	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
 int32 scriptlib::duel_select_cards_code(lua_State * L) {
 	using container = std::pair<uint32_t, uint32_t>;
@@ -2375,12 +2366,8 @@ int32 scriptlib::duel_select_cards_code(lua_State * L) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), TRUE);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled) {
-			for(auto& obj : pduel->game_field->core.select_cards)
-				delete ((container*)obj);
-			lua_pushnil(L);
-			return 1;
-		}  else {
+		int ret = 1;
+		if(!pduel->game_field->return_cards.canceled) {
 			bool ret_index = lua_get<bool>(L, 5);
 			for(auto& code : pduel->game_field->return_cards.list) {
 				auto obj = (container*)code;
@@ -2396,10 +2383,12 @@ int32 scriptlib::duel_select_cards_code(lua_State * L) {
 					lua_settable(L, -3);
 				}
 			}
-			for(auto& obj : pduel->game_field->core.select_cards)
-				delete ((container*)obj);
-			return (int)pduel->game_field->return_cards.list.size();
-		}
+			ret = (int)pduel->game_field->return_cards.list.size();
+		} else
+			lua_pushnil(L);
+		for(auto& obj : pduel->game_field->core.select_cards)
+			delete ((container*)obj);
+		return ret;
 	});
 }
 /**
@@ -2527,16 +2516,7 @@ int32 select_release_group(lua_State* L, uint8 use_hand) {
 	pduel->game_field->core.release_cards_ex_oneof.clear();
 	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, 2, extraargs, pexception, pexgroup, use_oppo);
 	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, (group*)to_check, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
-			interpreter::pushobject(L, pgroup);
-		}
-		return 1;
-	});
+	return lua_yieldk(L, 0, (lua_KContext)cancelable, scriptlib::push_return_cards);
 }
 int32 scriptlib::duel_select_release_group(lua_State* L) {
 	return select_release_group(L, false);
@@ -2614,16 +2594,7 @@ int32 scriptlib::duel_select_tribute(lua_State* L) {
 	pduel->game_field->core.release_cards_ex_oneof.clear();
 	pduel->game_field->get_summon_release_list(target, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, mg, ex);
 	pduel->game_field->select_tribute_cards(0, playerid, cancelable, min, max, toplayer, zone);
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
-			interpreter::pushobject(L, pgroup);
-		}
-		return 1;
-	});
+	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
 /**
 * \brief Duel.GetTargetCount

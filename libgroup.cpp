@@ -193,16 +193,7 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 			pduel->game_field->core.select_cards.push_back(pcard);
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
-			interpreter::pushobject(L, pgroup);
-		}
-		return 1;
-	});
+	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
 int32 scriptlib::group_select(lua_State* L) {
 	check_action_permission(L);
@@ -229,16 +220,7 @@ int32 scriptlib::group_select(lua_State* L) {
 	auto max = lua_get<uint16>(L, 4);
 	pduel->game_field->core.select_cards.assign(cset.begin(), cset.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
-			interpreter::pushobject(L, pgroup);
-		}
-		return 1;
-	});
+	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
 int32 scriptlib::group_select_unselect(lua_State* L) {
 	check_action_permission(L);
@@ -280,15 +262,7 @@ int32 scriptlib::group_select_unselect(lua_State* L) {
 		pduel->game_field->core.unselect_cards.push_back(*it);
 	}
 	pduel->game_field->add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), finishable);
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		if(pduel->game_field->return_cards.canceled)
-			lua_pushnil(L);
-		else {
-			interpreter::pushobject(L, pduel->game_field->return_cards.list[0]);
-		}
-		return 1;
-	});
+	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
 int32 scriptlib::group_random_select(lua_State* L) {
 	check_param_count(L, 3);

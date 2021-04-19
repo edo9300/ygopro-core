@@ -7,6 +7,7 @@
 #include "scriptlib.h"
 #include "duel.h"
 #include "lua_obj.h"
+#include "field.h"
 
 int32 scriptlib::check_param(lua_State* L, int32 param_type, int32 index, int32 retfalse, void* retobj) {
 	const char* type = nullptr;
@@ -67,4 +68,20 @@ int32 scriptlib::check_action_permission(lua_State* L) {
 	if(pduel->lua->no_action)
 		luaL_error(L, "Action is not allowed here.");
 	return TRUE;
+}
+int32 scriptlib::push_return_cards(lua_State* L, int32/* status*/, lua_KContext ctx) {
+	const auto pduel = lua_get<duel*>(L);
+	bool cancelable = (bool)ctx;
+	if(pduel->game_field->return_cards.canceled) {
+		if(cancelable) {
+			lua_pushnil(L);
+		} else {
+			group* pgroup = pduel->new_group();
+			interpreter::pushobject(L, pgroup);
+		}
+	} else {
+		group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
+		interpreter::pushobject(L, pgroup);
+	}
+	return 1;
 }

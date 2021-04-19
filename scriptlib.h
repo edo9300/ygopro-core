@@ -17,6 +17,7 @@ public:
 	static int32 check_param(lua_State* L, int32 param_type, int32 index, int32 retfalse = FALSE, void* retobj = nullptr);
 	static int32 check_param_count(lua_State* L, int32 count);
 	static int32 check_action_permission(lua_State* L);
+	static int32 push_return_cards(lua_State* L, int32 status, lua_KContext ctx);
 
 	//card lib
 	static int32 card_get_code(lua_State* L);
