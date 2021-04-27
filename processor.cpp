@@ -4497,7 +4497,7 @@ int32 field::add_chain(uint16 step) {
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8>(HINT_OPSELECTED);
 		message->write<uint8>(playerid);
-		message->write<uint64>(returns.at<int32>(0) >= core.select_options.size() ? core.select_options[returns.at<int32>(0)] : 65);
+		message->write<uint64>(returns.at<int32>(0) >= (int32)core.select_options.size() ? core.select_options[returns.at<int32>(0)] : 65);
 		clit.triggering_effect = peffect;
 		clit.evt = ch.evt;
 		phandler->create_relation(clit);
@@ -4810,6 +4810,10 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		core.spsummon_state_count_tmp[1] = core.spsummon_state_count[1];
 		effect* peffect = cait->triggering_effect;
 		card* pcard = peffect->get_handler();
+		if((cait->flag & CHAIN_CONTINUOUS_CARD) && !pcard->is_has_relation(*cait)) {
+			core.units.begin()->step = 3;
+			return FALSE;
+		}
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) && pcard->is_has_relation(*cait)) {
 			pcard->enable_field_effect(true);
 			if(is_flag(DUEL_1_FACEUP_FIELD)) {
@@ -4835,29 +4839,36 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 				return FALSE;
 			}
 		}
+		return FALSE;
+	}
+	case 3 : {
+		effect* peffect = cait->triggering_effect;
+		card* pcard = peffect->get_handler();
+		if((cait->flag & CHAIN_CONTINUOUS_CARD) && !pcard->is_has_relation(*cait)){
+			return FALSE;
+		}
 		if(cait->replace_op) {
 			core.units.begin()->arg4 = cait->triggering_effect->operation;
 			cait->triggering_effect->operation = cait->replace_op;
 		} else
 			core.units.begin()->arg4 = 0;
-		if((cait->flag & CHAIN_CONTINUOUS_CARD) && !pcard->is_has_relation(*cait))
-			return FALSE;
 		if(cait->triggering_effect->operation) {
 			core.sub_solving_event.push_back(cait->evt);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, cait->triggering_effect, 0, cait->triggering_player, 0);
 		}
 		return FALSE;
 	}
-	case 3: {
+	case 4: {
 		effect* peffect = cait->triggering_effect;
 		if(core.units.begin()->arg4) {
 			peffect->operation = core.units.begin()->arg4;
+			core.units.begin()->arg4 = 0;
 		}
 		core.special_summoning.clear();
 		core.equiping_cards.clear();
 		return FALSE;
 	}
-	case 4: {
+	case 5: {
 		if(core.units.begin()->arg4 == 0) {
 			if(cait->opinfos.count(0x200) && cait->opinfos[0x200].op_count) {
 				if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
