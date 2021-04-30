@@ -325,7 +325,9 @@ void field::send_to(card* target, effect* reason_effect, uint32 reason, uint32 r
 	send_to(&tset, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
 void field::move_to_field(card* target, uint32 move_player, uint32 playerid, uint32 destination, uint32 positions, uint8 enable, uint8 ret, uint8 zone, uint8 rule, uint8 reason, uint8 confirm) {
-	if(!(destination & (LOCATION_MZONE | LOCATION_SZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions || (destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE)))
+	if(!(destination & (LOCATION_MZONE | LOCATION_SZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions)
+		return;
+	if(destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE) && playerid == target->current.controler)
 		return;
 	if(destination == target->current.location && playerid == target->current.controler)
 		return;
