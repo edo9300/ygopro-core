@@ -38,9 +38,6 @@ typedef int8_t int8;
 struct card_sort {
 	bool operator()(void* const & c1, void* const & c2) const;
 };
-struct effect_sort {
-	bool operator()(void* const & e1, void* const & e2) const;
-};
 
 //Locations
 #define LOCATION_DECK    0x01
