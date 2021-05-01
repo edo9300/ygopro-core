@@ -3152,18 +3152,21 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			for(auto& cit : spsummon_once_set)
 				core.spsummon_once_map[sumplayer][cit]++;
 		}
-		card_set cset;
-		for(auto& pcard : pgroup->container) {
-			pcard->set_status(STATUS_SUMMONING, TRUE);
-			if(!pcard->is_affected_by_effect(EFFECT_CANNOT_DISABLE_SPSUMMON)) {
-				cset.insert(pcard);
+		if(core.current_chain.size() == 0) {
+			card_set cset;
+			for(auto& pcard : pgroup->container) {
+				pcard->set_status(STATUS_SUMMONING, TRUE);
+				if(!pcard->is_affected_by_effect(EFFECT_CANNOT_DISABLE_SPSUMMON)) {
+					cset.insert(pcard);
+				}
 			}
-		}
-		if(cset.size()) {
-			raise_event(&cset, EVENT_SPSUMMON, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
-			process_instant_event();
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
-		}
+			if(cset.size()) {
+				raise_event(&cset, EVENT_SPSUMMON, core.units.begin()->peffect, 0, sumplayer, sumplayer, 0);
+				process_instant_event();
+				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
+			}
+		} else
+			core.units.begin()->step = 26;
 		return FALSE;
 	}
 	case 26: {
