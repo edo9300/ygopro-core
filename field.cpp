@@ -2063,7 +2063,7 @@ int32 field::adjust_grant_effect() {
 		return res;
 	};
 	int32 adjusted = FALSE;
-	for(auto& eit : effects.grant_effect) {
+	for(auto& eit : effects.grant_effect.sorted) {
 		effect* peffect = eit.first;
 		if(!CheckValidLabel(peffect->label_object))
 			continue;
@@ -2072,11 +2072,11 @@ int32 field::adjust_grant_effect() {
 			filter_affected_cards(peffect, &cset);
 		card_set add_set;
 		for(auto& pcard : cset) {
-			if(pcard->is_affect_by_effect(peffect) && !eit.second.count(pcard))
+			if(pcard->is_affect_by_effect(peffect) && !eit.second->count(pcard))
 				add_set.insert(pcard);
 		}
 		card_set remove_set;
-		for(auto& cit : eit.second) {
+		for(auto& cit : *eit.second) {
 			card* pcard = cit.first;
 			if(!pcard->is_affect_by_effect(peffect) || !cset.count(pcard))
 				remove_set.insert(pcard);
@@ -2086,12 +2086,12 @@ int32 field::adjust_grant_effect() {
 			effect* ceffect = geffect->clone();
 			ceffect->owner = pcard;
 			pcard->add_effect(ceffect);
-			eit.second.emplace(pcard, ceffect);
+			eit.second->emplace(pcard, ceffect);
 		}
 		for(auto& pcard : remove_set) {
-			auto it = eit.second.find(pcard);
+			auto it = eit.second->find(pcard);
 			pcard->remove_effect(it->second);
-			eit.second.erase(it);
+			eit.second->erase(it);
 		}
 		if(!add_set.empty() || !remove_set.empty())
 			adjusted = TRUE;

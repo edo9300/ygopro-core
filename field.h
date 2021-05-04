@@ -102,7 +102,28 @@ struct field_effect {
 	typedef std::unordered_map<effect*, effect*> oath_effects;
 	typedef std::unordered_set<effect*> effect_collection;
 	typedef std::unordered_map<card*, effect*> gain_effects;
-	typedef std::unordered_map<effect*, gain_effects> grant_effect_container;
+	struct grant_effect_container {
+		std::unordered_map<effect*, gain_effects> unsorted;
+		std::map<effect*, gain_effects*, effect_sort> sorted;
+		using key_iterator = std::unordered_map<effect*, gain_effects>::iterator;
+		template<typename... Args>
+		void emplace(Args&&... args) {
+			const auto ret = unsorted.emplace(std::forward<Args>(args)...);
+			if(ret.second) {
+				const auto elem = ret.first;
+				sorted.emplace(elem->first, &elem->second);
+			}
+		}
+		template<typename... Args>
+		key_iterator find(Args&&... args) {
+			return unsorted.find(std::forward<Args>(args)...);
+		}
+		void erase(const key_iterator& eit) {
+			const auto peff = eit->first;
+			sorted.erase(peff);
+			unsorted.erase(eit);
+		}
+	};
 
 	effect_container aura_effect;
 	effect_container ignition_effect;
