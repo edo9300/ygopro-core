@@ -14,8 +14,8 @@
 bool effect_sort_id(const effect* e1, const effect* e2) {
 	return e1->id < e2->id;
 }
-bool effect_sort::operator()(void* const& e1, void* const& e2) const {
-	return effect_sort_id((const effect*)e1, (const effect*)e2);
+bool field_effect::grant_effect_container::effect_sort_by_ref::operator()(effect* e1, effect* e2) const {
+	return e1->ref_handle < e2->ref_handle;
 }
 effect::effect(duel* pd) : lua_obj_helper(pd) {
 	owner = 0;
