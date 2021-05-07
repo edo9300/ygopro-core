@@ -595,7 +595,7 @@ uint32 card::get_type(card* scard, uint64 sumtype, uint8 playerid) {
 	if (temp.type != 0xffffffff)
 		return temp.type;
 	effect_set effects;
-	int32 type = data.type, alttype = 0;
+	int32 type = data.type, alttype = sumtype ? data.type : 0;
 	bool changed = false;
 	temp.type = data.type;
 	filter_effect(EFFECT_ADD_TYPE, &effects, FALSE);
