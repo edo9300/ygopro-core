@@ -3320,7 +3320,7 @@ int32 card::check_cost_condition(int32 ecode, int32 playerid, int32 sumtype) {
 }
 // check if this is a normal summonable card
 int32 card::is_summonable_card() {
-	if(!(data.type & (TYPE_RITUAL | TYPE_SPSUMMON
+	if(!(data.type & TYPE_MONSTER) || (data.type & (TYPE_RITUAL | TYPE_SPSUMMON
 					  | TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK
 					  | TYPE_TOKEN | TYPE_TRAPMONSTER)))
 		return FALSE;
