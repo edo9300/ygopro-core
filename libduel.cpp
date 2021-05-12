@@ -4207,6 +4207,7 @@ int32 scriptlib::duel_get_card_from_cardid(lua_State* L) {
 	return 0;
 }
 int32 scriptlib::duel_load_script(lua_State* L) {
+	using SLS = duel::SCRIPT_LOAD_STATUS;
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	lua_getglobal(L, "tostring");
@@ -4220,12 +4221,16 @@ int32 scriptlib::duel_load_script(lua_State* L) {
 				hash = (((hash << 5) + hash) + c) & 0xffffffff; /* hash * 33 + c */
 			return hash;
 		}(string);
-		if(pduel->loaded_scripts[hash])
-			lua_pushboolean(L, pduel->loaded_scripts[hash] == 1);
+		auto& load_status = pduel->loaded_scripts[hash];
+		if(load_status == SLS::LOADING) {
+			luaL_error(L, "Recursive script loading detected.");
+		} else if(load_status != SLS::NOT_LOADED)
+			lua_pushboolean(L, load_status == SLS::LOAD_SUCCEDED);
 		else {
+			load_status = SLS::LOADING;
 			auto res = pduel->read_script(string);
 			lua_pushboolean(L, res);
-			pduel->loaded_scripts[hash] = res ? 1 : 2;
+			load_status = res ? SLS::LOAD_SUCCEDED : SLS::LOAD_FAILED;
 		}
 		return 1;
 	}
