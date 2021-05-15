@@ -264,7 +264,7 @@ int32 effect::is_activateable(uint8 playerid, const tevent& e, int32 neglect_con
 				return FALSE;
 		} else if(!(type & EFFECT_TYPE_CONTINUOUS)) {
 			card* phandler = get_handler();
-			if(!(phandler->get_type() & TYPE_MONSTER) && (get_active_type() & TYPE_MONSTER))
+			if(!pduel->game_field->is_flag(DUEL_TRIGGER_WHEN_PRIVATE_KNOWLEDGE) && !(phandler->get_type() & TYPE_MONSTER) && (get_active_type() & TYPE_MONSTER))
 				return FALSE;
 			if((phandler->get_type() & TYPE_CONTINUOUS) && (phandler->get_type() & TYPE_EQUIP))
 				return FALSE;
