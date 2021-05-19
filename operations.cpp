@@ -4227,6 +4227,7 @@ int32 field::send_to(uint16 step, group* targets, effect* reason_effect, uint32 
 			param->leave.insert(pcard);
 			++param->cvit;
 			core.units.begin()->step = 4;
+			pcard->set_status(STATUS_LEAVE_CONFIRMED, FALSE);
 			return FALSE;
 		}
 		if(param->predirect && get_useable_count(pcard, pcard->current.controler, LOCATION_SZONE, pcard->current.controler, LOCATION_REASON_TOFIELD) > 0)
