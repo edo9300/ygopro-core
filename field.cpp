@@ -1065,6 +1065,7 @@ void field::swap_deck_and_grave(uint8 playerid) {
 		}
 	}
 	for(auto& pcard : player[playerid].list_grave) {
+		pcard->current.position = POS_FACEUP;
 		pcard->current.location = LOCATION_GRAVE;
 		pcard->current.reason = REASON_EFFECT;
 		pcard->current.reason_effect = core.reason_effect;
