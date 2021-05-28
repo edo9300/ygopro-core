@@ -11,6 +11,7 @@
 #include "group.h"
 #include "interpreter.h"
 #include <algorithm>
+#include <iterator>
 
 int32 field::negate_chain(uint8 chaincount) {
 	if(core.current_chain.size() == 0)
