@@ -1051,7 +1051,6 @@ void field::swap_deck_and_grave(uint8 playerid) {
 	cur_player.list_grave.swap(cur_player.list_main);
 	auto message = pduel->new_message(MSG_SWAP_GRAVE_DECK);
 	message->write<uint8>(playerid);
-	message->write<uint32>(cur_player.list_main.size());
 	card_vector ex;
 	ProgressiveBuffer buff;
 	int i = 0;
@@ -1095,6 +1094,7 @@ void field::swap_deck_and_grave(uint8 playerid) {
 		pcard->enable_field_effect(true);
 		pcard->reset(RESET_TODECK, RESET_EVENT);
 	}
+	message->write<uint32>(cur_player.list_extra.size() - cur_player.extra_p_count);
 	cur_player.list_extra.insert(cur_player.list_extra.end() - cur_player.extra_p_count, ex.begin(), ex.end());
 	reset_sequence(playerid, LOCATION_GRAVE);
 	reset_sequence(playerid, LOCATION_EXTRA);
