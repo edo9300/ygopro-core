@@ -759,6 +759,13 @@ int32 field::process() {
 		}
 		return PROCESSOR_FLAG_CONTINUE;
 	}
+	case PROCESSOR_REFRESH_RELAY: {
+		if (refresh_relay(it->step))
+			core.units.pop_front();
+		else
+			it->step++;
+		return PROCESSOR_FLAG_CONTINUE;
+	}
 	}
 	return PROCESSOR_FLAG_CONTINUE;
 }
@@ -3989,9 +3996,11 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			core.extra_summon[p] = 0;
 			core.spsummon_once_map[p].clear();
 			core.spsummon_once_map_rst[p].clear();
-			if (player[p].recharge)
-				next_player(p);
 		}
+		add_process(PROCESSOR_REFRESH_RELAY, 0, 0, 0, 0, 0);
+		return FALSE;
+	}
+	case 1:	{
 		core.force_turn_end = false;
 		core.spsummon_rst = false;
 		for(auto& peffect : effects.rechargeable)
@@ -4026,7 +4035,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		if(!is_flag(DUEL_RELAY) && infos.turn_id != 1)
 			tag_swap(turn_player);
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_TURN)) {
-			core.units.begin()->step = 17;
+			core.units.begin()->step = 18;
 			reset_phase(PHASE_DRAW);
 			reset_phase(PHASE_STANDBY);
 			reset_phase(PHASE_END);
@@ -4041,13 +4050,13 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		adjust_all();
 		return FALSE;
 	}
-	case 1: {
+	case 2: {
 		core.new_fchain.clear();
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_DP) || core.force_turn_end) {
-			core.units.begin()->step = 2;
+			core.units.begin()->step = 3;
 			reset_phase(PHASE_DRAW);
 			adjust_all();
 			return FALSE;
@@ -4066,7 +4075,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 2: {
+	case 3: {
 		// Draw, new ruling
 		if(is_flag(DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
 			int32 count = get_draw_count(infos.turn_player);
@@ -4083,11 +4092,11 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 3: {
+	case 4: {
 		// EVENT_PHASE_PRESTART is removed
 		return FALSE;
 	}
-	case 4: {
+	case 5: {
 		//Standby Phase
 		infos.phase = PHASE_STANDBY;
 		core.phase_action = FALSE;
@@ -4096,7 +4105,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
 		if(is_flag(DUEL_NO_STANDBY_PHASE) || is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_SP) || core.force_turn_end) {
-			core.units.begin()->step = 5;
+			core.units.begin()->step = 6;
 			reset_phase(PHASE_STANDBY);
 			adjust_all();
 			return FALSE;
@@ -4109,7 +4118,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 5: {
+	case 6: {
 		// EVENT_PHASE_START + PHASE_STANDBY is a special case(c89642993)
 		if(core.new_fchain.size() || core.new_ochain.size() || core.instant_event.back().event_code != EVENT_PHASE_START + PHASE_STANDBY)
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
@@ -4118,7 +4127,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 6: {
+	case 7: {
 		//Main1
 		infos.phase = PHASE_MAIN1;
 		core.phase_action = FALSE;
@@ -4129,10 +4138,10 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 7: {
+	case 8: {
 		return FALSE;
 	}
-	case 8: {
+	case 9: {
 		core.new_fchain.clear();
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
@@ -4144,9 +4153,9 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 9: {
+	case 10: {
 		if(returns.at<int32>(0) == 7) { // End Phase
-			core.units.begin()->step = 14;
+			core.units.begin()->step = 15;
 			return FALSE;
 		}
 		infos.phase = PHASE_BATTLE_START;
@@ -4160,7 +4169,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 		message->write<uint16>(infos.phase);
 		// Show the texts to indicate that BP is entered and skipped
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP) || core.force_turn_end) {
-			core.units.begin()->step = 14;
+			core.units.begin()->step = 15;
 			reset_phase(PHASE_BATTLE_START);
 			reset_phase(PHASE_BATTLE_STEP);
 			reset_phase(PHASE_BATTLE);
@@ -4176,13 +4185,13 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 10: {
+	case 11: {
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_BATTLE_START, 0);
 		/*if(core.set_forced_attack)
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 11: {
+	case 12: {
 		infos.phase = PHASE_BATTLE_STEP;
 		core.new_fchain.clear();
 		core.new_ochain.clear();
@@ -4195,10 +4204,10 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 12: {
+	case 13: {
 		if(core.units.begin()->arg2 == 0 && returns.at<int32>(1)) { // 2nd Battle Phase
 			core.units.begin()->arg2 = 1;
-			core.units.begin()->step = 8;
+			core.units.begin()->step = 9;
 			for(uint8 p = 0; p < 2; ++p) {
 				for(auto& pcard : player[p].list_mzone) {
 					if(!pcard)
@@ -4214,7 +4223,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			return FALSE;
 		}
 		if(is_flag(DUEL_NO_MAIN_PHASE_2)) {
-			core.units.begin()->step = 14;
+			core.units.begin()->step = 15;
 			adjust_all();
 			/*if(core.set_forced_attack)
 				add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
@@ -4234,14 +4243,14 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 13: {
+	case 14: {
 		if(core.new_fchain.size() || core.new_ochain.size())
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		/*if(core.set_forced_attack)
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 14: {
+	case 15: {
 		core.new_fchain.clear();
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
@@ -4254,12 +4263,12 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 15: {
+	case 16: {
 		//End Phase
 		infos.phase = PHASE_END;
 		core.phase_action = FALSE;
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_EP)) {
-			core.units.begin()->step = 17;
+			core.units.begin()->step = 18;
 			reset_phase(PHASE_END);
 			adjust_all();
 			return FALSE;
@@ -4273,14 +4282,14 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 16: {
+	case 17: {
 		if(core.new_fchain.size() || core.new_ochain.size())
 			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		/*if(core.set_forced_attack)
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 17: {
+	case 18: {
 		core.new_fchain.clear();
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
@@ -4290,7 +4299,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 18: {
+	case 19: {
 		raise_event((card*)0, EVENT_TURN_END, 0, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
@@ -4298,7 +4307,7 @@ int32 field::process_turn(uint16 step, uint8 turn_player) {
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
 		return FALSE;
 	}
-	case 19: {
+	case 20: {
 		core.new_fchain.clear();
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
@@ -5718,4 +5727,17 @@ int32 field::startup(uint16 step) {
 	}
 	}
 	return TRUE;
+}
+
+int32 field::refresh_relay(uint16 step) {
+	switch(step) {
+	case 0:
+	case 1: {
+		if(player[step].recharge)
+			next_player(step);
+		return FALSE;
+	}
+	default:
+		return TRUE;
+	}
 }

@@ -568,6 +568,7 @@ public:
 	int32 refresh_location_info(uint16 step);
 	int32 adjust_step(uint16 step);
 	int32 startup(uint16 step);
+	int32 refresh_relay(uint16 step);
 
 	//operations
 	int32 negate_chain(uint8 chaincount);
@@ -829,6 +830,8 @@ public:
 #define PROCESSOR_DISCARD_DECK	151
 #define PROCESSOR_SORT_DECK		152
 #define PROCESSOR_REMOVE_OVERLAY		160
+
+#define PROCESSOR_REFRESH_RELAY		170
 
 //#define PROCESSOR_DESTROY_S			100
 //#define PROCESSOR_RELEASE_S			101
