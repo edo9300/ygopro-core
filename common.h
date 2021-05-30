@@ -10,7 +10,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4244)
-#else
+#elif !defined(__forceinline)
 #define __forceinline __attribute__((always_inline)) inline
 #endif
 
