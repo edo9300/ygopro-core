@@ -480,17 +480,31 @@ int32 field::select_place(uint16 step, uint8 playerid, uint32 flag, uint8 count)
 		returns.at<int8>(0) = 0;
 		return FALSE;
 	} else {
+		auto retry = [&pduel=pduel]() {
+			pduel->new_message(MSG_RETRY);
+			return FALSE;
+		};
 		uint8 pt = 0;
 		for(int8 i = 0; i < count; ++i) {
-			uint8 p = returns.at<int8>(pt);
-			uint8 l = returns.at<int8>(pt + 1);
-			uint8 s = returns.at<int8>(pt + 2);
-			if((p != 0 && p != 1)
-					|| ((l != LOCATION_MZONE) && (l != LOCATION_SZONE))
-					|| ((0x1u << s) & (flag >> (((p == playerid) ? 0 : 16) + ((l == LOCATION_MZONE) ? 0 : 8))))) {
-				pduel->new_message(MSG_RETRY);
-				return FALSE;
-			}
+			uint8 player = returns.at<uint8>(pt);
+			if(player > 1)
+				return retry();
+			const bool isplayerid = player == playerid;
+			uint8 location = returns.at<uint8>(pt + 1);
+			if(location != LOCATION_MZONE && location != LOCATION_SZONE)
+				return retry();
+			const bool ismzone = location == LOCATION_MZONE;
+			uint8 sequence = returns.at<uint8>(pt + 2);
+			if(sequence > 7 - ismzone) //szone allow max of 8 zones, so 0-7, mzones 7 zones, so 0-6
+				return retry();
+			uint32 to_check = 0x1u << sequence;
+			if(!ismzone)
+				to_check <<= 8;
+			if(!isplayerid)
+				to_check <<= 16;
+			if(to_check & flag)
+				return retry();
+			flag |= to_check;
 			pt += 3;
 		}
 		return TRUE;
