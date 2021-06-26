@@ -769,12 +769,8 @@ void interpreter::unregister_effect(effect* peffect) {
 		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->operation);
 	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
 		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->value);
-	if(peffect->label_object) {
-		lua_rawgeti(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
-		if(lua_istable(lua_state, -1))
-			luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
-		lua_pop(lua_state, 1);
-	}
+	if(peffect->label_object)
+		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
 	remove_object(lua_state, peffect, &deleted);
 }
 void interpreter::register_group(group* pgroup) {

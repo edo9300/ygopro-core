@@ -168,18 +168,12 @@ int32 scriptlib::effect_set_label(lua_State* L) {
 int32 scriptlib::effect_set_label_object(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->label_object) {
-		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
-		if(lua_istable(L, -1))
-			luaL_unref(L, LUA_REGISTRYINDEX, peffect->label_object);
-		lua_pop(L, 1);
-	}
+	if(peffect->label_object)
+		luaL_unref(L, LUA_REGISTRYINDEX, peffect->label_object);
 	peffect->label_object = 0;
 	if(lua_isnoneornil(L, 2))
 		return 0;
-	if(auto obj = lua_get<lua_obj*>(L, 2))
-		peffect->label_object = obj->ref_handle;
-	else if(lua_istable(L, 2)) {
+	if(lua_get<lua_obj*>(L, 2) != nullptr || lua_istable(L, 2)) {
 		lua_pushvalue(L, 2);
 		peffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
 	} else
@@ -327,10 +321,7 @@ int32 scriptlib::effect_get_label_object(lua_State* L) {
 		return 1;
 	}
 	lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
-	if(auto obj = lua_touserdata(L, -1)) {
-		if((*static_cast<lua_obj**>(obj))->lua_type == PARAM_TYPE_DELETED)
-			luaL_error(L, "Attempting to access deleted object.");
-	} else if(!lua_istable(L, -1)) {
+	if(lua_touserdata(L, -1) == nullptr && !lua_istable(L, -1)) {
 		lua_pop(L, 1);
 		lua_pushnil(L);
 	}
