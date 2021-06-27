@@ -72,7 +72,7 @@ public:
 	int32 get_function_value(int32 f, uint32 param_count);
 	bool get_function_value(int32 f, uint32 param_count, std::vector<int32>* result);
 	int32 call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step);
-	int32 clone_function_ref(int32 func_ref);
+	int32 clone_lua_ref(int32 lua_ref);
 	void* get_ref_object(int32 ref_handler);
 	bool call_function(int param_count, int ret_count);
 	inline bool ret_fail(const char* message);

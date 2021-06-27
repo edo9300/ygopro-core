@@ -1152,10 +1152,9 @@ int32 interpreter::call_coroutine(int32 f, uint32 param_count, uint32* yield_val
 	}
 	return COROUTINE_YIELD;
 }
-int32 interpreter::clone_function_ref(int32 func_ref) {
-	lua_rawgeti(current_state, LUA_REGISTRYINDEX, func_ref);
-	int32 ref = luaL_ref(current_state, LUA_REGISTRYINDEX);
-	return ref;
+int32 interpreter::clone_lua_ref(int32 lua_ref) {
+	lua_rawgeti(current_state, LUA_REGISTRYINDEX, lua_ref);
+	return luaL_ref(current_state, LUA_REGISTRYINDEX);
 }
 void* interpreter::get_ref_object(int32 ref_handler) {
 	if(ref_handler == 0)
