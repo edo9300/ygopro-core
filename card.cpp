@@ -2989,15 +2989,24 @@ void card::filter_spsummon_procedure(uint8 playerid, effect_set* peset, uint32 s
 			topos = POS_FACEUP;
 			toplayer = playerid;
 		}
-		if(peffect->is_available() && peffect->check_count_limit(playerid) && is_spsummonable(peffect)
+		if(!peffect->is_available() || !peffect->check_count_limit(playerid))
+			continue;
+		if(is_spsummonable(peffect)
 				&& ((topos & POS_FACEDOWN) || !pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE))) {
 			effect* sumeffect = pduel->game_field->core.reason_effect;
 			if(!sumeffect)
 				sumeffect = peffect;
-			uint32 sumtype = peffect->get_value(this);
-			if((!summon_type || summon_type == sumtype)
-							&& pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
-				peset->push_back(peffect);
+			std::vector<int32> retval;
+			peffect->get_value(this, 0, &retval);
+			uint32 sumtype = retval.size() > 0 ? retval[0] : 0;
+			uint32 zone = retval.size() > 1 ? retval[1] : 0xff;
+			if(zone != 0xff && pduel->game_field->get_useable_count(this, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone, nullptr) <= 0)
+				continue;
+			if(summon_type != 0 && summon_type != sumtype)
+				continue;
+			if(!pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
+				continue;
+			peset->push_back(peffect);
 		}
 	}
 }
