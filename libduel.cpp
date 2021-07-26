@@ -4190,9 +4190,8 @@ int32 scriptlib::duel_get_random_number(lua_State* L) {
 	return 1;
 }
 int32 scriptlib::duel_assume_reset(lua_State* L) {
-	auto pduel = lua_get<duel*>(L);
-	pduel->restore_assumes();
-	return 1;
+	lua_get<duel*>(L)->restore_assumes();
+	return 0;
 }
 int32 scriptlib::duel_get_card_from_cardid(lua_State* L) {
 	check_param_count(L, 1);
