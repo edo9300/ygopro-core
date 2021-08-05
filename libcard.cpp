@@ -2084,9 +2084,16 @@ int32 scriptlib::card_get_counter(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto countertype = lua_get<uint16>(L, 2);
-	if(countertype == 0)
+	if(countertype == 0) {
 		lua_pushinteger(L, pcard->counters.size());
-	else
+		lua_newtable(L);
+		for(const auto& counter : pcard->counters) {
+			lua_pushinteger(L, counter.first);
+			lua_pushinteger(L, counter.second[0] + counter.second[1]);
+			lua_settable(L, -3);
+		}
+		return 2;
+	} else
 		lua_pushinteger(L, pcard->get_counter(countertype));
 	return 1;
 }
