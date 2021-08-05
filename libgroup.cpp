@@ -5,12 +5,12 @@
  *      Author: Argon
  */
 
+#include <iterator>
 #include "scriptlib.h"
 #include "group.h"
 #include "card.h"
 #include "effect.h"
 #include "duel.h"
-#include <iterator>
 
 int32 scriptlib::group_new(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);

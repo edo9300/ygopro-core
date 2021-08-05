@@ -2054,31 +2054,40 @@ int32 scriptlib::card_remove_counter(lua_State* L) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	const auto pduel = lua_get<duel*>(L);
+	auto countertype = lua_get<uint16>(L, 3);
+	if(countertype == 0) {
+		luaL_error(L, "Counter type cannot be 0, use Card.RemoveAllCounters instead");
+		return 0;
+	}
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto rplayer = lua_get<uint8>(L, 2);
-	auto countertype = lua_get<uint16>(L, 3);
 	auto count = lua_get<uint16>(L, 4);
 	auto reason = lua_get<uint32>(L, 5);
-	if(countertype == 0) {
-		// c38834303: remove all counters
-		for(const auto& cmit : pcard->counters) {
-			auto message = pduel->new_message(MSG_REMOVE_COUNTER);
-			message->write<uint16>(cmit.first);
-			message->write<uint8>(pcard->current.controler);
-			message->write<uint8>(pcard->current.location);
-			message->write<uint8>(pcard->current.sequence);
-			message->write<uint16>(cmit.second[0] + cmit.second[1]);
-		}
-		pcard->counters.clear();
-		return 0;
-	} else {
-		pduel->game_field->remove_counter(reason, pcard, rplayer, 0, 0, countertype, count);
-		return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
-			duel* pduel = (duel*)ctx;
-			lua_pushboolean(L, pduel->game_field->returns.at<int32>(0));
-			return 1;
-		});
+	pduel->game_field->remove_counter(reason, pcard, rplayer, 0, 0, countertype, count);
+	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32/* status*/, lua_KContext ctx) {
+		duel* pduel = (duel*)ctx;
+		lua_pushboolean(L, pduel->game_field->returns.at<int32>(0));
+		return 1;
+	});
+}
+int32 scriptlib::card_remove_all_counters(lua_State* L) {
+	check_action_permission(L);
+	check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	auto pcard = lua_get<card*, true>(L, 1);
+	uint32 total = 0;
+	for(const auto& cmit : pcard->counters) {
+		auto message = pduel->new_message(MSG_REMOVE_COUNTER);
+		message->write<uint16>(cmit.first);
+		message->write<uint8>(pcard->current.controler);
+		message->write<uint8>(pcard->current.location);
+		message->write<uint8>(pcard->current.sequence);
+		message->write<uint16>(cmit.second[0] + cmit.second[1]);
+		total += cmit.second[0] + cmit.second[1];
 	}
+	pcard->counters.clear();
+	lua_pushinteger(L, total);
+	return 1;
 }
 int32 scriptlib::card_get_counter(lua_State* L) {
 	check_param_count(L, 2);

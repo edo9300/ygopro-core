@@ -234,6 +234,7 @@ public:
 	static int32 card_is_controler_can_be_changed(lua_State* L);
 	static int32 card_add_counter(lua_State* L);
 	static int32 card_remove_counter(lua_State* L);
+	static int32 card_remove_all_counters(lua_State* L);
 	static int32 card_get_counter(lua_State* L);
 	static int32 card_enable_counter_permit(lua_State* L);
 	static int32 card_set_counter_limit(lua_State* L);
