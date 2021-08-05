@@ -77,7 +77,8 @@ int32 scriptlib::group_remove_card(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 2);
 	if (pgroup->is_readonly != 1)
 		pgroup->container.erase(pcard);
-	return 0;
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 int32 scriptlib::group_get_next(lua_State* L) {
 	check_param_count(L, 1);
@@ -667,7 +668,8 @@ int32 scriptlib::group_sub(lua_State* L) {
 	for (auto& pcard : sgroup->container) {
 		pgroup->container.erase(pcard);
 	}
-	return 0;
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 int32 scriptlib::group_len(lua_State* L) {
 	check_param_count(L, 1);
