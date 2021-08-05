@@ -263,6 +263,8 @@ static constexpr luaL_Reg cardlib[] = {
 	{ "RemoveCounter", scriptlib::card_remove_counter },
 	{ "RemoveAllCounters", scriptlib::card_remove_all_counters },
 	{ "GetCounter", scriptlib::card_get_counter },
+	{ "GetAllCounters", scriptlib::card_get_all_counters },
+	{ "HasCounters", scriptlib::card_has_counters },
 	{ "EnableCounterPermit", scriptlib::card_enable_counter_permit },
 	{ "SetCounterLimit", scriptlib::card_set_counter_limit },
 	{ "IsCanChangePosition", scriptlib::card_is_can_change_position },
