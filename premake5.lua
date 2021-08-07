@@ -96,5 +96,5 @@ project "ocgcoreshared"
 	filter "system:linux"
 		links "lua:static"
 
-	filter "system:macosx"
+	filter "system:macosx or ios"
 		links "lua"
