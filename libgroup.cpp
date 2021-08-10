@@ -576,7 +576,8 @@ int32 scriptlib::group_remove(lua_State* L) {
 			pgroup->container.erase(rm);
 		}
 	}
-	return 0;
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 int32 scriptlib::group_merge(lua_State* L) {
 	check_param_count(L, 2);
@@ -585,7 +586,8 @@ int32 scriptlib::group_merge(lua_State* L) {
 		return 0;
 	auto mgroup = lua_get<group*, true>(L, 2);
 	pgroup->container.insert(mgroup->container.begin(), mgroup->container.end());
-	return 0;
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 void get_groupcard(lua_State* L, group*& pgroup1, group*& pgroup2, card*& pcard) {
 	auto obj1 = lua_get<lua_obj*>(L, 1);
