@@ -12,6 +12,11 @@
 #include "effect.h"
 #include "duel.h"
 
+static void assert_readonly_group(lua_State* L, group* pgroup) {
+	if(pgroup->is_readonly == 1)
+		luaL_error(L, "attempt to modify a read only group");
+}
+
 int32 scriptlib::group_new(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
@@ -59,24 +64,38 @@ int32 scriptlib::group_keep_alive(lua_State* L) {
 int32 scriptlib::group_clear(lua_State* L) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	if (pgroup->is_readonly != 1)
-		pgroup->container.clear();
+	assert_readonly_group(L, pgroup);
+	pgroup->container.clear();
 	return 0;
 }
 int32 scriptlib::group_add_card(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	auto pcard = lua_get<card*, true>(L, 2);
-	if (pgroup->is_readonly != 1)
+	assert_readonly_group(L, pgroup);
+	card* pcard = nullptr;
+	group* sgroup = nullptr;
+	get_card_or_group(L, 2, pcard, sgroup);
+	if(pcard)
 		pgroup->container.insert(pcard);
-	return 0;
+	else
+		pgroup->container.insert(sgroup->container.begin(), sgroup->container.end());
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 int32 scriptlib::group_remove_card(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	auto pcard = lua_get<card*, true>(L, 2);
-	if (pgroup->is_readonly != 1)
+	assert_readonly_group(L, pgroup);
+	card* pcard = nullptr;
+	group* sgroup = nullptr;
+	get_card_or_group(L, 2, pcard, sgroup);
+	if(pcard)
 		pgroup->container.erase(pcard);
+	else {
+		for(auto& pcard : sgroup->container) {
+			pgroup->container.erase(pcard);
+		}
+	}
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -563,8 +582,7 @@ int32 scriptlib::group_remove(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	if(pgroup->is_readonly == 1)
-		return 0;
+	assert_readonly_group(L, pgroup);
 	card* pexception = 0;
 	if(!lua_isnoneornil(L, 3))
 		pexception = lua_get<card*, true>(L, 3);
@@ -576,16 +594,6 @@ int32 scriptlib::group_remove(lua_State* L) {
 			pgroup->container.erase(rm);
 		}
 	}
-	interpreter::pushobject(L, pgroup);
-	return 1;
-}
-int32 scriptlib::group_merge(lua_State* L) {
-	check_param_count(L, 2);
-	auto pgroup = lua_get<group*, true>(L, 1);
-	if(pgroup->is_readonly == 1)
-		return 0;
-	auto mgroup = lua_get<group*, true>(L, 2);
-	pgroup->container.insert(mgroup->container.begin(), mgroup->container.end());
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -649,28 +657,15 @@ int32 scriptlib::group_sub_const(lua_State* L) {
 	group* pgroup2 = nullptr;
 	card* pcard = nullptr;
 	const auto pduel = lua_get<duel*>(L);
+	get_card_or_group(L, 2, pcard, pgroup2);
 	group* newgroup = pduel->new_group(pgroup1);
-	if((pgroup2 = lua_get<group*>(L, 2)) != nullptr) {
+	if(pgroup2) {
 		for(auto& _pcard : pgroup2->container) {
 			newgroup->container.erase(_pcard);
 		}
-	} else if((pcard = lua_get<card*>(L, 2)) != nullptr)
+	} else
 		newgroup->container.erase(pcard);
-	else
-		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 2);
 	interpreter::pushobject(L, newgroup);
-	return 1;
-}
-int32 scriptlib::group_sub(lua_State* L) {
-	check_param_count(L, 2);
-	auto pgroup = lua_get<group*, true>(L, 1);
-	if(pgroup->is_readonly == 1)
-		return 0;
-	auto sgroup = lua_get<group*, true>(L, 2);
-	for (auto& pcard : sgroup->container) {
-		pgroup->container.erase(pcard);
-	}
-	interpreter::pushobject(L, pgroup);
 	return 1;
 }
 int32 scriptlib::group_len(lua_State* L) {
