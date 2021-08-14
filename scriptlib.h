@@ -353,6 +353,7 @@ public:
 	static int32 group_take_at_pos(lua_State* L);
 	static int32 group_get_count(lua_State* L);
 	static int32 group_filter(lua_State* L);
+	static int32 group_filter_in_place(lua_State* L);
 	static int32 group_filter_count(lua_State* L);
 	static int32 group_filter_select(lua_State* L);
 	static int32 group_select(lua_State* L);
