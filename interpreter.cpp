@@ -399,6 +399,7 @@ static constexpr luaL_Reg grouplib[] = {
 	{ "TakeatPos", scriptlib::group_take_at_pos },
 	{ "GetCount", scriptlib::group_get_count },
 	{ "Filter", scriptlib::group_filter },
+	{ "Match", scriptlib::group_filter_in_place },
 	{ "FilterCount", scriptlib::group_filter_count },
 	{ "FilterSelect", scriptlib::group_filter_select },
 	{ "Select", scriptlib::group_select },

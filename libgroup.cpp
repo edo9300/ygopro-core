@@ -162,6 +162,44 @@ int32 scriptlib::group_filter(lua_State* L) {
 	interpreter::pushobject(L, new_group);
 	return 1;
 }
+int32 scriptlib::group_filter_in_place(lua_State* L) {
+	check_param_count(L, 3);
+	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	auto pgroup = lua_get<group*, true>(L, 1);
+	assert_readonly_group(L, pgroup);
+	card* pexception = nullptr;
+	group* pexgroup = nullptr;
+	group::card_set::const_iterator pexbegin, pexend;
+	if(!(pexception = lua_get<card*>(L, 3))) {
+		if(pexgroup = lua_get<group*>(L, 3)) {
+			pexbegin = pexgroup->container.cbegin();
+			pexend = pexgroup->container.cend();
+		}
+	}
+	auto check_card = [&](card* pcard) {
+		if(!pexception && !pexgroup)
+			return true;
+		if(pexception)
+			return pcard != pexception;
+		if(pexbegin == pexend)
+			return true;
+		if(*pexbegin == pcard) {
+			pexbegin++;
+			return false;
+		}
+		return true;
+	};
+	const auto pduel = lua_get<duel*>(L);
+	uint32 extraargs = lua_gettop(L) - 3;
+	auto& cset = pgroup->container;
+	for(auto cit = cset.begin(); cit != cset.end(); ) {
+		auto rm = cit++;
+		if(!check_card(*rm) || !pduel->lua->check_matching(*rm, 2, extraargs))
+			cset.erase(rm);
+	}
+	interpreter::pushobject(L, pgroup);
+	return 1;
+}
 int32 scriptlib::group_filter_count(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
