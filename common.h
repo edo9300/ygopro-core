@@ -132,6 +132,8 @@ struct card_sort {
 #define RACE_CREATORGOD   0x400000
 #define RACE_WYRM         0x800000
 #define RACE_CYBERSE      0x1000000
+#define RACE_CYBORG       0x2000000
+#define RACE_MAX          RACE_CYBORG
 
 //Reasons
 #define REASON_DESTROY     0x1
