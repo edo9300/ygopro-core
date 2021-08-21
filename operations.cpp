@@ -4402,7 +4402,7 @@ int32 field::send_to(uint16 step, group* targets, effect* reason_effect, uint32 
 		core.units.begin()->ptarget = param->targets;
 		targets = param->targets;
 		delete param;
-		card_set tohand, todeck, tograve, remove, discard, released, destroyed;
+		card_set tohand, todeck, tograve, remove, discard, released, destroyed, from_grave;
 		card_set equipings, overlays;
 		for(auto& pcard : targets->container) {
 			uint8 nloc = pcard->current.location;
@@ -4460,6 +4460,10 @@ int32 field::send_to(uint16 step, group* targets, effect* reason_effect, uint32 
 				for(auto& mcard : pcard->xyz_materials)
 					overlays.insert(mcard);
 			}
+			if(pcard->previous.location == LOCATION_GRAVE) {
+				from_grave.insert(pcard);
+				raise_single_event(pcard, 0, EVENT_LEAVE_GRAVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
+			}
 			raise_single_event(pcard, 0, EVENT_MOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
 		}
 		if(tohand.size())
@@ -4476,6 +4480,8 @@ int32 field::send_to(uint16 step, group* targets, effect* reason_effect, uint32 
 			raise_event(&released, EVENT_RELEASE, reason_effect, reason, reason_player, 0, 0);
 		if(destroyed.size())
 			raise_event(&destroyed, EVENT_DESTROYED, reason_effect, reason, reason_player, 0, 0);
+		if(from_grave.size())
+			raise_event(&from_grave, EVENT_LEAVE_GRAVE, reason_effect, reason, reason_player, 0, 0);
 		raise_event(&targets->container, EVENT_MOVE, reason_effect, reason, reason_player, 0, 0);
 		process_single_event();
 		process_instant_event();
@@ -4869,6 +4875,10 @@ int32 field::move_to_field(uint16 step, card* target, uint8 enable, uint8 ret, u
 		if(ret == 1 && target->current.location == LOCATION_MZONE && !(target->data.type & TYPE_MONSTER))
 			send_to(target, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, 0);
 		else {
+			if(target->previous.location == LOCATION_GRAVE) {
+				raise_single_event(target, 0, EVENT_LEAVE_GRAVE, target->current.reason_effect, target->current.reason, target->current.reason_player, 0, 0);
+				raise_event(target, EVENT_LEAVE_GRAVE, target->current.reason_effect, target->current.reason, target->current.reason_player, 0, 0);
+			}
 			raise_single_event(target, 0, EVENT_MOVE, target->current.reason_effect, target->current.reason, target->current.reason_player, 0, 0);
 			raise_event(target, EVENT_MOVE, target->current.reason_effect, target->current.reason, target->current.reason_player, 0, 0);
 			process_single_event();
