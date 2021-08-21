@@ -1083,6 +1083,7 @@ void field::swap_deck_and_grave(uint8 playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 		pcard->reset(RESET_TODECK, RESET_EVENT);
+		raise_single_event(pcard, 0, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
 	}
 	for(auto& pcard : ex) {
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
@@ -1093,6 +1094,7 @@ void field::swap_deck_and_grave(uint8 playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 		pcard->reset(RESET_TODECK, RESET_EVENT);
+		raise_single_event(pcard, 0, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
 	}
 	message->write<uint32>(cur_player.list_extra.size() - cur_player.extra_p_count);
 	cur_player.list_extra.insert(cur_player.list_extra.end() - cur_player.extra_p_count, ex.begin(), ex.end());
@@ -1101,6 +1103,13 @@ void field::swap_deck_and_grave(uint8 playerid) {
 	message->write<uint32>(buff.data.size());
 	message->write(buff.data.data(), buff.data.size());
 	shuffle(playerid, LOCATION_DECK);
+	if(cur_player.list_main.size() || ex.size()) {
+		card_set cset(ex.begin(), ex.end());
+		cset.insert(cur_player.list_main.begin(), cur_player.list_main.end());
+		raise_event(&cset, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
+		process_single_event();
+		process_instant_event();
+	}
 }
 void field::reverse_deck(uint8 playerid) {
 	int32 count = player[playerid].list_main.size();
