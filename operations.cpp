@@ -1532,6 +1532,7 @@ int32 field::equip(uint16 step, uint8 equip_player, card* equip_card, card* targ
 			return FALSE;
 		}
 		equip_card->enable_field_effect(false);
+		equip_card->current.reason_player = equip_player;
 		move_to_field(equip_card, equip_player, equip_player, LOCATION_SZONE, (up || equip_card->is_position(POS_FACEUP)) ? POS_FACEUP : POS_FACEDOWN);
 		return FALSE;
 	}
