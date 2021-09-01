@@ -1845,15 +1845,15 @@ void card::xyz_overlay(card_set* materials) {
 	};
 	writetopcard(0);
 	writetopcard(1);
-	if(des.size())
-		pduel->game_field->destroy(&des, 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);
-	else
-		pduel->game_field->adjust_instant();
 	if(from_grave.size()) {
 		pduel->game_field->raise_event(&from_grave, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
 		pduel->game_field->process_single_event();
 		pduel->game_field->process_instant_event();
 	}
+	if(des.size())
+		pduel->game_field->destroy(&des, 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);
+	else
+		pduel->game_field->adjust_instant();
 }
 void card::xyz_add(card* mat) {
 	if(mat->current.location != 0)
