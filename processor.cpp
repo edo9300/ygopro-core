@@ -4822,7 +4822,7 @@ int32 field::solve_chain(uint16 step, uint32 chainend_arg1, uint32 chainend_arg2
 		if(cait->flag & CHAIN_DISABLE_ACTIVATE && is_chain_negatable(cait->chain_count)) {
 			remove_oath_effect(peffect);
 			if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_flag & EFFECT_COUNT_CODE_OATH)) {
-				dec_effect_code(peffect->count_code, peffect->count_flag, cait->triggering_player);
+				dec_effect_code(peffect->count_code, peffect->count_flag, peffect->count_hopt_index, cait->triggering_player);
 			}
 			check_chain_counter(peffect, cait->triggering_player, cait->chain_count, true);
 			core.new_fchain.remove_if([chaincount = cait->chain_count](chain ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });

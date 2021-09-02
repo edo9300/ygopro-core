@@ -41,7 +41,8 @@ public:
 	uint16 reset_count;
 	uint32 reset_flag;
 	uint32 count_code;
-	uint32 count_flag;
+	uint8 count_flag;
+	uint8 count_hopt_index;
 	uint32 category;
 	uint32 hint_timing[2];
 	uint32 card_type;
@@ -114,9 +115,9 @@ public:
 //#define EFFECT_STATUS_ACTIVATED 0x0002
 #define EFFECT_STATUS_SPSELF    0x0004
 
-#define EFFECT_COUNT_CODE_OATH   0x10000000
-#define EFFECT_COUNT_CODE_DUEL   0x20000000
-#define EFFECT_COUNT_CODE_SINGLE 0x40000000
+#define EFFECT_COUNT_CODE_OATH   0x1
+#define EFFECT_COUNT_CODE_DUEL   0x2
+#define EFFECT_COUNT_CODE_SINGLE 0x4
 
 //========== Reset ==========
 #define RESET_SELF_TURN 0x10000000

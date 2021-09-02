@@ -2056,7 +2056,7 @@ int32 field::summon(uint16 step, uint8 sumplayer, card* target, effect* proc, ui
 		if(proc && !is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			remove_oath_effect(proc);
 			if(proc->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (proc->count_flag & EFFECT_COUNT_CODE_OATH)) {
-				dec_effect_code(proc->count_code, proc->count_flag, sumplayer);
+				dec_effect_code(proc->count_code, proc->count_flag, proc->count_hopt_index, sumplayer);
 			}
 		}
 		if(effect_set* peset = (effect_set*)core.units.begin()->ptr2) {
@@ -2967,7 +2967,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 			effect* peffect = core.units.begin()->peffect;
 			remove_oath_effect(peffect);
 			if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_flag & EFFECT_COUNT_CODE_OATH)) {
-				dec_effect_code(peffect->count_code, peffect->count_flag, sumplayer);
+				dec_effect_code(peffect->count_code, peffect->count_flag, peffect->count_hopt_index, sumplayer);
 			}
 		}
 		if(target->current.location == LOCATION_MZONE)
@@ -3190,7 +3190,7 @@ int32 field::special_summon_rule(uint16 step, uint8 sumplayer, card* target, uin
 				effect* peffect = core.units.begin()->peffect;
 				remove_oath_effect(peffect);
 				if(peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && (peffect->count_flag & EFFECT_COUNT_CODE_OATH)) {
-					dec_effect_code(peffect->count_code, peffect->count_flag, sumplayer);
+					dec_effect_code(peffect->count_code, peffect->count_flag, peffect->count_hopt_index, sumplayer);
 				}
 			}
 			if(effect_set* peset = (effect_set*)core.units.begin()->ptr1) {

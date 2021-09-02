@@ -104,8 +104,22 @@ int32 scriptlib::effect_set_count_limit(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto v = lua_get<uint8>(L, 2);
-	auto code = lua_get<uint32, 0>(L, 3);
-	uint32 flag = lua_get<uint32, 0>(L, 4);
+	uint8 hopt_index = 0;
+	uint32 code = 0;
+	if(lua_istable(L, 3)) {
+		lua_pushnil(L);
+		if(lua_next(L, 3) != 0) {
+			code = lua_get<uint32>(L, -1);
+			lua_pop(L, 1);
+			if(lua_next(L, 3) != 0) {
+				hopt_index = lua_get<uint32>(L, -1);
+				lua_pop(L, 1);
+				lua_pop(L, 1); //manually pop the key from the stack as there won't be a next iteration
+			}
+		}
+	} else 
+		code = lua_get<uint32, 0>(L, 3);
+	uint8 flag = lua_get<uint8, 0>(L, 4);
 	if(v == 0)
 		v = 1;
 	peffect->flag[0] |= EFFECT_FLAG_COUNT_LIMIT;
@@ -113,6 +127,8 @@ int32 scriptlib::effect_set_count_limit(lua_State* L) {
 	peffect->count_limit_max = v;
 	peffect->count_code = code;
 	peffect->count_flag = flag;
+	if(code)
+		peffect->count_hopt_index = hopt_index;
 	return 0;
 }
 int32 scriptlib::effect_set_reset(lua_State* L) {
@@ -279,8 +295,9 @@ int32 scriptlib::effect_get_count_limit(lua_State* L) {
 	lua_pushinteger(L, peffect->count_limit);
 	lua_pushinteger(L, peffect->count_limit_max);
 	lua_pushinteger(L, peffect->count_code);
-	lua_pushinteger(L, peffect->count_flag);
-	return 4;
+	lua_pushinteger(L, peffect->count_flag); //return the count_code flags as their shifted representation
+	lua_pushinteger(L, peffect->count_hopt_index);
+	return 5;
 }
 int32 scriptlib::effect_get_reset(lua_State* L) {
 	check_param_count(L, 1);
