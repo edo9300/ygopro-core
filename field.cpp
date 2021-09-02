@@ -1251,15 +1251,11 @@ bool field::is_flag(uint64 flag) {
 int32 field::get_pzone_index(uint8 seq) {
 	if(seq > 1)
 		return 0;
-	if(is_flag(DUEL_SEPARATE_PZONE)) {
+	if(is_flag(DUEL_SEPARATE_PZONE)) // 6 and 7
 		return seq + 6;
-	}
-	if(is_flag(DUEL_3_COLUMNS_FIELD)) {
-		if(seq == 0)
-			return 1;
-		return 3;
-	}
-	return seq * 4;
+	if(is_flag(DUEL_3_COLUMNS_FIELD))// 1 and 3
+		return seq * 2 + 1;
+	return seq * 4;					// 0 and 4
 }
 void field::add_effect(effect* peffect, uint8 owner_player) {
 	if (!peffect->handler) {
