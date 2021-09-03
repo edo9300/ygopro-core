@@ -42,6 +42,7 @@ effect::effect(duel* pd) : lua_obj_helper(pd) {
 	reset_flag = 0;
 	count_code = 0;
 	count_flag = 0;
+	count_hopt_index = 0;
 	category = 0;
 	label_object = 0;
 	hint_timing[0] = 0;

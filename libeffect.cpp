@@ -111,13 +111,16 @@ int32 scriptlib::effect_set_count_limit(lua_State* L) {
 		if(lua_next(L, 3) != 0) {
 			code = lua_get<uint32>(L, -1);
 			lua_pop(L, 1);
-			if(lua_next(L, 3) != 0) {
+			if(!code) {
+				hopt_index = 0;
+				lua_pop(L, 1); //manually pop the key from the stack as there won't be a next iteration
+			} else if(lua_next(L, 3) != 0) {
 				hopt_index = lua_get<uint32>(L, -1);
 				lua_pop(L, 1);
 				lua_pop(L, 1); //manually pop the key from the stack as there won't be a next iteration
 			}
 		}
-	} else 
+	} else
 		code = lua_get<uint32, 0>(L, 3);
 	uint8 flag = lua_get<uint8, 0>(L, 4);
 	if(v == 0)
@@ -127,8 +130,7 @@ int32 scriptlib::effect_set_count_limit(lua_State* L) {
 	peffect->count_limit_max = v;
 	peffect->count_code = code;
 	peffect->count_flag = flag;
-	if(code)
-		peffect->count_hopt_index = hopt_index;
+	peffect->count_hopt_index = hopt_index;
 	return 0;
 }
 int32 scriptlib::effect_set_reset(lua_State* L) {
