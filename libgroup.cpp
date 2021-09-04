@@ -6,6 +6,7 @@
  */
 
 #include <iterator>
+#include <algorithm>
 #include "scriptlib.h"
 #include "group.h"
 #include "card.h"
