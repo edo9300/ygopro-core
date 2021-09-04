@@ -58,16 +58,16 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
 }
 
 OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
-	auto game_field = DUEL->game_field;
+	auto& game_field = *DUEL->game_field;
 	if(info.duelist == 0) {
-		if(game_field->is_location_useable(info.con, info.loc, info.seq)) {
+		if(game_field.is_location_useable(info.con, info.loc, info.seq)) {
 			card* pcard = DUEL->new_card(info.code);
 			pcard->owner = info.team;
-			game_field->add_card(info.con, pcard, (uint8_t)info.loc, (uint8_t)info.seq);
+			game_field.add_card(info.con, pcard, (uint8_t)info.loc, (uint8_t)info.seq);
 			pcard->current.position = info.pos;
 			if(!(info.loc & LOCATION_ONFIELD) || (info.pos & POS_FACEUP)) {
 				pcard->enable_field_effect(true);
-				game_field->adjust_instant();
+				game_field.adjust_instant();
 			}
 			if(info.loc & LOCATION_ONFIELD) {
 				if(info.loc == LOCATION_MZONE)
@@ -77,28 +77,22 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 	} else {
 		if(info.team > 1 || !(info.loc & (LOCATION_DECK | LOCATION_EXTRA)))
 			return;
-		info.duelist--;
 		card* pcard = DUEL->new_card(info.code);
-		auto& player = game_field->player[info.team];
-		if(info.duelist >= player.extra_lists_main.size()) {
-			player.extra_lists_main.resize(info.duelist + 1);
-			player.extra_lists_extra.resize(info.duelist + 1);
-			player.extra_lists_hand.resize(info.duelist + 1);
-			player.extra_extra_p_count.resize(info.duelist + 1);
+		auto& player = game_field.player[info.team];
+		if(info.duelist > player.extra_lists_main.size()) {
+			player.extra_lists_main.resize(info.duelist);
+			player.extra_lists_extra.resize(info.duelist);
+			player.extra_lists_hand.resize(info.duelist);
+			player.extra_extra_p_count.resize(info.duelist);
 		}
+		info.duelist--;
 		pcard->current.location = (uint8_t)info.loc;
 		pcard->owner = info.team;
 		pcard->current.controler = info.team;
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		if(info.loc == LOCATION_DECK){
-			auto& list = player.extra_lists_main[info.duelist];
-			list.push_back(pcard);
-			pcard->current.sequence = list.size() - 1;
-		} else {
-			auto& list = player.extra_lists_extra[info.duelist];
-			list.push_back(pcard);
-			pcard->current.sequence = list.size() - 1;
-		}
+		auto& list = (info.loc == LOCATION_DECK) ? player.extra_lists_main[info.duelist] : player.extra_lists_extra[info.duelist];
+		list.push_back(pcard);
+		pcard->current.sequence = list.size() - 1;
 	}
 }
 
@@ -193,7 +187,7 @@ OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) 
 
 OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {
 	auto& buffer = DUEL->query_buffer;
-	auto populate = [&flags = info.flags, &buffer](const field::card_vector& list) {
+	auto populate = [&flags = info.flags, &buffer](const card_vector& list) {
 		for(auto& pcard : list) {
 			if(pcard == nullptr) {
 				insert_value<int16>(buffer, 0);
