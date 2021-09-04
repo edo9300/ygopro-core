@@ -146,7 +146,7 @@ int32 scriptlib::group_filter(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	field::card_set cset(pgroup->container);
+	card_set cset(pgroup->container);
 	if(auto pexception = lua_get<card*>(L, 3))
 		cset.erase(pexception);
 	else if(auto pexgroup = lua_get<group*>(L, 3)) {
@@ -171,7 +171,7 @@ int32 scriptlib::group_filter_in_place(lua_State* L) {
 	assert_readonly_group(L, pgroup);
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
-	group::card_set::const_iterator pexbegin, pexend;
+	card_set::const_iterator pexbegin, pexend;
 	if(!(pexception = lua_get<card*>(L, 3))) {
 		if(pexgroup = lua_get<group*>(L, 3)) {
 			pexbegin = pexgroup->container.cbegin();
@@ -206,7 +206,7 @@ int32 scriptlib::group_filter_count(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	field::card_set cset(pgroup->container);
+	card_set cset(pgroup->container);
 	if(auto pexception = lua_get<card*>(L, 3))
 		cset.erase(pexception);
 	else if(auto pexgroup = lua_get<group*>(L, 3)) {
@@ -228,7 +228,7 @@ int32 scriptlib::group_filter_select(lua_State* L) {
 	check_param_count(L, 6);
 	check_param(L, PARAM_TYPE_FUNCTION, 3);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	field::card_set cset(pgroup->container);
+	card_set cset(pgroup->container);
 	bool cancelable = false;
 	uint8_t lastarg = 6;
 	if(lua_isboolean(L, lastarg)) {
@@ -260,7 +260,7 @@ int32 scriptlib::group_select(lua_State* L) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	field::card_set cset(pgroup->container);
+	card_set cset(pgroup->container);
 	bool cancelable = false;
 	uint8_t lastarg = 5;
 	if(lua_isboolean(L, lastarg)) {
@@ -368,7 +368,7 @@ int32 scriptlib::group_is_exists(lua_State* L) {
 	check_param_count(L, 4);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	field::card_set cset(pgroup->container);
+	card_set cset(pgroup->container);
 	if(auto pexception = lua_get<card*>(L, 4))
 		cset.erase(pexception);
 	else if(auto pexgroup = lua_get<group*>(L, 4)) {
@@ -402,7 +402,7 @@ int32 scriptlib::group_check_with_sum_equal(lua_State* L) {
 	if(max < min)
 		max = min;
 	int32 extraargs = lua_gettop(L) - 5;
-	field::card_vector cv(pduel->game_field->core.must_select_cards);
+	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32 mcount = cv.size();
 	for(auto& pcard : pgroup->container) {
 		auto it = std::find(pduel->game_field->core.must_select_cards.begin(), pduel->game_field->core.must_select_cards.end(), pcard);
@@ -439,7 +439,7 @@ int32 scriptlib::group_select_with_sum_equal(lua_State* L) {
 		auto it = std::remove(pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end(), pcard);
 		pduel->game_field->core.select_cards.erase(it, pduel->game_field->core.select_cards.end());
 	}
-	field::card_vector cv(pduel->game_field->core.must_select_cards);
+	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32 mcount = cv.size();
 	cv.insert(cv.end(), pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end());
 	for(auto& pcard : cv)
@@ -466,7 +466,7 @@ int32 scriptlib::group_check_with_sum_greater(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	auto acc = lua_get<uint32>(L, 3);
 	int32 extraargs = lua_gettop(L) - 3;
-	field::card_vector cv(pduel->game_field->core.must_select_cards);
+	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32 mcount = cv.size();
 	for(auto& pcard : pgroup->container) {
 		auto it = std::find(pduel->game_field->core.must_select_cards.begin(), pduel->game_field->core.must_select_cards.end(), pcard);
@@ -497,7 +497,7 @@ int32 scriptlib::group_select_with_sum_greater(lua_State* L) {
 		auto it = std::remove(pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end(), pcard);
 		pduel->game_field->core.select_cards.erase(it, pduel->game_field->core.select_cards.end());
 	}
-	field::card_vector cv(pduel->game_field->core.must_select_cards);
+	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32 mcount = cv.size();
 	cv.insert(cv.end(), pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end());
 	for(auto& pcard : cv)
@@ -667,7 +667,7 @@ int32 scriptlib::group_band(lua_State* L) {
 	card* pcard = nullptr;
 	get_groupcard(L, pgroup1, pgroup2, pcard);
 	const auto pduel = lua_get<duel*>(L);
-	field::card_set cset;
+	card_set cset;
 	if(pcard) {
 		if(pgroup1->has_card(pcard)) {
 			cset.insert(pcard);
@@ -676,7 +676,7 @@ int32 scriptlib::group_band(lua_State* L) {
 		std::set_intersection(pgroup1->container.cbegin(), pgroup1->container.cend(), pgroup2->container.cbegin(), pgroup2->container.cend(),
 							  std::inserter(cset, cset.begin()), card_sort());
 	}
-	interpreter::pushobject(L, pduel->new_group(cset));
+	interpreter::pushobject(L, pduel->new_group(std::move(cset)));
 	return 1;
 }
 int32 scriptlib::group_add(lua_State* L) {
@@ -782,8 +782,8 @@ int32 scriptlib::group_split(lua_State* L) {
 	check_param_count(L, 3);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	field::card_set cset(pgroup->container);
-	field::card_set notmatching;
+	card_set cset(pgroup->container);
+	card_set notmatching;
 	if(auto pexception = lua_get<card*>(L, 3)) {
 		cset.erase(pexception);
 		notmatching.insert(pexception);
@@ -804,7 +804,7 @@ int32 scriptlib::group_split(lua_State* L) {
 		}
 	}
 	interpreter::pushobject(L, new_group);
-	interpreter::pushobject(L, pduel->new_group(notmatching));
+	interpreter::pushobject(L, pduel->new_group(std::move(notmatching)));
 	return 2;
 }
 int32 scriptlib::group_includes(lua_State* L) {

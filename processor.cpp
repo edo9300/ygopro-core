@@ -5752,11 +5752,10 @@ int32 field::startup(uint16 step) {
 int32 field::refresh_relay(uint16 step) {
 	switch(step) {
 	case 0:
-	case 1: {
+	case 1:
 		if(player[step].recharge)
 			next_player(step);
 		return FALSE;
-	}
 	default:
 		return TRUE;
 	}

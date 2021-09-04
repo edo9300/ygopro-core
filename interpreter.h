@@ -40,7 +40,6 @@ public:
 	lua_State* lua_state;
 	lua_State* current_state;
 	param_list params;
-	param_list resumes;
 	coroutine_map coroutines;
 	int32 no_action;
 	int32 call_depth;

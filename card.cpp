@@ -1759,7 +1759,7 @@ void card::xyz_overlay(card_set* materials) {
 	if(materials->size() == 0)
 		return;
 	card_set des, from_grave;
-	field::card_vector cv(materials->begin(), materials->end());
+	card_vector cv(materials->begin(), materials->end());
 	std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 	duel::duel_message* decktop[2] = { nullptr, nullptr };
 	size_t s[2] = { pduel->game_field->player[0].list_main.size(), pduel->game_field->player[1].list_main.size() };

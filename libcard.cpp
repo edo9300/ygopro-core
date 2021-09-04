@@ -244,7 +244,7 @@ int32 scriptlib::card_get_linked_group(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
-	card::card_set cset;
+	card_set cset;
 	pcard->get_linked_cards(&cset);
 	group* pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
@@ -253,7 +253,7 @@ int32 scriptlib::card_get_linked_group(lua_State* L) {
 int32 scriptlib::card_get_linked_group_count(lua_State* L) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	card::card_set cset;
+	card_set cset;
 	pcard->get_linked_cards(&cset);
 	lua_pushinteger(L, cset.size());
 	return 1;
@@ -284,7 +284,7 @@ int32 scriptlib::card_get_mutual_linked_group(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
-	card::card_set cset;
+	card_set cset;
 	pcard->get_mutual_linked_cards(&cset);
 	group* pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
@@ -293,7 +293,7 @@ int32 scriptlib::card_get_mutual_linked_group(lua_State* L) {
 int32 scriptlib::card_get_mutual_linked_group_count(lua_State* L) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	card::card_set cset;
+	card_set cset;
 	pcard->get_mutual_linked_cards(&cset);
 	lua_pushinteger(L, cset.size());
 	return 1;
@@ -327,7 +327,7 @@ int32 scriptlib::card_get_column_group(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto left = lua_get<uint8, 0>(L, 2);
 	auto right = lua_get<uint8, 0>(L, 3);
-	card::card_set cset;
+	card_set cset;
 	pcard->get_column_cards(&cset, left, right);
 	group* pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
@@ -338,7 +338,7 @@ int32 scriptlib::card_get_column_group_count(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto left = lua_get<uint8, 0>(L, 2);
 	auto right = lua_get<uint8, 0>(L, 3);
-	card::card_set cset;
+	card_set cset;
 	pcard->get_column_cards(&cset, left, right);
 	lua_pushinteger(L, cset.size());
 	return 1;
@@ -2429,7 +2429,7 @@ int32 scriptlib::card_get_attackable_target(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
-	field::card_vector targets;
+	card_vector targets;
 	bool chain_attack = pduel->game_field->core.chain_attacker_id == pcard->fieldid;
 	pduel->game_field->get_attack_target(pcard, &targets, chain_attack);
 	group* newgroup = pduel->new_group(targets);

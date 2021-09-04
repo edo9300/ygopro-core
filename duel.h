@@ -61,7 +61,6 @@ public:
 			write_internal<T>(static_cast<T>(data));
 		}
 	};
-	typedef std::set<card*, card_sort> card_set;
 	std::vector<uint8_t> buff;
 	std::vector<uint8_t> query_buffer;
 	field* game_field;

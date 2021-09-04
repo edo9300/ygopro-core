@@ -773,7 +773,7 @@ int32 scriptlib::duel_swap_sequence(lua_State* L) {
 		&& pcard1->is_affect_by_effect(pduel->game_field->core.reason_effect)
 		&& pcard2->is_affect_by_effect(pduel->game_field->core.reason_effect)) {
 		pduel->game_field->swap_card(pcard1, pcard2);
-		field::card_set swapped{ pcard1, pcard2 };
+		card_set swapped{ pcard1, pcard2 };
 		pduel->game_field->raise_single_event(pcard1, 0, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
 		pduel->game_field->raise_single_event(pcard2, 0, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
 		pduel->game_field->raise_event(&swapped, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
@@ -1205,7 +1205,7 @@ int32 scriptlib::duel_equip(lua_State* L) {
 }
 int32 scriptlib::duel_equip_complete(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
-	field::card_set etargets;
+	card_set etargets;
 	for(auto& equip_card : pduel->game_field->core.equiping_cards) {
 		if(equip_card->is_position(POS_FACEUP))
 			equip_card->enable_field_effect(true);
@@ -1258,8 +1258,10 @@ int32 scriptlib::duel_swap_control(lua_State* L) {
 	auto obj2 = lua_get<lua_obj*>(L, 2);
 	if((!obj1 || !obj2) ||
 		((obj1->lua_type | obj2->lua_type) & ~(PARAM_TYPE_CARD | PARAM_TYPE_GROUP)) ||
-	    obj1->lua_type != obj2->lua_type)
+	    obj1->lua_type != obj2->lua_type) {
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
+		unreachable();
+	}
 	if(obj1->lua_type == PARAM_TYPE_CARD) {
 		pcard1 = static_cast<card*>(obj1);
 		pcard2 = static_cast<card*>(obj2);
@@ -1468,7 +1470,7 @@ int32 scriptlib::duel_change_attack_target(lua_State* L) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
-	field::card_vector cv;
+	card_vector cv;
 	pduel->game_field->get_attack_target(attacker, &cv, pduel->game_field->core.chain_attack);
 	if(((target && std::find(cv.begin(), cv.end(), target) != cv.end()) || ignore) ||
 		(!target && !attacker->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK))) {
@@ -1718,7 +1720,7 @@ int32 scriptlib::duel_get_mzone_count(lua_State* L) {
 	card* mcard = nullptr;
 	group* mgroup = nullptr;
 	uint32 used_location[2] = { 0, 0 };
-	player_info::card_vector list_mzone[2];
+	card_vector list_mzone[2];
 	if(!lua_isnoneornil(L, 2)) {
 		get_card_or_group(L, 2, mcard, mgroup);
 		for(int32 p = 0; p < 2; p++) {
@@ -1762,7 +1764,7 @@ int32 scriptlib::duel_get_location_count_fromex(lua_State* L) {
 	card* mcard = nullptr;
 	group* mgroup = nullptr;
 	uint32 used_location[2] = {0, 0};
-	player_info::card_vector list_mzone[2];
+	card_vector list_mzone[2];
 	if(!lua_isnoneornil(L, 3)) {
 		get_card_or_group(L, 3, mcard, mgroup);
 		for(int32 p = 0; p < 2; p++) {
@@ -1844,9 +1846,9 @@ int32 scriptlib::duel_get_linked_group(lua_State* L) {
 	if(location2 == 1)
 		location2 = LOCATION_MZONE;
 	const auto pduel = lua_get<duel*>(L);
-	field::card_set cset;
+	card_set cset;
 	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
-	group* pgroup = pduel->new_group(cset);
+	group* pgroup = pduel->new_group(std::move(cset));
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -1862,7 +1864,7 @@ int32 scriptlib::duel_get_linked_group_count(lua_State* L) {
 	if(location2 == 1)
 		location2 = LOCATION_MZONE;
 	const auto pduel = lua_get<duel*>(L);
-	field::card_set cset;
+	card_set cset;
 	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
 	lua_pushinteger(L, cset.size());
 	return 1;
@@ -3018,7 +3020,7 @@ int32 scriptlib::duel_overlay(lua_State* L) {
 	group* pgroup = nullptr;
 	get_card_or_group(L, 2, pcard, pgroup);
 	if(pcard) {
-		card::card_set cset;
+		card_set cset;
 		cset.insert(pcard);
 		target->xyz_overlay(&cset);
 	} else

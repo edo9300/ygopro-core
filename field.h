@@ -8,6 +8,7 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
+#include "containers_fwd.h"
 #include "common.h"
 #include "card.h"
 #include "progressivebuffer.h"
@@ -46,7 +47,7 @@ struct optarget {
 	int32 op_param;
 };
 struct chain {
-	typedef std::unordered_map<uint32, optarget> opmap;
+	using opmap = std::unordered_map<uint32, optarget>;
 	uint16 chain_id;
 	uint8 chain_count;
 	uint8 triggering_player;
@@ -73,7 +74,6 @@ struct chain {
 };
 
 struct player_info {
-	typedef std::vector<card*> card_vector;
 	int32 lp;
 	int32 start_lp;
 	int32 start_count;
@@ -97,11 +97,9 @@ struct player_info {
 	std::vector<uint32> extra_extra_p_count;
 };
 struct field_effect {
-	typedef std::multimap<uint32, effect*> effect_container;
-	typedef std::unordered_map<effect*, effect_container::iterator> effect_indexer;
-	typedef std::unordered_map<effect*, effect*> oath_effects;
-	typedef std::unordered_set<effect*> effect_collection;
-	typedef std::unordered_map<card*, effect*> gain_effects;
+	using oath_effects = std::unordered_map<effect*, effect*>;
+	using effect_collection = std::unordered_set<effect*>;
+	using gain_effects = std::unordered_map<card*, effect*>;
 	struct grant_effect_container {
 		struct effect_sort_by_ref {
 			bool operator()(effect* e1, effect* e2) const;
@@ -187,24 +185,16 @@ public:
 	}
 };
 struct processor {
-	typedef std::vector<effect*> effect_vector;
-	typedef std::vector<card*> card_vector;
-	typedef std::vector<uint64> option_vector;
-	typedef std::list<card*> card_list;
-	typedef std::list<tevent> event_list;
-	typedef std::list<chain> chain_list;
-	typedef std::map<effect*, chain> instant_f_list;
-	typedef std::vector<chain> chain_array;
-	typedef std::list<processor_unit> processor_list;
-	typedef std::set<card*, card_sort> card_set;
-	typedef std::set<std::pair<effect*, tevent>> delayed_effect_collection;
-	typedef std::unordered_map<uint64, uint32> effect_count_map;
+	using option_vector = std::vector<uint64>;
+	using processor_list = std::list<processor_unit>;
+	using delayed_effect_collection = std::set<std::pair<effect*, tevent>>;
+	using effect_count_map = std::unordered_map<uint64, uint32>;
 	struct chain_limit_t {
 		chain_limit_t(int32 f, int32 p): function(f), player(p) {}
 		int32 function;
 		int32 player;
 	};
-	typedef std::vector<chain_limit_t> chain_limit_list;
+	using chain_limit_list = std::vector<chain_limit_t>;
 	using action_counter_t = std::unordered_map<uint32, std::pair<uint32, uint32>>;
 
 	processor_list units;
@@ -374,17 +364,6 @@ struct processor {
 };
 class field {
 public:
-	typedef std::multimap<uint32, effect*> effect_container;
-	typedef std::set<card*, card_sort> card_set;
-	typedef std::vector<effect*> effect_vector;
-	typedef std::vector<card*> card_vector;
-	typedef std::list<card*> card_list;
-	typedef std::list<tevent> event_list;
-	typedef std::list<chain> chain_list;
-	typedef std::map<effect*, chain> instant_f_list;
-	typedef std::vector<chain> chain_array;
-	typedef std::list<processor_unit> processor_list;
-
 	duel* pduel;
 	player_info player[2];
 	card* temp_card;
