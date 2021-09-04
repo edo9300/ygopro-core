@@ -190,7 +190,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 	auto populate = [&flags = info.flags, &buffer](const card_vector& list) {
 		for(auto& pcard : list) {
 			if(pcard == nullptr) {
-				insert_value<int16>(buffer, 0);
+				insert_value<int16_t>(buffer, 0);
 			} else {
 				pcard->get_infos(flags);
 			}
@@ -199,7 +199,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 	buffer.clear();
 	if(info.con <= 1u) {
 		if(info.loc & LOCATION_OVERLAY) {
-			insert_value<int16>(buffer, 0);
+			insert_value<int16_t>(buffer, 0);
 		} else {
 			auto& player = DUEL->game_field->player[info.con];
 			if(info.loc == LOCATION_MZONE)

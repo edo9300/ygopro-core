@@ -77,7 +77,7 @@ public:
 
 	std::unordered_map<uint32_t, card_data> data_cache;
 
-	enum class SCRIPT_LOAD_STATUS : uint8 {
+	enum class SCRIPT_LOAD_STATUS : uint8_t {
 		NOT_LOADED,
 		LOAD_SUCCEDED,
 		LOAD_FAILED,
@@ -91,7 +91,7 @@ public:
 	~duel();
 	void clear();
 	
-	card* new_card(uint32 code);
+	card* new_card(uint32_t code);
 	template<typename... Args>
 	group* new_group(Args&&... args) {
 		group* pgroup = new group(this, std::forward<Args>(args)...);
@@ -111,7 +111,7 @@ public:
 	void write_buffer(void* data, size_t size);
 	void clear_buffer();
 	void set_response(const void* resp, size_t len);
-	int32 get_next_integer(int32 l, int32 h);
+	int32_t get_next_integer(int32_t l, int32_t h);
 	duel_message* new_message(uint8_t message);
 	card_data const* read_card(uint32_t code, card_data* copyable = nullptr);
 	inline void handle_message(const char* message, OCG_LogTypes type) {

@@ -33,16 +33,16 @@ using lua_invalid = lua_obj_helper<PARAM_TYPE_DELETED>;
 class interpreter {
 	char msgbuf[128];
 public:
-	using coroutine_map = std::unordered_map<int32, std::pair<lua_State*, int32>>;
-	using param_list = std::list<std::pair<lua_Integer, uint32>>;
+	using coroutine_map = std::unordered_map<int32_t, std::pair<lua_State*, int32_t>>;
+	using param_list = std::list<std::pair<lua_Integer, uint32_t>>;
 	
 	duel* pduel;
 	lua_State* lua_state;
 	lua_State* current_state;
 	param_list params;
 	coroutine_map coroutines;
-	int32 no_action;
-	int32 call_depth;
+	int32_t no_action;
+	int32_t call_depth;
 	lua_invalid deleted;
 
 	explicit interpreter(duel* pd);
@@ -56,23 +56,23 @@ public:
 	void register_obj(lua_obj* obj, const char* tablename);
 
 	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
-	bool load_card_script(uint32 code);
-	void add_param(void* param, int32 type, bool front = false);
-	void add_param(lua_Integer  param, int32 type, bool front = false);
+	bool load_card_script(uint32_t code);
+	void add_param(void* param, int32_t type, bool front = false);
+	void add_param(lua_Integer  param, int32_t type, bool front = false);
 	void push_param(lua_State* L, bool is_coroutine = false);
-	bool call_function(int32 f, uint32 param_count, int32 ret_count);
-	bool call_card_function(card* pcard, const char* f, uint32 param_count, int32 ret_count, bool forced = true);
-	bool call_code_function(uint32 code, const char* f, uint32 param_count, int32 ret_count);
-	bool check_condition(int32 f, uint32 param_count);
-	bool check_matching(card* pcard, int32 findex, int32 extraargs);
-	bool check_matching_table(card* pcard, int32 findex, int32 table_index);
-	int32 get_operation_value(card* pcard, int32 findex, int32 extraargs);
-	bool get_operation_value(card* pcard, int32 findex, int32 extraargs, std::vector<int32>* result);
-	int32 get_function_value(int32 f, uint32 param_count);
-	bool get_function_value(int32 f, uint32 param_count, std::vector<int32>* result);
-	int32 call_coroutine(int32 f, uint32 param_count, uint32* yield_value, uint16 step);
-	int32 clone_lua_ref(int32 lua_ref);
-	void* get_ref_object(int32 ref_handler);
+	bool call_function(int32_t f, uint32_t param_count, int32_t ret_count);
+	bool call_card_function(card* pcard, const char* f, uint32_t param_count, int32_t ret_count, bool forced = true);
+	bool call_code_function(uint32_t code, const char* f, uint32_t param_count, int32_t ret_count);
+	bool check_condition(int32_t f, uint32_t param_count);
+	bool check_matching(card* pcard, int32_t findex, int32_t extraargs);
+	bool check_matching_table(card* pcard, int32_t findex, int32_t table_index);
+	int32_t get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
+	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<int32_t>* result);
+	int32_t get_function_value(int32_t f, uint32_t param_count);
+	bool get_function_value(int32_t f, uint32_t param_count, std::vector<int32_t>* result);
+	int32_t call_coroutine(int32_t f, uint32_t param_count, uint32_t* yield_value, uint16_t step);
+	int32_t clone_lua_ref(int32_t lua_ref);
+	void* get_ref_object(int32_t ref_handler);
 	bool call_function(int param_count, int ret_count);
 	inline bool ret_fail(const char* message);
 	inline bool ret_fail(const char* message, bool error);
@@ -80,9 +80,9 @@ public:
 	inline void flatten();
 
 	static void pushobject(lua_State* L, lua_obj* obj);
-	static void pushobject(lua_State* L, int32 lua_ptr);
-	static int pushExpandedTable(lua_State* L, int32 table_index);
-	static int32 get_function_handle(lua_State* L, int32 index);
+	static void pushobject(lua_State* L, int32_t lua_ptr);
+	static int pushExpandedTable(lua_State* L, int32_t table_index);
+	static int32_t get_function_handle(lua_State* L, int32_t index);
 	static inline duel* get_duel_info(lua_State* L) {
 		duel* pduel;
 		memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);

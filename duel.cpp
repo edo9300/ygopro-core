@@ -50,7 +50,7 @@ void duel::clear() {
 	game_field = new field(this);
 	game_field->temp_card = new_card(0);
 }
-card* duel::new_card(uint32 code) {
+card* duel::new_card(uint32_t code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);
 	if(code)
@@ -122,14 +122,14 @@ void duel::set_response(const void* resp, size_t len) {
 		std::memcpy(game_field->returns.data.data(), resp, len);
 }
 // uniform integer distribution
-int32 duel::get_next_integer(int32 l, int32 h) {
-	const int32 range = h - l + 1;
-	const int32 lim = random.max() % range;
-	int32 n;
+int32_t duel::get_next_integer(int32_t l, int32_t h) {
+	const int32_t range = h - l + 1;
+	const int32_t lim = random.max() % range;
+	int32_t n;
 	do {
 		n = random();
 	} while(n <= lim);
-	return static_cast<int32>((n % range) + l);
+	return static_cast<int32_t>((n % range) + l);
 }
 duel::duel_message* duel::new_message(uint8_t message) {
 	messages.emplace_back(message);
