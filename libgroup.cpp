@@ -13,8 +13,10 @@
 #include "duel.h"
 
 static void assert_readonly_group(lua_State* L, group* pgroup) {
-	if(pgroup->is_readonly == 1)
-		luaL_error(L, "attempt to modify a read only group");
+	if(pgroup->is_readonly != 1)
+		return;
+	luaL_error(L, "attempt to modify a read only group");
+	unreachable();
 }
 
 int32 scriptlib::group_new(lua_State* L) {
@@ -639,10 +641,14 @@ void get_groupcard(lua_State* L, group*& pgroup1, group*& pgroup2, card*& pcard)
 	auto obj1 = lua_get<lua_obj*>(L, 1);
 	auto obj2 = lua_get<lua_obj*>(L, 2);
 	uint32 type = 0;
-	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0)
+	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0) {
 		luaL_error(L, "At least 1 parameter should be \"Group\".");
-	if((type & ~(PARAM_TYPE_GROUP | PARAM_TYPE_CARD)) != 0)
+		unreachable();
+	}
+	if((type & ~(PARAM_TYPE_GROUP | PARAM_TYPE_CARD)) != 0) {
 		luaL_error(L, "A parameter isn't \"Group\" nor \"Card\".");
+		unreachable();
+	}
 	if(obj1->lua_type == PARAM_TYPE_CARD) {
 		pcard = static_cast<card*>(obj1);
 		pgroup1 = static_cast<group*>(obj2);

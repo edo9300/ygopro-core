@@ -10,8 +10,12 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4244)
-#elif !defined(__forceinline)
+#define unreachable() __assume(0)
+#else
+#if !defined(__forceinline)
 #define __forceinline __attribute__((always_inline)) inline
+#endif
+#define unreachable() __builtin_unreachable()
 #endif
 
 #include <cstdint>

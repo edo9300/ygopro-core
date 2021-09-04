@@ -2786,8 +2786,10 @@ int32 scriptlib::duel_set_must_select_cards(lua_State* L) {
 		pduel->game_field->core.must_select_cards = { pcard };
 	} else if(auto pgroup = lua_get<group*>(L, 1)) {
 		pduel->game_field->core.must_select_cards.assign(pgroup->container.begin(), pgroup->container.end());
-	} else
+	} else {
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
+		unreachable();
+	}
 	return 0;
 }
 int32 scriptlib::duel_grab_must_select_cards(lua_State* L) {
@@ -2891,8 +2893,10 @@ int32 scriptlib::duel_set_operation_info(lua_State* L) {
 		opt.op_cards = pduel->new_group(pobj);
 		// spear creting and similar stuff, they set CATEGORY_SPECIAL_SUMMON with PLAYER_ALL to increase the summon counters
 		// and the core always assume the group is exactly 2 cards
-		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2)
+		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2) {
 			luaL_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
+			unreachable();
+		}
 		opt.op_cards->is_readonly = TRUE;
 	}
 	auto omit = ch->opinfos.find(cate);
@@ -3461,8 +3465,10 @@ int32 scriptlib::duel_announce_card(lua_State* L) {
 		if(stack_size <= 0)
 			break;
 	}
-	if(stack_size != 1 && has_opcodes)
-		return luaL_error(L, "Parameters are invalid.");
+	if(stack_size != 1 && has_opcodes) {
+		luaL_error(L, "Parameters are invalid.");
+		unreachable();
+	}
 	if(!has_opcodes) {
 		pduel->game_field->core.select_options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
 		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
@@ -4222,6 +4228,7 @@ int32 scriptlib::duel_load_script(lua_State* L) {
 		auto& load_status = pduel->loaded_scripts[hash];
 		if(load_status == SLS::LOADING) {
 			luaL_error(L, "Recursive script loading detected.");
+			unreachable();
 		} else if(load_status != SLS::NOT_LOADED)
 			lua_pushboolean(L, load_status == SLS::LOAD_SUCCEDED);
 		else {

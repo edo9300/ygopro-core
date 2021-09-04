@@ -32,6 +32,7 @@ static int32 from_lua_ref(lua_State* L) {
 			luaL_error(L, "Parameter 1 should be a lua reference to a Group.");
 		else if(std::is_same<T, effect>::value)
 			luaL_error(L, "Parameter 1 should be a lua reference to an Effect.");
+		unreachable();
 	}
 	return 1;
 }
