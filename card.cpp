@@ -88,30 +88,7 @@ uint32 card::attacker_map::findcard(card* pcard) {
 		return it->second.second;
 }
 card::card(duel* pd) : lua_obj_helper(pd) {
-	owner = PLAYER_NONE;
-	sendto_param.clear();
-	release_param = 0;
-	sum_param = 0;
-	position_param = 0;
-	spsummon_param = 0;
-	to_field_param = 0;
-	direct_attackable = 0;
-	summon_info = 0;
-	status = 0;
-	cover = 0;
-	equiping_target = 0;
-	pre_equip_target = 0;
-	overlay_target = 0;
-	current = {};
-	previous = {};
 	temp.set0xff();
-	unique_pos[0] = unique_pos[1] = 0;
-	spsummon_counter[0] = spsummon_counter[1] = 0;
-	spsummon_counter_rst[0] = spsummon_counter_rst[1] = 0;
-	unique_code = 0;
-	unique_fieldid = 0;
-	spsummon_code = 0;
-	data = {};
 	current.controler = PLAYER_NONE;
 }
 template<typename T>

@@ -23,17 +23,18 @@ public:
 	typedef std::set<card*, card_sort> card_set;
 	card_set container;
 	card_set::iterator it;
-	uint32 is_readonly{ false };
+	uint32 is_readonly{ 0 };
 	
 	inline bool has_card(card* c) const {
 		return container.find(c) != container.end();
 	}
 	
-	explicit group(duel* pd);
-	group(duel* pd, card* pcard);
-	group(duel* pd, const card_set& cset);
-	group(duel* pd, group* pgroup);
-	group(duel* pd, const std::vector<card*>& vcard);
+	explicit group(duel* pd) : lua_obj_helper(pd) {};
+	group(duel* pd, card* pcard) : lua_obj_helper(pd), container({ pcard }) {};
+	group(duel* pd, const card_set& cset) : lua_obj_helper(pd), container(cset) {};
+	group(duel* pd, card_set&& cset) : lua_obj_helper(pd), container(std::move(cset)) {};
+	group(duel* pd, group* pgroup) : lua_obj_helper(pd), container(pgroup->container) {};
+	group(duel* pd, const std::vector<card*>& vcard) : lua_obj_helper(pd), container(vcard.begin(), vcard.end()) {};
 	group(duel* pd, lua_obj* pobj);
 	~group() = default;
 };
