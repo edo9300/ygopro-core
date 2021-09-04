@@ -1411,22 +1411,21 @@ int32 scriptlib::duel_shuffle_setcard(lua_State* L) {
 		int32 s = pduel->get_next_integer(0, i);
 		std::swap(ms[i], ms[s]);
 	}
+	auto& field = pduel->game_field;
+	auto& list = (loc == LOCATION_MZONE) ? field->player[tp].list_mzone : field->player[tp].list_szone;
 	auto message = pduel->new_message(MSG_SHUFFLE_SET_CARD);
 	message->write<uint8>(loc);
 	message->write<uint8>(ct);
 	for(uint32 i = 0; i < ct; ++i) {
 		card* pcard = ms[i];
 		message->write(pcard->get_info_location());
-		if(loc == LOCATION_MZONE)
-			pduel->game_field->player[tp].list_mzone[seq[i]] = pcard;
-		else
-			pduel->game_field->player[tp].list_szone[seq[i]] = pcard;
+		list[seq[i]] = pcard;
 		pcard->current.sequence = seq[i];
-		pduel->game_field->raise_single_event(pcard, 0, EVENT_MOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, tp, 0);
+		field->raise_single_event(pcard, 0, EVENT_MOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, tp, 0);
 	}
-	pduel->game_field->raise_event(&pgroup->container, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, tp, 0);
-	pduel->game_field->process_single_event();
-	pduel->game_field->process_instant_event();
+	field->raise_event(&pgroup->container, EVENT_MOVE, field->core.reason_effect, 0, field->core.reason_player, tp, 0);
+	field->process_single_event();
+	field->process_instant_event();
 	for(uint32 i = 0; i < ct; ++i) {
 		if(ms[i]->xyz_materials.size()) {
 			message->write(ms[i]->get_info_location());
