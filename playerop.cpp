@@ -591,8 +591,11 @@ int32_t field::select_tribute(uint16_t step, uint8_t playerid, uint8_t cancelabl
 		}
 		if(return_cards.canceled)
 			return TRUE;
-		// UNUSED VARIABLES
-		// int32_t tot = (int32_t)return_cards.list.size();
+		if(return_cards.list.size() > max) {
+			return_cards.clear();
+			pduel->new_message(MSG_RETRY);
+			return FALSE;
+		}
 		int32_t tt = 0;
 		for(auto& pcard : return_cards.list)
 			tt += pcard->release_param;
