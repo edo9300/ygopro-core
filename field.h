@@ -456,8 +456,8 @@ public:
 	void remove_unique_card(card* pcard);
 	effect* check_unique_onfield(card* pcard, uint8_t controler, uint8_t location, card* icard = 0);
 	int32_t check_spsummon_once(card* pcard, uint8_t playerid);
-	void check_card_counter(card* pcard, int32_t counter_type, int32_t playerid);
-	void check_card_counter(group* pgroup, int32_t counter_type, int32_t playerid);
+	void check_card_counter(card* pcard, ActivityType counter_type, int32_t playerid);
+	void check_card_counter(group* pgroup, ActivityType counter_type, int32_t playerid);
 	void check_chain_counter(effect* peffect, int32_t playerid, int32_t chainid, bool cancel = false);
 	void set_spsummon_counter(uint8_t playerid, bool add = true, bool chain = false);
 	int32_t check_spsummon_counter(uint8_t playerid, uint8_t ct = 1);

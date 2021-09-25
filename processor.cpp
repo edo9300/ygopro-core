@@ -2828,7 +2828,7 @@ int32_t field::process_battle_command(uint16_t step) {
 		if(!core.units.begin()->arg1) {
 			core.phase_action = TRUE;
 			core.attack_state_count[infos.turn_player]++;
-			check_card_counter(core.attacker, 5, infos.turn_player);
+			check_card_counter(core.attacker, ACTIVITY_ATTACK, infos.turn_player);
 			core.attacker->attack_announce_count++;
 		}
 		if(core.units.begin()->arg3) {//attack announce failed
@@ -3592,7 +3592,7 @@ int32_t field::process_damage_step(uint16_t step, uint32_t new_attack) {
 		if(new_attack) {
 			core.attack_state_count[infos.turn_player]++;
 			core.battled_count[infos.turn_player]++;
-			check_card_counter(core.attacker, 5, infos.turn_player);
+			check_card_counter(core.attacker, ACTIVITY_ATTACK, infos.turn_player);
 		}
 		core.attacker->announced_cards.addcard(core.attack_target);
 		attack_all_target_check();
@@ -4927,9 +4927,9 @@ int32_t field::solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chain
 									core.spsummon_once_map[1 - sumplayer][(*opit)->spsummon_code]++;
 							}
 							auto opit = optarget.op_cards->container.begin();
-							check_card_counter(*opit, 3, sumplayer);
+							check_card_counter(*opit, ACTIVITY_SPSUMMON, sumplayer);
 							++opit;
-							check_card_counter(*opit, 3, 1 - sumplayer);
+							check_card_counter(*opit, ACTIVITY_SPSUMMON, 1 - sumplayer);
 						} else {
 							uint32_t sumplayer = cait->triggering_player;
 							// genarally setting op_player is unnecessary when the effect targets cards
@@ -4940,7 +4940,7 @@ int32_t field::solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chain
 							for(auto& ptarget : optarget.op_cards->container) {
 								if(is_flag(DUEL_SPSUMMON_ONCE_OLD_NEGATE) && (core.global_flag & GLOBALFLAG_SPSUMMON_ONCE) && ptarget->spsummon_code)
 									core.spsummon_once_map[sumplayer][ptarget->spsummon_code]++;
-								check_card_counter(ptarget, 3, sumplayer);
+								check_card_counter(ptarget, ACTIVITY_SPSUMMON, sumplayer);
 							}
 						}
 					}

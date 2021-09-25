@@ -2149,13 +2149,23 @@ int32_t field::check_spsummon_once(card* pcard, uint8_t playerid) {
 	auto iter = core.spsummon_once_map[playerid].find(pcard->spsummon_code);
 	return (iter == core.spsummon_once_map[playerid].end()) || (iter->second == 0);
 }
+static auto& get_counter_map(processor& core, ActivityType counter_type) {
+	switch(counter_type) {
+	case ACTIVITY_SUMMON:
+		return core.summon_counter;
+	case ACTIVITY_NORMALSUMMON:
+		return core.normalsummon_counter;
+	case ACTIVITY_SPSUMMON:
+		return core.spsummon_counter;
+	case ACTIVITY_FLIPSUMMON:
+		return core.flipsummon_counter;
+	default:
+		return core.attack_counter;
+	}
+}
 // increase the binary custom counter 1~5
-void field::check_card_counter(card* pcard, int32_t counter_type, int32_t playerid) {
-	auto& counter_map = (counter_type == 1) ? core.summon_counter :
-						(counter_type == 2) ? core.normalsummon_counter :
-						(counter_type == 3) ? core.spsummon_counter :
-						(counter_type == 4) ? core.flipsummon_counter : core.attack_counter;
-	for(auto& iter : counter_map) {
+void field::check_card_counter(card* pcard, ActivityType counter_type, int32_t playerid) {
+	for(auto& iter : get_counter_map(core, counter_type)) {
 		auto& info = iter.second;
 		if((playerid == 0) && (info.second & 0xffff) != 0)
 			continue;
@@ -2172,12 +2182,8 @@ void field::check_card_counter(card* pcard, int32_t counter_type, int32_t player
 		}
 	}
 }
-void field::check_card_counter(group* pgroup, int32_t counter_type, int32_t playerid) {
-	auto& counter_map = (counter_type == 1) ? core.summon_counter :
-						(counter_type == 2) ? core.normalsummon_counter :
-						(counter_type == 3) ? core.spsummon_counter :
-						(counter_type == 4) ? core.flipsummon_counter : core.attack_counter;
-	for(auto& iter : counter_map) {
+void field::check_card_counter(group* pgroup, ActivityType counter_type, int32_t playerid) {
+	for(auto& iter : get_counter_map(core, counter_type)) {
 		auto& info = iter.second;
 		if((playerid == 0) && (info.second & 0xffff) != 0)
 			continue;
