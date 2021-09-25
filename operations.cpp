@@ -2014,9 +2014,9 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		auto message = pduel->new_message(MSG_SUMMONING);
 		message->write<uint32_t>(target->data.code);
 		message->write(target->get_info_location());
-		core.summon_state_count[sumplayer]++;
-		core.normalsummon_state_count[sumplayer]++;
 		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			core.summon_state_count[sumplayer]++;
+			core.normalsummon_state_count[sumplayer]++;
 			check_card_counter(target, ACTIVITY_SUMMON, sumplayer);
 			check_card_counter(target, ACTIVITY_NORMALSUMMON, sumplayer);
 		}
@@ -2102,6 +2102,8 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 	}
 	case 18: {
 		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			core.summon_state_count[sumplayer]++;
+			core.normalsummon_state_count[sumplayer]++;
 			check_card_counter(target, ACTIVITY_SUMMON, sumplayer);
 			check_card_counter(target, ACTIVITY_NORMALSUMMON, sumplayer);
 		}
