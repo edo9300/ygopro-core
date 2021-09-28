@@ -1661,12 +1661,10 @@ uint32_t card::get_column_zone(int32_t loc1, int32_t left, int32_t right) {
 	int32_t seq = current.sequence;
 	if(!(loc1 & LOCATION_ONFIELD) || !(loc2 & LOCATION_ONFIELD) || left < 0 || right < 0)
 		return 0;
-	else if(loc2 & LOCATION_SZONE && (seq == 5 || (seq > 5 && pduel->game_field->is_flag(DUEL_SEPARATE_PZONE))))
+	if(loc2 & LOCATION_SZONE && seq >= 5)
 		return 0;
 	if (loc2 & LOCATION_MZONE && (seq == 5 || seq == 6))
 		seq = (seq == 5) ? 1 : 3;
-	else if (loc2 & LOCATION_SZONE && (seq == 6 || seq == 7))
-		seq = (seq == 6) ? pduel->game_field->get_pzone_index(0) : pduel->game_field->get_pzone_index(1);
 	int32_t seq1 = seq - left < 0 ? 0 : seq - left;
 	int32_t seq2 = seq + right > 4 ? 4 : seq + right;
 	auto chkextra = [seq = current.sequence, mzone = (current.location == LOCATION_MZONE)](uint8_t s)->bool { 

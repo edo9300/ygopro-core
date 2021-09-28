@@ -4656,9 +4656,9 @@ int32_t field::move_to_field(uint16_t step, card* target, uint8_t enable, uint8_
 		} else if(pzone && location == LOCATION_SZONE && (target->data.type & TYPE_PENDULUM) && is_flag(DUEL_PZONE)) {
 			uint32_t flag = 0;
 			if(is_location_useable(playerid, LOCATION_PZONE, 0) && zone & 1)
-				flag |= 0x1u << (get_pzone_index(0) + 8);
+				flag |= 0x1u << (get_pzone_index(0, playerid) + 8);
 			if(is_location_useable(playerid, LOCATION_PZONE, 1) && zone & 2)
-				flag |= 0x1u << (get_pzone_index(1) + 8);
+				flag |= 0x1u << (get_pzone_index(1, playerid) + 8);
 			if(!flag)
 				return TRUE;
 			if(move_player != playerid)

@@ -413,8 +413,10 @@ public:
 	bool relay_check(uint8_t playerid);
 	void next_player(uint8_t playerid);
 
-	bool is_flag(uint64_t flag);
-	int32_t get_pzone_index(uint8_t seq);
+	bool is_flag(uint64_t flag) const;
+	bool has_separate_pzone(uint8_t p) const;
+	uint32_t get_pzone_zones_flag() const;
+	int32_t get_pzone_index(uint8_t seq, uint8_t p) const;
 
 	void add_effect(effect* peffect, uint8_t owner_player = 2);
 	void remove_effect(effect* peffect);

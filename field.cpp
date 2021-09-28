@@ -587,7 +587,7 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 	}
 	case LOCATION_PZONE: {
 		if(sequence < 2) {
-			card* pcard = player[playerid].list_szone[get_pzone_index(sequence)];
+			card* pcard = player[playerid].list_szone[get_pzone_index(sequence, playerid)];
 			return pcard && pcard->current.pzone ? pcard : 0;
 		} else
 			return 0;
@@ -651,7 +651,7 @@ int32_t field::is_location_useable(uint32_t playerid, uint32_t location, uint32_
 	} else if (location == LOCATION_PZONE) {
 		if(!is_flag(DUEL_PZONE))
 			return FALSE;
-		if(flag & (0x100u << get_pzone_index(sequence)))
+		if(flag & (0x100u << get_pzone_index(sequence, playerid)))
 			return FALSE;
 	}
 	return TRUE;
@@ -1246,17 +1246,29 @@ void field::next_player(uint8_t playerid) {
 	message->write<uint32_t>(player[playerid].start_lp);
 	player[playerid].recharge = false;
 }
-bool field::is_flag(uint64_t flag) {
+bool field::is_flag(uint64_t flag) const {
 	return (core.duel_options & flag) == flag;
 }
-int32_t field::get_pzone_index(uint8_t seq) {
+bool field::has_separate_pzone(uint8_t p) const {
+	(void)p;
+	return is_flag(DUEL_SEPARATE_PZONE);
+}
+uint32_t field::get_pzone_zones_flag() const {
+	uint32_t flag = 0;
+	if(!has_separate_pzone(0))
+		flag |= 0xC000;
+	if(!has_separate_pzone(1))
+		flag |= 0xC000 << 16;
+	return flag;
+}
+int32_t field::get_pzone_index(uint8_t seq, uint8_t p) const {
 	if(seq > 1)
 		return 0;
-	if(is_flag(DUEL_SEPARATE_PZONE)) // 6 and 7
+	if(has_separate_pzone(p))        // 6 and 7
 		return seq + 6;
 	if(is_flag(DUEL_3_COLUMNS_FIELD))// 1 and 3
 		return seq * 2 + 1;
-	return seq * 4;					// 0 and 4
+	return seq * 4;					 // 0 and 4
 }
 void field::add_effect(effect* peffect, uint8_t owner_player) {
 	if (!peffect->handler) {
@@ -1570,7 +1582,7 @@ int32_t field::filter_matching_card(int32_t findex, uint8_t self, uint32_t locat
 			return TRUE;
 		if((location & LOCATION_FZONE) && szonechk(player[self].list_szone[5]))
 			return TRUE;
-		if((location & LOCATION_PZONE) && (pzonechk(player[self].list_szone[get_pzone_index(0)]) || pzonechk(player[self].list_szone[get_pzone_index(1)])))
+		if((location & LOCATION_PZONE) && (pzonechk(player[self].list_szone[get_pzone_index(0, self)]) || pzonechk(player[self].list_szone[get_pzone_index(1, self)])))
 			return TRUE;
 		if((location & LOCATION_DECK) && check_list(player[self].list_main, checkc))
 			return TRUE;
@@ -1620,7 +1632,7 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 		}
 		if(location & LOCATION_PZONE) {
 			for(int32_t i = 0; i < 2; ++i) {
-				card* pcard = player[self].list_szone[get_pzone_index(i)];
+				card* pcard = player[self].list_szone[get_pzone_index(i, self)];
 				if(pcard && pcard->current.pzone) {
 					if(pgroup)
 						pgroup->container.insert(pcard);

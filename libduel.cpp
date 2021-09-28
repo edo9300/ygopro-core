@@ -3204,8 +3204,7 @@ int32_t scriptlib::duel_select_disable_field(lua_State* L) {
 	uint32_t filter = 0xe0e0e0e0;
 	if(all_field){
 		filter = pduel->game_field->is_flag(DUEL_EMZONE) ? 0x800080 : 0xE000E0;
-		if(!pduel->game_field->is_flag(DUEL_SEPARATE_PZONE))
-			filter |= 0xC000C000;
+		filter |= pduel->game_field->get_pzone_zones_flag();
 	}
 	filter |= lua_get<uint32_t>(L, 5, filter);
 	uint32_t ct1 = 0, ct2 = 0, ct3 = 0, ct4 = 0, plist = 0, flag = 0xffffffff;
@@ -3312,8 +3311,7 @@ int32_t scriptlib::duel_select_field_zone(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	auto filter = lua_get<uint32_t, 0xe0e0e0e0>(L, 5);
 	filter |= pduel->game_field->is_flag(DUEL_EMZONE) ? 0x800080 : 0xE000E0;
-	if(!pduel->game_field->is_flag(DUEL_SEPARATE_PZONE))
-		filter |= 0xC000C000;
+	filter |= pduel->game_field->get_pzone_zones_flag();
 	uint32_t flag = 0xffffffff;
 	if(location1 & LOCATION_MZONE)
 		flag &= 0xffffff00;
