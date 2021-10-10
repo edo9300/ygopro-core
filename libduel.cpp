@@ -3109,12 +3109,19 @@ int32_t scriptlib::duel_hint(lua_State* L) {
 int32_t scriptlib::duel_hint_selection(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
-	auto pgroup = lua_get<group*, true>(L, 1);
+	card* pcard = nullptr;
+	group* pgroup = nullptr;
+	get_card_or_group(L, 1, pcard, pgroup);
 	bool selection = lua_get<bool, false>(L, 2);
 	auto message = pduel->new_message(selection ? MSG_CARD_SELECTED : MSG_BECOME_TARGET);
-	message->write<uint32_t>(pgroup->container.size());
-	for(auto& pcard : pgroup->container) {
+	if(pcard) {
+		message->write<uint32_t>(1);
 		message->write(pcard->get_info_location());
+	} else {
+		message->write<uint32_t>(pgroup->container.size());
+		for(auto& pcard : pgroup->container) {
+			message->write(pcard->get_info_location());
+		}
 	}
 	return 0;
 }
