@@ -52,31 +52,27 @@ int32_t scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, 
 	}
 	if(retfalse)
 		return FALSE;
-	if(param_type == PARAM_TYPE_INT) {
-		interpreter::print_stacktrace(L);
-		const auto pduel = lua_get<duel*>(L);
-		pduel->handle_message(pduel->lua->format(R"(Parameter %d should be "%s".)", index, type), OCG_LOG_TYPE_ERROR);
-	} else {
+	if(param_type != PARAM_TYPE_INT) {
 		luaL_error(L, R"(Parameter %d should be "%s".)", index, type);
 		unreachable();
 	}
+	interpreter::print_stacktrace(L);
+	const auto pduel = lua_get<duel*>(L);
+	pduel->handle_message(pduel->lua->format(R"(Parameter %d should be "%s".)", index, type), OCG_LOG_TYPE_ERROR);
 	return FALSE;
 }
 
-int32_t scriptlib::check_param_count(lua_State* L, int32_t count) {
+void scriptlib::check_param_count(lua_State* L, int32_t count) {
 	if(lua_gettop(L) < count) {
 		luaL_error(L, "%d Parameters are needed.", count);
 		unreachable();
 	}
-	return TRUE;
 }
-int32_t scriptlib::check_action_permission(lua_State* L) {
-	const auto pduel = lua_get<duel*>(L);
-	if(pduel->lua->no_action) {
+void scriptlib::check_action_permission(lua_State* L) {
+	if(lua_get<duel*>(L)->lua->no_action) {
 		luaL_error(L, "Action is not allowed here.");
 		unreachable();
 	}
-	return TRUE;
 }
 int32_t scriptlib::push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
 	const auto pduel = lua_get<duel*>(L);

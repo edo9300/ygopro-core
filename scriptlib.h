@@ -15,8 +15,8 @@
 class scriptlib {
 public:
 	static int32_t check_param(lua_State* L, int32_t param_type, int32_t index, int32_t retfalse = FALSE, void* retobj = nullptr);
-	static int32_t check_param_count(lua_State* L, int32_t count);
-	static int32_t check_action_permission(lua_State* L);
+	static void check_param_count(lua_State* L, int32_t count);
+	static void check_action_permission(lua_State* L);
 	static int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
 
 	//card lib
