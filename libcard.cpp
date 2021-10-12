@@ -998,8 +998,14 @@ int32_t scriptlib::card_set_material(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	if(!lua_isnoneornil(L, 2)) {
-		auto pgroup = lua_get<group*, true>(L, 2);
-		pcard->set_material(&pgroup->container);
+		card* pcard{ nullptr };
+		group* pgroup{ nullptr };
+		get_card_or_group(L, 2, pcard, pgroup);
+		if(pcard) {
+			card_set mats{ pcard };
+			pcard->set_material(&mats);
+		} else
+			pcard->set_material(&pgroup->container);
 	} else
 		pcard->set_material(nullptr);
 	return 0;
