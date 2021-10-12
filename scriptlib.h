@@ -743,10 +743,19 @@ lua_get(lua_State* L, int idx) {
 #endif
 
 inline void get_card_or_group(lua_State* L, int idx, card*& pcard, group*& pgroup) {
-	if((pcard = lua_get<card*>(L, idx)) == nullptr && (pgroup = lua_get<group*>(L, idx)) == nullptr) {
-		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
-		unreachable();
+	auto obj = lua_get<lua_obj*>(L, idx);
+	if(obj) {
+		switch(obj->lua_type) {
+		case PARAM_TYPE_CARD:
+			pcard = (card*)(obj);
+			return;
+		case PARAM_TYPE_GROUP:
+			pgroup = (group*)(obj);
+			return;
+		}
 	}
+	luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
+	unreachable();
 }
 //always return a string, whereas lua might return nullptr
 inline const char* lua_tostring_or_empty(lua_State *L, int idx) {
