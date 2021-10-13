@@ -22,6 +22,7 @@ namespace scriptlib {
 	void check_param_count(lua_State* L, int32_t count);
 	void check_action_permission(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
+	int32_t is_deleted_object(lua_State* L);
 
 //Visual Studio raises a warning on const conditional expressions.
 //In these templated functions those warnings will be wrongly raised
@@ -177,16 +178,6 @@ namespace scriptlib {
 			else if(std::is_same<T, effect>::value)
 				luaL_error(L, "Parameter 1 should be a lua reference to an Effect.");
 			unreachable();
-		}
-		return 1;
-	}
-
-	static int32_t is_deleted_object(lua_State* L) {
-		if(auto obj = lua_touserdata(L, 1)) {
-			auto* ret = *reinterpret_cast<lua_obj**>(obj);
-			lua_pushboolean(L, ret->lua_type == PARAM_TYPE_DELETED);
-		} else {
-			lua_pushboolean(L, false);
 		}
 		return 1;
 	}
