@@ -9,7 +9,7 @@
 #include "lua_obj.h"
 #include "field.h"
 
-int32_t scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, int32_t retfalse, void* retobj) {
+bool scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, bool retfalse, void* retobj) {
 	const char* type = nullptr;
 	lua_obj* obj = nullptr;
 	switch (param_type) {
@@ -19,7 +19,7 @@ int32_t scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, 
 		if((obj = lua_get<lua_obj*>(L, index)) != nullptr && obj->lua_type == param_type) {
 			if(retobj)
 				*(lua_obj**)retobj = obj;
-			return TRUE;
+			return true;
 		} else if(obj && obj->lua_type == PARAM_TYPE_DELETED) {
 			luaL_error(L, "Attempting to access deleted object.");
 			unreachable();
@@ -28,22 +28,22 @@ int32_t scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, 
 		break;
 	case PARAM_TYPE_FUNCTION:
 		if(lua_isfunction(L, index))
-			return TRUE;
+			return true;
 		type = "Function";
 		break;
 	case PARAM_TYPE_STRING:
 		if(lua_isstring(L, index))
-			return TRUE;
+			return true;
 		type = "String";
 		break;
 	case PARAM_TYPE_INT:
 		if(lua_isinteger(L, index) || lua_isnumber(L, index))
-			return TRUE;
+			return true;
 		type = "Int";
 		break;
 	case PARAM_TYPE_BOOLEAN:
 		if(lua_gettop(L) >= index)
-			return TRUE;
+			return true;
 		type = "boolean";
 		break;
 	default:
@@ -51,7 +51,7 @@ int32_t scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, 
 		break;
 	}
 	if(retfalse)
-		return FALSE;
+		return false;
 	if(param_type != PARAM_TYPE_INT) {
 		luaL_error(L, R"(Parameter %d should be "%s".)", index, type);
 		unreachable();
@@ -59,7 +59,7 @@ int32_t scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, 
 	interpreter::print_stacktrace(L);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->handle_message(pduel->lua->format(R"(Parameter %d should be "%s".)", index, type), OCG_LOG_TYPE_ERROR);
-	return FALSE;
+	return false;
 }
 
 void scriptlib::check_param_count(lua_State* L, int32_t count) {

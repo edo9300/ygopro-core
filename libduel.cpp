@@ -4243,7 +4243,7 @@ int32_t scriptlib::duel_majestic_copy(lua_State* L) {
 	auto ccard = lua_get<card*, true>(L, 2);
 	uint32_t resv = 0;
 	uint16_t resc = 0;
-	if(check_param(L, PARAM_TYPE_INT, 3, TRUE)) {
+	if(check_param(L, PARAM_TYPE_INT, 3, true)) {
 		resv = lua_get<uint32_t>(L, 3);
 		resc = lua_get<uint16_t, 1>(L, 4);
 	} else {

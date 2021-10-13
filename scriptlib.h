@@ -14,7 +14,7 @@
 
 class scriptlib {
 public:
-	static int32_t check_param(lua_State* L, int32_t param_type, int32_t index, int32_t retfalse = FALSE, void* retobj = nullptr);
+	static bool check_param(lua_State* L, int32_t param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
 	static void check_param_count(lua_State* L, int32_t count);
 	static void check_action_permission(lua_State* L);
 	static int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
@@ -704,7 +704,7 @@ EnableIf<T, bool> lua_get(lua_State* L, int idx) {
 
 template<typename T, bool def>
 EnableIf<T, bool> lua_get(lua_State* L, int idx) {
-	if(!scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, idx, TRUE))
+	if(!scriptlib::check_param(L, PARAM_TYPE_BOOLEAN, idx, true))
 		return def;
 	return lua_toboolean(L, idx);
 }
@@ -721,7 +721,7 @@ lua_get(lua_State* L, int idx) {
 template<typename T>
 typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
 lua_get(lua_State* L, int idx, T chk) {
-	if(lua_gettop(L) < idx || !scriptlib::check_param(L, PARAM_TYPE_INT, idx, TRUE))
+	if(lua_gettop(L) < idx || !scriptlib::check_param(L, PARAM_TYPE_INT, idx, true))
 		return chk;
 	if(lua_isinteger(L, idx))
 		return static_cast<T>(lua_tointeger(L, idx));
@@ -731,7 +731,7 @@ lua_get(lua_State* L, int idx, T chk) {
 template<typename T, T def>
 typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
 lua_get(lua_State* L, int idx) {
-	if(lua_gettop(L) < idx || !scriptlib::check_param(L, PARAM_TYPE_INT, idx, TRUE))
+	if(lua_gettop(L) < idx || !scriptlib::check_param(L, PARAM_TYPE_INT, idx, true))
 		return def;
 	if(lua_isinteger(L, idx))
 		return static_cast<T>(lua_tointeger(L, idx));
