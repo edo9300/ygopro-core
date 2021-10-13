@@ -11,7 +11,7 @@
 
 namespace scriptlib {
 
-bool check_param(lua_State* L, int32_t param_type, int32_t index, bool retfalse, void* retobj) {
+bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retfalse, void* retobj) {
 	const char* type = nullptr;
 	lua_obj* obj = nullptr;
 	switch(param_type) {

@@ -18,7 +18,7 @@ namespace scriptlib {
 	void push_group_lib(lua_State* L);
 	void push_duel_lib(lua_State* L);
 	void push_debug_lib(lua_State* L);
-	bool check_param(lua_State* L, int32_t param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
+	bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
 	void check_param_count(lua_State* L, int32_t count);
 	void check_action_permission(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
