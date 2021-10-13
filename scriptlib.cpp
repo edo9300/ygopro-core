@@ -9,10 +9,12 @@
 #include "lua_obj.h"
 #include "field.h"
 
-bool scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, bool retfalse, void* retobj) {
+namespace scriptlib {
+
+bool check_param(lua_State* L, int32_t param_type, int32_t index, bool retfalse, void* retobj) {
 	const char* type = nullptr;
 	lua_obj* obj = nullptr;
-	switch (param_type) {
+	switch(param_type) {
 	case PARAM_TYPE_CARD:
 	case PARAM_TYPE_GROUP:
 	case PARAM_TYPE_EFFECT:
@@ -62,19 +64,19 @@ bool scriptlib::check_param(lua_State* L, int32_t param_type, int32_t index, boo
 	return false;
 }
 
-void scriptlib::check_param_count(lua_State* L, int32_t count) {
+void check_param_count(lua_State* L, int32_t count) {
 	if(lua_gettop(L) < count) {
 		luaL_error(L, "%d Parameters are needed.", count);
 		unreachable();
 	}
 }
-void scriptlib::check_action_permission(lua_State* L) {
+void check_action_permission(lua_State* L) {
 	if(lua_get<duel*>(L)->lua->no_action) {
 		luaL_error(L, "Action is not allowed here.");
 		unreachable();
 	}
 }
-int32_t scriptlib::push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
+int32_t push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
 	const auto pduel = lua_get<duel*>(L);
 	bool cancelable = (bool)ctx;
 	if(pduel->game_field->return_cards.canceled) {
@@ -89,4 +91,5 @@ int32_t scriptlib::push_return_cards(lua_State* L, int32_t/* status*/, lua_KCont
 		interpreter::pushobject(L, pgroup);
 	}
 	return 1;
+}
 }

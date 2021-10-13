@@ -10,7 +10,11 @@
 #include "field.h"
 #include "card.h"
 
-int32_t scriptlib::debug_message(lua_State* L) {
+namespace {
+
+using namespace scriptlib;
+
+int32_t debug_message(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_getglobal(L, "tostring");
 	lua_pushvalue(L, -2);
@@ -18,7 +22,7 @@ int32_t scriptlib::debug_message(lua_State* L) {
 	pduel->handle_message(lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FROM_SCRIPT);
 	return 0;
 }
-int32_t scriptlib::debug_add_card(lua_State* L) {
+int32_t debug_add_card(lua_State* L) {
 	check_param_count(L, 6);
 	auto code = lua_get<uint32_t>(L, 1);
 	auto owner = lua_get<uint8_t>(L, 2);
@@ -68,7 +72,7 @@ int32_t scriptlib::debug_add_card(lua_State* L) {
 	}
 	return 0;
 }
-int32_t scriptlib::debug_set_player_info(lua_State* L) {
+int32_t debug_set_player_info(lua_State* L) {
 	check_param_count(L, 4);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -84,7 +88,7 @@ int32_t scriptlib::debug_set_player_info(lua_State* L) {
 	player.draw_count = drawcount;
 	return 0;
 }
-int32_t scriptlib::debug_pre_summon(lua_State* L) {
+int32_t debug_pre_summon(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto summon_type = lua_get<uint32_t>(L, 2);
@@ -92,13 +96,13 @@ int32_t scriptlib::debug_pre_summon(lua_State* L) {
 	pcard->summon_info = summon_type | (summon_location << 16);
 	return 0;
 }
-int32_t scriptlib::debug_pre_equip(lua_State* L) {
+int32_t debug_pre_equip(lua_State* L) {
 	check_param_count(L, 2);
 	auto equip_card = lua_get<card*, true>(L, 1);
 	auto target = lua_get<card*, true>(L, 2);
 	if((equip_card->current.location != LOCATION_SZONE)
-	        || (target->current.location != LOCATION_MZONE)
-	        || (target->current.position & POS_FACEDOWN))
+	   || (target->current.location != LOCATION_MZONE)
+	   || (target->current.position & POS_FACEDOWN))
 		lua_pushboolean(L, 0);
 	else {
 		equip_card->equip(target, FALSE);
@@ -108,14 +112,14 @@ int32_t scriptlib::debug_pre_equip(lua_State* L) {
 	}
 	return 1;
 }
-int32_t scriptlib::debug_pre_set_target(lua_State* L) {
+int32_t debug_pre_set_target(lua_State* L) {
 	check_param_count(L, 2);
 	auto t_card = lua_get<card*, true>(L, 1);
 	auto target = lua_get<card*, true>(L, 2);
 	t_card->add_card_target(target);
 	return 0;
 }
-int32_t scriptlib::debug_pre_add_counter(lua_State* L) {
+int32_t debug_pre_add_counter(lua_State* L) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto countertype = lua_get<uint16_t>(L, 2);
@@ -133,7 +137,7 @@ int32_t scriptlib::debug_pre_add_counter(lua_State* L) {
 		cmit->second[1] += count;
 	return 0;
 }
-int32_t scriptlib::debug_reload_field_begin(lua_State* L) {
+int32_t debug_reload_field_begin(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto flag = lua_get<uint64_t>(L, 1);
@@ -154,7 +158,7 @@ int32_t scriptlib::debug_reload_field_begin(lua_State* L) {
 	pduel->game_field->core.duel_options = flag;
 	return 0;
 }
-int32_t scriptlib::debug_reload_field_end(lua_State* L) {
+int32_t debug_reload_field_end(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	auto& field = pduel->game_field;
 	auto& core = field->core;
@@ -166,8 +170,8 @@ int32_t scriptlib::debug_reload_field_end(lua_State* L) {
 	return 0;
 }
 static void write_string_message(lua_State* L, int message_code, size_t max_len) {
-	scriptlib::check_param_count(L, 1);
-	scriptlib::check_param(L, PARAM_TYPE_STRING, 1);
+	check_param_count(L, 1);
+	check_param(L, PARAM_TYPE_STRING, 1);
 	size_t len = 0;
 	const char* pstr = lua_tolstring(L, 1, &len);
 	if(len > max_len)
@@ -178,16 +182,38 @@ static void write_string_message(lua_State* L, int message_code, size_t max_len)
 	message->write(pstr, len);
 	message->write<uint8_t>(0);
 }
-int32_t scriptlib::debug_set_ai_name(lua_State* L) {
+int32_t debug_set_ai_name(lua_State* L) {
 	write_string_message(L, MSG_AI_NAME, 100);
 	return 0;
 }
-int32_t scriptlib::debug_show_hint(lua_State* L) {
+int32_t debug_show_hint(lua_State* L) {
 	write_string_message(L, MSG_SHOW_HINT, 1024);
 	return 0;
 }
 
-int32_t scriptlib::debug_print_stacktrace(lua_State* L) {
+int32_t debug_print_stacktrace(lua_State* L) {
 	interpreter::print_stacktrace(L);
 	return 0;
+}
+
+static constexpr luaL_Reg debuglib[] = {
+	{ "Message", debug_message },
+	{ "AddCard", debug_add_card },
+	{ "SetPlayerInfo", debug_set_player_info },
+	{ "PreSummon", debug_pre_summon },
+	{ "PreEquip", debug_pre_equip },
+	{ "PreSetTarget", debug_pre_set_target },
+	{ "PreAddCounter", debug_pre_add_counter },
+	{ "ReloadFieldBegin", debug_reload_field_begin },
+	{ "ReloadFieldEnd", debug_reload_field_end },
+	{ "SetAIName", debug_set_ai_name },
+	{ "ShowHint", debug_show_hint },
+	{ "PrintStacktrace", debug_print_stacktrace },
+	{ NULL, NULL }
+};
+}
+
+void scriptlib::push_debug_lib(lua_State* L) {
+	luaL_newlib(L, debuglib);
+	lua_setglobal(L, "Debug");
 }
