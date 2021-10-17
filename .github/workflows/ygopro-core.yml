@@ -9,13 +9,6 @@ env:
 jobs:
   Windows:
     runs-on: windows-2016
-    if: >-
-      !(
-        contains(github.event.head_commit.message, '[ci skip]') ||
-        contains(github.event.head_commit.message, '[skip ci]') ||
-        contains(github.event.head_commit.message, '[actions skip]') ||
-        contains(github.event.head_commit.message, '[skip actions]')
-      )
     env:
       DEPLOY_BRANCH: travis-core-windows
       TRAVIS_OS_NAME: windows
@@ -47,13 +40,6 @@ jobs:
 
   Linux-gcc:
     runs-on: ubuntu-18.04
-    if: >-
-      !(
-        contains(github.event.head_commit.message, '[ci skip]') ||
-        contains(github.event.head_commit.message, '[skip ci]') ||
-        contains(github.event.head_commit.message, '[actions skip]') ||
-        contains(github.event.head_commit.message, '[skip actions]')
-      )
     env:
       DEPLOY_BRANCH: travis-core-linux-gcc7
       TRAVIS_OS_NAME: linux
@@ -77,13 +63,6 @@ jobs:
 
   Android:
     runs-on: ubuntu-latest
-    if: >-
-      !(
-        contains(github.event.head_commit.message, '[ci skip]') ||
-        contains(github.event.head_commit.message, '[skip ci]') ||
-        contains(github.event.head_commit.message, '[actions skip]') ||
-        contains(github.event.head_commit.message, '[skip actions]')
-      )
     env:
       DEPLOY_BRANCH: travis-core-android
       TRAVIS_OS_NAME: android
@@ -110,13 +89,6 @@ jobs:
 
   Mac-os:
     runs-on: macos-10.15
-    if: >-
-      !(
-        contains(github.event.head_commit.message, '[ci skip]') ||
-        contains(github.event.head_commit.message, '[skip ci]') ||
-        contains(github.event.head_commit.message, '[actions skip]') ||
-        contains(github.event.head_commit.message, '[skip actions]')
-      )
     env:
       DEPLOY_BRANCH: travis-core-osx
       TRAVIS_OS_NAME: osx
@@ -145,16 +117,13 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
+    - uses: actions/upload-artifact@v2
+      with:
+        name: osx
+        path: ocgcore/libocgcore.dylib
 
   Mac-os-aarch64:
     runs-on: macos-latest
-    if: >-
-      !(
-        contains(github.event.head_commit.message, '[ci skip]') ||
-        contains(github.event.head_commit.message, '[skip ci]') ||
-        contains(github.event.head_commit.message, '[actions skip]') ||
-        contains(github.event.head_commit.message, '[skip actions]')
-      )
     env:
       DEPLOY_BRANCH: travis-core-osx-aarch64
       TRAVIS_OS_NAME: osx
@@ -181,3 +150,38 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
+    - uses: actions/upload-artifact@v2
+      with:
+        name: osx-aarch64
+        path: ocgcore/libocgcore.dylib
+
+  Mac-os-universal:
+    runs-on: macos-latest
+    env:
+      DEPLOY_BRANCH: travis-core-osx-universal
+    needs: [ Mac-os, Mac-os-aarch64 ]
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+        submodules: true
+    - name: Download osx artifacts
+      uses: actions/download-artifact@v2
+    - name: Merge binaries
+      shell: bash
+      run: |
+        lipo -create -output libocgcore.dylib ./osx-aarch64/libocgcore.dylib ./osx/libocgcore.dylib
+    - name: Move merged binary
+      shell: bash
+      run: |
+        mkdir -p $DEPLOY_DIR && cp LICENSE README.md $DEPLOY_DIR && mv libocgcore.dylib $DEPLOY_DIR
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Delete artifacts
+      uses: geekyeggo/delete-artifact@v1
+      with:
+        name: |
+            osx-aarch64
+            osx
