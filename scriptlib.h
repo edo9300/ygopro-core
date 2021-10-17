@@ -140,6 +140,7 @@ namespace scriptlib {
 			case PARAM_TYPE_GROUP:
 				pgroup = (group*)(obj);
 				return;
+			default: break;
 			}
 		}
 		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
