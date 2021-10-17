@@ -20,7 +20,7 @@ else
 	tar xf lua-5.3.5.tar.gz
 	cd lua-5.3.5
 	if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-	  make -j2 macosx CC=$CXX
+	  make -j2 macosx CC=$CXX MYCFLAGS=-"${CFLAGS:-""}" MYLDFLAGS="${LDFLAGS:-""}"
 	else
 	  make -j2 linux CC=$CXX MYCFLAGS=-fPIC
 	fi
