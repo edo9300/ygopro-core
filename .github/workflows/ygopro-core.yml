@@ -145,3 +145,40 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
+
+  Mac-os-aarch64:
+    runs-on: macos-latest
+    if: >-
+      !(
+        contains(github.event.head_commit.message, '[ci skip]') ||
+        contains(github.event.head_commit.message, '[skip ci]') ||
+        contains(github.event.head_commit.message, '[actions skip]') ||
+        contains(github.event.head_commit.message, '[skip actions]')
+      )
+    env:
+      DEPLOY_BRANCH: travis-core-osx-aarch64
+      TRAVIS_OS_NAME: osx
+      VCPKG_ROOT: ./vcpkg2
+      MACOSX_DEPLOYMENT_TARGET: 11.0
+      MYCFLAGS: -target arm64-apple-macos11
+      MYLDFLAGS: -target arm64-apple-macos11
+      CXXFLAGS: -target arm64-apple-macos11
+      CFLAGS: -target arm64-apple-macos11
+      LDFLAGS: -target arm64-apple-macos11
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install lua
+      shell: bash
+      run: ./travis/install-lua.sh
+    - name: Build
+      shell: bash
+      run: ./travis/build-cmake.sh
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      shell: bash
+      run: ./travis/deploy.sh
