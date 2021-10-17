@@ -54,7 +54,7 @@ public:
 	int32_t label_object{};
 	int32_t condition{};
 	int32_t cost{};
-	int32_t target{};;
+	int32_t target{};
 	int32_t value{};
 	int32_t operation{};
 	std::vector<uint32_t> label;
