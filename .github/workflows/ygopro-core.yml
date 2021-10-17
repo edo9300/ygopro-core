@@ -178,7 +178,7 @@ jobs:
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
-      run: ./travis/predeploy.sh
+      run: ./travis/deploy.sh
     - name: Delete artifacts
       uses: geekyeggo/delete-artifact@v1
       with:
