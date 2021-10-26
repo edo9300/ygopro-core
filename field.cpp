@@ -3166,10 +3166,10 @@ int32_t field::check_trigger_effect(const chain& ch) const {
 int32_t field::check_spself_from_hand_trigger(const chain& ch) const {
 	effect* peffect = ch.triggering_effect;
 	uint8_t tp = ch.triggering_player;
-	if((peffect->status & EFFECT_STATUS_SPSELF) && (ch.flag & CHAIN_HAND_TRIGGER)) {
+	if((peffect->status & EFFECT_STATUS_SUMMON_SELF) && (ch.flag & CHAIN_HAND_TRIGGER)) {
 		return std::none_of(core.current_chain.begin(), core.current_chain.end(), [tp](chain ch) {
 			return ch.triggering_player == tp
-				&& (ch.triggering_effect->status & EFFECT_STATUS_SPSELF) && (ch.flag & CHAIN_HAND_TRIGGER);
+				&& (ch.triggering_effect->status & EFFECT_STATUS_SUMMON_SELF) && (ch.flag & CHAIN_HAND_TRIGGER);
 		});
 	}
 	return TRUE;

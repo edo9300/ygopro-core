@@ -3393,6 +3393,11 @@ int32_t card::is_summonable(effect* peffect, uint8_t min_tribute, uint32_t zone,
 int32_t card::is_can_be_summoned(uint8_t playerid, uint8_t ignore_count, effect* peffect, uint8_t min_tribute, uint32_t zone) {
 	if(!is_summonable_card())
 		return FALSE;
+	{
+		auto reason_effect = pduel->game_field->core.reason_effect;
+		if(reason_effect && reason_effect->get_handler() == this)
+			reason_effect->status |= EFFECT_STATUS_SUMMON_SELF;
+	}
 	if(!ignore_count && (pduel->game_field->core.extra_summon[playerid] || !is_affected_by_effect(EFFECT_EXTRA_SUMMON_COUNT))
 					&& pduel->game_field->core.summon_count[playerid] >= pduel->game_field->get_summon_count_limit(playerid))
 		return FALSE;
@@ -3536,7 +3541,7 @@ int32_t card::is_special_summonable(uint8_t playerid, uint32_t summon_type) {
 }
 int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype, uint8_t sumpos, uint8_t sumplayer, uint8_t toplayer, uint8_t nocheck, uint8_t nolimit, uint32_t zone) {
 	if(reason_effect->get_handler() == this)
-		reason_effect->status |= EFFECT_STATUS_SPSELF;
+		reason_effect->status |= EFFECT_STATUS_SUMMON_SELF;
 	if(current.location == LOCATION_MZONE)
 		return FALSE;
 	if(current.location == LOCATION_REMOVED && (current.position & POS_FACEDOWN))
@@ -3597,6 +3602,11 @@ int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype
 int32_t card::is_setable_mzone(uint8_t playerid, uint8_t ignore_count, effect* peffect, uint8_t min_tribute, uint32_t zone) {
 	if(!is_summonable_card())
 		return FALSE;
+	{
+		auto reason_effect = pduel->game_field->core.reason_effect;
+		if(reason_effect && reason_effect->get_handler() == this)
+			reason_effect->status |= EFFECT_STATUS_SUMMON_SELF;
+	}
 	if(current.location != LOCATION_HAND)
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
