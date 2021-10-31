@@ -734,19 +734,7 @@ int32_t group_equal(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	auto sgroup = lua_get<group*, true>(L, 2);
-	if(pgroup->container.size() != sgroup->container.size()) {
-		lua_pushboolean(L, 0);
-		return 1;
-	}
-	auto pit = pgroup->container.begin();
-	auto sit = sgroup->container.begin();
-	for(; pit != pgroup->container.end(); ++pit, ++sit) {
-		if((*pit) != (*sit)) {
-			lua_pushboolean(L, 0);
-			return 1;
-		}
-	}
-	lua_pushboolean(L, 1);
+	lua_pushboolean(L, pgroup->container == sgroup->container);
 	return 1;
 }
 int32_t group_less_than(lua_State* L) {
