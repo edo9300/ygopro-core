@@ -84,6 +84,7 @@ project "ocgcoreshared"
 	targetname "ocgcore"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
+	visibility "Hidden"
 	ocgcore_config()
 	if _OPTIONS["oldwindows"] then
 		filter {}

@@ -24,6 +24,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 target_include_directories(ocgcore PUBLIC ${LUA_INCLUDE_DIR})
 target_include_directories(ocgcore_static PUBLIC ${LUA_INCLUDE_DIR})
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 find_library(LUA_CXX_LIBRARIES lua-c++)
 if(LUA_CXX_LIBRARIES)
