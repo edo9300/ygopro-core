@@ -12,8 +12,9 @@ option(OCGCORE_OLD_WINDOWS "Tricks to support up to windows 2000" OFF)
 
 find_package(Lua REQUIRED)
 
-add_library(ocgcore SHARED)
 add_library(ocgcore_static STATIC)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+add_library(ocgcore SHARED)
 
 target_compile_definitions(ocgcore PUBLIC OCGCORE_EXPORT_FUNCTIONS)
 target_compile_definitions(ocgcore PUBLIC LUA_COMPAT_5_2)
@@ -24,7 +25,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 target_include_directories(ocgcore PUBLIC ${LUA_INCLUDE_DIR})
 target_include_directories(ocgcore_static PUBLIC ${LUA_INCLUDE_DIR})
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 find_library(LUA_CXX_LIBRARIES lua-c++)
 if(LUA_CXX_LIBRARIES)
