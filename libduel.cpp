@@ -3021,15 +3021,26 @@ int32_t duel_overlay(lua_State* L) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto target = lua_get<card*, true>(L, 1);
+	if(target->overlay_target != nullptr) {
+		luaL_error(L, "Attempt to overlay materials to a card that is an overlay material.");
+		unreachable();
+	}
 	card* pcard = nullptr;
 	group* pgroup = nullptr;
 	get_card_or_group(L, 2, pcard, pgroup);
 	if(pcard) {
-		card_set cset;
-		cset.insert(pcard);
-		target->xyz_overlay(&cset);
-	} else
-		target->xyz_overlay(&pgroup->container);
+		if(pcard == target) {
+			luaL_error(L, "Attempt to overlay a card with itself.");
+			unreachable();
+		}
+		target->xyz_overlay(card_set{ pcard });
+	} else {
+		if(pgroup->has_card(target)) {
+			luaL_error(L, "Attempt to overlay a card with itself.");
+			unreachable();
+		}
+		target->xyz_overlay(pgroup->container);
+	}
 	if(target->current.location & LOCATION_ONFIELD)
 		pduel->game_field->adjust_all();
 	return lua_yield(L, 0);
