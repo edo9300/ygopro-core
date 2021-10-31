@@ -1772,17 +1772,21 @@ void card::xyz_overlay(const card_set& materials) {
 		if(prev_size >= 2)
 			std::sort(cv.begin() + (cur_size - prev_size), cv.end(), card::card_operation_sort);
 	}
+	const auto& player = pduel->game_field->player;
 	duel::duel_message* decktop[2] = { nullptr, nullptr };
-	const size_t s[2] = { pduel->game_field->player[0].list_main.size(), pduel->game_field->player[1].list_main.size() };
+	const size_t s[2] = { player[0].list_main.size(), player[1].list_main.size() };
 	if(pduel->game_field->core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-		decktop[0] = pduel->new_message(MSG_DECK_TOP);
-		decktop[1] = pduel->new_message(MSG_DECK_TOP);
+		const auto m_end = materials.end();
+		if(s[0] > 0 && materials.find(player[0].list_main.back()) != m_end) {
+			decktop[0] = pduel->new_message(MSG_DECK_TOP);
+			decktop[0]->write<uint8_t>(0);
+		}
+		if(s[1] > 0 && materials.find(player[1].list_main.back()) != m_end) {
+			decktop[1] = pduel->new_message(MSG_DECK_TOP);
+			decktop[1]->write<uint8_t>(1);
+		}
 	}
 	for(auto& pcard : cv) {
-		if(decktop[0] && pduel->game_field->player[0].list_main.back() == pcard)
-			decktop[0]->write<uint8_t>(0);
-		if(decktop[1] && pduel->game_field->player[1].list_main.back() == pcard)
-			decktop[1]->write<uint8_t>(1);
 		pcard->current.reason = REASON_XYZ + REASON_MATERIAL;
 		pcard->reset(RESET_LEAVE + RESET_OVERLAY, RESET_EVENT);
 		if(pcard->unique_code)
@@ -1813,17 +1817,16 @@ void card::xyz_overlay(const card_set& materials) {
 		message->write(pcard->get_info_location());
 		message->write<uint32_t>(pcard->current.reason);
 	}
-	auto writetopcard = [rev=pduel->game_field->core.deck_reversed, &decktop, &player=pduel->game_field->player, &s](int playerid) {
+	auto writetopcard = [rev=pduel->game_field->core.deck_reversed, &decktop, &player, &s](int playerid) {
 		if(!decktop[playerid])
 			return;
 		auto& msg = decktop[playerid];
 		const auto& list = player[playerid].list_main;
-		auto& prevcount = s[playerid];
-		card* ptop = nullptr;
-		if(list.empty() || msg->data.size() == 1 || ((ptop = list.back()) != nullptr &&
-			!rev && ptop->current.position != POS_FACEUP_DEFENSE))
+		if(list.empty() || (!rev && list.back()->current.position != POS_FACEUP_DEFENSE))
 			msg->data.clear();
 		else {
+			auto& prevcount = s[playerid];
+			const auto* ptop = list.back();
 			msg->write<uint32_t>(prevcount - list.size());
 			msg->write<uint32_t>(ptop->data.code);
 			msg->write<uint32_t>(ptop->current.position);
