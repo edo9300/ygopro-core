@@ -181,11 +181,15 @@ card_data::card_data(OCG_CardData* data) {
 	COPY(rscale);
 	COPY(link_marker);
 #undef COPY
-	if(data->setcodes) {
-		uint16_t* setptr = data->setcodes;
-		while(*setptr != 0) {
-			this->setcodes.insert(*setptr);
-			setptr++;
-		}
+	if(data->setcodes == nullptr)
+		return;
+	uint16_t sc = 0;
+	uint16_t* ptr = data->setcodes;
+	for(;;)
+	{
+		std::memcpy(&sc, ptr++, sizeof(uint16_t));
+		if(sc == 0)
+			break;
+		this->setcodes.insert(sc);
 	}
 }
