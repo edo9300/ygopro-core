@@ -249,7 +249,7 @@ uint32_t card::get_code() {
 		if(data.alias && !addcode)
 			code = data.alias;
 	} else {
-		auto dat = pduel->read_card(code);
+		const auto* dat = pduel->read_card(code);
 		if (dat->alias && !second_code(code))
 			code = dat->alias;
 	}
@@ -416,8 +416,10 @@ int32_t card::is_sumon_set_card(uint32_t set_code, card* scard, uint64_t sumtype
 	}
 	std::set<uint16_t> setcodes;
 	for (uint32_t code : codes) {
-		auto sets = pduel->read_card(code)->setcodes;
+		const auto& sets = pduel->read_card(code)->setcodes;
 		setcodes.insert(sets.begin(), sets.end());
+		if(sets.size())
+			setcodes.insert(sets.begin(), sets.end());
 	}
 	eset.clear();
 	filter_effect(EFFECT_ADD_SETCODE, &eset, FALSE);
@@ -532,7 +534,7 @@ uint32_t card::get_summon_set_card(card* scard, uint64_t sumtype, uint8_t player
 	}
 	std::set<uint16_t> setcodes;
 	for (uint32_t code : codes) {
-		auto sets = pduel->read_card(code)->setcodes;
+		const auto& sets = pduel->read_card(code)->setcodes;
 		if(sets.size())
 			setcodes.insert(sets.begin(), sets.end());
 	}
@@ -4233,6 +4235,6 @@ int32_t card::is_can_be_material(card* scard, uint64_t sumtype, uint8_t playerid
 bool card::recreate(uint32_t code) {
 	if(!code)
 		return false;
-	pduel->read_card(code, &data);
+	data = *pduel->read_card(code);
 	return true;
 }

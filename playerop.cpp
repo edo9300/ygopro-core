@@ -985,7 +985,7 @@ int32_t field::announce_card(int16_t step, uint8_t playerid) {
 		return FALSE;
 	} else {
 		int32_t code = returns.at<int32_t>(0);
-		auto data = pduel->read_card(code);
+		const auto* data = pduel->read_card(code);
 		if(!data->code || !is_declarable(data, core.select_options)) {
 			/*auto message = */pduel->new_message(MSG_RETRY);
 			return FALSE;
