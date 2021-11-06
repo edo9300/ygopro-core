@@ -417,7 +417,6 @@ int32_t card::is_sumon_set_card(uint32_t set_code, card* scard, uint64_t sumtype
 	std::set<uint16_t> setcodes;
 	for (uint32_t code : codes) {
 		const auto& sets = pduel->read_card(code)->setcodes;
-		setcodes.insert(sets.begin(), sets.end());
 		if(sets.size())
 			setcodes.insert(sets.begin(), sets.end());
 	}
