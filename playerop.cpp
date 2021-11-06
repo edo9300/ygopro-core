@@ -217,7 +217,7 @@ int32_t field::select_option(uint16_t step, uint8_t playerid) {
 	}
 }
 bool field::parse_response_cards(uint8_t cancelable, uint8_t sort) {
-	int type = returns.at<int32_t>(0);
+	auto type = returns.at<int32_t>(0);
 	if(type == -1) {
 		if(cancelable) {
 			return_cards.canceled = true;
@@ -227,18 +227,18 @@ bool field::parse_response_cards(uint8_t cancelable, uint8_t sort) {
 	}
 	auto& list = return_cards.list;
 	if(type == 3) {
-		for(int32_t i = 0; i < (int32_t)core.select_cards.size(); i++) {
-			if(returns.bitGet(i + (sizeof(int) * 8)))
+		for(size_t i = 0; i < core.select_cards.size(); i++) {
+			if(returns.bitGet(i + (sizeof(uint32_t) * 8)))
 				list.push_back(core.select_cards[i]);
 		}
 	} else {
 		try {
-			uint32_t size = returns.at<int32_t>(1);
+			auto size = returns.at<uint32_t>(1);
 			for(uint32_t i = 0; i < size; ++i) {
 				list.push_back(core.select_cards.at(
-					(type == 0) ? returns.at<int32_t>(i + 2) :
-					(type == 1) ? returns.at<int16_t>(i + 4) :
-					returns.at<int8_t>(i + 8)
+					(type == 0) ? returns.at<uint32_t>(i + 2) :
+					(type == 1) ? returns.at<uint16_t>(i + 4) :
+					returns.at<uint8_t>(i + 8)
 				)
 				);
 			}
