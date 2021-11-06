@@ -38,12 +38,16 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
-      uses: rjstone/discord-webhook-notify@v1
+      uses: sarisia/actions-status-discord@v1
       if: failure()
       with:
-        severity: error
-        details: Build failed!
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   Linux-gcc:
     runs-on: ubuntu-18.04
@@ -68,12 +72,16 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
-      uses: rjstone/discord-webhook-notify@v1
+      uses: sarisia/actions-status-discord@v1
       if: failure()
       with:
-        severity: error
-        details: Build failed!
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   Android:
     runs-on: ubuntu-latest
@@ -101,12 +109,16 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
-      uses: rjstone/discord-webhook-notify@v1
+      uses: sarisia/actions-status-discord@v1
       if: failure()
       with:
-        severity: error
-        details: Build failed!
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   Mac-os:
     runs-on: macos-10.15
@@ -143,12 +155,16 @@ jobs:
         name: osx
         path: ocgcore/libocgcore.dylib
     - name: Log Failure
-      uses: rjstone/discord-webhook-notify@v1
+      uses: sarisia/actions-status-discord@v1
       if: failure()
       with:
-        severity: error
-        details: Build failed!
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   Mac-os-aarch64:
     runs-on: macos-latest
@@ -183,12 +199,16 @@ jobs:
         name: osx-aarch64
         path: ocgcore/libocgcore.dylib
     - name: Log Failure
-      uses: rjstone/discord-webhook-notify@v1
+      uses: sarisia/actions-status-discord@v1
       if: failure()
       with:
-        severity: error
-        details: Build failed!
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
 
   Mac-os-universal:
     runs-on: macos-latest
@@ -221,9 +241,13 @@ jobs:
             osx-aarch64
             osx
     - name: Log Failure
-      uses: rjstone/discord-webhook-notify@v1
+      uses: sarisia/actions-status-discord@v1
       if: failure()
       with:
-        severity: error
-        details: Build failed!
-        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
