@@ -37,7 +37,7 @@ struct card_data {
 	uint32_t lscale{};
 	uint32_t rscale{};
 	uint32_t link_marker{};
-	card_data(OCG_CardData* data);
+	card_data(const OCG_CardData& data);
 	card_data() {};
 };
 
@@ -113,7 +113,7 @@ public:
 	void set_response(const void* resp, size_t len);
 	int32_t get_next_integer(int32_t l, int32_t h);
 	duel_message* new_message(uint8_t message);
-	card_data const* read_card(uint32_t code);
+	const card_data& read_card(uint32_t code);
 	inline void handle_message(const char* message, OCG_LogTypes type) {
 		handle_message_callback(handle_message_payload, message, type);
 	}

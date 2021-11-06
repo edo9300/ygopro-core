@@ -54,7 +54,7 @@ card* duel::new_card(uint32_t code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);
 	if(code)
-		pcard->data = *read_card(code);
+		pcard->data = read_card(code);
 	pcard->data.code = code;
 	lua->register_card(pcard);
 	return pcard;
@@ -135,7 +135,7 @@ duel::duel_message* duel::new_message(uint8_t message) {
 	messages.emplace_back(message);
 	return &(messages.back());
 }
-card_data const* duel::read_card(uint32_t code) {
+const card_data& duel::read_card(uint32_t code) {
 	card_data* ret;
 	auto search = data_cache.find(code);
 	if(search != data_cache.end()) {
@@ -143,10 +143,10 @@ card_data const* duel::read_card(uint32_t code) {
 	} else {
 		OCG_CardData data{};
 		read_card_callback(read_card_payload, code, &data);
-		ret = &(data_cache.emplace(code, &data).first->second);
+		ret = &(data_cache.emplace(code, data).first->second);
 		read_card_done_callback(read_card_done_payload, &data);
 	}
-	return ret;
+	return *ret;
 }
 duel::duel_message::duel_message(uint8_t _message) :message(_message) {
 	write<uint8_t>(message);
@@ -165,8 +165,8 @@ void duel::duel_message::write(loc_info loc) {
 	write<uint32_t>(loc.position);
 }
 
-card_data::card_data(OCG_CardData* data) {
-#define COPY(val) this->val = data->val;
+card_data::card_data(const OCG_CardData& data) {
+#define COPY(val) this->val = data.val;
 	COPY(code);
 	COPY(alias);
 	COPY(type);
@@ -179,10 +179,10 @@ card_data::card_data(OCG_CardData* data) {
 	COPY(rscale);
 	COPY(link_marker);
 #undef COPY
-	if(data->setcodes == nullptr)
+	if(data.setcodes == nullptr)
 		return;
 	uint16_t sc = 0;
-	uint16_t* ptr = data->setcodes;
+	uint16_t* ptr = data.setcodes;
 	for(;;) {
 		std::memcpy(&sc, ptr++, sizeof(uint16_t));
 		if(sc == 0)

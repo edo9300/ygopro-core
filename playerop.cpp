@@ -902,12 +902,12 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 								}\
 								break;\
 							}
-#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd->val op)
+#define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd.val op)
 #define GET_OP(opcode,val) case opcode: {\
-								stack.push(cd->val);\
+								stack.push(cd.val);\
 								break;\
 							}
-static int32_t is_declarable(const card_data* cd, const std::vector<uint64_t>& opcodes) {
+static int32_t is_declarable(const card_data& cd, const std::vector<uint64_t>& opcodes) {
 	std::stack<int64_t> stack;
 	bool alias = false, token = false;
 	for(auto& opcode : opcodes) {
@@ -942,7 +942,7 @@ static int32_t is_declarable(const card_data* cd, const std::vector<uint64_t>& o
 				bool res = false;
 				uint16_t settype = set_code & 0xfff;
 				uint16_t setsubtype = set_code & 0xf000;
-				for(auto& sc : cd->setcodes) {
+				for(auto& sc : cd.setcodes) {
 					if((sc & 0xfff) == settype && (sc & 0xf000 & setsubtype) == setsubtype) {
 						res = true;
 						break;
@@ -968,8 +968,8 @@ static int32_t is_declarable(const card_data* cd, const std::vector<uint64_t>& o
 	}
 	if(stack.size() != 1 || stack.top() == 0)
 		return FALSE;
-	return cd->code == CARD_MARINE_DOLPHIN || cd->code == CARD_TWINKLE_MOSS
-		|| ((alias || !cd->alias) && (token || ((cd->type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN))));
+	return cd.code == CARD_MARINE_DOLPHIN || cd.code == CARD_TWINKLE_MOSS
+		|| ((alias || !cd.alias) && (token || ((cd.type & (TYPE_MONSTER + TYPE_TOKEN)) != (TYPE_MONSTER + TYPE_TOKEN))));
 }
 #undef BINARY_OP
 #undef UNARY_OP
@@ -985,8 +985,8 @@ int32_t field::announce_card(int16_t step, uint8_t playerid) {
 		return FALSE;
 	} else {
 		int32_t code = returns.at<int32_t>(0);
-		const auto* data = pduel->read_card(code);
-		if(!data->code || !is_declarable(data, core.select_options)) {
+		const auto& data = pduel->read_card(code);
+		if(!data.code || !is_declarable(data, core.select_options)) {
 			/*auto message = */pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}

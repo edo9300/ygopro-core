@@ -3817,7 +3817,7 @@ int32_t duel_is_player_can_spsummon_monster(lua_State* L) {
 	}
 	auto code = lua_get<uint32_t>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
-	card_data dat = *pduel->read_card(code);
+	card_data dat = pduel->read_card(code);
 	dat.code = code;
 	dat.alias = 0;
 	if(!lua_isnoneornil(L, 3)) {
