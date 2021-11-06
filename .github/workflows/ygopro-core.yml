@@ -37,6 +37,13 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
+    - name: Log Failure
+      uses: rjstone/discord-webhook-notify@v1
+      if: failure()
+      with:
+        severity: error
+        details: Build failed!
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   Linux-gcc:
     runs-on: ubuntu-18.04
@@ -60,6 +67,13 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
+    - name: Log Failure
+      uses: rjstone/discord-webhook-notify@v1
+      if: failure()
+      with:
+        severity: error
+        details: Build failed!
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   Android:
     runs-on: ubuntu-latest
@@ -86,6 +100,13 @@ jobs:
       if: ${{ github.event_name == 'push' }}
       shell: bash
       run: ./travis/deploy.sh
+    - name: Log Failure
+      uses: rjstone/discord-webhook-notify@v1
+      if: failure()
+      with:
+        severity: error
+        details: Build failed!
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   Mac-os:
     runs-on: macos-10.15
@@ -121,6 +142,13 @@ jobs:
       with:
         name: osx
         path: ocgcore/libocgcore.dylib
+    - name: Log Failure
+      uses: rjstone/discord-webhook-notify@v1
+      if: failure()
+      with:
+        severity: error
+        details: Build failed!
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   Mac-os-aarch64:
     runs-on: macos-latest
@@ -154,6 +182,13 @@ jobs:
       with:
         name: osx-aarch64
         path: ocgcore/libocgcore.dylib
+    - name: Log Failure
+      uses: rjstone/discord-webhook-notify@v1
+      if: failure()
+      with:
+        severity: error
+        details: Build failed!
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   Mac-os-universal:
     runs-on: macos-latest
@@ -185,3 +220,10 @@ jobs:
         name: |
             osx-aarch64
             osx
+    - name: Log Failure
+      uses: rjstone/discord-webhook-notify@v1
+      if: failure()
+      with:
+        severity: error
+        details: Build failed!
+        webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
