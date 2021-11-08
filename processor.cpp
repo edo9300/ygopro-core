@@ -1418,7 +1418,7 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 		peffect->dec_count(tp);
 		core.new_chains.push_back(newchain);
 		add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
-		core.new_fchain_s.remove_if([chain_id = newchain.chain_id](chain ch) { return ch.chain_id == chain_id; });
+		core.new_fchain_s.remove_if([chain_id = newchain.chain_id](const chain& ch) { return ch.chain_id == chain_id; });
 		core.units.begin()->step = 1;
 		return FALSE;
 	}
@@ -1487,10 +1487,11 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 		return FALSE;
 	}
 	case 6: {
-		if(returns.at<int32_t>(0) == -2 || (returns.at<int32_t>(0) == -1 && !is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER))) {
+		const auto ret = returns.at<int32_t>(0);
+		if(ret == -2 || (ret == -1 && !is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER))) {
 			for(const auto& ch : core.select_chains) {
 				ch.triggering_effect->active_type = 0;
-				core.new_ochain_s.remove_if([chain_id = ch.chain_id](chain ch) { return ch.chain_id == chain_id; });
+				core.new_ochain_s.remove_if([chain_id = ch.chain_id](const chain& ch) { return ch.chain_id == chain_id; });
 			}
 			if(core.new_ochain_s.size()) {
 				core.current_player = 1 - infos.turn_player;
@@ -1500,10 +1501,10 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 				core.units.begin()->step = 6;
 			}
 			return FALSE;
-		} else if(returns.at<int32_t>(0) == -1) {
+		} else if(ret == -1) {
 			//TCG SEGOC
-			chain discardedchain = core.select_chains[0];
-			core.new_ochain_s.remove_if([event_id = discardedchain.event_id](chain ch) { return ch.event_id == event_id; });
+			auto discardedid = core.select_chains[0].event_id;
+			core.new_ochain_s.remove_if([&](const chain& ch) { return ch.event_id == discardedid && ch.triggering_player == core.current_player; });
 			core.units.begin()->step = 3;
 			return FALSE;
 		}
@@ -1514,8 +1515,8 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 		peffect->dec_count(tp);
 		core.new_chains.push_back(newchain);
 		add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
-		core.new_ochain_s.remove_if([chain_id = newchain.chain_id](chain ch) { return ch.chain_id == chain_id; });
-		core.new_ochain_h.remove_if([chain_id = newchain.chain_id](chain ch) { return ch.chain_id == chain_id; });
+		core.new_ochain_s.remove_if([chain_id = newchain.chain_id](const chain& ch) { return ch.chain_id == chain_id; });
+		core.new_ochain_h.remove_if([chain_id = newchain.chain_id](const chain& ch) { return ch.chain_id == chain_id; });
 		core.units.begin()->step = 3;
 		return FALSE;
 	}
@@ -4826,8 +4827,8 @@ int32_t field::solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chain
 				dec_effect_code(peffect->count_code, peffect->count_flag, peffect->count_hopt_index, cait->triggering_player);
 			}
 			check_chain_counter(peffect, cait->triggering_player, cait->chain_count, true);
-			core.new_fchain.remove_if([chaincount = cait->chain_count](chain ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
-			core.new_ochain.remove_if([chaincount = cait->chain_count](chain ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
+			core.new_fchain.remove_if([chaincount = cait->chain_count](const chain& ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
+			core.new_ochain.remove_if([chaincount = cait->chain_count](const chain& ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
 			raise_event((card*)0, EVENT_CHAIN_NEGATED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 			process_instant_event();
 			core.units.begin()->step = 9;
