@@ -3078,10 +3078,10 @@ int32_t field::get_cteffect_evt(effect* feffect, int32_t playerid, const tevent&
 	if(!feffect->is_activateable(playerid, e, FALSE, FALSE, FALSE, FALSE, TRUE))
 		return FALSE;
 	if(store) {
-		chain newchain;
+		core.select_chains.emplace_back();
+		chain& newchain = core.select_chains.back();
 		newchain.evt = e;
 		newchain.triggering_effect = feffect;
-		core.select_chains.push_back(newchain);
 		core.select_options.push_back(feffect->description);
 	}
 	return TRUE;
