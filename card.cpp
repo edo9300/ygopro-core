@@ -3546,6 +3546,8 @@ int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype
 		if(!nolimit && (data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP))
 			return FALSE;
 	}
+	if(current.location == LOCATION_OVERLAY && !is_status(STATUS_PROC_COMPLETE))
+		return FALSE;
 	if((data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP)
 		&& (sumtype == SUMMON_TYPE_FUSION || sumtype == SUMMON_TYPE_SYNCHRO || sumtype == SUMMON_TYPE_XYZ))
 		return FALSE;
