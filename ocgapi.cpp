@@ -39,7 +39,6 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	auto duelPtr = new class duel(options);
 	if(duelPtr == nullptr)
 		return OCG_DUEL_CREATION_NOT_CREATED;
-	duelPtr->random.seed(options.seed);
 	duelPtr->game_field->core.duel_options = options.flags;
 	auto& team = options.team1;
 	for(int i = 0; i < 2; i++, team = options.team2) {
