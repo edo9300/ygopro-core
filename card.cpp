@@ -11,6 +11,7 @@
 #include "group.h"
 #include "interpreter.h"
 #include <algorithm>
+#include <iterator>
 
 bool card_sort::operator()(void* const & p1, void* const & p2) const {
 	card* c1 = (card*)p1;
