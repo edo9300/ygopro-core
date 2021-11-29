@@ -23,15 +23,23 @@ interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 	no_action = 0;
 	call_depth = 0;
 	memcpy(lua_getextraspace(lua_state), &pd, LUA_EXTRASPACE);
-	//Initial
-	luaL_openlibs(lua_state);
-	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "file");
-	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "io");
-	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "os");
-	//open all libs
+	// Open basic and used functionality
+	luaopen_base(lua_state);
+	luaopen_string(lua_state);
+	luaopen_table(lua_state);
+	luaopen_math(lua_state);
+	// Remove "dangerous" functions
+	auto nil_out = [&](const char* name)
+	{
+		lua_pushnil(lua_state);
+		lua_setglobal(lua_state, name);
+	};
+	nil_out("collectgarbage");
+	nil_out("dofile");
+	nil_out("load");
+	nil_out("loadfile");
+	nil_out("print"); // FIXME: make it so that Debug.Message=print
+	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);
 	scriptlib::push_group_lib(lua_state);
