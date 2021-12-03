@@ -13,9 +13,7 @@
 #include <algorithm>
 #include <iterator>
 
-bool card_sort::operator()(void* const & p1, void* const & p2) const {
-	card* c1 = (card*)p1;
-	card* c2 = (card*)p2;
+bool card_sort::operator()(const card* c1, const card* c2) const {
 	return c1->cardid < c2->cardid;
 }
 bool card_state::is_location(int32_t loc) const {

@@ -119,7 +119,7 @@ public:
 	uint8_t attacked_count{};
 	uint8_t attack_all_target{};
 	uint8_t attack_controler{};
-	uint16_t cardid{};
+	uint32_t cardid{};
 	uint32_t fieldid{};
 	uint32_t fieldid_r{};
 	uint16_t turnid{};

@@ -146,12 +146,12 @@ struct field_effect {
 	grant_effect_container grant_effect;
 };
 struct field_info {
-	int32_t event_id;
-	int32_t field_id;
-	int16_t copy_id;
-	int16_t turn_id;
-	int16_t turn_id_by_player[2];
-	int16_t card_id;
+	uint32_t event_id;
+	uint32_t field_id;
+	uint16_t copy_id;
+	uint16_t turn_id;
+	uint16_t turn_id_by_player[2];
+	uint32_t card_id;
 	uint16_t phase;
 	uint8_t turn_player;
 	uint8_t priorities[2];

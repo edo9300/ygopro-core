@@ -8,15 +8,14 @@
 #include <map>
 #include <unordered_map>
 
-struct card_sort {
-	bool operator()(void* const& c1, void* const& c2) const;
-};
-
 class group;
 
 class card;
 using card_list = std::list<card*>;
 using card_vector = std::vector<card*>;
+struct card_sort {
+	bool operator()(const card* c1, const card* c2) const;
+};
 using card_set = std::set<card*, card_sort>;
 
 class effect;
