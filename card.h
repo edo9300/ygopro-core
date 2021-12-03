@@ -75,7 +75,7 @@ public:
 	using relation_map = std::unordered_map<card*, uint32_t>;
 	using counter_map = std::map<uint16_t, std::array<uint16_t, 2>>;
 	using effect_count = std::map<uint32_t, int32_t>;
-	class attacker_map : public std::unordered_map<uint16_t, std::pair<card*, uint32_t>> {
+	class attacker_map : public std::unordered_map<uint32_t, std::pair<card*, uint32_t>> {
 	public:
 		void addcard(card* pcard);
 		uint32_t findcard(card* pcard);

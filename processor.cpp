@@ -5682,7 +5682,7 @@ int32_t field::adjust_step(uint16_t step) {
 			}
 			if(core.attack_rollback)
 				return FALSE;
-			std::set<uint16_t> fidset;
+			std::set<uint32_t> fidset;
 			for(auto& pcard : player[1 - infos.turn_player].list_mzone) {
 				if(pcard)
 					fidset.insert(pcard->fieldid_r);

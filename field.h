@@ -278,8 +278,8 @@ struct processor {
 	std::multimap<int32_t, card*, std::greater<int32_t>> xmaterial_lst;
 	int64_t temp_var[4];
 	uint32_t global_flag;
-	uint16_t pre_field[2];
-	std::set<uint16_t> opp_mzone;
+	uint32_t pre_field[2];
+	std::set<uint32_t> opp_mzone;
 	chain_limit_list chain_limit;
 	chain_limit_list chain_limit_p;
 	uint8_t chain_solving;
