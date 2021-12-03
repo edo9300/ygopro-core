@@ -400,7 +400,7 @@ public:
 	int32_t get_szone_limit(uint8_t playerid, uint8_t uplayer, uint32_t reason);
 	int32_t get_forced_zones(card* pcard, uint8_t playerid, uint8_t location, uint32_t uplayer, uint32_t reason);
 	uint32_t get_rule_zone_fromex(int32_t playerid, card* pcard);
-	uint32_t get_linked_zone(int32_t playerid, bool free = false);
+	uint32_t get_linked_zone(int32_t playerid, bool free = false, bool actually_linked = false);
 	void get_linked_cards(uint8_t self, uint8_t location1, uint8_t location2, card_set* cset);
 	int32_t check_extra_link(int32_t playerid, card* pcard, int32_t sequence);
 	void get_cards_in_zone(card_set* cset, uint32_t zone, int32_t playerid, int32_t location);

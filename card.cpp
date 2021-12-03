@@ -1556,7 +1556,7 @@ int32_t card::is_link_state() {
 		return TRUE;
 	int32_t p = current.controler;
 	uint32_t is_szone = current.location == LOCATION_SZONE ? 8 : 0;
-	uint32_t linked_zone = pduel->game_field->get_linked_zone(p);
+	uint32_t linked_zone = pduel->game_field->get_linked_zone(p, false, true);
 	if((linked_zone >> (current.sequence + is_szone)) & 1)
 		return TRUE;
 	return FALSE;

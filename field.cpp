@@ -855,7 +855,7 @@ uint32_t field::get_rule_zone_fromex(int32_t playerid, card* pcard) {
 		return 0x1f;
 	}
 }
-uint32_t field::get_linked_zone(int32_t playerid, bool free) {
+uint32_t field::get_linked_zone(int32_t playerid, bool free, bool actually_linked) {
 	uint32_t zones = 0;
 	for(auto& pcard : player[playerid].list_mzone) {
 		if(pcard)
@@ -875,16 +875,17 @@ uint32_t field::get_linked_zone(int32_t playerid, bool free) {
 			oppzones |= pcard->get_linked_zone(free);
 	}
 	zones |= ((oppzones & 0xffff) << 16) | (oppzones >> 16);
-	effect_set eset;
-	uint32_t value;
-	filter_field_effect(EFFECT_BECOME_LINKED_ZONE, &eset);
-	for (const auto& peff : eset) {
-		value = peff->get_value();
-		if (value) {
-			zones |= (value >> (16 * playerid)) & 0x7f;
+	if(!actually_linked) {
+		effect_set eset;
+		uint32_t value;
+		filter_field_effect(EFFECT_BECOME_LINKED_ZONE, &eset);
+		for(const auto& peff : eset) {
+			value = peff->get_value();
+			if(value) {
+				zones |= (value >> (16 * playerid)) & 0x7f;
+			}
 		}
 	}
-	eset.clear();
 	return zones;
 }
 void field::get_linked_cards(uint8_t self, uint8_t location1, uint8_t location2, card_set* cset) {
