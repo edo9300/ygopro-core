@@ -695,28 +695,27 @@ int32_t field::process() {
 	case PROCESSOR_SORT_DECK: {
 		uint8_t sort_player = it->arg1 & 0xffff;
 		uint8_t target_player = it->arg1 >> 16;
-		uint32_t count = it->arg2, i = 0;
+		uint32_t count = it->arg2;
 		bool bottom = it->arg3;
 		auto& list = player[target_player].list_main;
 		if(count > list.size())
 			count = list.size();
 		if(it->step == 0) {
-			core.select_cards.clear();
 			if(bottom) {
-				for(auto clit = list.begin(); i < count; ++i, ++clit)
-					core.select_cards.push_back(*clit);
+				const auto clit = list.begin();
+				core.select_cards.assign(clit, clit + count);
 			} else {
-				for(auto clit = list.rbegin(); i < count; ++i, ++clit)
-					core.select_cards.push_back(*clit);
+				const auto clit = list.rbegin();
+				core.select_cards.assign(clit, clit + count);
 			}
 			add_process(PROCESSOR_SORT_CARD, 0, 0, 0, sort_player, 0);
 			it->step++;
 		} else {
-			if(returns.at<int8_t>(0) != -1) {
+			if(returns.at<int8_t>(0) != -1 && count > 0) {
 				card* tc[64];
-				for(i = 0; i < count; ++i)
+				for(uint32_t i = 0; i < count; ++i)
 					tc[returns.at<uint8_t>(i)] = core.select_cards[i];
-				for(i = 0; i < count; ++i) {
+				for(uint32_t i = 0; i < count; ++i) {
 					card* pcard = nullptr;
 					if(bottom)
 						pcard = tc[i];
@@ -734,16 +733,14 @@ int32_t field::process() {
 					message->write(pcard->get_info_location());
 					message->write<uint32_t>(pcard->current.reason);
 				}
-				if(count > 0) {
-					if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-						card* ptop = list.back();
-						if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
-							auto message = pduel->new_message(MSG_DECK_TOP);
-							message->write<uint8_t>(target_player);
-							message->write<uint32_t>(0);
-							message->write<uint32_t>(ptop->data.code);
-							message->write<uint32_t>(ptop->current.position);
-						}
+				if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
+					card* ptop = list.back();
+					if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
+						auto message = pduel->new_message(MSG_DECK_TOP);
+						message->write<uint8_t>(target_player);
+						message->write<uint32_t>(0);
+						message->write<uint32_t>(ptop->data.code);
+						message->write<uint32_t>(ptop->current.position);
 					}
 				}
 			}
@@ -951,7 +948,8 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 	core.queue_event.push_back(new_event);
 }
 void field::raise_event(card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
-	tevent new_event;
+	core.queue_event.emplace_back();
+	tevent& new_event = core.queue_event.back();
 	new_event.trigger_card = 0;
 	if (event_cards) {
 		group* pgroup = pduel->new_group(*event_cards);
@@ -966,10 +964,10 @@ void field::raise_event(card_set* event_cards, uint32_t event_code, effect* reas
 	new_event.event_player = event_player;
 	new_event.event_value = event_value;
 	new_event.global_id = infos.event_id;
-	core.queue_event.push_back(new_event);
 }
 void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
-	tevent new_event;
+	core.single_event.emplace_back();
+	tevent& new_event = core.single_event.back();
 	new_event.trigger_card = trigger_card;
 	if (event_cards) {
 		group* pgroup = pduel->new_group(*event_cards);
@@ -984,7 +982,6 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 	new_event.event_player = event_player;
 	new_event.event_value = event_value;
 	new_event.global_id = infos.event_id;
-	core.single_event.push_back(new_event);
 }
 int32_t field::check_event(uint32_t code, tevent* pe) {
 	for(const auto& ev : core.point_event) {
