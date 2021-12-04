@@ -319,14 +319,8 @@ int32_t group_select_unselect(lua_State* L) {
 	}
 	if(min > max)
 		min = max;
-	pduel->game_field->core.select_cards.clear();
-	pduel->game_field->core.unselect_cards.clear();
-	for(auto it = pgroup1->container.begin(); it != pgroup1->container.end(); ++it) {
-		pduel->game_field->core.select_cards.push_back(*it);
-	}
-	for(auto it = pgroup2->container.begin(); it != pgroup2->container.end(); ++it) {
-		pduel->game_field->core.unselect_cards.push_back(*it);
-	}
+	pduel->game_field->core.select_cards.assign(pgroup1->container.begin(), pgroup1->container.end());
+	pduel->game_field->core.unselect_cards.assign(pgroup2->container.begin(), pgroup2->container.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), finishable);
 	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32_t/* status*/, lua_KContext ctx) {
 		duel* pduel = (duel*)ctx;
@@ -409,9 +403,10 @@ int32_t group_check_with_sum_equal(lua_State* L) {
 	int32_t extraargs = lua_gettop(L) - 5;
 	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32_t mcount = cv.size();
+	const auto beginit = pduel->game_field->core.must_select_cards.begin();
+	const auto endit = pduel->game_field->core.must_select_cards.end();
 	for(auto& pcard : pgroup->container) {
-		auto it = std::find(pduel->game_field->core.must_select_cards.begin(), pduel->game_field->core.must_select_cards.end(), pcard);
-		if(it == pduel->game_field->core.must_select_cards.end())
+		if(std::find(beginit, endit, pcard) == endit)
 			cv.push_back(pcard);
 	}
 	pduel->game_field->core.must_select_cards.clear();
@@ -462,7 +457,7 @@ int32_t group_select_with_sum_equal(lua_State* L) {
 		pduel->game_field->core.must_select_cards.clear();
 		interpreter::pushobject(L, pgroup);
 		return 1;
-					  });
+	});
 }
 int32_t group_check_with_sum_greater(lua_State* L) {
 	check_param_count(L, 3);
@@ -473,9 +468,10 @@ int32_t group_check_with_sum_greater(lua_State* L) {
 	int32_t extraargs = lua_gettop(L) - 3;
 	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32_t mcount = cv.size();
+	const auto beginit = pduel->game_field->core.must_select_cards.begin();
+	const auto endit = pduel->game_field->core.must_select_cards.end();
 	for(auto& pcard : pgroup->container) {
-		auto it = std::find(pduel->game_field->core.must_select_cards.begin(), pduel->game_field->core.must_select_cards.end(), pcard);
-		if(it == pduel->game_field->core.must_select_cards.end())
+		if(std::find(beginit, endit, pcard) == endit)
 			cv.push_back(pcard);
 	}
 	pduel->game_field->core.must_select_cards.clear();
