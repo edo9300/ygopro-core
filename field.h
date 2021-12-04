@@ -74,16 +74,16 @@ struct chain {
 };
 
 struct player_info {
-	int32_t lp;
-	int32_t start_lp;
-	int32_t start_count;
-	int32_t draw_count;
-	uint32_t used_location;
-	uint32_t disabled_location;
-	uint32_t extra_p_count;
-	uint32_t exchanges;
-	uint32_t tag_index;
-	bool recharge;
+	int32_t lp{ 8000 };
+	int32_t start_lp{ 8000 };
+	int32_t start_count{ 5 };
+	int32_t draw_count{ 1 };
+	uint32_t used_location{ 0 };
+	uint32_t disabled_location{ 0 };
+	uint32_t extra_p_count{ 0 };
+	uint32_t exchanges{ 0 };
+	uint32_t tag_index{ 0 };
+	bool recharge{ false };
 	card_vector list_mzone;
 	card_vector list_szone;
 	card_vector list_main;
@@ -95,6 +95,15 @@ struct player_info {
 	std::vector<card_vector> extra_lists_hand;
 	std::vector<card_vector> extra_lists_extra;
 	std::vector<uint32_t> extra_extra_p_count;
+	player_info() {
+		list_mzone.resize(7, nullptr);
+		list_szone.resize(8, nullptr);
+		list_main.reserve(45);
+		list_hand.reserve(10);
+		list_grave.reserve(30);
+		list_remove.reserve(30);
+		list_extra.reserve(15);
+	}
 };
 struct field_effect {
 	using oath_effects = std::unordered_map<effect*, effect*>;
@@ -146,21 +155,21 @@ struct field_effect {
 	grant_effect_container grant_effect;
 };
 struct field_info {
-	uint32_t event_id;
-	uint32_t field_id;
-	uint16_t copy_id;
-	uint16_t turn_id;
-	uint16_t turn_id_by_player[2];
-	uint32_t card_id;
-	uint16_t phase;
-	uint8_t turn_player;
-	uint8_t priorities[2];
-	uint8_t can_shuffle;
+	uint32_t event_id{ 1 };
+	uint32_t field_id{ 1 };
+	uint16_t copy_id{ 1 };
+	int16_t turn_id{ 0 };
+	int16_t turn_id_by_player[2]{ 0,0 };
+	uint32_t card_id{ 1 };
+	uint16_t phase{ 0 };
+	uint8_t turn_player{ 0 };
+	uint8_t priorities[2]{ 0,0 };
+	uint8_t can_shuffle{ TRUE };
 };
 struct lpcost {
-	int32_t count;
-	int32_t amount;
-	int32_t lpstack[8];
+	int32_t count{ 0 };
+	int32_t amount{ 0 };
+	int32_t lpstack[8]{};
 };
 struct processor_unit {
 	uint16_t type;
@@ -284,11 +293,11 @@ struct processor {
 	chain_limit_list chain_limit_p;
 	uint8_t chain_solving;
 	uint8_t conti_solving;
-	uint8_t win_player;
+	uint8_t win_player{ 5 };
 	uint8_t win_reason;
 	uint8_t re_adjust;
 	effect* reason_effect;
-	uint8_t reason_player;
+	uint8_t reason_player{ PLAYER_NONE };
 	card* summoning_card;
 	uint32_t summoning_proc_group_type;
 	uint8_t summon_depth;
@@ -351,7 +360,7 @@ struct processor {
 	uint8_t phase_action;
 	uint32_t hint_timing[2];
 	uint8_t current_player;
-	uint8_t conti_player;
+	uint8_t conti_player{ PLAYER_NONE };
 	bool force_turn_end;
 	action_counter_t summon_counter;
 	action_counter_t normalsummon_counter;
@@ -370,7 +379,7 @@ public:
 	field_info infos;
 	//lpcost cost[2];
 	field_effect effects;
-	processor core;
+	processor core{};
 	ProgressiveBuffer returns;
 	return_card return_cards;
 	tevent nil_event;
