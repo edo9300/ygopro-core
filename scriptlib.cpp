@@ -63,13 +63,6 @@ bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retf
 	pduel->handle_message(pduel->lua->format(R"(Parameter %d should be "%s".)", index, type), OCG_LOG_TYPE_ERROR);
 	return false;
 }
-
-void check_param_count(lua_State* L, int32_t count) {
-	if(lua_gettop(L) < count) {
-		luaL_error(L, "%d Parameters are needed.", count);
-		unreachable();
-	}
-}
 void check_action_permission(lua_State* L) {
 	if(lua_get<duel*>(L)->lua->no_action) {
 		luaL_error(L, "Action is not allowed here.");

@@ -19,10 +19,16 @@ namespace scriptlib {
 	void push_duel_lib(lua_State* L);
 	void push_debug_lib(lua_State* L);
 	bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
-	void check_param_count(lua_State* L, int32_t count);
 	void check_action_permission(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
 	int32_t is_deleted_object(lua_State* L);
+
+	inline void check_param_count(lua_State* L, int32_t count) {
+		if(lua_gettop(L) < count) {
+			luaL_error(L, "%d Parameters are needed.", count);
+			unreachable();
+		}
+	}
 
 //Visual Studio raises a warning on const conditional expressions.
 //In these templated functions those warnings will be wrongly raised
