@@ -1398,22 +1398,39 @@ int32_t duel_shuffle_setcard(lua_State* L) {
 	auto pgroup = lua_get<group*, true>(L, 1);
 	if(pgroup->container.size() <= 0)
 		return 0;
-	const auto pduel = lua_get<duel*>(L);
 	card* ms[7];
 	uint8_t seq[7];
-	uint8_t tp = 2;
-	uint8_t loc = 0;
+	auto it = pgroup->container.begin();
 	uint8_t ct = 0;
-	for(auto& pcard : pgroup->container) {
-		if((loc != 0 && (pcard->current.location != loc)) || (pcard->current.location != LOCATION_MZONE && pcard->current.location != LOCATION_SZONE)
-			|| (pcard->current.position & POS_FACEUP) || (pcard->current.sequence > 4) || (tp != 2 && (pcard->current.controler != tp)))
+	ms[ct] = *it;
+	uint8_t loc = ms[ct]->current.location;
+	if(loc != LOCATION_MZONE && loc != LOCATION_SZONE)
+		return 0;
+	uint8_t tp = ms[ct]->current.controler;
+	if(tp > 1)
+		return 0;
+	if(ms[ct]->current.position & POS_FACEUP)
+		return 0;
+	if(ms[ct]->current.sequence > 4)
+		return 0;
+	seq[ct] = ms[ct]->current.sequence;
+	it++;
+	ct++;
+	for(auto end = pgroup->container.end(); it != end; it++, ct++) {
+		auto pcard = *it;
+		const auto& current = pcard->current;
+		if(current.location != loc)
 			return 0;
-		tp = pcard->current.controler;
-		loc = pcard->current.location;
+		if(current.position & POS_FACEUP)
+			return 0;
+		if(current.sequence > 4)
+			return 0;
+		if(current.controler != tp)
+			return 0;
 		ms[ct] = pcard;
-		seq[ct] = pcard->current.sequence;
-		ct++;
+		seq[ct] = current.sequence;
 	}
+	const auto pduel = lua_get<duel*>(L);
 	for(int32_t i = ct - 1; i > 0; --i) {
 		int32_t s = pduel->get_next_integer(0, i);
 		std::swap(ms[i], ms[s]);
