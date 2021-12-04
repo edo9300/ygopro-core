@@ -3731,6 +3731,8 @@ int32_t card::is_destructable_by_effect(effect* peffect, uint8_t playerid) {
 	return TRUE;
 }
 int32_t card::is_removeable(uint8_t playerid, int32_t pos, uint32_t reason) {
+	if(current.location == LOCATION_REMOVED)
+		return FALSE;
 	if(!pduel->game_field->is_player_can_remove(playerid, this, reason))
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_REMOVE))
