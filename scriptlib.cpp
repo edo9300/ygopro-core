@@ -22,9 +22,6 @@ bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retf
 			if(retobj)
 				*(lua_obj**)retobj = obj;
 			return true;
-		} else if(obj && obj->lua_type == PARAM_TYPE_DELETED) {
-			luaL_error(L, "Attempting to access deleted object.");
-			unreachable();
 		}
 		type = param_type == PARAM_TYPE_CARD ? "Card" : param_type == PARAM_TYPE_GROUP ? "Group" : "Effect";
 		break;
