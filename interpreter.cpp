@@ -28,6 +28,7 @@ interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 	luaopen_string(lua_state);
 	luaopen_table(lua_state);
 	luaopen_math(lua_state);
+	luaopen_io(lua_state);
 	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);
