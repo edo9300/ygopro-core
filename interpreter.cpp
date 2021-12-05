@@ -28,17 +28,6 @@ interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 	luaopen_string(lua_state);
 	luaopen_table(lua_state);
 	luaopen_math(lua_state);
-	// Remove "dangerous" functions
-	auto nil_out = [&](const char* name)
-	{
-		lua_pushnil(lua_state);
-		lua_setglobal(lua_state, name);
-	};
-	nil_out("collectgarbage");
-	nil_out("dofile");
-	nil_out("load");
-	nil_out("loadfile");
-	nil_out("print"); // FIXME: make it so that Debug.Message=print
 	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);
