@@ -249,7 +249,7 @@ bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<Return
 			return false;
 		}
 	}
-	if(std::is_same_v<ReturnType, card*>) {
+	if(std::is_same<ReturnType, card*>::value) {
 		std::sort(list.begin(), list.end());
 		auto ip = std::unique(list.begin(), list.end());
 		bool res = (ip == list.end());
