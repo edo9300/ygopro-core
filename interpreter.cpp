@@ -23,15 +23,17 @@ interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 	no_action = 0;
 	call_depth = 0;
 	memcpy(lua_getextraspace(lua_state), &pd, LUA_EXTRASPACE);
-	//Initial
-	luaL_openlibs(lua_state);
-	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "file");
-	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "io");
-	lua_pushnil(lua_state);
-	lua_setglobal(lua_state, "os");
-	//open all libs
+	// Open basic and used functionality
+	auto open_lib = [L=lua_state](const char* libname, lua_CFunction openf) {
+		luaL_requiref(L, libname, openf, 1);
+		lua_pop(L, 1);
+	};
+	open_lib("_G", luaopen_base);
+	open_lib(LUA_STRLIBNAME, luaopen_string);
+	open_lib(LUA_TABLIBNAME, luaopen_table);
+	open_lib(LUA_MATHLIBNAME, luaopen_math);
+	open_lib(LUA_IOLIBNAME, luaopen_io);
+	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);
 	scriptlib::push_group_lib(lua_state);

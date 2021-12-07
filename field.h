@@ -78,12 +78,12 @@ struct player_info {
 	int32_t start_lp;
 	int32_t start_count;
 	int32_t draw_count;
-	uint32_t used_location;
-	uint32_t disabled_location;
-	uint32_t extra_p_count;
-	uint32_t exchanges;
-	uint32_t tag_index;
-	bool recharge;
+	uint32_t used_location{ 0 };
+	uint32_t disabled_location{ 0 };
+	uint32_t extra_p_count{ 0 };
+	uint32_t exchanges{ 0 };
+	uint32_t tag_index{ 0 };
+	bool recharge{ false };
 	card_vector list_mzone;
 	card_vector list_szone;
 	card_vector list_main;
@@ -95,6 +95,17 @@ struct player_info {
 	std::vector<card_vector> extra_lists_hand;
 	std::vector<card_vector> extra_lists_extra;
 	std::vector<uint32_t> extra_extra_p_count;
+	player_info(const OCG_Player& team) :
+		lp(team.startingLP), start_lp(team.startingLP),
+		start_count(team.startingDrawCount), draw_count(team.drawCountPerTurn) {
+		list_mzone.resize(7, nullptr);
+		list_szone.resize(8, nullptr);
+		list_main.reserve(45);
+		list_hand.reserve(10);
+		list_grave.reserve(30);
+		list_remove.reserve(30);
+		list_extra.reserve(15);
+	}
 };
 struct field_effect {
 	using oath_effects = std::unordered_map<effect*, effect*>;
@@ -146,21 +157,21 @@ struct field_effect {
 	grant_effect_container grant_effect;
 };
 struct field_info {
-	int32_t event_id;
-	int32_t field_id;
-	int16_t copy_id;
-	int16_t turn_id;
-	int16_t turn_id_by_player[2];
-	int16_t card_id;
-	uint16_t phase;
-	uint8_t turn_player;
-	uint8_t priorities[2];
-	uint8_t can_shuffle;
+	uint32_t event_id{ 1 };
+	uint32_t field_id{ 1 };
+	uint16_t copy_id{ 1 };
+	int16_t turn_id{ 0 };
+	int16_t turn_id_by_player[2]{ 0,0 };
+	uint32_t card_id{ 1 };
+	uint16_t phase{ 0 };
+	uint8_t turn_player{ 0 };
+	uint8_t priorities[2]{ 0,0 };
+	uint8_t can_shuffle{ TRUE };
 };
 struct lpcost {
-	int32_t count;
-	int32_t amount;
-	int32_t lpstack[8];
+	int32_t count{ 0 };
+	int32_t amount{ 0 };
+	int32_t lpstack[8]{};
 };
 struct processor_unit {
 	uint16_t type;
@@ -278,17 +289,17 @@ struct processor {
 	std::multimap<int32_t, card*, std::greater<int32_t>> xmaterial_lst;
 	int64_t temp_var[4];
 	uint32_t global_flag;
-	uint16_t pre_field[2];
-	std::set<uint16_t> opp_mzone;
+	uint32_t pre_field[2];
+	std::set<uint32_t> opp_mzone;
 	chain_limit_list chain_limit;
 	chain_limit_list chain_limit_p;
 	uint8_t chain_solving;
 	uint8_t conti_solving;
-	uint8_t win_player;
+	uint8_t win_player{ 5 };
 	uint8_t win_reason;
 	uint8_t re_adjust;
 	effect* reason_effect;
-	uint8_t reason_player;
+	uint8_t reason_player{ PLAYER_NONE };
 	card* summoning_card;
 	uint32_t summoning_proc_group_type;
 	uint8_t summon_depth;
@@ -351,7 +362,7 @@ struct processor {
 	uint8_t phase_action;
 	uint32_t hint_timing[2];
 	uint8_t current_player;
-	uint8_t conti_player;
+	uint8_t conti_player{ PLAYER_NONE };
 	bool force_turn_end;
 	action_counter_t summon_counter;
 	action_counter_t normalsummon_counter;
@@ -365,18 +376,18 @@ struct processor {
 class field {
 public:
 	duel* pduel;
-	player_info player[2];
+	std::array<player_info,2> player;
 	card* temp_card;
 	field_info infos;
 	//lpcost cost[2];
 	field_effect effects;
-	processor core;
+	processor core{};
 	ProgressiveBuffer returns;
 	return_card return_cards;
 	tevent nil_event;
 
 	static int32_t field_used_count[32];
-	explicit field(duel* pduel);
+	explicit field(duel* pduel, const OCG_DuelOptions& options);
 	~field() = default;
 	void reload_field_info();
 
@@ -400,7 +411,7 @@ public:
 	int32_t get_szone_limit(uint8_t playerid, uint8_t uplayer, uint32_t reason);
 	int32_t get_forced_zones(card* pcard, uint8_t playerid, uint8_t location, uint32_t uplayer, uint32_t reason);
 	uint32_t get_rule_zone_fromex(int32_t playerid, card* pcard);
-	uint32_t get_linked_zone(int32_t playerid, bool free = false);
+	uint32_t get_linked_zone(int32_t playerid, bool free = false, bool actually_linked = false);
 	void get_linked_cards(uint8_t self, uint8_t location1, uint8_t location2, card_set* cset);
 	int32_t check_extra_link(int32_t playerid, card* pcard, int32_t sequence);
 	void get_cards_in_zone(card_set* cset, uint32_t zone, int32_t playerid, int32_t location);

@@ -39,14 +39,6 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 	auto duelPtr = new class duel(options);
 	if(duelPtr == nullptr)
 		return OCG_DUEL_CREATION_NOT_CREATED;
-	duelPtr->game_field->core.duel_options = options.flags;
-	auto& team = options.team1;
-	for(int i = 0; i < 2; i++, team = options.team2) {
-		duelPtr->game_field->player[i].lp = team.startingLP;
-		duelPtr->game_field->player[i].start_lp = team.startingLP;
-		duelPtr->game_field->player[i].start_count = team.startingDrawCount;
-		duelPtr->game_field->player[i].draw_count = team.drawCountPerTurn;
-	}
 	*duel = static_cast<OCG_Duel>(duelPtr);
 	return OCG_DUEL_CREATION_SUCCESS;
 }

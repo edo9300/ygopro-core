@@ -1131,9 +1131,8 @@ int32_t card_remove_overlay_card(lua_State* L) {
 	auto max = lua_get<uint16_t>(L, 4);
 	auto reason = lua_get<uint32_t>(L, 5);
 	pduel->game_field->remove_overlay_card(reason, pgroup, playerid, 0, 0, min, max);
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32_t/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
+		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -2074,9 +2073,8 @@ int32_t card_remove_counter(lua_State* L) {
 	auto count = lua_get<uint16_t>(L, 4);
 	auto reason = lua_get<uint32_t>(L, 5);
 	pduel->game_field->remove_counter(reason, pcard, rplayer, 0, 0, countertype, count);
-	return lua_yieldk(L, 0, (lua_KContext)pduel, [](lua_State* L, int32_t/* status*/, lua_KContext ctx) {
-		duel* pduel = (duel*)ctx;
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
+		lua_pushboolean(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }

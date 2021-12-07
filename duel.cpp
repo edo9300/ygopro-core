@@ -20,7 +20,7 @@ duel::duel(OCG_DuelOptions options) :
 	handle_message_payload(options.payload3), read_card_done_payload(options.payload4)
 {
 	lua = new interpreter(this);
-	game_field = new field(this);
+	game_field = new field(this, options);
 	game_field->temp_card = new_card(0);
 }
 duel::~duel() {
@@ -34,6 +34,7 @@ duel::~duel() {
 	delete lua;
 }
 void duel::clear() {
+	static constexpr OCG_DuelOptions default_options{ {},0,{8000,5,1},{8000,5,1} };
 	for(auto& pcard : cards)
 		delete pcard;
 	for(auto& pgroup : groups) {
@@ -48,7 +49,7 @@ void duel::clear() {
 	cards.clear();
 	groups.clear();
 	effects.clear();
-	game_field = new field(this);
+	game_field = new field(this, default_options);
 	game_field->temp_card = new_card(0);
 }
 card* duel::new_card(uint32_t code) {

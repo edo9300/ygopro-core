@@ -109,7 +109,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' }}
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure

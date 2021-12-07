@@ -11,10 +11,9 @@
 #include "group.h"
 #include "interpreter.h"
 #include <algorithm>
+#include <iterator>
 
-bool card_sort::operator()(void* const & p1, void* const & p2) const {
-	card* c1 = (card*)p1;
-	card* c2 = (card*)p2;
+bool card_sort::operator()(const card* c1, const card* c2) const {
 	return c1->cardid < c2->cardid;
 }
 bool card_state::is_location(int32_t loc) const {
@@ -75,12 +74,12 @@ bool card::card_operation_sort(card* c1, card* c2) {
 	}
 }
 void card::attacker_map::addcard(card* pcard) {
-	uint16_t fid = pcard ? pcard->fieldid_r : 0;
+	uint32_t fid = pcard ? pcard->fieldid_r : 0;
 	auto pr = emplace(fid, std::make_pair(pcard, 0));
 	pr.first->second.second++;
 }
 uint32_t card::attacker_map::findcard(card* pcard) {
-	uint16_t fid = pcard ? pcard->fieldid_r : 0;
+	uint32_t fid = pcard ? pcard->fieldid_r : 0;
 	auto it = find(fid);
 	if(it == end())
 		return 0;
@@ -1555,7 +1554,7 @@ int32_t card::is_link_state() {
 		return TRUE;
 	int32_t p = current.controler;
 	uint32_t is_szone = current.location == LOCATION_SZONE ? 8 : 0;
-	uint32_t linked_zone = pduel->game_field->get_linked_zone(p);
+	uint32_t linked_zone = pduel->game_field->get_linked_zone(p, false, true);
 	if((linked_zone >> (current.sequence + is_szone)) & 1)
 		return TRUE;
 	return FALSE;
@@ -3546,6 +3545,8 @@ int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype
 		if(!nolimit && (data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP))
 			return FALSE;
 	}
+	if(current.location == LOCATION_OVERLAY && !is_status(STATUS_PROC_COMPLETE))
+		return FALSE;
 	if((data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP)
 		&& (sumtype == SUMMON_TYPE_FUSION || sumtype == SUMMON_TYPE_SYNCHRO || sumtype == SUMMON_TYPE_XYZ))
 		return FALSE;
@@ -3732,6 +3733,8 @@ int32_t card::is_destructable_by_effect(effect* peffect, uint8_t playerid) {
 	return TRUE;
 }
 int32_t card::is_removeable(uint8_t playerid, int32_t pos, uint32_t reason) {
+	if(current.location == LOCATION_REMOVED)
+		return FALSE;
 	if(!pduel->game_field->is_player_can_remove(playerid, this, reason))
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_REMOVE))

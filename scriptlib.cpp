@@ -22,9 +22,6 @@ bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retf
 			if(retobj)
 				*(lua_obj**)retobj = obj;
 			return true;
-		} else if(obj && obj->lua_type == PARAM_TYPE_DELETED) {
-			luaL_error(L, "Attempting to access deleted object.");
-			unreachable();
 		}
 		type = param_type == PARAM_TYPE_CARD ? "Card" : param_type == PARAM_TYPE_GROUP ? "Group" : "Effect";
 		break;
@@ -62,13 +59,6 @@ bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retf
 	const auto pduel = lua_get<duel*>(L);
 	pduel->handle_message(pduel->lua->format(R"(Parameter %d should be "%s".)", index, type), OCG_LOG_TYPE_ERROR);
 	return false;
-}
-
-void check_param_count(lua_State* L, int32_t count) {
-	if(lua_gettop(L) < count) {
-		luaL_error(L, "%d Parameters are needed.", count);
-		unreachable();
-	}
 }
 void check_action_permission(lua_State* L) {
 	if(lua_get<duel*>(L)->lua->no_action) {
