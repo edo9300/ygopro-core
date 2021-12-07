@@ -36,7 +36,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 		open_lib(LUA_IOLIBNAME, luaopen_io);
 	else {
 		// Remove "dangerous" functions
-		auto nil_out = [&](const char* name) 	{
+		auto nil_out = [&](const char* name) {
 			lua_pushnil(lua_state);
 			lua_setglobal(lua_state, name);
 		};
