@@ -12,7 +12,7 @@
 #include "effect.h"
 #include "group.h"
 
-duel::duel(OCG_DuelOptions options) :
+duel::duel(const OCG_DuelOptions& options) :
 	random(std::array<uint64_t,4>{ { options.seed[0], options.seed[1], options.seed[2], options.seed[3] } }),
 	read_card_callback(options.cardReader), read_script_callback(options.scriptReader),
 	handle_message_callback(options.logHandler), read_card_done_callback(options.cardReaderDone),
