@@ -40,7 +40,8 @@ void chain::set_triggering_state(card* pcard) {
 bool tevent::operator< (const tevent& v) const {
 	return std::memcmp(this, &v, sizeof(tevent)) < 0;
 }
-field::field(duel* _pduel) :pduel(_pduel) {
+field::field(duel* _pduel, const OCG_DuelOptions& options) :pduel(_pduel), player({ {options.team1, options.team2} }) {
+	core.duel_options = options.flags;
 	nil_event.event_code = 0;
 	nil_event.event_cards = 0;
 	nil_event.event_player = PLAYER_NONE;

@@ -65,9 +65,6 @@ public:
 	std::vector<uint8_t> query_buffer;
 	field* game_field;
 	interpreter* lua;
-	//std::mt19937 uses fast32_t, not ensuring cross platform compatibility
-	std::mersenne_twister_engine<uint32_t, 32, 624, 397, 31, 0x9908b0df,
-		11, 0xffffffff, 7, 0x9d2c5680, 15, 0xefc60000, 18, 1812433253> random;
 	std::unordered_set<card*> cards;
 	std::unordered_set<card*> assumes;
 	std::unordered_set<group*> groups;
@@ -87,7 +84,7 @@ public:
 	std::unordered_map<uint32_t/* hashed string */, SCRIPT_LOAD_STATUS> loaded_scripts;
 	
 	duel() = delete;
-	explicit duel(OCG_DuelOptions options);
+	explicit duel(const OCG_DuelOptions& options);
 	~duel();
 	void clear();
 	
@@ -122,6 +119,7 @@ public:
 	}
 private:
 	std::deque<duel_message> messages;
+	std::mt19937 random;
 	OCG_DataReader read_card_callback;
 	OCG_ScriptReader read_script_callback;
 	OCG_LogHandler handle_message_callback;

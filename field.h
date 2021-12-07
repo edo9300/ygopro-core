@@ -74,10 +74,10 @@ struct chain {
 };
 
 struct player_info {
-	int32_t lp{ 8000 };
-	int32_t start_lp{ 8000 };
-	int32_t start_count{ 5 };
-	int32_t draw_count{ 1 };
+	int32_t lp;
+	int32_t start_lp;
+	int32_t start_count;
+	int32_t draw_count;
 	uint32_t used_location{ 0 };
 	uint32_t disabled_location{ 0 };
 	uint32_t extra_p_count{ 0 };
@@ -95,7 +95,9 @@ struct player_info {
 	std::vector<card_vector> extra_lists_hand;
 	std::vector<card_vector> extra_lists_extra;
 	std::vector<uint32_t> extra_extra_p_count;
-	player_info() {
+	player_info(const OCG_Player& team) :
+		lp(team.startingLP), start_lp(team.startingLP),
+		start_count(team.startingDrawCount), draw_count(team.drawCountPerTurn) {
 		list_mzone.resize(7, nullptr);
 		list_szone.resize(8, nullptr);
 		list_main.reserve(45);
@@ -374,7 +376,7 @@ struct processor {
 class field {
 public:
 	duel* pduel;
-	player_info player[2];
+	std::array<player_info,2> player;
 	card* temp_card;
 	field_info infos;
 	//lpcost cost[2];
@@ -385,7 +387,7 @@ public:
 	tevent nil_event;
 
 	static int32_t field_used_count[32];
-	explicit field(duel* pduel);
+	explicit field(duel* pduel, const OCG_DuelOptions& options);
 	~field() = default;
 	void reload_field_info();
 
