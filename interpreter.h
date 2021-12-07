@@ -96,6 +96,13 @@ public:
 			return msgbuf;
 		return "";
 	}
+
+	template <size_t N, typename... TR>
+	static inline const char* format_to(char (&out)[N], const char* format, TR&&... args) {
+		if(std::snprintf(out, sizeof(out), format, std::forward<TR>(args)...) >= 0)
+			return out;
+		return "";
+	}
 };
 
 #define COROUTINE_FINISH	1

@@ -136,7 +136,8 @@ bool interpreter::load_script(const char* buffer, int len, const char* script_na
 	return true;
 }
 bool interpreter::load_card_script(uint32_t code) {
-	const char* class_name = format("c%u", code);
+	char code_buf[32];
+	const char* class_name = format_to(code_buf, "c%u", code);
 	lua_getglobal(current_state, class_name);
 	if(!lua_isnoneornil(current_state, -1))
 		return true;
@@ -155,7 +156,7 @@ bool interpreter::load_card_script(uint32_t code) {
 	lua_rawset(current_state, -3);
 	lua_getglobal(current_state, class_name);
 	lua_setglobal(current_state, "self_table");
-	const auto res = pduel->read_script(format("c%u.lua", code));
+	const auto res = pduel->read_script(format_to(code_buf, "c%u.lua", code));
 	lua_pushnil(current_state);
 	lua_setglobal(current_state, "self_table");
 	lua_pushnil(current_state);
