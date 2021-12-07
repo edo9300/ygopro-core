@@ -19,7 +19,7 @@ duel::duel(const OCG_DuelOptions& options) :
 	read_card_payload(options.payload1), read_script_payload(options.payload2),
 	handle_message_payload(options.payload3), read_card_done_payload(options.payload4)
 {
-	lua = new interpreter(this);
+	lua = new interpreter(this, options);
 	game_field = new field(this, options);
 	game_field->temp_card = new_card(0);
 }
