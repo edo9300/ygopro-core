@@ -111,7 +111,16 @@ int32_t field::process() {
 		}
 	}
 	case PROCESSOR_SELECT_CARD: {
-		if (select_card(it->step, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff, (it->arg3) & 0xff)) {
+		if (select_card(it->step, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff)) {
+			core.units.pop_front();
+			return PROCESSOR_FLAG_CONTINUE;
+		} else {
+			it->step = 1;
+			return PROCESSOR_FLAG_WAITING;
+		}
+	}
+	case PROCESSOR_SELECT_CARD_CODES: {
+		if (select_card_codes(it->step, it->arg1 & 0xff, (it->arg1 >> 16) & 0xff, (it->arg2) & 0xff, (it->arg2 >> 16) & 0xff)) {
 			core.units.pop_front();
 			return PROCESSOR_FLAG_CONTINUE;
 		} else {

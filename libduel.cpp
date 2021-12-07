@@ -2351,7 +2351,7 @@ int32_t duel_select_cards_code(lua_State * L) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	const auto pduel = lua_get<duel*>(L);
-	pduel->game_field->core.select_cards.clear();
+	pduel->game_field->core.select_cards_codes.clear();
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -2359,35 +2359,30 @@ int32_t duel_select_cards_code(lua_State * L) {
 	auto max = lua_get<uint16_t>(L, 3);
 	bool cancelable = lua_get<bool>(L, 4);
 	/*bool ret_index = */(void)lua_get<bool>(L, 5);
-	for(int32_t i = 6, tot = lua_gettop(L); i <= tot; ++i) {
-		auto cardobj = new container(lua_get<uint32_t>(L, i), i - 5);
-		pduel->game_field->core.select_cards.push_back((card*)cardobj);
-	}
-	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), TRUE);
+	for(int32_t i = 6, tot = lua_gettop(L); i <= tot; ++i)
+		pduel->game_field->core.select_cards_codes.emplace_back(lua_get<uint32_t>(L, i), i - 5);
+	pduel->game_field->add_process(PROCESSOR_SELECT_CARD_CODES, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
 		int ret = 1;
-		if(!pduel->game_field->return_cards.canceled) {
+		if(!pduel->game_field->return_card_codes.canceled) {
 			bool ret_index = lua_get<bool>(L, 5);
-			for(auto& code : pduel->game_field->return_cards.list) {
-				auto obj = (container*)code;
+			for(const auto& obj : pduel->game_field->return_card_codes.list) {
 				if(ret_index) {
 					lua_newtable(L);
 					lua_pushinteger(L, 1);
 				}
-				lua_pushinteger(L, obj->first);
+				lua_pushinteger(L, obj.first);
 				if(ret_index) {
 					lua_settable(L, -3);
 					lua_pushinteger(L, 2);
-					lua_pushinteger(L, obj->second);
+					lua_pushinteger(L, obj.second);
 					lua_settable(L, -3);
 				}
 			}
-			ret = (int)pduel->game_field->return_cards.list.size();
+			ret = (int)pduel->game_field->return_card_codes.list.size();
 		} else
 			lua_pushnil(L);
-		for(auto& obj : pduel->game_field->core.select_cards)
-			delete ((container*)obj);
 		return ret;
 	});
 }
