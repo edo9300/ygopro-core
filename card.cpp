@@ -3552,8 +3552,10 @@ int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype
 		return FALSE;
 	if((sumpos & POS_FACEDOWN) && pduel->game_field->is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		sumpos = (sumpos & POS_FACEUP) | ((sumpos & POS_FACEDOWN) >> 1);
-	if(!(sumpos & POS_FACEDOWN) && pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE))
-		return FALSE;
+	if((sumpos & POS_FACEUP) && pduel->game_field->check_unique_onfield(this, toplayer, LOCATION_MZONE)) {
+		if((sumpos &= ~POS_FACEUP) == 0)
+			return FALSE;
+	}
 	sumtype |= SUMMON_TYPE_SPECIAL;
 	if((sumplayer == 0 || sumplayer == 1) && !pduel->game_field->is_player_can_spsummon(reason_effect, sumtype, sumpos, sumplayer, toplayer, this))
 		return FALSE;
