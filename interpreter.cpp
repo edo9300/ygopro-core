@@ -428,6 +428,16 @@ bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vecto
 	flatten();
 	return res;
 }
+#if LUA_VERSION_NUM <= 503
+namespace {
+int lua_resumec(lua_State* L, lua_State* from, int nargs, int* nresults) {
+	lua_resume(L, from, nargs);
+	*nresults = lua_gettop(L);
+}
+}
+#else
+#define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs, res)
+#endif
 int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, uint32_t* yield_value, uint16_t step) {
 	if(yield_value)
 		*yield_value = 0;
@@ -460,13 +470,16 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, uint32_t* y
 	push_param(rthread, true);
 	auto prev_state = current_state;
 	current_state = rthread;
-	int32_t result = lua_resumec(rthread, prev_state, param_count, &result);
+	int nresults;
+	int32_t result = lua_resumec(rthread, prev_state, param_count, &nresults);
 	if (result != LUA_YIELD) {
 		if(result != LUA_OK) {
 			print_stacktrace(current_state);
 			pduel->handle_message(lua_tostring_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
 		} else if(yield_value) {
-			if(lua_isboolean(rthread, -1))
+			if(nresults == 0)
+				*yield_value = 0;
+			else if(lua_isboolean(rthread, -1))
 				*yield_value = lua_toboolean(rthread, -1);
 			else 
 				*yield_value = (uint32_t)lua_tointeger(rthread, -1);
