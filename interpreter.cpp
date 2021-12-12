@@ -49,6 +49,8 @@ static inline lua_obj** create_object(lua_State* L) {
 }
 void interpreter::register_card(card* pcard) {
 	//create a card in by userdata
+	luaL_checkstack(lua_state, 1, nullptr);
+	luaL_checkstack(current_state, 1, nullptr);
 	lua_obj** ppcard = create_object(lua_state);
 	*ppcard = pcard;
 	pcard->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
@@ -113,6 +115,7 @@ void interpreter::unregister_group(group* pgroup) {
 void interpreter::register_obj(lua_obj* obj, const char* tablename) {
 	if(!obj)
 		return;
+	luaL_checkstack(lua_state, 3, nullptr);
 	lua_obj** pobj = create_object(lua_state);
 	*pobj = obj;
 	//set metatable current lua object
@@ -138,10 +141,12 @@ bool interpreter::load_script(const char* buffer, int len, const char* script_na
 bool interpreter::load_card_script(uint32_t code) {
 	char code_buf[32];
 	const char* class_name = format_to(code_buf, "c%u", code);
+	luaL_checkstack(current_state, 1, nullptr);
 	lua_getglobal(current_state, class_name);
 	if(!lua_isnoneornil(current_state, -1))
 		return true;
 	//if script is not loaded, create and load it
+	luaL_checkstack(current_state, 5, nullptr);
 	lua_pop(current_state, 1);
 	lua_pushinteger(current_state, code);
 	lua_setglobal(current_state, "self_code");
@@ -174,6 +179,7 @@ void interpreter::add_param(lua_Integer param, int32_t type, bool front) {
 }
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	int32_t pushed = 0;
+	luaL_checkstack(L, params.size(), nullptr);
 	for (const auto& it : params) {
 		switch(it.second) {
 		case PARAM_TYPE_INT:
@@ -259,6 +265,7 @@ bool interpreter::call_function(int32_t f, uint32_t param_count, int32_t ret_cou
 		return ret_fail(R"("CallFunction": attempt to call a null function.)");
 	if (param_count != params.size())
 		return ret_fail(format(R"("CallFunction": incorrect parameter count (%u expected, %zu pushed))", param_count, params.size()));
+	luaL_checkstack(current_state, 1, nullptr);
 	pushobject(current_state, f);
 	if (!lua_isfunction(current_state, -1))
 		return ret_fail(R"("CallFunction": attempt to call an error function)");
@@ -267,6 +274,7 @@ bool interpreter::call_function(int32_t f, uint32_t param_count, int32_t ret_cou
 bool interpreter::call_card_function(card* pcard, const char* f, uint32_t param_count, int32_t ret_count, bool forced) {
 	if (param_count != params.size())
 		return ret_fail(format(R"("CallCardFunction"(c%u.%s): incorrect parameter count)", pcard->data.code, f));
+	luaL_checkstack(current_state, 1, nullptr);
 	pushobject(current_state, pcard);
 	lua_getfield(current_state, -1, f);
 	if (!lua_isfunction(current_state, -1)) {
@@ -306,6 +314,7 @@ bool interpreter::check_matching(card* pcard, int32_t findex, int32_t extraargs)
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return true;
 	deepen();
+	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	pushobject(current_state, pcard);
 	for(int32_t i = 0; i < extraargs; ++i)
@@ -324,6 +333,7 @@ bool interpreter::check_matching_table(card* pcard, int32_t findex, int32_t tabl
 	if(!findex || !lua_istable(current_state, table_index))
 		return true;
 	deepen();
+	luaL_checkstack(current_state, 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	pushobject(current_state, pcard);
 	int extraargs = pushExpandedTable(current_state, table_index);
@@ -341,6 +351,7 @@ int32_t interpreter::get_operation_value(card* pcard, int32_t findex, int32_t ex
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return 0;
 	deepen();
+	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	pushobject(current_state, pcard);
 	for(int32_t i = 0; i < extraargs; ++i)
@@ -359,6 +370,7 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return false;
 	deepen();
+	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	int32_t stack_top = lua_gettop(current_state);
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, pcard->ref_handle);
@@ -528,6 +540,7 @@ void interpreter::pushobject(lua_State* L, int32_t lua_ptr) {
 int interpreter::pushExpandedTable(lua_State* L, int32_t table_index) {
 	int extraargs = 0;
 	lua_table_iterate(L, table_index, [&extraargs, &L] {
+		luaL_checkstack(L, 1, nullptr);
 		lua_pushvalue(L, -1);
 		lua_insert(L, -3);
 		extraargs++;
