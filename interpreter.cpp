@@ -431,8 +431,9 @@ bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vecto
 #if LUA_VERSION_NUM <= 503
 namespace {
 int lua_resumec(lua_State* L, lua_State* from, int nargs, int* nresults) {
-	lua_resume(L, from, nargs);
+	auto ret = lua_resume(L, from, nargs);
 	*nresults = lua_gettop(L);
+	return ret;
 }
 }
 #else
