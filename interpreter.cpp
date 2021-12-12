@@ -13,6 +13,7 @@
 #include "scriptlib.h"
 #include "interpreter.h"
 #include <cmath>
+#include <utility> //std::exchange
 
 using namespace scriptlib;
 
@@ -481,34 +482,34 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, uint32_t* y
 		}
 	}
 	push_param(rthread, true);
-	auto prev_state = current_state;
-	current_state = rthread;
-	int nresults;
-	int32_t result = lua_resumec(rthread, prev_state, param_count, &nresults);
-	if (result != LUA_YIELD) {
-		if(result != LUA_OK) {
-			print_stacktrace(current_state);
-			pduel->handle_message(lua_tostring_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
-		} else if(yield_value) {
-			if(nresults == 0)
-				*yield_value = 0;
-			else if(lua_isboolean(rthread, -1))
-				*yield_value = lua_toboolean(rthread, -1);
-			else 
-				*yield_value = (uint32_t)lua_tointeger(rthread, -1);
-		}
-		auto ref = it->second.second;
-		coroutines.erase(it);
-		current_state = lua_state;
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
-		call_depth--;
-		if(call_depth == 0) {
-			pduel->release_script_group();
-			pduel->restore_assumes();
-		}
-		return (result == LUA_OK) ? COROUTINE_FINISH : COROUTINE_ERROR;
+	int result, nresults;
+	{
+		auto prev_state = std::exchange(current_state, rthread);
+		result = lua_resumec(current_state, prev_state, param_count, &nresults);
+		current_state = prev_state;
 	}
-	return COROUTINE_YIELD;
+	if(result == LUA_YIELD)
+		return COROUTINE_YIELD;
+	if(result != LUA_OK) {
+		print_stacktrace(current_state);
+		pduel->handle_message(lua_tostring_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
+	} else if(yield_value) {
+		if(nresults == 0)
+			*yield_value = 0;
+		else if(lua_isboolean(rthread, -1))
+			*yield_value = lua_toboolean(rthread, -1);
+		else
+			*yield_value = (uint32_t)lua_tointeger(rthread, -1);
+	}
+	auto ref = it->second.second;
+	coroutines.erase(it);
+	luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
+	call_depth--;
+	if(call_depth == 0) {
+		pduel->release_script_group();
+		pduel->restore_assumes();
+	}
+	return (result == LUA_OK) ? COROUTINE_FINISH : COROUTINE_ERROR;
 }
 int32_t interpreter::clone_lua_ref(int32_t lua_ref) {
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, lua_ref);
