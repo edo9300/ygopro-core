@@ -467,7 +467,13 @@ int32_t duel_special_summon_step(lua_State* L) {
 int32_t duel_special_summon_complete(lua_State* L) {
 	check_action_permission(L);
 	const auto pduel = lua_get<duel*>(L);
-	pduel->game_field->special_summon_complete(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player);
+	auto& core = pduel->game_field->core;
+	if(core.special_summoning.empty() && core.ss_tograve_set.empty()) {
+		core.operated_set.clear();
+		lua_pushinteger(L, 0);
+		return 1;
+	}
+	pduel->game_field->special_summon_complete(core.reason_effect, core.reason_player);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
