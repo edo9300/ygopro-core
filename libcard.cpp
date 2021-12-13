@@ -2884,7 +2884,7 @@ static constexpr luaL_Reg cardlib[] = {
 	{ "GetLuaRef", get_lua_ref<card> },
 	{ "FromLuaRef", from_lua_ref<card> },
 	{ "IsDeleted", is_deleted_object },
-	{ NULL, NULL }
+	{ nullptr, nullptr }
 };
 }
 

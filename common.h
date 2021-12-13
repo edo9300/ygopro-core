@@ -22,9 +22,6 @@
 
 #define TRUE 1
 #define FALSE 0
-#ifndef NULL
-#define NULL 0
-#endif
 
 //Locations
 #define LOCATION_DECK    0x01

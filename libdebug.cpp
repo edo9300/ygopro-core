@@ -209,7 +209,7 @@ static constexpr luaL_Reg debuglib[] = {
 	{ "SetAIName", debug_set_ai_name },
 	{ "ShowHint", debug_show_hint },
 	{ "PrintStacktrace", debug_print_stacktrace },
-	{ NULL, NULL }
+	{ nullptr, nullptr }
 };
 }
 

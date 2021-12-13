@@ -556,7 +556,7 @@ int32_t interpreter::get_function_handle(lua_State* L, int32_t index) {
 
 void interpreter::print_stacktrace(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
-	luaL_traceback(L, L, NULL, 1);
+	luaL_traceback(L, L, nullptr, 1);
 	auto len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
 	if(len > sizeof("stack traceback:"))

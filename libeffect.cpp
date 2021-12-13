@@ -553,7 +553,7 @@ static constexpr luaL_Reg effectlib[] = {
 	{ "GetLuaRef", get_lua_ref<effect> },
 	{ "FromLuaRef", from_lua_ref<effect> },
 	{ "IsDeleted", is_deleted_object },
-	{ NULL, NULL }
+	{ nullptr, nullptr }
 };
 }
 

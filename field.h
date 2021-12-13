@@ -457,7 +457,7 @@ public:
 
 	int32_t get_release_list(uint8_t playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32_t use_con, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t use_oppo);
 	int32_t check_release_list(uint8_t playerid, int32_t min, int32_t max, int32_t use_con, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t check_field, uint8_t to_player, uint8_t zone, card* to_check, uint8_t use_oppo);
-	int32_t get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, group* mg = NULL, uint32_t ex = 0, uint32_t releasable = 0xff00ff, uint32_t pos = 0x1);
+	int32_t get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, group* mg = nullptr, uint32_t ex = 0, uint32_t releasable = 0xff00ff, uint32_t pos = 0x1);
 	int32_t get_summon_count_limit(uint8_t playerid);
 	int32_t get_draw_count(uint8_t playerid);
 	void get_ritual_material(uint8_t playerid, effect* peffect, card_set* material, bool check_level);
@@ -532,7 +532,7 @@ public:
 	int32_t check_spself_from_hand_trigger(const chain& ch) const;
 	int32_t is_able_to_enter_bp();
 
-	void add_process(uint16_t type, uint16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = NULL, void* ptr2 = NULL);
+	void add_process(uint16_t type, uint16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
 	int32_t process();
 	int32_t execute_cost(uint16_t step, effect* peffect, uint8_t triggering_player);
 	int32_t execute_operation(uint16_t step, effect* peffect, uint8_t triggering_player);

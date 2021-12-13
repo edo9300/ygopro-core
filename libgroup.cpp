@@ -875,7 +875,7 @@ static constexpr luaL_Reg grouplib[] = {
 	{ "GetLuaRef", get_lua_ref<group> },
 	{ "FromLuaRef", from_lua_ref<group> },
 	{ "IsDeleted", is_deleted_object },
-	{ NULL, NULL }
+	{ nullptr, nullptr }
 };
 }
 
