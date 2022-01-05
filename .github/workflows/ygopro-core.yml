@@ -8,7 +8,7 @@ env:
   DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
 jobs:
   Windows:
-    runs-on: windows-2016
+    runs-on: windows-2019
     env:
       DEPLOY_BRANCH: travis-core-windows
       TRAVIS_OS_NAME: windows
