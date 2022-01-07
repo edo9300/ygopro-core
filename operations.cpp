@@ -166,7 +166,7 @@ void field::special_summon(card_set* target, uint32_t sumtype, uint32_t sumplaye
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	effect_set eset;
-	filter_player_effect(playerid, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
+	filter_player_effect(sumplayer, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
 	for(auto& pcard : *target) {
 		pcard->temp.reason = pcard->current.reason;
 		pcard->temp.reason_effect = pcard->current.reason_effect;
@@ -203,7 +203,7 @@ void field::special_summon_step(card* target, uint32_t sumtype, uint32_t sumplay
 	if((positions & POS_FACEUP) && check_unique_onfield(target, playerid, LOCATION_MZONE))
 		positions &= ~POS_FACEUP;
 	effect_set eset;
-	filter_player_effect(playerid, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
+	filter_player_effect(sumplayer, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
 	target->temp.reason = target->current.reason;
 	target->temp.reason_effect = target->current.reason_effect;
 	target->temp.reason_player = target->current.reason_player;
