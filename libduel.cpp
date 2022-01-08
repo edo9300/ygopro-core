@@ -2353,7 +2353,6 @@ int32_t duel_select_matching_cards(lua_State* L) {
 	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
 int32_t duel_select_cards_code(lua_State * L) {
-	using container = std::pair<uint32_t, uint32_t>;
 	check_action_permission(L);
 	check_param_count(L, 6);
 	const auto pduel = lua_get<duel*>(L);
