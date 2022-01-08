@@ -90,18 +90,16 @@ public:
 	}
 	static void print_stacktrace(lua_State* L);
 
-	template <typename... TR>
-	inline const char* format(const char* format, TR&&... args) {
-		if(std::snprintf(msgbuf, sizeof(msgbuf), format, std::forward<TR>(args)...) >= 0)
-			return msgbuf;
-		return "";
-	}
-
 	template <size_t N, typename... TR>
 	static inline const char* format_to(char (&out)[N], const char* format, TR&&... args) {
 		if(std::snprintf(out, sizeof(out), format, std::forward<TR>(args)...) >= 0)
 			return out;
 		return "";
+	}
+
+	template <typename... TR>
+	inline const char* format(const char* format, TR&&... args) {
+		return format_to(msgbuf, format, std::forward<TR>(args)...);
 	}
 };
 
