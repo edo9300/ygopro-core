@@ -83,12 +83,12 @@ public:
 	void dec_count(uint32_t playerid = 2);
 	void recharge();
 	uint8_t get_client_mode() const;
-	int32_t get_value(uint32_t extraargs = 0);
-	int32_t get_value(card* pcard, uint32_t extraargs = 0);
-	int32_t get_value(effect* peffect, uint32_t extraargs = 0);
-	void get_value(uint32_t extraargs, std::vector<int32_t>* result);
-	void get_value(card* pcard, uint32_t extraargs, std::vector<int32_t>* result);
-	void get_value(effect* peffect, uint32_t extraargs, std::vector<int32_t>* result);
+	lua_Integer get_value(uint32_t extraargs = 0);
+	lua_Integer get_value(card* pcard, uint32_t extraargs = 0);
+	lua_Integer get_value(effect* peffect, uint32_t extraargs = 0);
+	void get_value(uint32_t extraargs, std::vector<lua_Integer>& result);
+	void get_value(card* pcard, uint32_t extraargs, std::vector<lua_Integer>& result);
+	void get_value(effect* peffect, uint32_t extraargs, std::vector<lua_Integer>& result);
 	int32_t check_value_condition(uint32_t extraargs = 0);
 	void* get_label_object();
 	int32_t get_speed();

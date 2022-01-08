@@ -66,11 +66,11 @@ public:
 	bool check_condition(int32_t f, uint32_t param_count);
 	bool check_matching(card* pcard, int32_t findex, int32_t extraargs);
 	bool check_matching_table(card* pcard, int32_t findex, int32_t table_index);
-	int32_t get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
-	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<int32_t>* result);
-	int32_t get_function_value(int32_t f, uint32_t param_count);
-	bool get_function_value(int32_t f, uint32_t param_count, std::vector<int32_t>* result);
-	int32_t call_coroutine(int32_t f, uint32_t param_count, uint32_t* yield_value, uint16_t step);
+	lua_Integer get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
+	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<lua_Integer>& result);
+	lua_Integer get_function_value(int32_t f, uint32_t param_count);
+	bool get_function_value(int32_t f, uint32_t param_count, std::vector<lua_Integer>& result);
+	int32_t call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step);
 	int32_t clone_lua_ref(int32_t lua_ref);
 	void* get_ref_object(int32_t ref_handler);
 	bool call_function(int param_count, int ret_count);

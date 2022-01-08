@@ -1671,16 +1671,22 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		}
 		if(!ignore_count && !core.extra_summon[sumplayer]) {
 			for(const auto& peff : eset) {
-				std::vector<int32_t> retval;
-				peff->get_value(target, 0, &retval);
-				int32_t new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				uint32_t new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
-				int32_t releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				std::vector<lua_Integer> retval;
+				peff->get_value(target, 0, retval);
+				uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
+				uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
+				uint32_t releasable = 0xff00ffu;
+				if(retval.size() > 2) {
+					if(retval[2] < 0)
+						releasable += static_cast<int32_t>(retval[2]);
+					else
+						releasable = static_cast<uint32_t>(retval[2]);
+				}
 				if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
 					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
 				if(proc) {
-					if(new_min_tribute < (int32_t)min_tribute)
+					if(new_min_tribute < min_tribute)
 						new_min_tribute = min_tribute;
 					if(!target->is_summonable(proc, new_min_tribute, new_zone, releasable, peff))
 						continue;
@@ -1690,7 +1696,7 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 					int32_t max = (rcount >> 16) & 0xffff;
 					if(!is_player_can_summon(SUMMON_TYPE_ADVANCE, sumplayer, target, sumplayer))
 						max = 0;
-					if(min < (int32_t)min_tribute)
+					if(min < min_tribute)
 						min = min_tribute;
 					if(max < min)
 						continue;
@@ -1712,14 +1718,19 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 	case 2: {
 		effect* pextra = core.select_effects[returns.at<int32_t>(0)];
 		core.units.begin()->ptr1 = pextra;
-		int32_t releasable = 0xff00ff;
+		uint32_t releasable = 0xff00ffu;
 		if(pextra) {
-			std::vector<int32_t> retval;
-			pextra->get_value(target, 0, &retval);
-			int32_t new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32_t new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
-			releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
-			if((int32_t)min_tribute < new_min_tribute)
+			std::vector<lua_Integer> retval;
+			pextra->get_value(target, 0, retval);
+			uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
+			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
+			if(retval.size() > 2) {
+				if(retval[2] < 0)
+					releasable += static_cast<int32_t>(retval[2]);
+				else
+					releasable = static_cast<uint32_t>(retval[2]);
+			}
+			if(min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
 			if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
 					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
@@ -1780,11 +1791,16 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		returns.at<int32_t>(0) = TRUE;
 		if(proc->target) {
 			effect* pextra = (effect*)core.units.begin()->ptr1;
-			int32_t releasable = 0xff00ff;
+			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<int32_t> retval;
-				pextra->get_value(target, 0, &retval);
-				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				std::vector<lua_Integer> retval;
+				pextra->get_value(target, 0, retval);
+				if(retval.size() > 2) {
+					if(retval[2] < 0)
+						releasable += static_cast<int32_t>(retval[2]);
+					else
+						releasable = static_cast<uint32_t>(retval[2]);
+				}
 			}
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
 			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
@@ -1914,11 +1930,16 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		returns.at<int32_t>(0) = TRUE;
 		if(proc->operation) {
 			effect* pextra = (effect*)core.units.begin()->ptr1;
-			int32_t releasable = 0xff00ff;
+			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<int32_t> retval;
-				pextra->get_value(target, 0, &retval);
-				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				std::vector<lua_Integer> retval;
+				pextra->get_value(target, 0, retval);
+				if(retval.size() > 2) {
+					if(retval[2] < 0)
+						releasable += static_cast<int32_t>(retval[2]);
+					else
+						releasable = static_cast<uint32_t>(retval[2]);
+				}
 			}
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
 			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
@@ -2278,11 +2299,17 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 		}
 		if(!ignore_count && !core.extra_summon[setplayer]) {
 			for(const auto& peff : eset) {
-				std::vector<int32_t> retval;
-				peff->get_value(target, 0, &retval);
-				int32_t new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-				uint32_t new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
-				int32_t releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				std::vector<lua_Integer> retval;
+				peff->get_value(target, 0, retval);
+				uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
+				uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
+				uint32_t releasable = 0xff00ffu;
+				if(retval.size() > 2) {
+					if(retval[2] < 0)
+						releasable += static_cast<int32_t>(retval[2]);
+					else
+						releasable = static_cast<uint32_t>(retval[2]);
+				}
 				if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
 					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
 				new_zone &= zone;
@@ -2319,14 +2346,19 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 	case 2: {
 		effect* pextra = core.select_effects[returns.at<int32_t>(0)];
 		core.units.begin()->ptr1 = pextra;
-		int32_t releasable = 0xff00ff;
+		uint32_t releasable = 0xff00ffu;
 		if(pextra) {
-			std::vector<int32_t> retval;
-			pextra->get_value(target, 0, &retval);
-			int32_t new_min_tribute = retval.size() > 0 ? retval[0] : 0;
-			int32_t new_zone = retval.size() > 1 ? retval[1] : 0x1f001f;
-			releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
-			if((int32_t)min_tribute < new_min_tribute)
+			std::vector<lua_Integer> retval;
+			pextra->get_value(target, 0, retval);
+			uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
+			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
+			if(retval.size() > 2) {
+				if(retval[2] < 0)
+					releasable += static_cast<int32_t>(retval[2]);
+				else
+					releasable = static_cast<uint32_t>(retval[2]);
+			}
+			if(min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
 			if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
 				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
@@ -2427,11 +2459,16 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 		returns.at<int32_t>(0) = TRUE;
 		if(proc->target) {
 			effect* pextra = (effect*)core.units.begin()->ptr1;
-			int32_t releasable = 0xff00ff;
+			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<int32_t> retval;
-				pextra->get_value(target, 0, &retval);
-				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				std::vector<lua_Integer> retval;
+				pextra->get_value(target, 0, retval);
+				if(retval.size() > 2) {
+					if(retval[2] < 0)
+						releasable += static_cast<int32_t>(retval[2]);
+					else
+						releasable = static_cast<uint32_t>(retval[2]);
+				}
 			}
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
 			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
@@ -2453,11 +2490,16 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 		target->current.reason_player = setplayer;
 		if(proc->operation) {
 			effect* pextra = (effect*)core.units.begin()->ptr1;
-			int32_t releasable = 0xff00ff;
+			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<int32_t> retval;
-				pextra->get_value(target, 0, &retval);
-				releasable = retval.size() > 2 ? (retval[2] < 0 ? 0xff00ff + retval[2] : retval[2]) : 0xff00ff;
+				std::vector<lua_Integer> retval;
+				pextra->get_value(target, 0, retval);
+				if(retval.size() > 2) {
+					if(retval[2] < 0)
+						releasable += static_cast<int32_t>(retval[2]);
+					else
+						releasable = static_cast<uint32_t>(retval[2]);
+				}
 			}
 			pduel->lua->add_param(target, PARAM_TYPE_CARD);
 			pduel->lua->add_param(min_tribute, PARAM_TYPE_INT);
@@ -2866,11 +2908,11 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 		}
 		if(positions == 0)
 			positions = POS_FACEUP_ATTACK;
-		std::vector<int32_t> retval;
-		peffect->get_value(target, 0, &retval);
-		uint32_t summon_info = retval.size() > 0 ? retval[0] : 0;
-		uint32_t zone = retval.size() > 1 ? retval[1] : 0xff;
-		target->summon_info = (summon_info & 0xf00ffff) | SUMMON_TYPE_SPECIAL | ((uint32_t)target->current.location << 16);
+		std::vector<lua_Integer> retval;
+		peffect->get_value(target, 0, retval);
+		uint32_t summon_info = retval.size() > 0 ? static_cast<uint32_t>(retval[0]) : 0;
+		uint32_t zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0xff;
+		target->summon_info = (summon_info & 0xf00ffff) | SUMMON_TYPE_SPECIAL | (target->current.location << 16);
 		target->enable_field_effect(false);
 		effect_set eset;
 		filter_player_effect(sumplayer, EFFECT_FORCE_SPSUMMON_POSITION, &eset);

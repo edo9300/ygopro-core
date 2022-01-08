@@ -348,7 +348,7 @@ bool interpreter::check_matching_table(card* pcard, int32_t findex, int32_t tabl
 	flatten();
 	return result;
 }
-int32_t interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs) {
+lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs) {
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return 0;
 	deepen();
@@ -357,17 +357,17 @@ int32_t interpreter::get_operation_value(card* pcard, int32_t findex, int32_t ex
 	pushobject(current_state, pcard);
 	for(int32_t i = 0; i < extraargs; ++i)
 		lua_pushvalue(current_state, (int32_t)(-extraargs - 2));
-	int32_t result = 0;
+	lua_Integer result = 0;
 	if(lua_pcall(current_state, 1 + extraargs, 1, 0) != LUA_OK) {
 		print_stacktrace(current_state);
 		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else
-		result = lua_get<int32_t>(current_state, -1);
+		result = lua_get<lua_Integer>(current_state, -1);
 	lua_pop(current_state, 1);
 	flatten();
 	return result;
 }
-bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<int32_t>* result) {
+bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<lua_Integer>& result) {
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return false;
 	deepen();
@@ -387,12 +387,12 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	} else {
 		int32_t stack_newtop = lua_gettop(current_state);
 		for(int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
-			int32_t return_value = 0;
+			lua_Integer return_value = 0;
 			if(lua_isboolean(current_state, index))
 				return_value = lua_get<bool>(current_state, index);
 			else
-				return_value = lua_get<int32_t, 0>(current_state, index);
-			result->push_back(return_value);
+				return_value = lua_get<lua_Integer, 0>(current_state, index);
+			result.push_back(return_value);
 		}
 		lua_settop(current_state, stack_top);
 		ret = true;
@@ -400,24 +400,24 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	flatten();
 	return ret;
 }
-int32_t interpreter::get_function_value(int32_t f, uint32_t param_count) {
+lua_Integer interpreter::get_function_value(int32_t f, uint32_t param_count) {
 	if(!f) {
 		params.clear();
 		return 0;
 	}
 	deepen();
-	int32_t result = 0;
+	lua_Integer result = 0;
 	if (call_function(f, param_count, 1)) {
 		if(lua_isboolean(current_state, -1))
 			result = lua_get<bool>(current_state, -1);
 		else
-			result = lua_get<int32_t, 0>(current_state, -1);
+			result = lua_get<lua_Integer, 0>(current_state, -1);
 		lua_pop(current_state, 1);
 	}
 	flatten();
 	return result;
 }
-bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vector<int32_t>* result) {
+bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vector<lua_Integer>& result) {
 	if(!f) {
 		params.clear();
 		return false;
@@ -428,12 +428,12 @@ bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vecto
 	if (res) {
 		const int32_t stack_newtop = lua_gettop(current_state);
 		for (int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
-			int32_t return_value = 0;
+			lua_Integer return_value = 0;
 			if(lua_isboolean(current_state, index))
 				return_value = lua_get<bool>(current_state, index);
 			else
-				return_value = lua_get<int32_t, 0>(current_state, index);
-			result->push_back(return_value);
+				return_value = lua_get<lua_Integer, 0>(current_state, index);
+			result.push_back(return_value);
 		}
 		//pops all the results from the stack (lua_pop(current_state, stack_newtop - stack_top))
 		lua_settop(current_state, stack_top);
@@ -452,7 +452,7 @@ int lua_resumec(lua_State* L, lua_State* from, int nargs, int* nresults) {
 #else
 #define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs, res)
 #endif
-int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, uint32_t* yield_value, uint16_t step) {
+int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step) {
 	if(yield_value)
 		*yield_value = 0;
 	if (!f)
@@ -499,7 +499,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, uint32_t* y
 		else if(lua_isboolean(rthread, -1))
 			*yield_value = lua_toboolean(rthread, -1);
 		else
-			*yield_value = (uint32_t)lua_tointeger(rthread, -1);
+			*yield_value = static_cast<lua_Integer>(lua_tointeger(rthread, -1));
 	}
 	auto ref = it->second.second;
 	coroutines.erase(it);
