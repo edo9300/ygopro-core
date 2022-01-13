@@ -746,6 +746,7 @@ int32_t duel_move_sequence(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto seq = lua_get<uint8_t>(L, 2);
 	uint16_t cur_loc = pcard->current.location;
+	uint16_t cur_pzone = pcard->current.pzone;
 	auto location = lua_get<uint16_t>(L, 3, cur_loc);
 
 	auto& field = *pduel->game_field;
@@ -773,7 +774,16 @@ int32_t duel_move_sequence(lua_State* L) {
 	auto& core = field.core;
 	int res = FALSE;
 	if(pcard->is_affect_by_effect(core.reason_effect)) {
+		const auto previous_loc_info = pcard->get_info_location();
+		const auto previous_code = pcard->data.code;
 		if((res = field.move_card(playerid, pcard, pcard->current.location, seq, pzone)) == TRUE) {
+			if(cur_pzone != pzone) {
+				auto message = pduel->new_message(MSG_MOVE);
+				message->write<uint32_t>(previous_code);
+				message->write(previous_loc_info);
+				message->write(pcard->get_info_location());
+				message->write<uint32_t>(pcard->current.reason);
+			}
 			field.raise_single_event(pcard, 0, EVENT_MOVE, core.reason_effect, 0, core.reason_player, playerid, 0);
 			field.raise_event(pcard, EVENT_MOVE, core.reason_effect, 0, core.reason_player, playerid, 0);
 			field.process_single_event();

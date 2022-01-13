@@ -245,7 +245,7 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 		pcard->sendto_param.position = POS_FACEDOWN_DEFENSE;
 	}
 	if (pcard->current.location) {
-		if (pcard->current.location == location) {
+		if (pcard->current.location == location && pcard->current.pzone == pzone) {
 			if (pcard->current.location == LOCATION_DECK) {
 				if(preplayer == playerid) {
 					auto message = pduel->new_message(MSG_MOVE);
@@ -292,7 +292,6 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 				pcard->previous.sequence = pcard->current.sequence;
 				pcard->previous.position = pcard->current.position;
 				pcard->previous.pzone = pcard->current.pzone;
-				pcard->current.pzone = pzone;
 				if (location == LOCATION_MZONE) {
 					player[preplayer].list_mzone[presequence] = 0;
 					player[preplayer].used_location &= ~(1 << presequence);
