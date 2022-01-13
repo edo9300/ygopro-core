@@ -400,7 +400,7 @@ public:
 
 	void add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone = FALSE);
 	void remove_card(card* pcard);
-	void move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone = FALSE);
+	uint8_t move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone = FALSE);
 	void swap_card(card* pcard1, card* pcard2, uint8_t new_sequence1, uint8_t new_sequence2);
 	void swap_card(card* pcard1, card* pcard2);
 	void set_control(card* pcard, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count);

@@ -235,9 +235,9 @@ void field::remove_card(card* pcard) {
 // 4. control_adjust()
 // 5. move_card()
 // check Fusion/S/X monster redirection by the rule
-void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone) {
+uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone) {
 	if (!is_location_useable(playerid, location, sequence))
-		return;
+		return FALSE;
 	uint8_t preplayer = pcard->current.controler;
 	uint8_t presequence = pcard->current.sequence;
 	if(pcard->is_extra_deck_monster() && (location & (LOCATION_HAND | LOCATION_DECK))) {
@@ -266,18 +266,18 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 					pcard->current.controler = playerid;
 					message->write(pcard->get_info_location());
 					message->write<uint32_t>(pcard->current.reason);
-					return;
+					return TRUE;
 				} else
 					remove_card(pcard);
 			} else if(location & LOCATION_ONFIELD) {
 				if (playerid == preplayer && sequence == presequence)
-					return;
+					return FALSE;
 				if(location == LOCATION_MZONE) {
 					if(sequence >= player[playerid].list_mzone.size() || player[playerid].list_mzone[sequence])
-						return;
+						return FALSE;
 				} else {
 					if(sequence >= player[playerid].list_szone.size() || player[playerid].list_szone[sequence])
-						return;
+						return FALSE;
 				}
 				duel::duel_message* message = nullptr;
 				if(preplayer == playerid) {
@@ -292,6 +292,7 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 				pcard->previous.sequence = pcard->current.sequence;
 				pcard->previous.position = pcard->current.position;
 				pcard->previous.pzone = pcard->current.pzone;
+				pcard->current.pzone = pzone;
 				if (location == LOCATION_MZONE) {
 					player[preplayer].list_mzone[presequence] = 0;
 					player[preplayer].used_location &= ~(1 << presequence);
@@ -315,15 +316,15 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 					if(check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
 						pcard->unique_fieldid = UINT_MAX;
 				}
-				return;
+				return TRUE;
 			} else if(location == LOCATION_HAND) {
 				if(preplayer == playerid)
-					return;
+					return FALSE;
 				remove_card(pcard);
 			} else {
 				if(location == LOCATION_GRAVE) {
 					if(pcard->current.sequence == player[pcard->current.controler].list_grave.size() - 1)
-						return;
+						return FALSE;
 					auto message = pduel->new_message(MSG_MOVE);
 					message->write<uint32_t>(pcard->data.code);
 					message->write(pcard->get_info_location());
@@ -334,7 +335,7 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 					message->write<uint32_t>(pcard->current.reason);
 				} else if(location == LOCATION_REMOVED) {
 					if(pcard->current.sequence == player[pcard->current.controler].list_remove.size() - 1)
-						return;
+						return FALSE;
 					auto message = pduel->new_message(MSG_MOVE);
 					message->write<uint32_t>(pcard->data.code);
 					message->write(pcard->get_info_location());
@@ -353,7 +354,7 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 					message->write(pcard->get_info_location());
 					message->write<uint32_t>(pcard->current.reason);
 				}
-				return;
+				return TRUE;
 			}
 		} else {
 			if((pcard->data.type & TYPE_PENDULUM) && (location == LOCATION_GRAVE)
@@ -367,6 +368,7 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 		}
 	}
 	add_card(playerid, pcard, location, sequence, pzone);
+	return TRUE;
 }
 void field::swap_card(card* pcard1, card* pcard2, uint8_t new_sequence1, uint8_t new_sequence2) {
 	uint8_t p1 = pcard1->current.controler, p2 = pcard2->current.controler;
