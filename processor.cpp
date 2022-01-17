@@ -4263,6 +4263,7 @@ int32_t field::process_turn(uint16_t step, uint8_t turn_player) {
 			}
 			return FALSE;
 		}
+		core.units.begin()->arg2 = 0;
 		if(is_flag(DUEL_NO_MAIN_PHASE_2)) {
 			core.units.begin()->step = 15;
 			adjust_all();
