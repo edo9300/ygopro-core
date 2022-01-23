@@ -3183,6 +3183,7 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 		message->write<uint32_t>(pcard->data.code);
 		message->write(pcard->get_info_location());
 		set_control(pcard, pcard->current.controler, 0, 0);
+		pcard->set_status(STATUS_SPSUMMON_STEP, TRUE);
 		if(pgroup->it != pgroup->container.end())
 			core.units.begin()->step = 22;
 		return FALSE;
@@ -3205,6 +3206,7 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 			card_set cset;
 			for(auto& pcard : pgroup->container) {
 				pcard->set_status(STATUS_SUMMONING, TRUE);
+				pcard->set_status(STATUS_SPSUMMON_STEP, FALSE);
 				if(!pcard->is_affected_by_effect(EFFECT_CANNOT_DISABLE_SPSUMMON)) {
 					cset.insert(pcard);
 				}
@@ -3214,8 +3216,11 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 				process_instant_event();
 				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
 			}
-		} else
+		} else {
+			for(auto& pcard : pgroup->container)
+				pcard->set_status(STATUS_SPSUMMON_STEP, FALSE);
 			core.units.begin()->step = 26;
+		}
 		return FALSE;
 	}
 	case 26: {
