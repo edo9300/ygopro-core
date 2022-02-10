@@ -22,6 +22,7 @@ public:
 	card_set container;
 	card_set::iterator it;
 	uint32_t is_readonly{ 0 };
+	bool is_iterator_dirty{ true };
 	
 	inline bool has_card(card* c) const {
 		return container.find(c) != container.end();

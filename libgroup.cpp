@@ -72,6 +72,7 @@ int32_t group_clear(lua_State* L) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	assert_readonly_group(L, pgroup);
+	pgroup->is_iterator_dirty = true;
 	pgroup->container.clear();
 	return 0;
 }
@@ -79,6 +80,7 @@ int32_t group_add_card(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	assert_readonly_group(L, pgroup);
+	pgroup->is_iterator_dirty = true;
 	card* pcard = nullptr;
 	group* sgroup = nullptr;
 	get_card_or_group(L, 2, pcard, sgroup);
@@ -93,6 +95,7 @@ int32_t group_remove_card(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	assert_readonly_group(L, pgroup);
+	pgroup->is_iterator_dirty = true;
 	card* pcard = nullptr;
 	group* sgroup = nullptr;
 	get_card_or_group(L, 2, pcard, sgroup);
@@ -109,6 +112,10 @@ int32_t group_remove_card(lua_State* L) {
 int32_t group_get_next(lua_State* L) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
+	if(pgroup->is_iterator_dirty) {
+		luaL_error(L, "Called Group.GetNext without first calling Group.GetFirst");
+		unreachable();
+	}
 	if(pgroup->it == pgroup->container.end())
 		lua_pushnil(L);
 	else {
@@ -122,6 +129,7 @@ int32_t group_get_next(lua_State* L) {
 int32_t group_get_first(lua_State* L) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
+	pgroup->is_iterator_dirty = false;
 	if(pgroup->container.size())
 		interpreter::pushobject(L, *(pgroup->it = pgroup->container.begin()));
 	else
@@ -174,6 +182,7 @@ int32_t group_filter_in_place(lua_State* L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	assert_readonly_group(L, pgroup);
+	pgroup->is_iterator_dirty = true;
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
 	card_set::const_iterator pexbegin, pexend;
@@ -624,6 +633,7 @@ int32_t group_remove(lua_State* L) {
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	assert_readonly_group(L, pgroup);
+	pgroup->is_iterator_dirty = true;
 	card* pexception = 0;
 	if(!lua_isnoneornil(L, 3))
 		pexception = lua_get<card*, true>(L, 3);
