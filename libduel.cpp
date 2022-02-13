@@ -768,7 +768,10 @@ int32_t duel_move_sequence(lua_State* L) {
 		if(seq > 1)
 			return luaL_error(L, "Invalid sequence");
 		seq = field.get_pzone_index(seq, playerid);
-	} else if((location == LOCATION_MZONE || location == LOCATION_SZONE) && seq > 4)
+	} else if(location == LOCATION_MZONE && field.is_flag(DUEL_EMZONE)) {
+		if(seq > 6)
+			return luaL_error(L, "Invalid sequence");
+	} else if ((location == LOCATION_MZONE || location == LOCATION_SZONE) && seq > 4)
 		return luaL_error(L, "Invalid sequence");
 
 	auto& core = field.core;
