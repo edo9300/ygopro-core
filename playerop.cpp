@@ -750,18 +750,14 @@ int32_t field::select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc
 		message->write<uint32_t>(core.must_select_cards.size());
 		for(auto& pcard : core.must_select_cards) {
 			message->write<uint32_t>(pcard->data.code);
-			message->write<uint8_t>(pcard->current.controler);
-			message->write<uint8_t>(pcard->current.location);
-			message->write<uint32_t>(pcard->current.sequence);
+			message->write(pcard->get_info_location());
 			message->write<uint32_t>(pcard->sum_param);
 		}
 		message->write<uint32_t>(core.select_cards.size());
 		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(auto& pcard : core.select_cards) {
 			message->write<uint32_t>(pcard->data.code);
-			message->write<uint8_t>(pcard->current.controler);
-			message->write<uint8_t>(pcard->current.location);
-			message->write<uint32_t>(pcard->current.sequence);
+			message->write(pcard->get_info_location());
 			message->write<uint32_t>(pcard->sum_param);
 		}
 		return FALSE;
