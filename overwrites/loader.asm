@@ -16,6 +16,8 @@ __imp__GetModuleHandleExW@12 dd handledGetModuleHandleExW
 __imp__InitializeSListHead@4 dd handledInitializeSListHead
 __imp__InterlockedFlushSList@4 dd handledInterlockedFlushSList
 
+EXTERNDEF __imp__EncodePointer@4 : DWORD
+EXTERNDEF __imp__DecodePointer@4 : DWORD
 EXTERNDEF __imp__InitializeSListHead@4 : DWORD
 EXTERNDEF __imp__InterlockedFlushSList@4 : DWORD
 EXTERNDEF __imp__GetModuleHandleExW@12 : DWORD
