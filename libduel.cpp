@@ -4042,6 +4042,10 @@ int32_t duel_is_chain_disablable(lua_State* L) {
 	lua_pushboolean(L, 1);
 	return 1;
 }
+int32_t duel_is_chain_solving(lua_State* L) {
+	lua_pushboolean(L, lua_get<duel*>(L)->game_field->core.chain_solving);
+	return 1;
+}
 int32_t duel_check_chain_target(lua_State* L) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -4544,6 +4548,7 @@ static constexpr luaL_Reg duellib[] = {
 	{ "IsPlayerCanProcedureSummonGroup", duel_is_player_can_procedure_summon_group },
 	{ "IsChainNegatable", duel_is_chain_negatable },
 	{ "IsChainDisablable", duel_is_chain_disablable },
+	{ "IsChainSolving", duel_is_chain_solving },
 	{ "CheckChainTarget", duel_check_chain_target },
 	{ "CheckChainUniqueness", duel_check_chain_uniqueness },
 	{ "GetActivityCount", duel_get_activity_count },
