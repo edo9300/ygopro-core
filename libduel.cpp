@@ -746,7 +746,7 @@ int32_t duel_move_sequence(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto seq = lua_get<uint8_t>(L, 2);
 	uint16_t cur_loc = pcard->current.location;
-	uint16_t cur_pzone = pcard->current.pzone;
+	bool cur_pzone = pcard->current.pzone;
 	auto location = lua_get<uint16_t>(L, 3, cur_loc);
 
 	auto& field = *pduel->game_field;
