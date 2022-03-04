@@ -4230,7 +4230,7 @@ int32_t duel_load_script(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_getglobal(L, "tostring");
 	lua_pushvalue(L, 1);
-	lua_pcall(L, 1, 1, 0);
+	lua_call(L, 1, 1, 0);
 	auto string = lua_tostring_or_empty(L, -1);
 	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
 		auto hash = [](const char* str)->uint32_t {
