@@ -2571,7 +2571,7 @@ int32_t card_setcode(lua_State* L) {
 			});
 		} else
 			pcard->data.setcodes.insert(lua_get<uint16_t>(L, 2));
-		return 0; 
+		return 0;
 	} else {
 		for(auto& setcode : pcard->data.setcodes)
 			lua_pushinteger(L, setcode);

@@ -169,7 +169,8 @@ int32_t debug_reload_field_end(lua_State* L) {
 	field->reload_field_info();
 	return 0;
 }
-static void write_string_message(lua_State* L, int message_code, size_t max_len) {
+template<int message_code, size_t max_len>
+int32_t write_string_message(lua_State* L) {
 	check_param_count(L, 1);
 	check_param(L, PARAM_TYPE_STRING, 1);
 	size_t len = 0;
@@ -181,13 +182,6 @@ static void write_string_message(lua_State* L, int message_code, size_t max_len)
 	message->write<uint16_t>(static_cast<uint16_t>(len));
 	message->write(pstr, len);
 	message->write<uint8_t>(0);
-}
-int32_t debug_set_ai_name(lua_State* L) {
-	write_string_message(L, MSG_AI_NAME, 100);
-	return 0;
-}
-int32_t debug_show_hint(lua_State* L) {
-	write_string_message(L, MSG_SHOW_HINT, 1024);
 	return 0;
 }
 
@@ -206,8 +200,8 @@ static constexpr luaL_Reg debuglib[] = {
 	{ "PreAddCounter", debug_pre_add_counter },
 	{ "ReloadFieldBegin", debug_reload_field_begin },
 	{ "ReloadFieldEnd", debug_reload_field_end },
-	{ "SetAIName", debug_set_ai_name },
-	{ "ShowHint", debug_show_hint },
+	{ "SetAIName", write_string_message<MSG_AI_NAME, 100> },
+	{ "ShowHint", write_string_message<MSG_SHOW_HINT, 1024> },
 	{ "PrintStacktrace", debug_print_stacktrace },
 	{ nullptr, nullptr }
 };

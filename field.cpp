@@ -2308,37 +2308,28 @@ int32_t field::get_attack_target(card* pcard, card_vector* v, uint8_t chain_atta
 	int32_t atype = 0;
 	if(auto_attack.size()) {
 		atype = 1;
-		if(auto_attack.size() == 1)
-			pv = &auto_attack;
-		else
+		if(auto_attack.size() != 1)
 			return atype;
+		pv = &auto_attack;
 	} else if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER)) {
 		atype = 2;
-		if(only_attack.size() == 1)
-			pv = &only_attack;
-		else
+		if(only_attack.size() != 1)
 			return atype;
+		pv = &only_attack;
 	} else if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER)) {
 		atype = 3;
-		if(must_attack.size())
-			pv = &must_attack;
-		else
+		if(must_attack.empty())
 			return atype;
+		pv = &must_attack;
 	} else {
 		atype = 4;
-		for (uint32_t i = 0; i < 7; ++i) {
-			card* atarget = player[1 - p].list_mzone[i];
-			if (atarget != core.attacker) {
-					attack_tg.push_back(atarget);
-			}
-		}
+		for(auto& atarget : player[1 - p].list_mzone)
+			if(atarget != core.attacker)
+				attack_tg.push_back(atarget);
 		if(is_player_affected_by_effect(p, EFFECT_SELF_ATTACK) && (!pcard->is_affected_by_effect(EFFECT_ATTACK_ALL) || !attack_tg.size())) {
-			for (uint32_t i = 0; i < 7; ++i) {
-				card* atarget = player[p].list_mzone[i];
-				if (atarget != core.attacker) {
+			for(auto& atarget : player[p].list_mzone)
+				if (atarget != core.attacker)
 					attack_tg.push_back(atarget);
-				}
-			}
 		}
 		pv = &attack_tg;
 	}
@@ -2956,7 +2947,7 @@ chain* field::get_chain(uint8_t chaincount) {
 	if(chaincount == 0 || chaincount > core.current_chain.size()) {
 		chaincount = (uint8_t)core.current_chain.size();
 		if(chaincount == 0)
-			return 0;
+			return nullptr;
 	}
 	return &core.current_chain[chaincount - 1];
 }
