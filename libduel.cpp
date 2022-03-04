@@ -752,10 +752,14 @@ int32_t duel_move_sequence(lua_State* L) {
 	auto& field = *pduel->game_field;
 
 	bool pzone = false;
+	bool fzone = false;
 	if(location == LOCATION_PZONE) {
 		if(!field.is_flag(DUEL_PZONE))
 			return luaL_error(L, "LOCATION_PZONE passed with pendulum zones disabled");
 		pzone = true;
+		location = LOCATION_SZONE;
+	} else if(location == LOCATION_FZONE) {
+		fzone = true;
 		location = LOCATION_SZONE;
 	}
 
@@ -768,6 +772,10 @@ int32_t duel_move_sequence(lua_State* L) {
 		if(seq > 1)
 			return luaL_error(L, "Invalid sequence");
 		seq = field.get_pzone_index(seq, playerid);
+	} else if(fzone) {
+		if(seq != 0)
+			return luaL_error(L, "Invalid sequence");
+		seq = 5;
 	} else if(location == LOCATION_MZONE && field.is_flag(DUEL_EMZONE)) {
 		if(seq > 6)
 			return luaL_error(L, "Invalid sequence");
