@@ -178,7 +178,7 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			lua_pushinteger(L, it.first.integer);
 			break;
 		case PARAM_TYPE_STRING:
-			lua_pushstring(L, reinterpret_cast<const char*>(it.first.ptr));
+			lua_pushstring(L, static_cast<const char*>(it.first.ptr));
 			break;
 		case PARAM_TYPE_BOOLEAN:
 			lua_pushboolean(L, static_cast<bool>(it.first.integer));
@@ -186,12 +186,12 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 		case PARAM_TYPE_CARD:
 		case PARAM_TYPE_EFFECT:
 		case PARAM_TYPE_GROUP:
-			pushobject(L, reinterpret_cast<lua_obj*>(it.first.ptr));
+			pushobject(L, static_cast<lua_obj*>(it.first.ptr));
 			break;
 		case PARAM_TYPE_FUNCTION:
 			pushobject(L, static_cast<int32_t>(it.first.integer));
 			break;
-		case PARAM_TYPE_INDEX:
+		case PARAM_TYPE_INDEX: {
 			auto index = static_cast<int32_t>(it.first.integer);
 			if(index > 0)
 				lua_pushvalue(L, index);
@@ -205,6 +205,10 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 				//the calling function is pushed before the params, so the actual index is: index - pushed -1
 				lua_pushvalue(L, index - pushed - 1);
 			}
+			break;
+		}
+		case PARAM_TYPE_DELETED:
+			unreachable();
 			break;
 		}
 		pushed++;
