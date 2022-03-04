@@ -4007,11 +4007,11 @@ inline int32_t is_player_can_procedure_summon_group(lua_State* L, uint32_t summo
 		core.reason_effect = peff;
 		core.reason_player = pcard->current.controler;
 		pduel->game_field->save_lp_cost();
-		pduel->lua->add_param(peff, PARAM_TYPE_EFFECT);
-		pduel->lua->add_param(pcard, PARAM_TYPE_CARD);
-		pduel->lua->add_param(TRUE, PARAM_TYPE_BOOLEAN);
-		pduel->lua->add_param(oreason, PARAM_TYPE_EFFECT);
-		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		pduel->lua->add_param<PARAM_TYPE_EFFECT>(peff);
+		pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
+		pduel->lua->add_param<PARAM_TYPE_BOOLEAN>(TRUE);
+		pduel->lua->add_param<PARAM_TYPE_EFFECT>(oreason);
+		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
 		if(pduel->lua->check_condition(peff->condition, 5)) {
 			pduel->game_field->restore_lp_cost();
 			core.reason_effect = oreason;

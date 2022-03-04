@@ -70,7 +70,7 @@ void interpreter::register_card(card* pcard) {
 	if(pcard->data.code) {
 		const bool forced = !(pcard->data.type & TYPE_NORMAL) || (pcard->data.type & TYPE_PENDULUM);
 		pcard->set_status(STATUS_INITIALIZING, TRUE);
-		add_param(pcard, PARAM_TYPE_CARD);
+		add_param<PARAM_TYPE_CARD>(pcard);
 		call_card_function(pcard, "initial_effect", 1, 0, forced);
 		pcard->set_status(STATUS_INITIALIZING, FALSE);
 	}
@@ -169,39 +169,30 @@ bool interpreter::load_card_script(uint32_t code) {
 	lua_setglobal(current_state, "self_code");
 	return res;
 }
-void interpreter::add_param(void* param, int32_t type, bool front) {
-	add_param(reinterpret_cast<lua_Integer>(param), type, front);
-}
-void interpreter::add_param(lua_Integer param, int32_t type, bool front) {
-	if(front)
-		params.emplace_front(param, type);
-	else
-		params.emplace_back(param, type);
-}
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	int32_t pushed = 0;
 	luaL_checkstack(L, params.size(), nullptr);
 	for (const auto& it : params) {
 		switch(it.second) {
 		case PARAM_TYPE_INT:
-			lua_pushinteger(L, it.first);
+			lua_pushinteger(L, it.first.integer);
 			break;
 		case PARAM_TYPE_STRING:
-			lua_pushstring(L, reinterpret_cast<const char*>(it.first));
+			lua_pushstring(L, reinterpret_cast<const char*>(it.first.ptr));
 			break;
 		case PARAM_TYPE_BOOLEAN:
-			lua_pushboolean(L, static_cast<bool>(it.first));
+			lua_pushboolean(L, static_cast<bool>(it.first.integer));
 			break;
 		case PARAM_TYPE_CARD:
 		case PARAM_TYPE_EFFECT:
 		case PARAM_TYPE_GROUP:
-			pushobject(L, reinterpret_cast<lua_obj*>(it.first));
+			pushobject(L, reinterpret_cast<lua_obj*>(it.first.ptr));
 			break;
 		case PARAM_TYPE_FUNCTION:
-			pushobject(L, static_cast<int32_t>(it.first));
+			pushobject(L, static_cast<int32_t>(it.first.integer));
 			break;
 		case PARAM_TYPE_INDEX:
-			auto index = static_cast<int32_t>(it.first);
+			auto index = static_cast<int32_t>(it.first.integer);
 			if(index > 0)
 				lua_pushvalue(L, index);
 			else if(is_coroutine) {

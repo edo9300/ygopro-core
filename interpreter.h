@@ -34,7 +34,19 @@ class interpreter {
 	char msgbuf[128];
 public:
 	using coroutine_map = std::unordered_map<int32_t, std::pair<lua_State*, int32_t>>;
-	using param_list = std::list<std::pair<lua_Integer, uint32_t>>;
+	union lua_param {
+		void* ptr;
+		lua_Integer integer;
+	};
+private:
+	void add_param(lua_param param, LuaParamType type, bool front) {
+		if(front)
+			params.emplace_front(param, type);
+		else
+			params.emplace_back(param, type);
+	}
+public:
+	using param_list = std::list<std::pair<lua_param, LuaParamType>>;
 	
 	duel* pduel;
 	lua_State* lua_state;
@@ -57,8 +69,22 @@ public:
 
 	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	bool load_card_script(uint32_t code);
-	void add_param(void* param, int32_t type, bool front = false);
-	void add_param(lua_Integer  param, int32_t type, bool front = false);
+	template<LuaParamType type, typename T>
+	void add_param(T* param, bool front = false) {
+		static_assert(type == PARAM_TYPE_STRING || type == PARAM_TYPE_CARD || type == PARAM_TYPE_GROUP || type == PARAM_TYPE_EFFECT,
+					  "Passed parameter type doesn't match provided LuaParamType");
+		lua_param p;
+		p.ptr = param;
+		add_param(p, type, front);
+	}
+	template<LuaParamType type, typename T>
+	void add_param(T param, bool front = false) {
+		static_assert(type == PARAM_TYPE_INT || type == PARAM_TYPE_FUNCTION || type == PARAM_TYPE_BOOLEAN || type == PARAM_TYPE_INDEX,
+					  "Passed parameter type doesn't match provided LuaParamType");
+		lua_param p;
+		p.integer = param;
+		add_param(p, type, front);
+	}
 	void push_param(lua_State* L, bool is_coroutine = false);
 	bool call_function(int32_t f, uint32_t param_count, int32_t ret_count);
 	bool call_card_function(card* pcard, const char* f, uint32_t param_count, int32_t ret_count, bool forced = true);

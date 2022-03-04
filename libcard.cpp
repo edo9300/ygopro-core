@@ -762,9 +762,9 @@ int32_t card_is_summon_code(lua_State* L) {
 	for (const auto& peff : eset) {
 		if (!peff->operation)
 			continue;
-		pduel->lua->add_param(scard, PARAM_TYPE_CARD);
-		pduel->lua->add_param(sumtype, PARAM_TYPE_INT);
-		pduel->lua->add_param(playerid, PARAM_TYPE_INT);
+		pduel->lua->add_param<PARAM_TYPE_CARD>(scard);
+		pduel->lua->add_param<PARAM_TYPE_INT>(sumtype);
+		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
 		if (!pduel->lua->check_condition(peff->operation, 3))
 			continue;
 		if (peff->code == EFFECT_ADD_CODE)
