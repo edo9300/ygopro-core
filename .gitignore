@@ -2,6 +2,7 @@
 bin/
 libs/
 obj/
+tmp/
 .vscode/
 .idea/
 .DS_Store
