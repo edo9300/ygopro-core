@@ -870,29 +870,29 @@ int32_t duel_confirm_decktop(lua_State* L) {
 		return 0;
 	auto count = lua_get<uint32_t>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
-	if(count >= pduel->game_field->player[playerid].list_main.size())
-		count = pduel->game_field->player[playerid].list_main.size();
-	else if(pduel->game_field->player[playerid].list_main.size() > count) {
-		if(pduel->game_field->core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-			card* pcard = *(pduel->game_field->player[playerid].list_main.rbegin() + count);
-			if(pduel->game_field->core.deck_reversed) {
-				auto message = pduel->new_message(MSG_DECK_TOP);
-				message->write<uint8_t>(playerid);
-				message->write<uint32_t>(count);
-				message->write<uint32_t>(pcard->data.code);
-				message->write<uint32_t>(pcard->current.position);
-			}
+	const auto& player = pduel->game_field->player[playerid];
+	const auto& list_main = player.list_main;
+	if(count >= list_main.size())
+		count = list_main.size();
+	else if(list_main.size() > count) {
+		if(pduel->game_field->core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK && pduel->game_field->core.deck_reversed) {
+			card* pcard = *(list_main.rbegin() + count);
+			auto message = pduel->new_message(MSG_DECK_TOP);
+			message->write<uint8_t>(playerid);
+			message->write<uint32_t>(count);
+			message->write<uint32_t>(pcard->data.code);
+			message->write<uint32_t>(pcard->current.position);
 		}
 	}
-	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
 	auto message = pduel->new_message(MSG_CONFIRM_DECKTOP);
 	message->write<uint8_t>(playerid);
 	message->write<uint32_t>(count);
-	for(uint32_t i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit) {
-		message->write<uint32_t>((*cit)->data.code);
-		message->write<uint8_t>((*cit)->current.controler);
-		message->write<uint8_t>((*cit)->current.location);
-		message->write<uint32_t>((*cit)->current.sequence);
+	for(auto cit = list_main.rbegin(), end = cit + count; cit != end; ++cit) {
+		const auto& pcard = *cit;
+		message->write<uint32_t>(pcard->data.code);
+		message->write<uint8_t>(pcard->current.controler);
+		message->write<uint8_t>(pcard->current.location);
+		message->write<uint32_t>(pcard->current.sequence);
 	}
 	return lua_yield(L, 0);
 }
@@ -903,17 +903,19 @@ int32_t duel_confirm_extratop(lua_State* L) {
 		return 0;
 	auto count = lua_get<uint32_t>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
-	if(count >= pduel->game_field->player[playerid].list_extra.size() - pduel->game_field->player[playerid].extra_p_count)
-		count = pduel->game_field->player[playerid].list_extra.size() - pduel->game_field->player[playerid].extra_p_count;
-	auto cit = pduel->game_field->player[playerid].list_extra.rbegin() + pduel->game_field->player[playerid].extra_p_count;
+	const auto& player = pduel->game_field->player[playerid];
+	const auto& list_extra = player.list_extra;
+	const uint32_t max_count = list_extra.size() - player.extra_p_count;
+	count = std::min(max_count, count);
 	auto message = pduel->new_message(MSG_CONFIRM_EXTRATOP);
 	message->write<uint8_t>(playerid);
 	message->write<uint32_t>(count);
-	for(uint32_t i = 0; i < count && cit != pduel->game_field->player[playerid].list_extra.rend(); ++i, ++cit) {
-		message->write<uint32_t>((*cit)->data.code);
-		message->write<uint8_t>((*cit)->current.controler);
-		message->write<uint8_t>((*cit)->current.location);
-		message->write<uint32_t>((*cit)->current.sequence);
+	for(auto cit = list_extra.rbegin() + player.extra_p_count, end = cit + count; cit != end; ++cit) {
+		const auto& pcard = *cit;
+		message->write<uint32_t>(pcard->data.code);
+		message->write<uint8_t>(pcard->current.controler);
+		message->write<uint8_t>(pcard->current.location);
+		message->write<uint32_t>(pcard->current.sequence);
 	}
 	return lua_yield(L, 0);
 }

@@ -868,12 +868,12 @@ void field::get_cards_in_zone(card_set* cset, uint32_t zone, int32_t playerid, i
 void field::shuffle(uint8_t playerid, uint8_t location) {
 	if(!(location & (LOCATION_HAND | LOCATION_DECK | LOCATION_EXTRA)))
 		return;
-	card_vector& svector = (location == LOCATION_HAND) ? player[playerid].list_hand : (location == LOCATION_DECK) ? player[playerid].list_main : player[playerid].list_extra;
-	if(svector.size() == 0)
+	card_vector& to_shuffle = (location == LOCATION_HAND) ? player[playerid].list_hand : (location == LOCATION_DECK) ? player[playerid].list_main : player[playerid].list_extra;
+	if(to_shuffle.size() == 0)
 		return;
 	if(location == LOCATION_HAND) {
 		bool shuffle = false;
-		for(auto& pcard : svector)
+		for(auto& pcard : to_shuffle)
 			if(!pcard->is_position(POS_FACEUP))
 				shuffle = true;
 		if(!shuffle) {
@@ -882,16 +882,15 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		}
 	}
 	if(location == LOCATION_HAND || !is_flag(DUEL_PSEUDO_SHUFFLE)) {
-		uint32_t s = svector.size();
+		auto upper_bound = to_shuffle.size();
 		if(location == LOCATION_EXTRA)
-			s = s - player[playerid].extra_p_count;
-		if(s > 1) {
-			uint32_t i = 0, r;
-			for(i = 0; i < s - 1; ++i) {
-				r = pduel->get_next_integer(i, s - 1);
-				card* t = svector[i];
-				svector[i] = svector[r];
-				svector[r] = t;
+			upper_bound -= player[playerid].extra_p_count;
+		if(upper_bound > 1) {
+			for(size_t i = 0; i < upper_bound - 1; ++i) {
+				auto r = pduel->get_next_integer(i, upper_bound - 1);
+				auto* t = to_shuffle[i];
+				to_shuffle[i] = to_shuffle[r];
+				to_shuffle[r] = t;
 			}
 			reset_sequence(playerid, location);
 		}
@@ -899,12 +898,12 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 	if(location == LOCATION_HAND || location == LOCATION_EXTRA) {
 		auto message = pduel->new_message((location == LOCATION_HAND) ? MSG_SHUFFLE_HAND : MSG_SHUFFLE_EXTRA);
 		message->write<uint8_t>(playerid);
-		message->write<uint32_t>(svector.size());
-		for(auto& pcard : svector)
+		message->write<uint32_t>(to_shuffle.size());
+		for(auto& pcard : to_shuffle)
 			message->write<uint32_t>(pcard->data.code);
 		if(location == LOCATION_HAND) {
 			core.shuffle_hand_check[playerid] = FALSE;
-			for(auto& pcard : svector) {
+			for(auto& pcard : to_shuffle) {
 				for(auto& i : pcard->indexer) {
 					effect* peffect = i.first;
 					if(peffect->is_flag(EFFECT_FLAG_CLIENT_HINT) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
@@ -921,7 +920,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		message->write<uint8_t>(playerid);
 		core.shuffle_deck_check[playerid] = FALSE;
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-			card* ptop = svector.back();
+			card* ptop = to_shuffle.back();
 			if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 				message = pduel->new_message(MSG_DECK_TOP);
 				message->write<uint8_t>(playerid);
