@@ -1254,7 +1254,7 @@ int32_t card_get_activate_effect(lua_State* L) {
 	for(auto& eit : pcard->field_effect) {
 		if(eit.second->type & EFFECT_TYPE_ACTIVATE) {
 			interpreter::pushobject(L, eit.second);
-			count++;
+			++count;
 		}
 	}
 	return count;
@@ -1326,7 +1326,7 @@ int32_t card_is_has_effect(lua_State* L) {
 		if(check_player == PLAYER_NONE || peff->check_count_limit(check_player))
 			interpreter::pushobject(L, peff);
 		else
-			size--;
+			--size;
 	}
 	if(!size) {
 		lua_pushnil(L);

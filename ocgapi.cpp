@@ -76,7 +76,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 			player.extra_lists_hand.resize(info.duelist);
 			player.extra_extra_p_count.resize(info.duelist);
 		}
-		info.duelist--;
+		--info.duelist;
 		pcard->current.location = (uint8_t)info.loc;
 		pcard->owner = info.team;
 		pcard->current.controler = info.team;
@@ -133,11 +133,11 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 	uint32_t count = 0;
 	if(loc == LOCATION_MZONE) {
 		for(auto& pcard : player.list_mzone)
-			if(pcard) count++;
+			if(pcard) ++count;
 	}
 	if(loc == LOCATION_SZONE) {
 		for(auto& pcard : player.list_szone)
-			if(pcard) count++;
+			if(pcard) ++count;
 	}
 	return count;
 }

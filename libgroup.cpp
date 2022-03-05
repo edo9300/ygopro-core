@@ -200,7 +200,7 @@ int32_t group_filter_in_place(lua_State* L) {
 		if(pexbegin == pexend)
 			return true;
 		if(*pexbegin == pcard) {
-			pexbegin++;
+			++pexbegin;
 			return false;
 		}
 		return true;
@@ -232,7 +232,7 @@ int32_t group_filter_count(lua_State* L) {
 	uint32_t count = 0;
 	for (auto& pcard : cset) {
 		if(pduel->lua->check_matching(pcard, 2, extraargs))
-			count++;
+			++count;
 	}
 	lua_pushinteger(L, count);
 	return 1;
@@ -247,7 +247,7 @@ int32_t group_filter_select(lua_State* L) {
 	uint8_t lastarg = 6;
 	if(lua_isboolean(L, lastarg)) {
 		cancelable = lua_get<bool, false>(L, lastarg);
-		lastarg++;
+		++lastarg;
 	}
 	if(auto pexception = lua_get<card*>(L, lastarg))
 		cset.erase(pexception);
@@ -279,7 +279,7 @@ int32_t group_select(lua_State* L) {
 	uint8_t lastarg = 5;
 	if(lua_isboolean(L, lastarg)) {
 		cancelable = lua_get<bool, false>(L, lastarg);
-		lastarg++;
+		++lastarg;
 	}
 	if(auto pexception = lua_get<card*>(L, lastarg))
 		cset.erase(pexception);
@@ -389,7 +389,7 @@ int32_t group_is_exists(lua_State* L) {
 	uint32_t fcount = 0;
 	for(auto& pcard : cset) {
 		if(pduel->lua->check_matching(pcard, 2, extraargs)) {
-			fcount++;
+			++fcount;
 			if(fcount >= count)
 				break;
 		}
@@ -831,7 +831,7 @@ int32_t group_get_bin_class_count(lua_State* L) {
 	int32_t ans = 0;
 	while(er) {
 		er &= er - 1;
-		ans++;
+		++ans;
 	}
 	lua_pushinteger(L, ans);
 	return 1;

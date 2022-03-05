@@ -230,7 +230,7 @@ bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<Return
 	}
 	auto& list = return_cards.list;
 	if(type == 3) {
-		for(size_t i = 0; i < select_cards.size(); i++) {
+		for(size_t i = 0; i < select_cards.size(); ++i) {
 			if(returns.bitGet(i + (sizeof(uint32_t) * 8)))
 				list.push_back(select_cards[i]);
 		}
@@ -278,7 +278,7 @@ int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, 
 		if(min > max)
 			min = max;
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
-			for(int32_t i = 0; i < min; i++) {
+			for(int32_t i = 0; i < min; ++i) {
 				return_cards.list.push_back(core.select_cards[i]);
 			}
 			return TRUE;
@@ -328,7 +328,7 @@ int32_t field::select_card_codes(uint16_t step, uint8_t playerid, uint8_t cancel
 		if(min > max)
 			min = max;
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
-			for(int32_t i = 0; i < min; i++) {
+			for(int32_t i = 0; i < min; ++i) {
 				return_card_codes.list.push_back(core.select_cards_codes[i]);
 			}
 			return TRUE;
@@ -857,7 +857,7 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int3
 		int32_t scount = 0;
 		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(ft & available)
-				scount++;
+				++scount;
 		}
 		if(scount <= count) {
 			count = scount;
@@ -877,7 +877,7 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int3
 				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
-			sel++;
+			++sel;
 		}
 		if(sel != count) {
 			pduel->new_message(MSG_RETRY);
@@ -896,7 +896,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 		int32_t scount = 0;
 		for(int32_t ft = 0x1; ft != 0x80; ft <<= 1) {
 			if(ft & available)
-				scount++;
+				++scount;
 		}
 		if(scount <= count) {
 			count = scount;
@@ -916,7 +916,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
-			sel++;
+			++sel;
 		}
 		if(sel != count) {
 			pduel->new_message(MSG_RETRY);
@@ -1070,7 +1070,7 @@ int32_t field::rock_paper_scissors(uint16_t step, uint8_t repeat) {
 		const auto ret = returns.at<int32_t>(0);
 		if(ret < 1 || ret>3) {
 			pduel->new_message(MSG_RETRY);
-			core.units.begin()->step--;
+			--core.units.begin()->step;
 			return false;
 		}
 		return true;

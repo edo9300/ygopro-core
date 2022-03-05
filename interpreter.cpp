@@ -128,15 +128,15 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename) {
 bool interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	if(!buffer)
 		return false;
-	no_action++;
+	++no_action;
 	int32_t error = luaL_loadbuffer(current_state, buffer, len, script_name) || lua_pcall(current_state, 0, 0, 0);
 	if(error) {
 		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
-		no_action--;
+		--no_action;
 		return false;
 	}
-	no_action--;
+	--no_action;
 	return true;
 }
 bool interpreter::load_card_script(uint32_t code) {
@@ -211,19 +211,19 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			unreachable();
 			break;
 		}
-		pushed++;
+		++pushed;
 	}
 	params.clear();
 }
 //increase the no_action and call_depth counter by 1
 inline void interpreter::deepen() {
-	no_action++;
-	call_depth++;
+	++no_action;
+	++call_depth;
 }
 //decrease the no_action and call_depth counter by 1, and calls scripts/assumes cleanup if needed
 inline void interpreter::flatten() {
-	no_action--;
-	call_depth--;
+	--no_action;
+	--call_depth;
 	if(call_depth == 0) {
 		pduel->release_script_group();
 		pduel->restore_assumes();
@@ -372,8 +372,7 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, pcard->ref_handle);
 	for(int32_t i = 0; i < extraargs; ++i)
 		lua_pushvalue(current_state, (int32_t)(-extraargs - 2));
-	no_action++;
-	call_depth++;
+	deepen();
 	auto ret = lua_pcall(current_state, extraargs, LUA_MULTRET, 0) == LUA_OK;
 	if(!ret) {
 		print_stacktrace(current_state);
@@ -462,13 +461,13 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 		pushobject(rthread, f);
 		if(!lua_isfunction(rthread, -1))
 			return ret_fail(R"("CallCoroutine": attempt to call an error function)");
-		call_depth++;
+		++call_depth;
 		auto ret = coroutines.emplace(f, std::make_pair(rthread, threadref));
 		it = ret.first;
 	} else {
 		rthread = it->second.first;
 		if(step == 0) {
-			call_depth--;
+			--call_depth;
 			if(call_depth == 0) {
 				pduel->release_script_group();
 				pduel->restore_assumes();
@@ -499,7 +498,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 	auto ref = it->second.second;
 	coroutines.erase(it);
 	luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
-	call_depth--;
+	--call_depth;
 	if(call_depth == 0) {
 		pduel->release_script_group();
 		pduel->restore_assumes();
@@ -539,7 +538,7 @@ int interpreter::pushExpandedTable(lua_State* L, int32_t table_index) {
 		luaL_checkstack(L, 1, nullptr);
 		lua_pushvalue(L, -1);
 		lua_insert(L, -3);
-		extraargs++;
+		++extraargs;
 	});
 	return extraargs;
 }
