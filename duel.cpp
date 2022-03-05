@@ -33,6 +33,10 @@ duel::~duel() {
 	delete game_field;
 	delete lua;
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
 void duel::clear() {
 	static constexpr OCG_DuelOptions default_options{ {},0,{8000,5,1},{8000,5,1} };
 	for(auto& pcard : cards)
@@ -52,6 +56,9 @@ void duel::clear() {
 	game_field = new field(this, default_options);
 	game_field->temp_card = new_card(0);
 }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 card* duel::new_card(uint32_t code) {
 	card* pcard = new card(this);
 	cards.insert(pcard);

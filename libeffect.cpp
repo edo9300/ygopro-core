@@ -491,7 +491,7 @@ int32_t effect_use_count_limit(lua_State* L) {
 	if (!oath_only || peffect->count_flag & EFFECT_COUNT_CODE_OATH)
 		while(count) {
 			peffect->dec_count(p);
-			count--;
+			--count;
 		}
 	return 0;
 }
