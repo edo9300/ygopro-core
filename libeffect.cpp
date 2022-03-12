@@ -297,6 +297,13 @@ int32_t effect_get_code(lua_State* L) {
 	lua_pushinteger(L, peffect->code);
 	return 1;
 }
+int32_t effect_get_target_range(lua_State* L) {
+	check_param_count(L, 1);
+	auto peffect = lua_get<effect*, true>(L, 1);
+	lua_pushinteger(L, peffect->s_range);
+	lua_pushinteger(L, peffect->o_range);
+	return 2;
+}
 int32_t effect_get_count_limit(lua_State* L) {
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
@@ -523,6 +530,7 @@ static constexpr luaL_Reg effectlib[] = {
 	{ "SetOwnerPlayer", effect_set_owner_player },
 	{ "GetDescription", effect_get_description },
 	{ "GetCode", effect_get_code },
+	{ "GetTargetRange", effect_get_target_range },
 	{ "GetCountLimit", effect_get_count_limit },
 	{ "GetReset", effect_get_reset },
 	{ "GetType", effect_get_type },
