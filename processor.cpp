@@ -3296,7 +3296,7 @@ int32_t field::process_battle_command(uint16_t step) {
 	}
 	case 29: {
 		if(core.battle_destroy_rep.size())
-			destroy(&core.battle_destroy_rep, 0, REASON_EFFECT | REASON_REPLACE, PLAYER_NONE);
+			destroy(core.battle_destroy_rep, 0, REASON_EFFECT | REASON_REPLACE, PLAYER_NONE);
 		if(core.desrep_chain.size())
 			add_process(PROCESSOR_OPERATION_REPLACE, 15, nullptr, nullptr, 0, 0);
 		adjust_all();
@@ -5577,7 +5577,7 @@ int32_t field::adjust_step(uint16_t step) {
 		}
 		if(destroy_set.size()) {
 			core.re_adjust = TRUE;
-			destroy(&destroy_set, 0, REASON_RULE, PLAYER_NONE);
+			destroy(std::move(destroy_set), 0, REASON_RULE, PLAYER_NONE);
 		}
 		return FALSE;
 	}
