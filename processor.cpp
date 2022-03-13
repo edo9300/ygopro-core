@@ -4916,6 +4916,8 @@ int32_t field::solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chain
 	case 4: {
 		effect* peffect = cait->triggering_effect;
 		if(core.units.begin()->arg4) {
+			if(peffect->operation != 0)
+				luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, peffect->operation);
 			peffect->operation = core.units.begin()->arg4;
 			core.units.begin()->arg4 = 0;
 		}
