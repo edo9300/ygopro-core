@@ -1856,9 +1856,7 @@ void field::get_fusion_material(uint8_t playerid, card_set* material) {
 			material->insert(pcard);
 }
 void field::ritual_release(const card_set& material) {
-	card_set rel;
-	card_set rem;
-	card_set overlay;
+	card_set rel, rem, overlay;
 	for(auto& pcard : material) {
 		if(pcard->current.location == LOCATION_GRAVE)
 			rem.insert(pcard);
@@ -1867,9 +1865,9 @@ void field::ritual_release(const card_set& material) {
 		else
 			rel.insert(pcard);
 	}
-	send_to(&overlay, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+	send_to(std::move(overlay), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 	release(std::move(rel), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player);
-	send_to(&rem, core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, POS_FACEUP);
+	send_to(std::move(rem), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, POS_FACEUP);
 }
 void field::get_overlay_group(uint8_t playerid, uint8_t self, uint8_t oppo, card_set* pset, group* pgroup) {
 	if(pgroup) {

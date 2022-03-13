@@ -208,7 +208,7 @@ int32_t duel_remove(lua_State* L) {
 	if (pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_REMOVED, 0, pos);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_REMOVED, 0, pos);
+		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_REMOVED, 0, pos);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -226,7 +226,7 @@ int32_t duel_sendto_grave(lua_State* L) {
 	if (pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
+		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -434,11 +434,9 @@ int32_t duel_special_summon(lua_State* L) {
 	auto positions = lua_get<uint8_t>(L, 7);
 	auto zone = lua_get<uint32_t, 0xff>(L, 8);
 	if(pcard) {
-		pduel->game_field->core.temp_set.clear();
-		pduel->game_field->core.temp_set.insert(pcard);
-		pduel->game_field->special_summon(&pduel->game_field->core.temp_set, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
+		pduel->game_field->special_summon(card_set{ pcard }, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
 	} else
-		pduel->game_field->special_summon(&(pgroup->container), sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
+		pduel->game_field->special_summon(pgroup->container, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -493,7 +491,7 @@ int32_t duel_sendto_hand(lua_State* L) {
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_HAND, 0, POS_FACEUP);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_HAND, 0, POS_FACEUP);
+		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_HAND, 0, POS_FACEUP);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -515,7 +513,7 @@ int32_t duel_sendto_deck(lua_State* L) {
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, POS_FACEUP);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, POS_FACEUP);
+		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, POS_FACEUP);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -535,7 +533,7 @@ int32_t duel_sendto_extra(lua_State* L) {
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
+		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -558,7 +556,7 @@ int32_t duel_sendto(lua_State* L) {
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, pos, TRUE);
 	else
-		pduel->game_field->send_to(&(pgroup->container), pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, pos, TRUE);
+		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, location, sequence, pos, TRUE);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -673,11 +671,9 @@ int32_t duel_change_form(lua_State* L) {
 	uint32_t flag = 0;
 	if(lua_get<bool, false>(L, 6)) flag |= NO_FLIP_EFFECT;
 	if(pcard) {
-		pduel->game_field->core.temp_set.clear();
-		pduel->game_field->core.temp_set.insert(pcard);
-		pduel->game_field->change_position(&pduel->game_field->core.temp_set, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
+		pduel->game_field->change_position(card_set{ pcard }, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
 	} else
-		pduel->game_field->change_position(&(pgroup->container), pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
+		pduel->game_field->change_position(pgroup->container, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -1282,7 +1278,7 @@ int32_t duel_get_control(lua_State* L) {
 	if(pcard)
 		pduel->game_field->get_control(pcard, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
 	else
-		pduel->game_field->get_control(&pgroup->container, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
+		pduel->game_field->get_control(pgroup->container, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -1316,7 +1312,7 @@ int32_t duel_swap_control(lua_State* L) {
 	if(pcard1)
 		pduel->game_field->swap_control(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, pcard1, pcard2, reset_phase, reset_count);
 	else
-		pduel->game_field->swap_control(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, &pgroup1->container, &pgroup2->container, reset_phase, reset_count);
+		pduel->game_field->swap_control(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, pgroup1->container, pgroup2->container, reset_phase, reset_count);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		lua_pushboolean(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;

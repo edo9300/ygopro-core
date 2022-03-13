@@ -682,11 +682,10 @@ int32_t field::process() {
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, it->arg1, it->arg2);
 			++it->step;
 		} else if(it->step == 1) {
-			card_set cset(return_cards.list.begin(), return_cards.list.end());
-			if(cset.size())
-				send_to(&cset, core.reason_effect, it->arg3, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
-			else
+			if(return_cards.list.empty())
 				returns.at<int32_t>(0) = 0;
+			else
+				send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, core.reason_effect, it->arg3, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 			++it->step;
 		} else {
 			core.units.pop_front();
@@ -1307,8 +1306,8 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 		return FALSE;
 	}
 	case 21: {
-		card_set cset(return_cards.list.begin(), return_cards.list.end());
-		send_to(&cset, 0, REASON_RULE + REASON_DISCARD + REASON_ADJUST, infos.turn_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		if(return_cards.list.size())
+			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, 0, REASON_RULE + REASON_DISCARD + REASON_ADJUST, infos.turn_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 22: {
@@ -5049,7 +5048,7 @@ int32_t field::solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chain
 				core.leave_confirmed.erase(rm);
 		}
 		if(core.leave_confirmed.size())
-			send_to(&core.leave_confirmed, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(core.leave_confirmed, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 12: {
@@ -5502,8 +5501,8 @@ int32_t field::adjust_step(uint16_t step) {
 		}
 		if(core.control_adjust_set[0].size() || core.control_adjust_set[1].size()) {
 			core.re_adjust = TRUE;
-			get_control(&core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
-			get_control(&core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
+			get_control(core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
+			get_control(core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
 			for(auto& rcard : reason_cards) {
 				++core.readjust_map[rcard];
 				if(core.readjust_map[rcard] > 3)
@@ -5542,8 +5541,8 @@ int32_t field::adjust_step(uint16_t step) {
 			core.remove_brainwashing = res;
 			if(core.control_adjust_set[0].size() || core.control_adjust_set[1].size()) {
 				core.re_adjust = TRUE;
-				get_control(&core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
-				get_control(&core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
+				get_control(core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
+				get_control(core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
 			}
 		}
 		core.units.begin()->step = 7;

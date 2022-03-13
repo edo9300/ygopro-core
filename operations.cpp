@@ -110,29 +110,23 @@ void field::remove_counter(uint32_t reason, card* pcard, uint32_t rplayer, uint8
 void field::remove_overlay_card(uint32_t reason, group* pgroup, uint32_t rplayer, uint8_t self, uint8_t oppo, uint16_t min, uint16_t max) {
 	add_process(PROCESSOR_REMOVE_OVERLAY, 0, nullptr, pgroup, (rplayer << 16) + (self << 8) + oppo, (max << 16) + min, reason);
 }
-void field::get_control(card_set* targets, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
-	group* ng = pduel->new_group(*targets);
+void field::get_control(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
+	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
 	add_process(PROCESSOR_GET_CONTROL, 0, reason_effect, ng, 0, (reason_player << 28) + (playerid << 24) + (reset_phase << 8) + reset_count, zone);
 }
 void field::get_control(card* target, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
-	card_set tset;
-	tset.insert(target);
-	get_control(&tset, reason_effect, reason_player, playerid, reset_phase, reset_count, zone);
+	get_control(card_set{ target }, reason_effect, reason_player, playerid, reset_phase, reset_count, zone);
 }
-void field::swap_control(effect* reason_effect, uint32_t reason_player, card_set* targets1, card_set* targets2, uint32_t reset_phase, uint32_t reset_count) {
-	group* ng1 = pduel->new_group(*targets1);
+void field::swap_control(effect* reason_effect, uint32_t reason_player, card_set targets1, card_set targets2, uint32_t reset_phase, uint32_t reset_count) {
+	group* ng1 = pduel->new_group(std::move(targets1));
 	ng1->is_readonly = TRUE;
-	group* ng2 = pduel->new_group(*targets2);
+	group* ng2 = pduel->new_group(std::move(targets2));
 	ng2->is_readonly = TRUE;
 	add_process(PROCESSOR_SWAP_CONTROL, 0, reason_effect, ng1, reason_player, reset_phase, reset_count, 0, ng2);
 }
 void field::swap_control(effect* reason_effect, uint32_t reason_player, card* pcard1, card* pcard2, uint32_t reset_phase, uint32_t reset_count) {
-	card_set tset1;
-	tset1.insert(pcard1);
-	card_set tset2;
-	tset2.insert(pcard2);
-	swap_control(reason_effect, reason_player, &tset1, &tset2, reset_phase, reset_count);
+	swap_control(reason_effect, reason_player, card_set{ pcard1 }, card_set{ pcard2 }, reset_phase, reset_count);
 }
 void field::equip(uint32_t equip_player, card* equip_card, card* target, uint32_t up, uint32_t is_step) {
 	add_process(PROCESSOR_EQUIP, 0, nullptr, (group*)target, 0, equip_player + (up << 16) + (is_step << 24), 0, 0, equip_card);
@@ -162,12 +156,12 @@ void field::special_summon_rule(uint32_t sumplayer, card* target, uint32_t summo
 void field::special_summon_rule_group(uint32_t sumplayer, uint32_t summon_type) {
 	add_process(PROCESSOR_SPSUMMON_RULE_G, 0, 0, nullptr, sumplayer, summon_type);
 }
-void field::special_summon(card_set* target, uint32_t sumtype, uint32_t sumplayer, uint32_t playerid, uint32_t nocheck, uint32_t nolimit, uint32_t positions, uint32_t zone) {
+void field::special_summon(card_set target, uint32_t sumtype, uint32_t sumplayer, uint32_t playerid, uint32_t nocheck, uint32_t nolimit, uint32_t positions, uint32_t zone) {
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	effect_set eset;
 	filter_player_effect(sumplayer, EFFECT_FORCE_SPSUMMON_POSITION, &eset);
-	for(auto& pcard : *target) {
+	for(auto& pcard : target) {
 		pcard->temp.reason = pcard->current.reason;
 		pcard->temp.reason_effect = pcard->current.reason_effect;
 		pcard->temp.reason_player = pcard->current.reason_player;
@@ -193,7 +187,7 @@ void field::special_summon(card_set* target, uint32_t sumtype, uint32_t sumplaye
 		}
 		pcard->spsummon_param = (playerid << 24) + (nocheck << 16) + (nolimit << 8) + pos;
 	}
-	group* pgroup = pduel->new_group(*target);
+	group* pgroup = pduel->new_group(std::move(target));
 	pgroup->is_readonly = TRUE;
 	add_process(PROCESSOR_SPSUMMON, 0, core.reason_effect, pgroup, core.reason_player, zone);
 }
@@ -267,8 +261,7 @@ void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, ui
 	add_process(PROCESSOR_DESTROY, 0, reason_effect, ng, reason, reason_player);
 }
 void field::destroy(card* target, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence) {
-	card_set tset{ target };
-	destroy(std::move(tset), reason_effect, reason, reason_player, playerid, destination, sequence);
+	destroy(card_set{ target }, reason_effect, reason, reason_player, playerid, destination, sequence);
 }
 void field::release(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player) {
 	for(auto& pcard : targets) {
@@ -285,15 +278,14 @@ void field::release(card_set targets, effect* reason_effect, uint32_t reason, ui
 	add_process(PROCESSOR_RELEASE, 0, reason_effect, ng, reason, reason_player);
 }
 void field::release(card* target, effect* reason_effect, uint32_t reason, uint32_t reason_player) {
-	card_set tset{ target };
-	release(std::move(tset), reason_effect, reason, reason_player);
+	release(card_set{ target }, reason_effect, reason, reason_player);
 }
 // set current.reason, sendto_param
 // send-to in scripts: here->PROCESSOR_SENDTO, step 0
-void field::send_to(card_set* targets, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence, uint32_t position, uint32_t ignore) {
+void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence, uint32_t position, uint32_t ignore) {
 	if(destination & LOCATION_ONFIELD)
 		return;
-	for(auto& pcard : *targets) {
+	for(auto& pcard : targets) {
 		pcard->temp.reason = pcard->current.reason;
 		pcard->temp.reason_effect = pcard->current.reason_effect;
 		pcard->temp.reason_player = pcard->current.reason_player;
@@ -315,14 +307,12 @@ void field::send_to(card_set* targets, effect* reason_effect, uint32_t reason, u
 			pos = pcard->current.position;
 		pcard->sendto_param.set(p, pos, destination, sequence);
 	}
-	group* ng = pduel->new_group(*targets);
+	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
 	add_process(PROCESSOR_SENDTO, 0, reason_effect, ng, reason, reason_player);
 }
 void field::send_to(card* target, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence, uint32_t position, uint32_t ignore) {
-	card_set tset;
-	tset.insert(target);
-	send_to(&tset, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
+	send_to(card_set{ target }, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
 void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid, uint32_t destination, uint32_t positions, uint8_t enable, uint8_t ret, uint8_t zone, uint8_t rule, uint8_t reason, uint8_t confirm) {
 	if(!(destination & (LOCATION_MZONE | LOCATION_SZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions)
@@ -343,10 +333,10 @@ void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid,
 	target->to_field_param = (move_player << 24) + (playerid << 16) + ((destination & 0xff) << 8) + positions;
 	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable | (ret << 8) | (pzone << 16) | (zone << 24), rule | (reason << 8) | (confirm << 16));
 }
-void field::change_position(card_set* targets, effect* reason_effect, uint32_t reason_player, uint32_t au, uint32_t ad, uint32_t du, uint32_t dd, uint32_t flag, uint32_t enable) {
-	group* ng = pduel->new_group(*targets);
+void field::change_position(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t au, uint32_t ad, uint32_t du, uint32_t dd, uint32_t flag, uint32_t enable) {
+	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
-	for(auto& pcard : *targets) {
+	for(auto& pcard : ng->container) {
 		if(pcard->current.position == POS_FACEUP_ATTACK)
 			pcard->position_param = au;
 		else if(pcard->current.position == POS_FACEDOWN_DEFENSE)
@@ -876,8 +866,7 @@ int32_t field::remove_overlay_card(uint16_t step, uint32_t reason, group* pgroup
 		return FALSE;
 	}
 	case 3: {
-		card_set cset(return_cards.list.begin(), return_cards.list.end());
-		send_to(&cset, core.reason_effect, reason, rplayer, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, core.reason_effect, reason, rplayer, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 4: {
@@ -1486,7 +1475,7 @@ int32_t field::trap_monster_adjust(uint16_t step) {
 		card_set* to_grave_set = (card_set*)core.units.begin()->ptr1;
 		if(to_grave_set) {
 			if(to_grave_set->size())
-				send_to(to_grave_set, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+				send_to(std::move(*to_grave_set), 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 			delete to_grave_set;
 		}
 		return TRUE;
@@ -3233,7 +3222,7 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 			}
 		}
 		if(cset.size()) {
-			send_to(&cset, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
+			send_to(std::move(cset), 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 			adjust_instant();
 		}
 		if(pgroup->container.size() == 0) {
@@ -3501,7 +3490,7 @@ int32_t field::special_summon(uint16_t step, effect* reason_effect, uint8_t reas
 	}
 	case 1: {
 		if(core.ss_tograve_set.size())
-			send_to(&core.ss_tograve_set, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(core.ss_tograve_set, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 2: {
@@ -4540,7 +4529,7 @@ int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uin
 		if(equipings.size())
 			destroy(std::move(equipings), 0, REASON_RULE + REASON_LOST_TARGET, PLAYER_NONE);
 		if(overlays.size())
-			send_to(&overlays, 0, REASON_RULE + REASON_LOST_TARGET, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(std::move(overlays), 0, REASON_RULE + REASON_LOST_TARGET, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		adjust_instant();
 		return FALSE;
 	}
@@ -4853,9 +4842,7 @@ int32_t field::move_to_field(uint16_t step, card* target, uint8_t enable, uint8_
 				}
 			}
 			if(target->xyz_materials.size()) {
-				card_set overlays;
-				overlays.insert(target->xyz_materials.begin(), target->xyz_materials.end());
-				send_to(&overlays, 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+				send_to(card_set{ target->xyz_materials.begin(), target->xyz_materials.end() }, 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 			}
 		}
 		if((target->previous.location == LOCATION_SZONE) && target->equiping_target)
@@ -5120,7 +5107,7 @@ int32_t field::change_position(uint16_t step, group* targets, effect* reason_eff
 			destroy(std::move(equipings), 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);
 		card_set* to_grave_set = (card_set*)core.units.begin()->ptr1;
 		if(to_grave_set->size()) {
-			send_to(to_grave_set, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(std::move(*to_grave_set), 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		}
 		delete to_grave_set;
 		return FALSE;
