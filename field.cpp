@@ -2096,12 +2096,9 @@ void field::check_card_counter(card* pcard, ActivityType counter_type, int32_t p
 		auto& player_counter = info.player_amount[playerid];
 		if(player_counter != 0)
 			continue;
-		if(info.check_function) {
-			pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
-			if(!pduel->lua->check_condition(info.check_function, 1)) {
-				++player_counter;
-			}
-		}
+		pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
+		if(!pduel->lua->check_condition(info.check_function, 1))
+			++player_counter;
 	}
 }
 void field::check_card_counter(group* pgroup, ActivityType counter_type, int32_t playerid) {
@@ -2110,13 +2107,11 @@ void field::check_card_counter(group* pgroup, ActivityType counter_type, int32_t
 		auto& player_counter = info.player_amount[playerid];
 		if(player_counter != 0)
 			continue;
-		if(info.check_function) {
-			for(auto& pcard : pgroup->container) {
-				pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
-				if(!pduel->lua->check_condition(info.check_function, 1)) {
-					++player_counter;
-					break;
-				}
+		for(auto& pcard : pgroup->container) {
+			pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
+			if(!pduel->lua->check_condition(info.check_function, 1)) {
+				++player_counter;
+				break;
 			}
 		}
 	}
@@ -2126,16 +2121,14 @@ chain::applied_chain_counter_t* field::check_chain_counter(effect* peffect, int3
 	chain::applied_chain_counter_t* ret = nullptr;
 	for(auto& iter : core.chain_counter) {
 		auto& info = iter.second;
-		if(info.check_function) {
-			pduel->lua->add_param<PARAM_TYPE_EFFECT>(peffect);
-			pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
-			pduel->lua->add_param<PARAM_TYPE_INT>(chainid);
-			if(!pduel->lua->check_condition(info.check_function, 3)) {
-				if(ret == nullptr)
-					ret = new chain::applied_chain_counter_t;
-				++info.player_amount[playerid];
-				ret->push_back(iter.first);
-			}
+		pduel->lua->add_param<PARAM_TYPE_EFFECT>(peffect);
+		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
+		pduel->lua->add_param<PARAM_TYPE_INT>(chainid);
+		if(!pduel->lua->check_condition(info.check_function, 3)) {
+			if(ret == nullptr)
+				ret = new chain::applied_chain_counter_t;
+			++info.player_amount[playerid];
+			ret->push_back(iter.first);
 		}
 	}
 	return ret;
