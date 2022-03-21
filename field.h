@@ -69,6 +69,8 @@ struct chain {
 	uint32_t flag;
 	uint32_t event_id;
 	bool was_just_sent{ false };
+	using applied_chain_counter_t = std::vector<uint32_t>;
+	applied_chain_counter_t* applied_chain_counters;
 	static bool chain_operation_sort(const chain& c1, const chain& c2);
 	void set_triggering_state(card* pcard);
 };
@@ -499,7 +501,8 @@ public:
 	int32_t check_spsummon_once(card* pcard, uint8_t playerid);
 	void check_card_counter(card* pcard, ActivityType counter_type, int32_t playerid);
 	void check_card_counter(group* pgroup, ActivityType counter_type, int32_t playerid);
-	void check_chain_counter(effect* peffect, int32_t playerid, int32_t chainid, bool cancel = false);
+	chain::applied_chain_counter_t* check_chain_counter(effect* peffect, int32_t playerid, int32_t chainid);
+	void restore_chain_counter(uint8_t playerid, const chain::applied_chain_counter_t& counters);
 	void set_spsummon_counter(uint8_t playerid, bool add = true, bool chain = false);
 	int32_t check_spsummon_counter(uint8_t playerid, uint8_t ct = 1);
 
