@@ -381,6 +381,24 @@ struct processor {
 	action_counter_t chain_counter;
 	processor_list recover_damage_reserve;
 	effect_vector dec_count_reserve;
+	action_counter_t& get_counter_map(ActivityType counter_type) {
+		switch(counter_type) {
+			case ACTIVITY_SUMMON:
+				return summon_counter;
+			case ACTIVITY_NORMALSUMMON:
+				return normalsummon_counter;
+			case ACTIVITY_SPSUMMON:
+				return spsummon_counter;
+			case ACTIVITY_FLIPSUMMON:
+				return flipsummon_counter;
+			case ACTIVITY_ATTACK:
+				return attack_counter;
+			case ACTIVITY_CHAIN:
+				return chain_counter;
+			default:
+				unreachable();
+		}
+	}
 };
 class field {
 public:
