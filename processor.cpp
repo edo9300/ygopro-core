@@ -4046,18 +4046,16 @@ int32_t field::process_turn(uint16_t step, uint8_t turn_player) {
 		for(auto& peffect : effects.rechargeable)
 			if(!peffect->is_flag(EFFECT_FLAG_NO_TURN_RESET))
 				peffect->recharge();
-		for(auto& iter : core.summon_counter)
-			iter.second.second = 0;
-		for(auto& iter : core.normalsummon_counter)
-			iter.second.second = 0;
-		for(auto& iter : core.spsummon_counter)
-			iter.second.second = 0;
-		for(auto& iter : core.flipsummon_counter)
-			iter.second.second = 0;
-		for(auto& iter : core.attack_counter)
-			iter.second.second = 0;
-		for(auto& iter : core.chain_counter)
-			iter.second.second = 0;
+		auto clear_counter = [](processor::action_counter_t& counter) {
+			for(auto& iter : counter)
+				iter.second.player_amount[0] = iter.second.player_amount[1] = 0;
+		};
+		clear_counter(core.summon_counter);
+		clear_counter(core.normalsummon_counter);
+		clear_counter(core.spsummon_counter);
+		clear_counter(core.flipsummon_counter);
+		clear_counter(core.attack_counter);
+		clear_counter(core.chain_counter);
 		if(core.global_flag & GLOBALFLAG_SPSUMMON_COUNT) {
 			for(auto& peffect : effects.spsummon_count_eff) {
 				card* pcard = peffect->get_handler();

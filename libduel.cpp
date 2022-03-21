@@ -4142,7 +4142,7 @@ int32_t duel_add_custom_activity_counter(lua_State* L) {
 	}();
 	if(counter_map.find(counter_id) != counter_map.end())
 		return 0;
-	counter_map.emplace(counter_id, std::make_pair(counter_filter, 0));
+	counter_map.emplace(counter_id, processor::action_value_t{ counter_filter, 0, 0 });
 	return 0;
 }
 int32_t duel_get_custom_activity_count(lua_State* L) {
@@ -4173,11 +4173,8 @@ int32_t duel_get_custom_activity_count(lua_State* L) {
 	int32_t val = 0;
 	auto it = counter_map.find(counter_id);
 	if(it != counter_map.end())
-		val = it->second.second;
-	if(playerid == 0)
-		lua_pushinteger(L, val & 0xffff);
-	else
-		lua_pushinteger(L, (val >> 16) & 0xffff);
+		val = it->second.player_amount[playerid];
+	lua_pushinteger(L, val);
 	return 1;
 }
 

@@ -2107,17 +2107,13 @@ static auto& get_counter_map(processor& core, ActivityType counter_type) {
 void field::check_card_counter(card* pcard, ActivityType counter_type, int32_t playerid) {
 	for(auto& iter : get_counter_map(core, counter_type)) {
 		auto& info = iter.second;
-		if((playerid == 0) && (info.second & 0xffff) != 0)
+		auto& player_counter = info.player_amount[playerid];
+		if(player_counter != 0)
 			continue;
-		if((playerid == 1) && (info.second & 0xffff0000) != 0)
-			continue;
-		if(info.first) {
+		if(info.check_function) {
 			pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
-			if(!pduel->lua->check_condition(info.first, 1)) {
-				if(playerid == 0)
-					info.second += 0x1;
-				else
-					info.second += 0x10000;
+			if(!pduel->lua->check_condition(info.check_function, 1)) {
+				++player_counter;
 			}
 		}
 	}
@@ -2125,18 +2121,14 @@ void field::check_card_counter(card* pcard, ActivityType counter_type, int32_t p
 void field::check_card_counter(group* pgroup, ActivityType counter_type, int32_t playerid) {
 	for(auto& iter : get_counter_map(core, counter_type)) {
 		auto& info = iter.second;
-		if((playerid == 0) && (info.second & 0xffff) != 0)
+		auto& player_counter = info.player_amount[playerid];
+		if(player_counter != 0)
 			continue;
-		if((playerid == 1) && (info.second & 0xffff0000) != 0)
-			continue;
-		if(info.first) {
+		if(info.check_function) {
 			for(auto& pcard : pgroup->container) {
 				pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
-				if(!pduel->lua->check_condition(info.first, 1)) {
-					if(playerid == 0)
-						info.second += 0x1;
-					else
-						info.second += 0x10000;
+				if(!pduel->lua->check_condition(info.check_function, 1)) {
+					++player_counter;
 					break;
 				}
 			}
@@ -2147,22 +2139,16 @@ void field::check_card_counter(group* pgroup, ActivityType counter_type, int32_t
 void field::check_chain_counter(effect* peffect, int32_t playerid, int32_t chainid, bool cancel) {
 	for(auto& iter : core.chain_counter) {
 		auto& info = iter.second;
-		if(info.first) {
+		if(info.check_function) {
 			pduel->lua->add_param<PARAM_TYPE_EFFECT>(peffect);
 			pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
 			pduel->lua->add_param<PARAM_TYPE_INT>(chainid);
-			if(!pduel->lua->check_condition(info.first, 3)) {
-				if(playerid == 0) {
-					if(!cancel)
-						info.second += 0x1;
-					else if(info.second & 0xffff)
-						info.second -= 0x1;
-				} else {
-					if(!cancel)
-						info.second += 0x10000;
-					else if(info.second & 0xffff0000)
-						info.second -= 0x10000;
-				}
+			if(!pduel->lua->check_condition(info.check_function, 3)) {
+				auto& player_counter = info.player_amount[playerid];
+				if(!cancel)
+					++player_counter;
+				else if(player_counter != 0)
+					--player_counter;
 			}
 		}
 	}

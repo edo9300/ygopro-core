@@ -211,7 +211,11 @@ struct processor {
 		int32_t player;
 	};
 	using chain_limit_list = std::vector<chain_limit_t>;
-	using action_counter_t = std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>>;
+	struct action_value_t {
+		int32_t check_function;
+		uint16_t player_amount[2];
+	};
+	using action_counter_t = std::unordered_map<uint32_t, action_value_t>;
 
 	processor_list units;
 	processor_list subunits;
