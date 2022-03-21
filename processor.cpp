@@ -4855,6 +4855,10 @@ int32_t field::solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chain
 			core.units.begin()->step = 9;
 			return FALSE;
 		}
+		if(cait->applied_chain_counters != nullptr) {
+			delete cait->applied_chain_counters;
+			cait->applied_chain_counters = nullptr;
+		}
 		release_oath_relation(peffect);
 		break_effect();
 		core.chain_solving = TRUE;
