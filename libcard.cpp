@@ -2842,7 +2842,7 @@ static constexpr luaL_Reg cardlib[] = {
 	{ "IsCanTurnSet", card_is_can_turn_set },
 	{ "IsCanAddCounter", card_is_can_add_counter },
 	{ "IsCanRemoveCounter", card_is_can_remove_counter },
-	{ "IsCanOverlay", card_is_can_overlay },
+	{ "IsCanBeOverlay", card_is_can_overlay },
 	{ "IsCanBeFusionMaterial", card_is_can_be_fusion_material },
 	{ "IsCanBeSynchroMaterial", card_is_can_be_synchro_material },
 	{ "IsCanBeRitualMaterial", card_is_can_be_ritual_material },
