@@ -2199,14 +2199,6 @@ int32_t card_is_can_remove_counter(lua_State* L) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_counter(playerid, pcard, 0, 0, countertype, count, reason));
 	return 1;
 }
-int32_t card_is_can_overlay(lua_State* L) {
-	check_param_count(L, 1);
-	const auto pduel = lua_get<duel*>(L);
-	auto pcard = lua_get<card*, true>(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, pcard->is_capable_overlay(playerid));
-	return 1;
-}
 int32_t card_is_can_be_fusion_material(lua_State* L) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -2842,7 +2834,6 @@ static constexpr luaL_Reg cardlib[] = {
 	{ "IsCanTurnSet", card_is_can_turn_set },
 	{ "IsCanAddCounter", card_is_can_add_counter },
 	{ "IsCanRemoveCounter", card_is_can_remove_counter },
-	{ "IsCanBeOverlay", card_is_can_overlay },
 	{ "IsCanBeFusionMaterial", card_is_can_be_fusion_material },
 	{ "IsCanBeSynchroMaterial", card_is_can_be_synchro_material },
 	{ "IsCanBeRitualMaterial", card_is_can_be_ritual_material },
