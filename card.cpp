@@ -4162,25 +4162,29 @@ int32_t card::is_can_be_ritual_material(card* scard, uint8_t playerid) {
 	}
 	return TRUE;
 }
-int32_t card::is_can_be_xyz_material(card* scard, uint8_t playerid) {
+int32_t card::is_can_be_xyz_material(card* scard, uint8_t playerid, uint32_t reason) {
 	if(data.type & TYPE_TOKEN)
 		return FALSE;
+	if((!(current.location & LOCATION_ONFIELD) || (reason & REASON_MATERIAL)) && is_status(STATUS_FORBIDDEN))
+		return FALSE;
+	if(reason & REASON_EFFECT)
+		return (current.controler == playerid) || is_capable_change_control();
 	if(!(get_type(scard, SUMMON_TYPE_XYZ, playerid) & TYPE_MONSTER))
 		return FALSE;
-	if(is_status(STATUS_FORBIDDEN))
-		return FALSE;
-	effect_set eset;
-	filter_effect(EFFECT_CANNOT_BE_XYZ_MATERIAL, &eset);
-	for(const auto& peffect : eset)
-		if(peffect->get_value(scard))
-			return FALSE;
-	eset.clear();
-	filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
-	for(const auto& peffect : eset) {
-		pduel->lua->add_param<PARAM_TYPE_INT>(SUMMON_TYPE_XYZ);
-		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
-		if(peffect->get_value(scard, 2))
-			return FALSE;
+	if(reason & REASON_MATERIAL) {
+		effect_set eset;
+		filter_effect(EFFECT_CANNOT_BE_XYZ_MATERIAL, &eset);
+		for(const auto& peffect : eset)
+			if(peffect->get_value(scard))
+				return FALSE;
+		eset.clear();
+		filter_effect(EFFECT_CANNOT_BE_MATERIAL, &eset);
+		for(const auto& peffect : eset) {
+			pduel->lua->add_param<PARAM_TYPE_INT>(SUMMON_TYPE_XYZ);
+			pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
+			if(peffect->get_value(scard, 2))
+				return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -4212,7 +4216,7 @@ int32_t card::is_can_be_material(card* scard, uint64_t sumtype, uint8_t playerid
 	if(sumtype & SUMMON_TYPE_RITUAL)
 		return is_can_be_ritual_material(scard, playerid);
 	if(sumtype & SUMMON_TYPE_XYZ)
-		return is_can_be_xyz_material(scard, playerid);
+		return is_can_be_xyz_material(scard, playerid, REASON_XYZ | REASON_MATERIAL);
 	if(sumtype & SUMMON_TYPE_LINK)
 		return is_can_be_link_material(scard, playerid);
 	if(is_status(STATUS_FORBIDDEN))

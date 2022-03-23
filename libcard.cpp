@@ -2238,11 +2238,12 @@ int32_t card_is_can_be_ritual_material(lua_State* L) {
 int32_t card_is_can_be_xyz_material(lua_State* L) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	card* scard = 0;
-	if(lua_gettop(L) >= 2)
-		scard = lua_get<card*, true>(L, 2);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 3);
-	lua_pushboolean(L, pcard->is_can_be_xyz_material(scard, playerid));
+	card* scard = nullptr;
+	if(!lua_isnoneornil(L, 2))
+		lua_get<card*, true>(L, 2);
+	auto playerid = lua_get<uint8_t>(L, 3, lua_get<duel*>(L)->game_field->core.reason_player);
+	auto reason = lua_get<uint32_t, REASON_XYZ | REASON_MATERIAL>(L, 4);
+	lua_pushboolean(L, pcard->is_can_be_xyz_material(scard, playerid, reason));
 	return 1;
 }
 int32_t card_is_can_be_link_material(lua_State* L) {

@@ -317,7 +317,7 @@ public:
 	int32_t is_can_be_fusion_material(card* fcard, uint64_t summon_type, uint8_t playerid);
 	int32_t is_can_be_synchro_material(card* scard, uint8_t playerid, card* tuner = 0);
 	int32_t is_can_be_ritual_material(card* scard, uint8_t playerid);
-	int32_t is_can_be_xyz_material(card* scard, uint8_t playerid);
+	int32_t is_can_be_xyz_material(card* scard, uint8_t playerid, uint32_t reason);
 	int32_t is_can_be_link_material(card* scard, uint8_t playerid);
 	int32_t is_can_be_material(card* scard, uint64_t sumtype, uint8_t playerid);
 	bool recreate(uint32_t code);
