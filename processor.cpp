@@ -650,17 +650,17 @@ int32_t field::process() {
 			else
 				add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, it->arg1, 0);
 			++it->step;
-		} else if(it->step==1){
-			tevent e;
-			e.event_cards = it->ptarget;
-			e.reason_effect = core.select_effects[returns.at<int32_t>(0)];
-			e.reason_player = it->arg1;
+		} else if(it->step==1) {
 			core.fusion_materials.clear();
 			if(!core.select_effects[returns.at<int32_t>(0)]) {
 				core.units.pop_front();
 				return PROCESSOR_FLAG_CONTINUE;
 			}
-			core.sub_solving_event.push_back(e);
+			core.sub_solving_event.emplace_back();
+			auto& e = core.sub_solving_event.back();
+			e.event_cards = it->ptarget;
+			e.reason_effect = core.select_effects[returns.at<int32_t>(0)];
+			e.reason_player = it->arg1;
 			pduel->lua->add_param<PARAM_TYPE_GROUP>(it->ptr1);
 			pduel->lua->add_param<PARAM_TYPE_INT>(it->arg1 >> 16);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.select_effects[returns.at<int32_t>(0)], 0, it->arg1 & 0xffff, 0);
