@@ -190,8 +190,21 @@ int32_t effect_set_label(lua_State* L) {
 int32_t effect_set_label_object(lua_State* L) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->label_object)
+	if(peffect->label_object) {
+		lua_rawgeti(L, LUA_REGISTRYINDEX, peffect->label_object);
+		auto obj = reinterpret_cast<lua_obj**>(lua_touserdata(L, -1));
+		if(obj != nullptr && (*obj)->lua_type == PARAM_TYPE_GROUP) {
+			auto pgroup = static_cast<group*>(*obj);
+			lua_pop(L, 1);
+			do {
+				if(pgroup->is_readonly != 2)
+					break;
+				pgroup->is_readonly = 0;
+				lua_get<duel*>(L)->sgroups.insert(pgroup);
+			} while(0);
+		}
 		luaL_unref(L, LUA_REGISTRYINDEX, peffect->label_object);
+	}
 	peffect->label_object = 0;
 	if(lua_isnoneornil(L, 2))
 		return 0;

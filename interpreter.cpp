@@ -103,8 +103,21 @@ void interpreter::unregister_effect(effect* peffect) {
 		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->operation);
 	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
 		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->value);
-	if(peffect->label_object)
+	if(peffect->label_object) {
+		lua_rawgeti(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
+		auto obj = reinterpret_cast<lua_obj**>(lua_touserdata(lua_state, -1));
+		if(obj != nullptr && (*obj)->lua_type == PARAM_TYPE_GROUP) {
+			auto pgroup = static_cast<group*>(*obj);
+			lua_pop(lua_state, 1);
+			do {
+				if(pgroup->is_readonly != 2)
+					break;
+				pgroup->is_readonly = 0;
+				pduel->sgroups.insert(pgroup);
+			} while(0);
+		}
 		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
+	}
 	remove_object(lua_state, peffect, &deleted);
 }
 void interpreter::register_group(group* pgroup) {
