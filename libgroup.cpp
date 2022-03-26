@@ -186,7 +186,7 @@ int32_t group_filter_in_place(lua_State* L) {
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
 	card_set::const_iterator pexbegin, pexend;
-	if(!(pexception = lua_get<card*>(L, 3))) {
+	if((pexception = lua_get<card*>(L, 3)) != nullptr) {
 		if((pexgroup = lua_get<group*>(L, 3)) != nullptr) {
 			pexbegin = pexgroup->container.cbegin();
 			pexend = pexgroup->container.cend();
