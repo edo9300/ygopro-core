@@ -24,16 +24,24 @@ newoption {
 	location "build"
 	language "C++"
 	objdir "obj"
-	if _OPTIONS["oldwindows"] then
-		filter "action:vs*"
-			toolset "v141_xp"
-
-		filter {}
-	end
 	configurations { "Debug", "Release" }
 	
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
+		platforms {"Win32", "x64"}
+
+	filter "platforms:Win32"
+		architecture "x86"
+
+	filter "platforms:x64"
+		architecture "x64"
+
+	if _OPTIONS["oldwindows"] then
+		filter { "architecture:not *64" , "action:vs*" }
+			toolset "v141_xp"
+
+		filter {}
+	end
 	
 	filter "system:not windows"
 		includedirs "/usr/local/include"
