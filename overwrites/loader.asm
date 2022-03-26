@@ -1,3 +1,11 @@
+IFDEF RAX
+    END_IF_NOT_X86 equ end  ; kill stop the assembler if we're not compiling for x86
+ELSE
+    END_IF_NOT_X86 equ <>
+ENDIF
+
+END_IF_NOT_X86
+
 .model flat
 
 ;windows 2000 sp4

@@ -1,3 +1,4 @@
+#ifndef _WIN64
 #include <Windows.h>
 #include <winternl.h>
 
@@ -235,3 +236,4 @@ MAKELOADER(EncodePointer, PVOID, (PVOID ptr), (ptr)) {
 MAKELOADER(DecodePointer, PVOID, (PVOID ptr), (ptr)) {
 	return (PVOID)((UINT_PTR)ptr ^ 0xDEADBEEF);
 }
+#endif
