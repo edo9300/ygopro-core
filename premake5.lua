@@ -60,6 +60,9 @@ newoption {
 		defines "_DEBUG"
 		targetdir "bin/debug"
 		runtime "Debug"
+
+	filter { "action:vs*", "configurations:Debug", "architecture:*64" }
+		targetdir "bin/x64/debug"
 	
 	filter { "configurations:Release" , "action:not vs*" }
 		symbols "On"
@@ -68,6 +71,9 @@ newoption {
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
+
+	filter { "action:vs*", "configurations:Release", "architecture:*64" }
+		targetdir "bin/x64/release"
 	
 	local function vcpkgStaticTriplet(prj)
 		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'Win32\'">x86-windows-static</VcpkgTriplet>')
