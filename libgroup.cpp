@@ -140,7 +140,7 @@ int32_t group_take_at_pos(lua_State* L) {
 	check_param_count(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	auto pos = lua_get<size_t>(L, 2);
-	if(pos > pgroup->container.size())
+	if(pos >= pgroup->container.size())
 		lua_pushnil(L);
 	else {
 		auto cit = pgroup->container.begin();
