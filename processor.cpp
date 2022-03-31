@@ -5275,17 +5275,18 @@ int32_t field::refresh_location_info(uint16_t step) {
 		return FALSE;
 	}
 	case 2: {
-		returns.at<int32_t>(0) &= 0xff7fff7f;
-		if(returns.at<int32_t>(0) == 0)
-			returns.at<int32_t>(0) = 0x80;
+		auto& disabled_locations = returns.at<int32_t>(0);
+		disabled_locations &= 0xff7fff7f;
+		if(disabled_locations == 0)
+			disabled_locations = 0x80;
 		if(core.units.begin()->peffect->get_handler_player() == 0) {
-			core.units.begin()->peffect->value = returns.at<int32_t>(0);
-			player[0].disabled_location |= returns.at<int32_t>(0) & 0xff7f;
-			player[1].disabled_location |= (returns.at<int32_t>(0) >> 16) & 0xff7f;
+			core.units.begin()->peffect->value = disabled_locations;
+			player[0].disabled_location |= disabled_locations & 0xff7f;
+			player[1].disabled_location |= (disabled_locations >> 16) & 0xff7f;
 		} else {
-			core.units.begin()->peffect->value = ((returns.at<int32_t>(0) << 16) | (returns.at<int32_t>(0) >> 16));
-			player[1].disabled_location |= returns.at<int32_t>(0) & 0xff7f;
-			player[0].disabled_location |= (returns.at<int32_t>(0) >> 16) & 0xff7f;
+			core.units.begin()->peffect->value = ((disabled_locations << 16) | (disabled_locations >> 16));
+			player[1].disabled_location |= disabled_locations & 0xff7f;
+			player[0].disabled_location |= (disabled_locations >> 16) & 0xff7f;
 		}
 		core.units.begin()->step = 0;
 		return FALSE;
