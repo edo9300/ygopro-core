@@ -458,14 +458,18 @@ int32_t field::process() {
 		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_DAMAGE: {
-		int32_t reason = it->arg1;
-		effect* reason_effect = 0;
-		card* reason_card = 0;
+		uint32_t reason = static_cast<uint32_t>(it->arg1);
+		effect* reason_effect = nullptr;
+		card* reason_card = nullptr;
 		if(reason & REASON_BATTLE)
 			reason_card = (card*)it->peffect;
 		else
 			reason_effect = it->peffect;
-		if (damage(it->step, reason_effect, reason, (it->arg2 >> 26) & 0x3, reason_card, (it->arg2 >> 24) & 0x3, it->arg2 & 0xffffff, (it->arg2 >> 28) & 0x1)) {
+		uint32_t amount = static_cast<uint32_t>(it->arg3);
+		uint8_t reason_player = (it->arg2 >> 26) & 0x3;
+		uint8_t playerid = (it->arg2 >> 24) & 0x3;
+		bool is_step = (it->arg2 >> 28) & 0x1;
+		if (damage(it->step, reason_effect, reason, reason_player, reason_card, playerid, amount, is_step)) {
 			if(it->step == 9) {
 				it->step = 1;
 				core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units, it);
@@ -476,7 +480,12 @@ int32_t field::process() {
 		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_RECOVER: {
-		if (recover(it->step, it->peffect, it->arg1, (it->arg2 >> 26) & 0x3, (it->arg2 >> 24) & 0x3, it->arg2 & 0xffffff, (it->arg2 >> 28) & 0x1)) {
+		uint32_t reason = static_cast<uint32_t>(it->arg1);
+		uint8_t reason_player = (it->arg2 >> 26) & 0x3;
+		uint8_t playerid = (it->arg2 >> 24) & 0x3;
+		uint32_t amount = static_cast<uint32_t>(it->arg3);
+		bool is_step = (it->arg2 >> 28) & 0x1;
+		if (recover(it->step, it->peffect, reason, reason_player, playerid, amount, is_step)) {
 			if(it->step == 9) {
 				it->step = 1;
 				core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units, it);

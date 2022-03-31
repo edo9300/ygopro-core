@@ -134,15 +134,16 @@ void field::equip(uint32_t equip_player, card* equip_card, card* target, uint32_
 void field::draw(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t count) {
 	add_process(PROCESSOR_DRAW, 0, reason_effect, 0, reason, (reason_player << 28) + (playerid << 24) + (count & 0xffffff));
 }
-void field::damage(effect* reason_effect, uint32_t reason, uint32_t reason_player, card* reason_card, uint32_t playerid, uint32_t amount, uint32_t is_step) {
-	uint32_t arg2 = (is_step << 28) + (reason_player << 26) + (playerid << 24) + (amount & 0xffffff);
+void field::damage(effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, bool is_step) {
+	uint32_t arg2 = (is_step << 28) + (reason_player << 26) + (playerid << 24);
 	if(reason & REASON_BATTLE)
-		add_process(PROCESSOR_DAMAGE, 0, (effect*)reason_card, 0, reason, arg2);
+		reason_effect = nullptr;
 	else
-		add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2);
+		reason_card = nullptr;
+	add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2, amount, 0, reason_effect);
 }
-void field::recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, uint32_t is_step) {
-	add_process(PROCESSOR_RECOVER, 0, reason_effect, 0, reason, (is_step << 28) + (reason_player << 26) + (playerid << 24) + (amount & 0xffffff));
+void field::recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, bool is_step) {
+	add_process(PROCESSOR_RECOVER, 0, reason_effect, 0, reason, (is_step << 28) + (reason_player << 26) + (playerid << 24), amount);
 }
 void field::summon(uint32_t sumplayer, card* target, effect* proc, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone) {
 	add_process(PROCESSOR_SUMMON_RULE, 0, proc, (group*)target, sumplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24), 0);
@@ -487,12 +488,12 @@ int32_t field::draw(uint16_t step, effect* reason_effect, uint32_t reason, uint8
 	}
 	return TRUE;
 }
-int32_t field::damage(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, uint32_t is_step) {
+int32_t field::damage(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, bool is_step) {
 	switch(step) {
 	case 0: {
 		effect_set eset;
-		returns.at<int32_t>(0) = amount;
-		if(amount <= 0)
+		returns.at<uint32_t>(0) = amount;
+		if(amount == 0)
 			return TRUE;
 		if(!(reason & REASON_RDAMAGE)) {
 			filter_player_effect(playerid, EFFECT_REVERSE_DAMAGE, &eset);
@@ -531,12 +532,12 @@ int32_t field::damage(uint16_t step, effect* reason_effect, uint32_t reason, uin
 			pduel->lua->add_param<PARAM_TYPE_INT>(reason);
 			pduel->lua->add_param<PARAM_TYPE_INT>(reason_player);
 			pduel->lua->add_param<PARAM_TYPE_CARD>(reason_card);
-			val = peff->get_value(5);
-			returns.at<int32_t>(0) = val;
+			val = static_cast<uint32_t>(peff->get_value(5));
+			returns.at<uint32_t>(0) = val;
 			if(val == 0)
 				return TRUE;
 		}
-		core.units.begin()->arg2 = (core.units.begin()->arg2 & 0xff000000) | (val & 0xffffff);
+		core.units.begin()->arg3 = val;
 		if(is_step) {
 			core.units.begin()->step = 9;
 			return TRUE;
@@ -544,7 +545,7 @@ int32_t field::damage(uint16_t step, effect* reason_effect, uint32_t reason, uin
 		return FALSE;
 	}
 	case 1: {
-		uint32_t is_reflect = (core.units.begin()->arg2 >> 29) & 1;
+		bool is_reflect = (core.units.begin()->arg2 >> 29) & 1;
 		if(is_reflect)
 			playerid = 1 - playerid;
 		if(is_reflect || (reason & REASON_RRECOVER))
@@ -570,11 +571,11 @@ int32_t field::damage(uint16_t step, effect* reason_effect, uint32_t reason, uin
 		return FALSE;
 	}
 	case 2: {
-		returns.at<int32_t>(0) = amount;
+		returns.at<uint32_t>(0) = amount;
 		return TRUE;
 	}
 	case 3: {
-		returns.at<int32_t>(0) = 0;
+		returns.at<uint32_t>(0) = 0;
 		return TRUE;
 	}
 	case 10: {
@@ -584,12 +585,12 @@ int32_t field::damage(uint16_t step, effect* reason_effect, uint32_t reason, uin
 	}
 	return TRUE;
 }
-int32_t field::recover(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint32_t amount, uint32_t is_step) {
+int32_t field::recover(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint32_t amount, bool is_step) {
 	switch(step) {
 	case 0: {
 		effect_set eset;
-		returns.at<int32_t>(0) = amount;
-		if(amount <= 0)
+		returns.at<uint32_t>(0) = amount;
+		if(amount == 0)
 			return TRUE;
 		if(!(reason & REASON_RRECOVER)) {
 			filter_player_effect(playerid, EFFECT_REVERSE_RECOVER, &eset);
@@ -623,11 +624,11 @@ int32_t field::recover(uint16_t step, effect* reason_effect, uint32_t reason, ui
 		return FALSE;
 	}
 	case 2: {
-		returns.at<int32_t>(0) = amount;
+		returns.at<uint32_t>(0) = amount;
 		return TRUE;
 	}
 	case 3: {
-		returns.at<int32_t>(0) = 0;
+		returns.at<uint32_t>(0) = 0;
 		return TRUE;
 	}
 	case 10: {

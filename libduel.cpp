@@ -1189,15 +1189,16 @@ int32_t duel_damage(lua_State* L) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto amount = lua_get<int32_t>(L, 2);
-	if(amount < 0)
-		amount = 0;
+	auto amount = lua_get<int64_t>(L, 2);
+	uint32_t actual_amount = 0;
+	if(amount > 0)
+		actual_amount = static_cast<uint32_t>(amount);
 	auto reason = lua_get<uint32_t>(L, 3);
 	bool is_step = lua_get<bool, false>(L, 4);
 	const auto pduel = lua_get<duel*>(L);
-	pduel->game_field->damage(pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, 0, playerid, amount, is_step);
+	pduel->game_field->damage(pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, 0, playerid, actual_amount, is_step);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
-		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
+		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<uint32_t>(0));
 		return 1;
 	});
 }
@@ -1207,15 +1208,16 @@ int32_t duel_recover(lua_State* L) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto amount = lua_get<int32_t>(L, 2);
-	if(amount < 0)
-		amount = 0;
+	auto amount = lua_get<int64_t>(L, 2);
+	uint32_t actual_amount = 0;
+	if(amount > 0)
+		actual_amount = static_cast<uint32_t>(amount);
 	auto reason = lua_get<uint32_t>(L, 3);
 	bool is_step = lua_get<bool, false>(L, 4);
 	const auto pduel = lua_get<duel*>(L);
-	pduel->game_field->recover(pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, amount, is_step);
+	pduel->game_field->recover(pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, actual_amount, is_step);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
-		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
+		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<uint32_t>(0));
 		return 1;
 	});
 }
