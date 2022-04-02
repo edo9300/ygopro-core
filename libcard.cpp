@@ -886,7 +886,7 @@ int32_t card_is_race(lua_State* L) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
-	auto trace = lua_get<uint32_t>(L, 2);
+	auto trace = lua_get<uint64_t>(L, 2);
 	card* scard = 0;
 	auto playerid = PLAYER_NONE;
 	if(lua_gettop(L) > 2 && !lua_isnoneornil(L, 3))
@@ -2320,7 +2320,7 @@ int32_t card_add_monster_attribute(lua_State* L) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto type = lua_get<uint32_t>(L, 2);
 	auto attribute = lua_get<uint32_t, 0>(L, 3);
-	auto race = lua_get<uint32_t, 0>(L, 4);
+	auto race = lua_get<uint64_t, 0>(L, 4);
 	auto level = lua_get<uint32_t, 0>(L, 5);
 	auto atk = lua_get<int32_t, 0>(L, 6);
 	auto def = lua_get<int32_t, 0>(L, 7);
@@ -2535,7 +2535,7 @@ int32_t card_set_spsummon_once(lua_State* L) {
 	check_param_count(L, 1);\
 	auto pcard = lua_get<card*, true>(L, 1);\
 	if(lua_gettop(L) > 1) {\
-		pcard->data.attr = lua_get<uint32_t>(L, 2);\
+		pcard->data.attr = lua_get<decltype(pcard->data.attr)>(L, 2);\
 		return 0;\
 	} else \
 		lua_pushinteger(L, pcard->data.attr);\
@@ -2588,7 +2588,7 @@ int32_t card_recreate(lua_State* L) {
 		pcard->data.type = lua_get<uint32_t>(L, 5, pcard->data.type);
 		pcard->data.level = lua_get<uint32_t>(L, 6, pcard->data.level);
 		pcard->data.attribute = lua_get<uint32_t>(L, 7, pcard->data.attribute);
-		pcard->data.race = lua_get<uint32_t>(L, 8, pcard->data.race);
+		pcard->data.race = lua_get<uint64_t>(L, 8, pcard->data.race);
 		pcard->data.attack = lua_get<int32_t>(L, 9, pcard->data.attack);
 		pcard->data.defense = lua_get<int32_t>(L, 10, pcard->data.defense);
 		pcard->data.lscale = lua_get<uint32_t>(L, 11, pcard->data.lscale);

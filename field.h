@@ -682,8 +682,8 @@ public:
 	int32_t select_counter(uint16_t step, uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t s, uint8_t o);
 	int32_t select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc, int32_t min, int32_t max);
 	int32_t sort_card(int16_t step, uint8_t playerid, uint8_t is_chain);
-	int32_t announce_race(int16_t step, uint8_t playerid, int32_t count, int32_t available);
-	int32_t announce_attribute(int16_t step, uint8_t playerid, int32_t count, int32_t available);
+	int32_t announce_race(int16_t step, uint8_t playerid, int32_t count, uint64_t available);
+	int32_t announce_attribute(int16_t step, uint8_t playerid, int32_t count, uint32_t available);
 	int32_t announce_card(int16_t step, uint8_t playerid);
 	int32_t announce_number(int16_t step, uint8_t playerid);
 };

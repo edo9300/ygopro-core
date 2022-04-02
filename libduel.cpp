@@ -3408,11 +3408,11 @@ int32_t duel_announce_race(lua_State* L) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint16_t>(L, 2);
-	auto available = lua_get<uint32_t>(L, 3);
+	auto available = lua_get<uint64_t>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_RACE, 0, 0, 0, playerid + (count << 16), available);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
-		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
+		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<uint64_t>(0));
 		return 1;
 	});
 }
@@ -3872,7 +3872,7 @@ int32_t duel_is_player_can_spsummon_monster(lua_State* L) {
 	if(!lua_isnoneornil(L, 7))
 		dat.level = lua_get<uint32_t>(L, 7);
 	if(!lua_isnoneornil(L, 8))
-		dat.race = lua_get<uint32_t>(L, 8);
+		dat.race = lua_get<uint64_t>(L, 8);
 	if(!lua_isnoneornil(L, 9))
 		dat.attribute = lua_get<uint32_t>(L, 9);
 	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 10);
