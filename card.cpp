@@ -27,7 +27,7 @@ bool card_state::is_location(int32_t loc) const {
 }
 template<typename T>
 static constexpr void set_max_property_val(T& val) {
-	val = ~T();
+	val = (T)~T();
 }
 template<typename T>
 static constexpr bool has_valid_property_val(T val) {
