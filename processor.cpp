@@ -462,7 +462,7 @@ int32_t field::process() {
 		effect* reason_effect = nullptr;
 		card* reason_card = nullptr;
 		if(reason & REASON_BATTLE)
-			reason_card = (card*)it->peffect;
+			reason_card = static_cast<card*>(it->ptr1);
 		else
 			reason_effect = it->peffect;
 		uint32_t amount = static_cast<uint32_t>(it->arg3);

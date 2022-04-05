@@ -140,7 +140,7 @@ void field::damage(effect* reason_effect, uint32_t reason, uint8_t reason_player
 		reason_effect = nullptr;
 	else
 		reason_card = nullptr;
-	add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2, amount, 0, reason_effect);
+	add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2, amount, 0, reason_card);
 }
 void field::recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, bool is_step) {
 	add_process(PROCESSOR_RECOVER, 0, reason_effect, 0, reason, (is_step << 28) + (reason_player << 26) + (playerid << 24), amount);
