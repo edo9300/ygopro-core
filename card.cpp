@@ -1071,11 +1071,11 @@ uint32_t card::get_rank() {
 		return search->second;
 	if(!(current.location & LOCATION_MZONE))
 		return data.level;
-	if (has_valid_property_val(temp.level))
-		return temp.level;
+	if (has_valid_property_val(temp.rank))
+		return temp.rank;
 	effect_set effects;
 	int32_t rank = data.level;
-	temp.level = rank;
+	temp.rank = rank;
 	int32_t up = 0, upc = 0;
 	if (is_affected_by_effect(EFFECT_RANK_LEVEL_S) || is_affected_by_effect(EFFECT_LEVEL_RANK_S)) {
 		filter_effect(EFFECT_UPDATE_RANK, &effects, FALSE);
@@ -1111,7 +1111,7 @@ uint32_t card::get_rank() {
 			upc = 0;
 			break;
 		}
-		temp.level = rank + up + upc;
+		temp.rank = rank + up + upc;
 	}
 	rank += up + upc;
 	if(rank < 1 && (get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_ALLOW_NEGATIVE))
@@ -1127,11 +1127,11 @@ uint32_t card::get_link() {
 		return search->second;
 	if(!(current.location & LOCATION_MZONE))
 		return data.level;
-	if (has_valid_property_val(temp.level))
-		return temp.level;
+	if (has_valid_property_val(temp.link))
+		return temp.link;
 	effect_set effects;
 	int32_t link = data.level;
-	temp.level = link;
+	temp.link = link;
 	int32_t up = 0, upc = 0;
 	filter_effect(EFFECT_UPDATE_LINK, &effects, FALSE);
 	filter_effect(EFFECT_CHANGE_LINK, &effects, FALSE);
@@ -1154,12 +1154,12 @@ uint32_t card::get_link() {
 			upc = 0;
 			break;
 		}
-		temp.level = link + up + upc;
+		temp.link = link + up + upc;
 	}
 	link += up + upc;
 	if(link < 1 && (get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_ALLOW_NEGATIVE))
 		link = 1;
-	set_max_property_val(temp.rank);
+	set_max_property_val(temp.link);
 	return link;		
 }
 uint32_t card::get_synchro_level(card* pcard) {
