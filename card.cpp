@@ -787,7 +787,7 @@ int32_t card::get_attack() {
 	}
 	for(const auto& peffect : effects_atk)
 		temp.attack = peffect->get_value(this);
-	if(has_valid_property_val(temp.defense)) {
+	if(!has_valid_property_val(temp.defense)) {
 		if(swap_final) {
 			temp.attack = get_defense();
 		}
@@ -985,7 +985,7 @@ int32_t card::get_defense() {
 	}
 	for(const auto& peffect : effects_def)
 		temp.defense = peffect->get_value(this);
-	if(has_valid_property_val(temp.attack)) {
+	if(!has_valid_property_val(temp.attack)) {
 		if(swap_final) {
 			temp.defense = get_attack();
 		}
@@ -1063,8 +1063,8 @@ uint32_t card::get_level() {
 	return level;
 }
 uint32_t card::get_rank() {
-	if(((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S))) 
-	|| (data.type & TYPE_LINK))
+	if(((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S)))
+	   || (data.type & TYPE_LINK))
 		return 0;
 	auto search = assume.find(ASSUME_RANK);
 	if(search != assume.end())
