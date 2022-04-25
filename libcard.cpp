@@ -1370,7 +1370,7 @@ int32_t card_register_flag_effect(lua_State* L) {
 	auto reset = lua_get<uint32_t>(L, 3);
 	auto flag = lua_get<uint32_t>(L, 4);
 	auto count = lua_get<uint16_t>(L, 5);
-	auto lab = lua_get<uint32_t, 0>(L, 6);
+	auto lab = lua_get<lua_Integer, 0>(L, 6);
 	auto desc = lua_get<uint64_t, 0>(L, 7);
 	if(count == 0)
 		count = 1;

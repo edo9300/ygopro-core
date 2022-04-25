@@ -184,7 +184,7 @@ int32_t effect_set_label(lua_State* L) {
 	auto peffect = lua_get<effect*, true>(L, 1);
 	peffect->label.clear();
 	for(int32_t i = 2; i <= lua_gettop(L); ++i)
-		peffect->label.push_back(lua_get<uint32_t>(L, i));
+		peffect->label.push_back(lua_get<lua_Integer>(L, i));
 	return 0;
 }
 int32_t effect_set_label_object(lua_State* L) {
