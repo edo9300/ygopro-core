@@ -4,6 +4,7 @@ set -euxo pipefail
 
 TRAVIS_OS_NAME=${1:-$TRAVIS_OS_NAME}
 CXX=${CXX:-g++}
+MAKE=${MAKE:-sudo make}
 
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	mkdir -p "$VCPKG_ROOT"
@@ -24,5 +25,5 @@ else
 	else
 	  make -j2 linux CC=$CXX MYCFLAGS=-fPIC
 	fi
-	sudo make install
+	$MAKE install
 fi
