@@ -119,7 +119,7 @@ jobs:
       shell: bash
       run: |
         ./premake5 gmake2
-        sudo docker exec -t -w="/core" alpine make -Cbuild -j2 config=release LDFLAGS="-static -Wl,-Bstatic" &&
+        sudo docker exec -t -w="/core" alpine make -Cbuild ocgcoreshared -j2 config=release LDFLAGS="-static -Wl,-Bstatic" &&
         sudo chown -R $USER bin
     - name: Predeploy
       shell: bash
