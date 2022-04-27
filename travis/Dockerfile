@@ -1,2 +1,2 @@
-FROM prantlf/alpine-make-gcc:3.15 as builder
+FROM prantlf/alpine-make-gcc:3.12 as builder
 RUN apk --no-cache add cmake curl readline-dev
