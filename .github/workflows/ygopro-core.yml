@@ -1,7 +1,7 @@
 name: Build EDOPro-core
 on: [push, pull_request]
 env:
-  BUILD_CONFIG: Release
+  BUILD_CONFIG: release
   DEPENDENCIES_BASE_URL: https://github.com/kevinlul/edopro-vcpkg-cache/releases/download/20210211
   DEPLOY_DIR: ocgcore
   DEPLOY_REPO: ${{ secrets.DEPLOY_REPO }}
@@ -27,9 +27,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -63,9 +66,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -106,11 +112,15 @@ jobs:
       shell: bash
       run: |
         sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e MAKE=make alpine ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
       run: |
-        sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e BUILD_CONFIG=release -e LDFLAGS="-static -Wl,-Bstatic" alpine ./travis/build-cmake.sh &&
-        sudo chown -R $USER build
+        ./premake5 gmake2
+        sudo docker exec -t -w="/core" alpine make -Cbuild -j2 config=release LDFLAGS="-static -Wl,-Bstatic" &&
+        sudo chown -R $USER bin
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -176,7 +186,6 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-osx
       TRAVIS_OS_NAME: osx
-      VCPKG_ROOT: ./vcpkg2
       DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
       MACOSX_DEPLOYMENT_TARGET: 10.11
     steps:
@@ -191,9 +200,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -224,7 +236,6 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-osx-aarch64
       TRAVIS_OS_NAME: osx
-      VCPKG_ROOT: ./vcpkg2
       MACOSX_DEPLOYMENT_TARGET: 11.0
       CXXFLAGS: -target arm64-apple-macos11
       CFLAGS: -target arm64-apple-macos11
@@ -237,9 +248,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
