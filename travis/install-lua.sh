@@ -23,7 +23,7 @@ else
 	if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 	  make -j2 macosx CC=$CXX MYCFLAGS="${CFLAGS:-""}" MYLDFLAGS="${LDFLAGS:-""}"
 	else
-	  make -j2 linux CC=$CXX MYCFLAGS=-fPIC
+	  make -j2 posix CC=$CXX MYCFLAGS=-fPIC
 	fi
 	$MAKE install
 fi
