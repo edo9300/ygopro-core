@@ -53,7 +53,7 @@ newoption {
 		defines "_CRT_SECURE_NO_WARNINGS"
 	
 	filter "action:not vs*"
-		buildoptions { "-fno-strict-aliasing", "-Wno-multichar" }
+		buildoptions { "-Wno-multichar" }
 	
 	filter "configurations:Debug"
 		symbols "On"
@@ -65,7 +65,6 @@ newoption {
 		targetdir "bin/x64/debug"
 	
 	filter { "configurations:Release" , "action:not vs*" }
-		symbols "On"
 		defines "NDEBUG"
 	
 	filter "configurations:Release"
