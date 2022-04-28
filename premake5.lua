@@ -53,6 +53,9 @@ if not subproject then
 		vectorextensions "SSE2"
 		buildoptions "-wd4996"
 		defines "_CRT_SECURE_NO_WARNINGS"
+
+	filter "action:not vs*"
+		buildoptions "-fno-strict-aliasing"
 	
 	filter "configurations:Debug"
 		symbols "On"
