@@ -49,6 +49,7 @@ if not subproject then
 		libdirs "/usr/local/lib"
 	
 	filter "action:vs*"
+		flags "MultiProcessorCompile"
 		vectorextensions "SSE2"
 		buildoptions "-wd4996"
 		defines "_CRT_SECURE_NO_WARNINGS"
