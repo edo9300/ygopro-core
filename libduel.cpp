@@ -4130,7 +4130,7 @@ int32_t duel_add_custom_activity_counter(lua_State* L) {
 	auto& counter_map = pduel->game_field->core.get_counter_map(activity_type);
 	if(counter_map.find(counter_id) != counter_map.end())
 		return 0;
-	counter_map.emplace(counter_id, processor::action_value_t{ counter_filter, 0, 0 });
+	counter_map.emplace(counter_id, processor::action_value_t{ counter_filter, { 0, 0 } });
 	return 0;
 }
 int32_t duel_get_custom_activity_count(lua_State* L) {
