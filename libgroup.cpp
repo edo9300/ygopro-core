@@ -344,8 +344,6 @@ LUA_FUNCTION(SelectUnselect) {
 	auto playerid = lua_get<uint8_t>(L, 3);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	if(pgroup1->container == pgroup2->container)
-		return 0;
 	{
 		auto first1 = pgroup1->container.begin();
 		auto last1 = pgroup1->container.end();
