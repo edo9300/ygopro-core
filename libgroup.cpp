@@ -848,6 +848,7 @@ LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
 
 void scriptlib::push_group_lib(lua_State* L) {
 	static constexpr auto grouplib = GET_LUA_FUNCTIONS_ARRAY();
+	static_assert(grouplib.back().name == nullptr, "");
 	lua_createtable(L, 0, grouplib.size() - 1);
 	luaL_setfuncs(L, grouplib.data(), 0);
 	lua_pushstring(L, "__index");
