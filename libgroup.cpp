@@ -601,6 +601,32 @@ LUA_FUNCTION(GetSum) {
 	lua_pushinteger(L, sum);
 	return 1;
 }
+LUA_FUNCTION(GetBitwiseAnd) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	auto pgroup = lua_get<group*, true>(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	int32_t extraargs = lua_gettop(L) - 2;
+	uint64_t total = 0;
+	for(auto& pcard : pgroup->container) {
+		total &= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, 2, extraargs));
+	}
+	lua_pushinteger(L, total);
+	return 1;
+}
+LUA_FUNCTION(GetBitwiseOr) {
+	check_param_count(L, 2);
+	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	auto pgroup = lua_get<group*, true>(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	int32_t extraargs = lua_gettop(L) - 2;
+	uint64_t total = 0;
+	for(auto& pcard : pgroup->container) {
+		total |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, 2, extraargs));
+	}
+	lua_pushinteger(L, total);
+	return 1;
+}
 LUA_FUNCTION(GetClass) {
 	check_param_count(L, 2);
 	check_param(L, PARAM_TYPE_FUNCTION, 2);
