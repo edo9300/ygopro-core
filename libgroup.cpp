@@ -336,12 +336,20 @@ LUA_FUNCTION(SelectUnselect) {
 		return 0;
 	if(pgroup1->container == pgroup2->container)
 		return 0;
-	for(auto& pcard : pgroup2->container) {
-		for(auto& pcard2 : pgroup1->container) {
-			if(pcard2->cardid > pcard->cardid)
-				break;
-			if(pcard2->cardid == pcard->cardid)
-				return 0;
+	{
+		auto first1 = pgroup1->container.begin();
+		auto last1 = pgroup1->container.end();
+		auto first2 = pgroup2->container.begin();
+		auto last2 = pgroup2->container.end();
+		while(first1 != last1 && first2 != last2) {
+			if((*first1)->cardid < (*first2)->cardid) {
+				++first1;
+			} else {
+				if(!((*first2)->cardid < (*first1)->cardid)) {
+					return 0;
+				}
+				++first2;
+			}
 		}
 	}
 	bool finishable = lua_get<bool, false>(L, 4);
