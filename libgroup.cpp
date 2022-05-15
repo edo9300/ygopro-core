@@ -339,12 +339,12 @@ LUA_FUNCTION(SelectUnselect) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto pgroup1 = lua_get<group*, true>(L, 1);
-	auto pgroup2 = lua_get<group*, true>(L, 2);
+	auto pgroup2 = lua_get<group*>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 3);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	{
+	if(pgroup2) {
 		auto first1 = pgroup1->container.begin();
 		auto last1 = pgroup1->container.end();
 		auto first2 = pgroup2->container.begin();
@@ -362,18 +362,15 @@ LUA_FUNCTION(SelectUnselect) {
 	}
 	bool finishable = lua_get<bool, false>(L, 4);
 	bool cancelable = lua_get<bool, false>(L, 5);
-	uint16_t min = 1;
-	if(lua_gettop(L) > 5) {
-		min = lua_get<uint16_t>(L, 6);
-	}
-	uint16_t max = 1;
-	if(lua_gettop(L) > 6) {
-		max = lua_get<uint16_t>(L, 7);
-	}
+	uint16_t min = lua_get<uint16_t, 1>(L, 6);
+	uint16_t max = lua_get<uint16_t, 1>(L, 7);
 	if(min > max)
 		min = max;
 	pduel->game_field->core.select_cards.assign(pgroup1->container.begin(), pgroup1->container.end());
-	pduel->game_field->core.unselect_cards.assign(pgroup2->container.begin(), pgroup2->container.end());
+	if(pgroup2)
+		pduel->game_field->core.unselect_cards.assign(pgroup2->container.begin(), pgroup2->container.end());
+	else
+		pduel->game_field->core.unselect_cards.clear();
 	pduel->game_field->add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16), finishable);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
