@@ -190,33 +190,43 @@ LUA_FUNCTION(Match) {
 	pgroup->is_iterator_dirty = true;
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
-	card_set::const_iterator pexbegin, pexend;
-	if((pexception = lua_get<card*>(L, 3)) != nullptr) {
-		if((pexgroup = lua_get<group*>(L, 3)) != nullptr) {
-			pexbegin = pexgroup->container.cbegin();
-			pexend = pexgroup->container.cend();
-		}
-	}
-	auto check_card = [&](card* pcard) {
-		if(!pexception && !pexgroup)
-			return true;
-		if(pexception)
-			return pcard != pexception;
-		if(pexbegin == pexend)
-			return true;
-		if(*pexbegin == pcard) {
-			++pexbegin;
-			return false;
-		}
-		return true;
-	};
+	if((pexception = lua_get<card*>(L, 3)) == nullptr)
+		pexgroup = lua_get<group*>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	uint32_t extraargs = lua_gettop(L) - 3;
 	auto& cset = pgroup->container;
-	for(auto cit = cset.begin(); cit != cset.end(); ) {
-		auto rm = cit++;
-		if(!check_card(*rm) || !pduel->lua->check_matching(*rm, 2, extraargs))
-			cset.erase(rm);
+	if(pexception) {
+		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
+			auto rm = cit++;
+			auto* pcard = *rm;
+			if(pcard == pexception || !pduel->lua->check_matching(pcard, 2, extraargs))
+				cset.erase(rm);
+		}
+	} else if(pexgroup) {
+		auto pexbegin = pexgroup->container.cbegin();
+		auto pexend = pexgroup->container.cend();
+		auto should_remove = [&pexbegin, &pexend](card* pcard) {
+			if(pexbegin == pexend)
+				return false;
+			if(*pexbegin == pcard) {
+				++pexbegin;
+				return true;
+			}
+			return false;
+		};
+		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
+			auto rm = cit++;
+			auto* pcard = *rm;
+			if(should_remove(pcard) || !pduel->lua->check_matching(pcard, 2, extraargs))
+				cset.erase(rm);
+		}
+	} else {
+		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
+			auto rm = cit++;
+			auto* pcard = *rm;
+			if(!pduel->lua->check_matching(pcard, 2, extraargs))
+				cset.erase(rm);
+		}
 	}
 	interpreter::pushobject(L, pgroup);
 	return 1;
