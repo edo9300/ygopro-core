@@ -6,8 +6,8 @@
 #ifndef FUNCTION_ARRAY_HELPER_H
 #define FUNCTION_ARRAY_HELPER_H
 
-#define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
-#define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
+#define MAKE_LUA_NAME_IMPL(mod, name) c_lua_##mod##_##name
+#define MAKE_LUA_NAME(mod, name) MAKE_LUA_NAME_IMPL(mod, name)
 
 #ifndef __INTELLISENSE__
 namespace {
@@ -15,15 +15,11 @@ namespace Detail {
 template<std::size_t N>
 struct LuaFunction;
 
-template<std::size_t N, typename T, std::size_t... I>
-constexpr auto append(T t, std::index_sequence<I...>) {
-	return std::array<T, N + 1>{Detail::LuaFunction<I>::elem..., t};
+template<std::size_t... I>
+constexpr auto make_lua_functions_array(std::index_sequence<I...> seq) {
+	return std::array<luaL_Reg, seq.size() + 1>{Detail::LuaFunction<I>::elem..., luaL_Reg{ nullptr, nullptr }};
 }
 
-template<std::size_t N, typename T>
-constexpr auto make_lua_functions_array(T t) {
-	return append<N>(t, std::make_index_sequence<N>());
-}
 } // namespace Detail
 } // namespace
 
@@ -36,7 +32,7 @@ struct Detail::LuaFunction<__COUNTER__> { \
 static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
 
 #define GET_LUA_FUNCTIONS_ARRAY() \
-	Detail::make_lua_functions_array<__COUNTER__>(luaL_Reg{nullptr, nullptr});
+	Detail::make_lua_functions_array(std::make_index_sequence<__COUNTER__>());
 
 
 #define LUA_FUNCTION_EXISTING(name,...) \
