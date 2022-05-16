@@ -4233,6 +4233,8 @@ int32_t field::process_turn(uint16_t step, uint8_t turn_player) {
 		return FALSE;
 	}
 	case 11: {
+		if(core.new_fchain.size() || core.new_ochain.size())
+			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_BATTLE_START, 0);
 		/*if(core.set_forced_attack)
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/
