@@ -1407,7 +1407,7 @@ LUA_FUNCTION(ShuffleDeck) {
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->shuffle(playerid, LOCATION_DECK);
-	return 0;
+	return lua_yield(L, 0);
 }
 LUA_FUNCTION(ShuffleExtra) {
 	check_param_count(L, 1);
@@ -1416,7 +1416,7 @@ LUA_FUNCTION(ShuffleExtra) {
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->shuffle(playerid, LOCATION_EXTRA);
-	return 0;
+	return lua_yield(L, 0);
 }
 LUA_FUNCTION(ShuffleHand) {
 	check_param_count(L, 1);
@@ -1425,7 +1425,7 @@ LUA_FUNCTION(ShuffleHand) {
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->shuffle(playerid, LOCATION_HAND);
-	return 0;
+	return lua_yield(L, 0);
 }
 LUA_FUNCTION(ShuffleSetCard) {
 	check_param_count(L, 1);
@@ -1491,7 +1491,7 @@ LUA_FUNCTION(ShuffleSetCard) {
 			message->write(loc_info{});
 		}
 	}
-	return 0;
+	return lua_yield(L, 0);
 }
 LUA_FUNCTION(ChangeAttacker) {
 	check_param_count(L, 1);
@@ -4241,7 +4241,7 @@ LUA_FUNCTION(TagSwap) {
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->tag_swap(playerid);
-	return 0;
+	return lua_yield(L, 0);
 }
 LUA_FUNCTION(GetPlayersCount) {
 	check_param_count(L, 1);

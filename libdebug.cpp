@@ -170,6 +170,8 @@ LUA_FUNCTION(ReloadFieldEnd) {
 	core.shuffle_deck_check[0] = FALSE;
 	core.shuffle_deck_check[1] = FALSE;
 	field->reload_field_info();
+	if(lua_isyieldable(L))
+		return lua_yield(L, 0);
 	return 0;
 }
 template<int message_code, size_t max_len>
