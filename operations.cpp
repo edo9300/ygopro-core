@@ -231,9 +231,10 @@ void field::special_summon_complete(effect* reason_effect, uint8_t reason_player
 	add_process(PROCESSOR_SPSUMMON, 1, reason_effect, ng, reason_player, 0);
 }
 void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence) {
+	const auto destroy_canceled_end = core.destroy_canceled.cend();
 	for(auto cit = targets.begin(); cit != targets.end();) {
 		card* pcard = *cit;
-		if(pcard->is_status(STATUS_DESTROY_CONFIRMED)) {
+		if(pcard->is_status(STATUS_DESTROY_CONFIRMED) && core.destroy_canceled.find(pcard) == destroy_canceled_end) {
 			targets.erase(cit++);
 			continue;
 		}
