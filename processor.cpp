@@ -3025,7 +3025,7 @@ int32_t field::process_battle_command(uint16_t step) {
 	}
 	case 20: {
 		// start of PHASE_DAMAGE;
-		auto message = pduel->new_message(MSG_DAMAGE_STEP_START);
+		(void)pduel->new_message(MSG_DAMAGE_STEP_START);
 		raise_single_event(core.attacker, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		if(core.attack_target) {
 			raise_single_event(core.attack_target, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 1);
@@ -3035,7 +3035,7 @@ int32_t field::process_battle_command(uint16_t step) {
 		process_instant_event();
 		if(!is_flag(DUEL_6_STEP_BATLLE_STEP) || (core.new_fchain.size() || core.new_ochain.size())) {
 			core.units.begin()->arg4 = core.new_fchain.size() || core.new_ochain.size();
-			message = pduel->new_message(MSG_HINT);
+			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_EVENT);
 			message->write<uint8_t>(0);
 			message->write<uint64_t>(40);
