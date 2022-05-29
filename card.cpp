@@ -1163,8 +1163,10 @@ uint32_t card::get_link() {
 	return link;		
 }
 uint32_t card::get_synchro_level(card* pcard) {
-	if(((data.type & TYPE_XYZ) || ((status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S))))
-	|| (data.type & TYPE_LINK))
+	if(data.type & TYPE_LINK)
+		return 0;
+	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL))
+		&& !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return 0;
 	uint32_t lev;
 	effect_set eset;
@@ -1176,8 +1178,10 @@ uint32_t card::get_synchro_level(card* pcard) {
 	return lev;
 }
 uint32_t card::get_ritual_level(card* pcard) {
-	if(((data.type & TYPE_XYZ) || ((status & STATUS_NO_LEVEL) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S))))
-	|| (data.type & TYPE_LINK))
+	if(data.type & TYPE_LINK)
+		return 0;
+	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL))
+		&& !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return 0;
 	uint32_t lev;
 	effect_set eset;
