@@ -3574,15 +3574,15 @@ int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype
 		return FALSE;
 	if(current.location == LOCATION_REMOVED && (current.position & POS_FACEDOWN))
 		return FALSE;
-	if(is_affected_by_effect(EFFECT_REVIVE_LIMIT) && !is_status(STATUS_PROC_COMPLETE)) {
-		if((!nolimit && (current.location & (LOCATION_GRAVE | LOCATION_REMOVED | LOCATION_SZONE)))
-			|| (!nocheck && !nolimit && (current.location & (LOCATION_DECK | LOCATION_HAND))))
+	if(!nolimit && is_affected_by_effect(EFFECT_REVIVE_LIMIT) && !is_status(STATUS_PROC_COMPLETE)) {
+		if((current.location & (LOCATION_GRAVE | LOCATION_REMOVED | LOCATION_SZONE))
+			|| (!nocheck && (current.location & (LOCATION_DECK | LOCATION_HAND))))
 			return FALSE;
-		if(!nolimit && (data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP))
+		if((data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP))
+			return FALSE;
+		if(current.location == LOCATION_OVERLAY)
 			return FALSE;
 	}
-	if(current.location == LOCATION_OVERLAY && !is_status(STATUS_PROC_COMPLETE))
-		return FALSE;
 	if((data.type & TYPE_PENDULUM) && current.location == LOCATION_EXTRA && (current.position & POS_FACEUP)
 		&& (sumtype == SUMMON_TYPE_FUSION || sumtype == SUMMON_TYPE_SYNCHRO || sumtype == SUMMON_TYPE_XYZ))
 		return FALSE;
