@@ -18,6 +18,8 @@ namespace {
 using namespace scriptlib;
 
 LUA_FUNCTION(Message) {
+	if(lua_gettop(L) == 0)
+		return 0;
 	const auto pduel = lua_get<duel*>(L);
 	lua_getglobal(L, "tostring");
 	lua_pushvalue(L, -2);
