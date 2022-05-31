@@ -323,20 +323,21 @@ uint32_t card::get_summon_code(card* scard, uint64_t sumtype, uint8_t playerid) 
 		lua_pushinteger(pduel->lua->current_state, code);
 	return codes.size();
 }
-int32_t card::is_set_card(uint32_t set_code) {
+static inline bool match_setcode(uint16_t set_code, uint16_t to_match) {
+	return (set_code & 0xfffu) == (to_match & 0xfffu) && (set_code & to_match) == set_code;
+}
+int32_t card::is_set_card(uint16_t set_code) {
 	uint32_t code = get_code();
-	uint32_t settype = set_code & 0xfff;
-	uint32_t setsubtype = set_code & 0xf000;
 	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {
-		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
+		if(match_setcode(set_code, setcode))
 			return TRUE;
 	}
 	//add set code
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
 	for(const auto& peffect : eset) {
-		uint32_t value = peffect->get_value(this);
-		if ((value & 0xfff) == settype && (value & 0xf000 & setsubtype) == setsubtype)
+		uint16_t value = static_cast<uint16_t>(peffect->get_value(this));
+		if (match_setcode(set_code, value))
 			return TRUE;
 	}
 	//another code
@@ -344,43 +345,39 @@ int32_t card::is_set_card(uint32_t set_code) {
 	if (code2 == 0)
 		return FALSE;
 	for(auto& setcode : pduel->read_card(code2).setcodes) {
-		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
+		if(match_setcode(set_code, setcode))
 			return TRUE;
 	}
 	return FALSE;
 }
-int32_t card::is_origin_set_card(uint32_t set_code) {
-	uint32_t settype = set_code & 0xfff;
-	uint32_t setsubtype = set_code & 0xf000;
+int32_t card::is_origin_set_card(uint16_t set_code) {
 	for (auto& setcode : data.setcodes) {
-		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
+		if(match_setcode(set_code, setcode))
 			return TRUE;
 	}
 	return FALSE;
 }
-int32_t card::is_pre_set_card(uint32_t set_code) {
+int32_t card::is_pre_set_card(uint16_t set_code) {
 	uint32_t code = previous.code;
-	uint32_t settype = set_code & 0xfff;
-	uint32_t setsubtype = set_code & 0xf000;
 	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {
-		if ((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
+		if (match_setcode(set_code, setcode))
 			return TRUE;
 	}
 	//add set code
 	for(auto& setcode : previous.setcodes) {
-		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
+		if(match_setcode(set_code, setcode))
 			return TRUE;
 	}
 	//another code
 	if(previous.code2 == 0)
 		return FALSE;
 	for(auto& setcode : pduel->read_card(previous.code2).setcodes) {
-		if((setcode & 0xfffu) == settype && (setcode & 0xf000u & setsubtype) == setsubtype)
+		if(match_setcode(set_code, setcode))
 			return TRUE;
 	}
 	return FALSE;
 }
-int32_t card::is_sumon_set_card(uint32_t set_code, card* scard, uint64_t sumtype, uint8_t playerid) {
+int32_t card::is_sumon_set_card(uint16_t set_code, card* scard, uint64_t sumtype, uint8_t playerid) {
 	uint32_t settype = set_code & 0xfff;
 	uint32_t setsubtype = set_code & 0xf000;
 	effect_set eset;
@@ -464,9 +461,6 @@ uint32_t card::get_set_card() {
 		}
 	}
 	return count;
-}
-std::set<uint16_t> card::get_origin_set_card() {
-	return data.setcodes;
 }
 uint32_t card::get_pre_set_card() {
 	uint32_t count = 0;
