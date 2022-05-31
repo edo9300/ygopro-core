@@ -4315,6 +4315,38 @@ LUA_FUNCTION(GetStartingHand) {
 	lua_pushinteger(L, pduel->game_field->player[playerid].start_count);
 	return 1;
 }
+#define INFO_FUNC_FROM_CODE(lua_name,attr) \
+LUA_FUNCTION(GetCard ##lua_name ##FromCode) { \
+	check_param_count(L, 1); \
+	auto code = lua_get<uint32_t>(L, 1); \
+	const auto& data = lua_get<duel*>(L)->read_card(code); \
+	if(data.code == 0) \
+		return 0; \
+	lua_pushinteger(L, data.attr); \
+	return 1; \
+}
+INFO_FUNC_FROM_CODE(Alias, alias)
+INFO_FUNC_FROM_CODE(Type, type)
+INFO_FUNC_FROM_CODE(Level, level)
+INFO_FUNC_FROM_CODE(Attribute, attribute)
+INFO_FUNC_FROM_CODE(Race, race)
+INFO_FUNC_FROM_CODE(Attack, attack)
+INFO_FUNC_FROM_CODE(Defense, defense)
+INFO_FUNC_FROM_CODE(Rscale, rscale)
+INFO_FUNC_FROM_CODE(Lscale, lscale)
+INFO_FUNC_FROM_CODE(LinkMarker, link_marker)
+#undef INFO_FUNC_FROM_CODE
+
+LUA_FUNCTION(GetCardSetcodeFromCode) {
+	check_param_count(L, 1);
+	auto code = lua_get<uint32_t>(L, 1);
+	const auto& data = lua_get<duel*>(L)->read_card(code);
+	if(data.code == 0)
+		return 0;
+	for(auto& setcode : data.setcodes)
+		lua_pushinteger(L, setcode);
+	return data.setcodes.size();
+}
 }
 
 void scriptlib::push_duel_lib(lua_State* L) {
