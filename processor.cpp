@@ -3632,7 +3632,7 @@ int32_t field::process_damage_step(uint16_t step, uint32_t new_attack) {
 			message->write(loc_info{});
 		}
 		infos.phase = PHASE_DAMAGE;
-		message = pduel->new_message(MSG_DAMAGE_STEP_START);
+		(void)pduel->new_message(MSG_DAMAGE_STEP_START);
 		core.pre_field[0] = core.attacker->fieldid_r;
 		++core.attacker->attacked_count;
 		if(core.attack_target) {
