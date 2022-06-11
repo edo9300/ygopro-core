@@ -41,11 +41,21 @@ namespace scriptlib {
 	template<typename T, typename type>
 	using EnableIf = typename std::enable_if_t<std::is_same<T, type>::value, T>;
 
+	struct function{};
+
 	template<typename T>
 	inline duel* lua_get(lua_State* L) {
 		duel* pduel = nullptr;
 		memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);
 		return pduel;
+	}
+
+	template<typename T, bool forced = false>
+	std::enable_if_t<std::is_same<T, function>::value, int32_t> lua_get(lua_State* L, int idx) {
+		if(lua_isnoneornil(L, idx) && !forced)
+			return 0;
+		check_param(L, PARAM_TYPE_FUNCTION, idx);
+		return idx;
 	}
 
 	template<typename T>
