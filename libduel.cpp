@@ -835,17 +835,15 @@ LUA_FUNCTION(Activate) {
 }
 LUA_FUNCTION(SetChainLimit) {
 	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_FUNCTION, 1);
+	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 1));
 	const auto pduel = lua_get<duel*>(L);
-	int32_t f = interpreter::get_function_handle(L, 1);
 	pduel->game_field->core.chain_limit.emplace_back(f, pduel->game_field->core.reason_player);
 	return 0;
 }
 LUA_FUNCTION(SetChainLimitTillChainEnd) {
 	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_FUNCTION, 1);
+	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 1));
 	const auto pduel = lua_get<duel*>(L);
-	int32_t f = interpreter::get_function_handle(L, 1);
 	pduel->game_field->core.chain_limit_p.emplace_back(f, pduel->game_field->core.reason_player);
 	return 0;
 }
@@ -1360,8 +1358,7 @@ LUA_FUNCTION(DiscardDeck) {
 LUA_FUNCTION(DiscardHand) {
 	check_action_permission(L);
 	check_param_count(L, 5);
-	if(!lua_isnoneornil(L, 2))
-		check_param(L, PARAM_TYPE_FUNCTION, 2);
+	const auto findex = lua_get<function>(L, 2);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	uint32_t extraargs = 0;
@@ -1376,7 +1373,7 @@ LUA_FUNCTION(DiscardHand) {
 	auto max = lua_get<uint16_t>(L, 4);
 	auto reason = lua_get<uint32_t>(L, 5);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(2, playerid, LOCATION_HAND, 0, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(findex, playerid, LOCATION_HAND, 0, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	if(pduel->game_field->core.select_cards.size() == 0) {
 		lua_pushinteger(L, 0);
@@ -1648,10 +1645,9 @@ LUA_FUNCTION(BreakEffect) {
 }
 LUA_FUNCTION(ChangeChainOperation) {
 	check_param_count(L, 2);
-	check_param(L, PARAM_TYPE_FUNCTION, 2);
+	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 2));
 	const auto pduel = lua_get<duel*>(L);
-	int32_t pf = interpreter::get_function_handle(L, 2);
-	pduel->game_field->change_chain_effect(lua_get<uint8_t>(L, 1), pf);
+	pduel->game_field->change_chain_effect(lua_get<uint8_t>(L, 1), f);
 	return 0;
 }
 LUA_FUNCTION(NegateActivation) {
@@ -2282,8 +2278,7 @@ LUA_FUNCTION(GetExtraTopGroup) {
 */
 LUA_FUNCTION(GetMatchingGroup) {
 	check_param_count(L, 5);
-	if(!lua_isnoneornil(L, 1))
-		check_param(L, PARAM_TYPE_FUNCTION, 1);
+	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	if((pexception = lua_get<card*>(L, 5)) == nullptr)
@@ -2294,7 +2289,7 @@ LUA_FUNCTION(GetMatchingGroup) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(1, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -2305,8 +2300,7 @@ LUA_FUNCTION(GetMatchingGroup) {
 */
 LUA_FUNCTION(GetMatchingGroupCount) {
 	check_param_count(L, 5);
-	if(!lua_isnoneornil(L, 1))
-		check_param(L, PARAM_TYPE_FUNCTION, 1);
+	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	if((pexception = lua_get<card*>(L, 5)) == nullptr)
@@ -2317,7 +2311,7 @@ LUA_FUNCTION(GetMatchingGroupCount) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(1, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	uint32_t count = pgroup->container.size();
 	lua_pushinteger(L, count);
 	return 1;
@@ -2329,8 +2323,7 @@ LUA_FUNCTION(GetMatchingGroupCount) {
 */
 LUA_FUNCTION(GetFirstMatchingCard) {
 	check_param_count(L, 5);
-	if(!lua_isnoneornil(L, 1))
-		check_param(L, PARAM_TYPE_FUNCTION, 1);
+	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	if((pexception = lua_get<card*>(L, 5)) == nullptr)
@@ -2341,7 +2334,7 @@ LUA_FUNCTION(GetFirstMatchingCard) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	card* pret = 0;
-	pduel->game_field->filter_matching_card(1, self, location1, location2, 0, pexception, pexgroup, extraargs, &pret);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, 0, pexception, pexgroup, extraargs, &pret);
 	if(pret)
 		interpreter::pushobject(L, pret);
 	else lua_pushnil(L);
@@ -2354,8 +2347,7 @@ LUA_FUNCTION(GetFirstMatchingCard) {
 */
 LUA_FUNCTION(IsExistingMatchingCard) {
 	check_param_count(L, 6);
-	if(!lua_isnoneornil(L, 1))
-		check_param(L, PARAM_TYPE_FUNCTION, 1);
+	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	if((pexception = lua_get<card*>(L, 6)) == nullptr)
@@ -2366,7 +2358,7 @@ LUA_FUNCTION(IsExistingMatchingCard) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	auto fcount = lua_get<uint32_t>(L, 5);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(1, self, location1, location2, 0, pexception, pexgroup, extraargs, 0, fcount));
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(findex, self, location1, location2, 0, pexception, pexgroup, extraargs, 0, fcount));
 	return 1;
 }
 /**
@@ -2377,8 +2369,7 @@ LUA_FUNCTION(IsExistingMatchingCard) {
 LUA_FUNCTION(SelectMatchingCard) {
 	check_action_permission(L);
 	check_param_count(L, 8);
-	if(!lua_isnoneornil(L, 2))
-		check_param(L, PARAM_TYPE_FUNCTION, 2);
+	const auto findex = lua_get<function>(L, 2);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	bool cancelable = false;
@@ -2401,7 +2392,7 @@ LUA_FUNCTION(SelectMatchingCard) {
 	auto min = lua_get<uint16_t>(L, 6);
 	auto max = lua_get<uint16_t>(L, 7);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(2, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
@@ -2484,7 +2475,8 @@ static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	bool use_con = !lua_isnoneornil(L, 2) && check_param(L, PARAM_TYPE_FUNCTION, 2);
+	const auto findex = lua_get<function>(L, 2);
+	bool use_con = !!findex;
 	card* pexception = 0;
 	group* pexgroup = 0;
 	uint32_t lastarg = 4;
@@ -2515,7 +2507,7 @@ static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
 		pexgroup = lua_get<group*>(L, lastarg);
 	uint32_t extraargs = lua_gettop(L) - lastarg;
-	int32_t result = pduel->game_field->check_release_list(playerid, min, max, use_con, use_hand, 2, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
+	int32_t result = pduel->game_field->check_release_list(playerid, min, max, use_con, use_hand, findex, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
 	pduel->game_field->core.must_select_cards.clear();
 	lua_pushboolean(L, result);
 	return 1;
@@ -2533,7 +2525,8 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	bool use_con = !lua_isnoneornil(L, 2) && check_param(L, PARAM_TYPE_FUNCTION, 2);
+	const auto findex = lua_get<function>(L, 2);
+	bool use_con = !!findex;
 	card* pexception = 0;
 	group* pexgroup = 0;
 	bool cancelable = false;
@@ -2568,7 +2561,7 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
-	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, 2, extraargs, pexception, pexgroup, use_oppo);
+	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, findex, extraargs, pexception, pexgroup, use_oppo);
 	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, (group*)to_check, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
 	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
@@ -2657,8 +2650,7 @@ LUA_FUNCTION(SelectTribute) {
 */
 LUA_FUNCTION(GetTargetCount) {
 	check_param_count(L, 5);
-	if(!lua_isnoneornil(L, 1))
-		check_param(L, PARAM_TYPE_FUNCTION, 1);
+	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	if((pexception = lua_get<card*>(L, 5)) == nullptr)
@@ -2670,7 +2662,7 @@ LUA_FUNCTION(GetTargetCount) {
 	auto location2 = lua_get<uint16_t>(L, 4);
 	group* pgroup = pduel->new_group();
 	uint32_t count = 0;
-	pduel->game_field->filter_matching_card(1, self, location1, location2, pgroup, pexception, pexgroup, extraargs, 0, 0, TRUE);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, 0, 0, TRUE);
 	count = pgroup->container.size();
 	lua_pushinteger(L, count);
 	return 1;
@@ -2682,8 +2674,7 @@ LUA_FUNCTION(GetTargetCount) {
 */
 LUA_FUNCTION(IsExistingTarget) {
 	check_param_count(L, 6);
-	if(!lua_isnoneornil(L, 1))
-		check_param(L, PARAM_TYPE_FUNCTION, 1);
+	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	if((pexception = lua_get<card*>(L, 6)) == nullptr)
@@ -2694,7 +2685,7 @@ LUA_FUNCTION(IsExistingTarget) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	auto count = lua_get<uint16_t>(L, 5);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(1, self, location1, location2, 0, pexception, pexgroup, extraargs, 0, count, TRUE));
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(findex, self, location1, location2, 0, pexception, pexgroup, extraargs, 0, count, TRUE));
 	return 1;
 }
 /**
@@ -2705,8 +2696,7 @@ LUA_FUNCTION(IsExistingTarget) {
 LUA_FUNCTION(SelectTarget) {
 	check_action_permission(L);
 	check_param_count(L, 8);
-	if(!lua_isnoneornil(L, 2))
-		check_param(L, PARAM_TYPE_FUNCTION, 2);
+	const auto findex = lua_get<function>(L, 2);
 	card* pexception = 0;
 	group* pexgroup = 0;
 	bool cancelable = false;
@@ -2731,7 +2721,7 @@ LUA_FUNCTION(SelectTarget) {
 	if(pduel->game_field->core.current_chain.size() == 0)
 		return 0;
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(2, self, location1, location2, pgroup, pexception, pexgroup, extraargs, 0, 0, TRUE);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, 0, 0, TRUE);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
@@ -3411,11 +3401,11 @@ LUA_FUNCTION(AnnounceRace) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint16_t>(L, 2);
-	auto available = lua_get<uint32_t>(L, 3);
+	auto available = lua_get<uint64_t>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_RACE, 0, 0, 0, playerid + (count << 16), available);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
-		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
+		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<uint64_t>(0));
 		return 1;
 	});
 }
@@ -3875,7 +3865,7 @@ LUA_FUNCTION(IsPlayerCanSpecialSummonMonster) {
 	if(!lua_isnoneornil(L, 7))
 		dat.level = lua_get<uint32_t>(L, 7);
 	if(!lua_isnoneornil(L, 8))
-		dat.race = lua_get<uint32_t>(L, 8);
+		dat.race = lua_get<uint64_t>(L, 8);
 	if(!lua_isnoneornil(L, 9))
 		dat.attribute = lua_get<uint32_t>(L, 9);
 	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 10);
@@ -4121,14 +4111,14 @@ LUA_FUNCTION(CheckPhaseActivity) {
 }
 LUA_FUNCTION(AddCustomActivityCounter) {
 	check_param_count(L, 3);
-	check_param(L, PARAM_TYPE_FUNCTION, 3);
+	const auto findex = lua_get<function, true>(L, 3);
 	auto counter_id = lua_get<uint32_t>(L, 1);
 	auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, 2));
 	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN){
 		luaL_error(L, "Passed invalid ACTIVITY counter.");
 		unreachable();
 	}
-	int32_t counter_filter = interpreter::get_function_handle(L, 3);
+	int32_t counter_filter = interpreter::get_function_handle(L, findex);
 	const auto pduel = lua_get<duel*>(L);
 	auto& counter_map = pduel->game_field->core.get_counter_map(activity_type);
 	if(counter_map.find(counter_id) != counter_map.end())
