@@ -2450,7 +2450,7 @@ LUA_FUNCTION(GetReleaseGroup) {
 	bool oppo = lua_get<bool, false>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, FALSE, hand, 0, 0, 0, 0, oppo);
+	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, hand, 0, 0, 0, 0, oppo);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -2467,7 +2467,7 @@ LUA_FUNCTION(GetReleaseGroupCount) {
 	bool hand = lua_get<bool, false>(L, 2);
 	bool oppo = lua_get<bool, false>(L, 3);
 	const auto pduel = lua_get<duel*>(L);
-	lua_pushinteger(L, pduel->game_field->get_release_list(playerid, 0, 0, 0, FALSE, hand, 0, 0, 0, 0, oppo));
+	lua_pushinteger(L, pduel->game_field->get_release_list(playerid, 0, 0, 0, hand, 0, 0, 0, 0, oppo));
 	return 1;
 }
 static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
@@ -2476,7 +2476,6 @@ static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	const auto findex = lua_get<function>(L, 2);
-	bool use_con = !!findex;
 	card* pexception = 0;
 	group* pexgroup = 0;
 	uint32_t lastarg = 4;
@@ -2507,7 +2506,7 @@ static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
 		pexgroup = lua_get<group*>(L, lastarg);
 	uint32_t extraargs = lua_gettop(L) - lastarg;
-	int32_t result = pduel->game_field->check_release_list(playerid, min, max, use_con, use_hand, findex, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
+	int32_t result = pduel->game_field->check_release_list(playerid, min, max, use_hand, findex, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo);
 	pduel->game_field->core.must_select_cards.clear();
 	lua_pushboolean(L, result);
 	return 1;
@@ -2526,7 +2525,6 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	const auto findex = lua_get<function>(L, 2);
-	bool use_con = !!findex;
 	card* pexception = 0;
 	group* pexgroup = 0;
 	bool cancelable = false;
@@ -2561,7 +2559,7 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	pduel->game_field->core.release_cards.clear();
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
-	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_con, use_hand, findex, extraargs, pexception, pexgroup, use_oppo);
+	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_hand, findex, extraargs, pexception, pexgroup, use_oppo);
 	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, (group*)to_check, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
 	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
