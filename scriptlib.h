@@ -63,7 +63,7 @@ namespace scriptlib {
 		if(lua_gettop(L) < idx)
 			return nullptr;
 		if(auto obj = lua_touserdata(L, idx)) {
-			auto* ret = *reinterpret_cast<lua_obj**>(obj);
+			auto* ret = *static_cast<lua_obj**>(obj);
 			if(ret->lua_type == PARAM_TYPE_DELETED) {
 				luaL_error(L, "Attempting to access deleted object.");
 				unreachable();
