@@ -32,7 +32,7 @@ int32_t field::negate_chain(uint8_t chaincount) {
 		message->write<uint8_t>(chaincount);
 		if(!is_flag(DUEL_RETURN_TO_DECK_TRIGGERS) &&
 		   (pchain.triggering_location == LOCATION_DECK
-			|| pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
+			|| (pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN))))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
@@ -53,7 +53,7 @@ int32_t field::disable_chain(uint8_t chaincount) {
 		message->write<uint8_t>(chaincount);
 		if(!is_flag(DUEL_RETURN_TO_DECK_TRIGGERS) &&
 		   (pchain.triggering_location == LOCATION_DECK
-		   || pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
+		   || (pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN))))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
