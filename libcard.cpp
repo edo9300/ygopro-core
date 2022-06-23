@@ -2517,7 +2517,7 @@ int32_t card_assume_prop(lua_State* L) {
 	auto assume = lua_get<uint32_t>(L, 2);
 	if ((assume < ASSUME_CODE) || (assume > ASSUME_LINKMARKER))
 		return 0;
-	pcard->assume[assume] = lua_get<uint32_t>(L, 3);
+	pcard->assume[assume] = lua_get<uint64_t>(L, 3);
 	pduel->assumes.insert(pcard);
 	return 0;
 }
