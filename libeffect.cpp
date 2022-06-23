@@ -201,10 +201,8 @@ LUA_FUNCTION(SetLabelObject) {
 	if(lua_get<lua_obj*>(L, 2) != nullptr || lua_istable(L, 2)) {
 		lua_pushvalue(L, 2);
 		peffect->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
-	} else {
-		luaL_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\" or \"table\".");
-		unreachable();
-	}
+	} else
+		lua_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\" or \"table\".");
 	return 0;
 }
 LUA_FUNCTION(SetCategory) {

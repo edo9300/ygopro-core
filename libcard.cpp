@@ -2067,10 +2067,8 @@ LUA_FUNCTION(RemoveCounter) {
 	check_param_count(L, 5);
 	const auto pduel = lua_get<duel*>(L);
 	auto countertype = lua_get<uint16_t>(L, 3);
-	if(countertype == 0) {
-		luaL_error(L, "Counter type cannot be 0, use Card.RemoveAllCounters instead");
-		unreachable();
-	}
+	if(countertype == 0)
+		lua_error(L, "Counter type cannot be 0, use Card.RemoveAllCounters instead");
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto rplayer = lua_get<uint8_t>(L, 2);
 	auto count = lua_get<uint16_t>(L, 4);
@@ -2104,10 +2102,8 @@ LUA_FUNCTION(GetCounter) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto countertype = lua_get<uint16_t>(L, 2);
-	if(countertype == 0) {
-		luaL_error(L, "Counter type cannot be 0, use Card.GetAllCounters instead");
-		unreachable();
-	}
+	if(countertype == 0)
+		lua_error(L, "Counter type cannot be 0, use Card.GetAllCounters instead");
 	lua_pushinteger(L, pcard->get_counter(countertype));
 	return 1;
 }

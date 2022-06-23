@@ -23,8 +23,7 @@ using namespace scriptlib;
 void assert_readonly_group(lua_State* L, group* pgroup) {
 	if(pgroup->is_readonly != 1)
 		return;
-	luaL_error(L, "attempt to modify a read only group");
-	unreachable();
+	lua_error(L, "attempt to modify a read only group");
 }
 
 LUA_FUNCTION(CreateGroup) {
@@ -106,9 +105,8 @@ LUA_FUNCTION(RemoveCard) {
 	if(pcard)
 		pgroup->container.erase(pcard);
 	else {
-		for(auto& pcard : sgroup->container) {
-			pgroup->container.erase(pcard);
-		}
+		for(auto& _pcard : sgroup->container)
+			pgroup->container.erase(_pcard);
 	}
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -117,10 +115,8 @@ LUA_FUNCTION_ALIAS(Sub);
 LUA_FUNCTION(GetNext) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	if(pgroup->is_iterator_dirty) {
-		luaL_error(L, "Called Group.GetNext without first calling Group.GetFirst");
-		unreachable();
-	}
+	if(pgroup->is_iterator_dirty)
+		lua_error(L, "Called Group.GetNext without first calling Group.GetFirst");
 	if(pgroup->it == pgroup->container.end())
 		lua_pushnil(L);
 	else {
@@ -719,14 +715,10 @@ void get_groupcard(lua_State* L, group*& pgroup1, group*& pgroup2, card*& pcard)
 	auto obj1 = lua_get<lua_obj*>(L, 1);
 	auto obj2 = lua_get<lua_obj*>(L, 2);
 	uint32_t type = 0;
-	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0) {
-		luaL_error(L, "At least 1 parameter should be \"Group\".");
-		unreachable();
-	}
-	if((type & ~(PARAM_TYPE_GROUP | PARAM_TYPE_CARD)) != 0) {
-		luaL_error(L, "A parameter isn't \"Group\" nor \"Card\".");
-		unreachable();
-	}
+	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0)
+		lua_error(L, "At least 1 parameter should be \"Group\".");
+	if((type & ~(PARAM_TYPE_GROUP | PARAM_TYPE_CARD)) != 0)
+		lua_error(L, "A parameter isn't \"Group\" nor \"Card\".");
 	if(obj1->lua_type == PARAM_TYPE_CARD) {
 		pcard = static_cast<card*>(obj1);
 		pgroup1 = static_cast<group*>(obj2);
@@ -782,9 +774,8 @@ LUA_FUNCTION(__sub) {
 	get_card_or_group(L, 2, pcard, pgroup2);
 	group* newgroup = pduel->new_group(pgroup1);
 	if(pgroup2) {
-		for(auto& _pcard : pgroup2->container) {
+		for(auto& _pcard : pgroup2->container)
 			newgroup->container.erase(_pcard);
-		}
 	} else
 		newgroup->container.erase(pcard);
 	interpreter::pushobject(L, newgroup);

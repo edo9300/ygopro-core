@@ -754,7 +754,7 @@ LUA_FUNCTION(MoveSequence) {
 	bool fzone = false;
 	if(location == LOCATION_PZONE) {
 		if(!field.is_flag(DUEL_PZONE))
-			return luaL_error(L, "LOCATION_PZONE passed with pendulum zones disabled");
+			lua_error(L, "LOCATION_PZONE passed with pendulum zones disabled");
 		pzone = true;
 		location = LOCATION_SZONE;
 	} else if(location == LOCATION_FZONE) {
@@ -765,21 +765,21 @@ LUA_FUNCTION(MoveSequence) {
 	auto playerid = pcard->current.controler;
 
 	if(location != cur_loc)
-		return luaL_error(L, "The new location doesn't match the current one");
+		lua_error(L, "The new location doesn't match the current one");
 
 	if(pzone) {
 		if(seq > 1)
-			return luaL_error(L, "Invalid sequence");
+			lua_error(L, "Invalid sequence");
 		seq = field.get_pzone_index(seq, playerid);
 	} else if(fzone) {
 		if(seq != 0)
-			return luaL_error(L, "Invalid sequence");
+			lua_error(L, "Invalid sequence");
 		seq = 5;
 	} else if(location == LOCATION_MZONE && field.is_flag(DUEL_EMZONE)) {
 		if(seq > 6)
-			return luaL_error(L, "Invalid sequence");
+			lua_error(L, "Invalid sequence");
 	} else if ((location == LOCATION_MZONE || location == LOCATION_SZONE) && seq > 4)
-		return luaL_error(L, "Invalid sequence");
+		lua_error(L, "Invalid sequence");
 
 	auto& core = field.core;
 	int res = FALSE;
@@ -1299,8 +1299,7 @@ LUA_FUNCTION(SwapControl) {
 	if((!obj1 || !obj2) ||
 		((obj1->lua_type | obj2->lua_type) & ~(PARAM_TYPE_CARD | PARAM_TYPE_GROUP)) ||
 	    obj1->lua_type != obj2->lua_type) {
-		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
-		unreachable();
+		lua_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
 	}
 	if(obj1->lua_type == PARAM_TYPE_CARD) {
 		pcard1 = static_cast<card*>(obj1);
@@ -2823,14 +2822,13 @@ LUA_FUNCTION(IsSummonCancelable) {
 LUA_FUNCTION(SetSelectedCard) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
-	if(auto pcard = lua_get<card*>(L, 1)) {
+	card* pcard = nullptr;
+	group* pgroup = nullptr;
+	get_card_or_group(L, 1, pcard, pgroup);
+	if(pcard)
 		pduel->game_field->core.must_select_cards = { pcard };
-	} else if(auto pgroup = lua_get<group*>(L, 1)) {
+	else
 		pduel->game_field->core.must_select_cards.assign(pgroup->container.begin(), pgroup->container.end());
-	} else {
-		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
-		unreachable();
-	}
 	return 0;
 }
 LUA_FUNCTION(GrabSelectedCard) {
@@ -2934,10 +2932,8 @@ LUA_FUNCTION(SetOperationInfo) {
 		opt.op_cards = pduel->new_group(pobj);
 		// spear creting and similar stuff, they set CATEGORY_SPECIAL_SUMMON with PLAYER_ALL to increase the summon counters
 		// and the core always assume the group is exactly 2 cards
-		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2) {
-			luaL_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
-			unreachable();
-		}
+		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2)
+			lua_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
 		opt.op_cards->is_readonly = TRUE;
 	}
 	auto omit = ch->opinfos.find(cate);
@@ -3055,24 +3051,18 @@ LUA_FUNCTION(Overlay) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto target = lua_get<card*, true>(L, 1);
-	if(target->overlay_target != nullptr) {
-		luaL_error(L, "Attempt to overlay materials to a card that is an overlay material.");
-		unreachable();
-	}
+	if(target->overlay_target != nullptr)
+		lua_error(L, "Attempt to overlay materials to a card that is an overlay material.");
 	card* pcard = nullptr;
 	group* pgroup = nullptr;
 	get_card_or_group(L, 2, pcard, pgroup);
 	if(pcard) {
-		if(pcard == target) {
-			luaL_error(L, "Attempt to overlay a card with itself.");
-			unreachable();
-		}
+		if(pcard == target)
+			lua_error(L, "Attempt to overlay a card with itself.");
 		target->xyz_overlay(card_set{ pcard });
 	} else {
-		if(pgroup->has_card(target)) {
-			luaL_error(L, "Attempt to overlay a card with itself.");
-			unreachable();
-		}
+		if(pgroup->has_card(target))
+			lua_error(L, "Attempt to overlay a card with itself.");
 		target->xyz_overlay(pgroup->container);
 	}
 	if(target->current.location & LOCATION_ONFIELD)
@@ -3167,9 +3157,8 @@ LUA_FUNCTION(HintSelection) {
 		message->write(pcard->get_info_location());
 	} else {
 		message->write<uint32_t>(pgroup->container.size());
-		for(auto& pcard : pgroup->container) {
-			message->write(pcard->get_info_location());
-		}
+		for(auto& _pcard : pgroup->container)
+			message->write(_pcard->get_info_location());
 	}
 	return 0;
 }
@@ -3516,10 +3505,8 @@ LUA_FUNCTION(AnnounceCard) {
 		if(stack_size <= 0)
 			break;
 	}
-	if(stack_size != 1 && has_opcodes) {
-		luaL_error(L, "Parameters are invalid.");
-		unreachable();
-	}
+	if(stack_size != 1 && has_opcodes)
+		lua_error(L, "Parameters are invalid.");
 	if(!has_opcodes) {
 		pduel->game_field->core.select_options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
 		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
@@ -4112,10 +4099,8 @@ LUA_FUNCTION(AddCustomActivityCounter) {
 	const auto findex = lua_get<function, true>(L, 3);
 	auto counter_id = lua_get<uint32_t>(L, 1);
 	auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, 2));
-	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN){
-		luaL_error(L, "Passed invalid ACTIVITY counter.");
-		unreachable();
-	}
+	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN)
+		lua_error(L, "Passed invalid ACTIVITY counter.");
 	int32_t counter_filter = interpreter::get_function_handle(L, findex);
 	const auto pduel = lua_get<duel*>(L);
 	auto& counter_map = pduel->game_field->core.get_counter_map(activity_type);
@@ -4129,10 +4114,8 @@ LUA_FUNCTION(GetCustomActivityCount) {
 	auto counter_id = lua_get<uint32_t>(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 2);
 	auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, 3));
-	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN || activity_type == 0) {
-		luaL_error(L, "Passed invalid ACTIVITY counter.");
-		unreachable();
-	}
+	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN || activity_type == 0)
+		lua_error(L, "Passed invalid ACTIVITY counter.");
 	const auto pduel = lua_get<duel*>(L);
 	auto& counter_map = pduel->game_field->core.get_counter_map(activity_type);
 	int32_t val = 0;
@@ -4202,10 +4185,9 @@ LUA_FUNCTION(LoadScript) {
 			return hash;
 		}(string);
 		auto& load_status = pduel->loaded_scripts[hash];
-		if(load_status == SLS::LOADING) {
-			luaL_error(L, "Recursive script loading detected.");
-			unreachable();
-		} else if(load_status != SLS::NOT_LOADED)
+		if(load_status == SLS::LOADING)
+			lua_error(L, "Recursive script loading detected.");
+		else if(load_status != SLS::NOT_LOADED)
 			lua_pushboolean(L, load_status == SLS::LOAD_SUCCEDED);
 		else {
 			load_status = SLS::LOADING;

@@ -23,11 +23,20 @@ namespace scriptlib {
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
 	int32_t is_deleted_object(lua_State* L);
 
+	template<typename... Args>
+	[[noreturn]] __forceinline void lua_error(Args&&... args) {
+		// std::forward is not used as visual studio 17+ isn't able to optimize
+		// it out even with the highest optimization level, the passed parameters are always
+		// integers/pointers so there's no loss in passing them by value.
+		// __forceinline is used as otherwise clang wouldn't be able to inline this function
+		// but we do want it to be inlined
+		luaL_error(args...);
+		unreachable();
+	}
+
 	inline void check_param_count(lua_State* L, int32_t count) {
-		if(lua_gettop(L) < count) {
-			luaL_error(L, "%d Parameters are needed.", count);
-			unreachable();
-		}
+		if(lua_gettop(L) < count)
+			lua_error(L, "%d Parameters are needed.", count);
 	}
 
 //Visual Studio raises a warning on const conditional expressions.
@@ -64,10 +73,8 @@ namespace scriptlib {
 			return nullptr;
 		if(auto obj = lua_touserdata(L, idx)) {
 			auto* ret = *static_cast<lua_obj**>(obj);
-			if(ret->lua_type == PARAM_TYPE_DELETED) {
-				luaL_error(L, "Attempting to access deleted object.");
-				unreachable();
-			}
+			if(ret->lua_type == PARAM_TYPE_DELETED)
+				lua_error(L, "Attempting to access deleted object.");
 			return ret;
 		}
 		return nullptr;
@@ -159,8 +166,7 @@ namespace scriptlib {
 			default: break;
 			}
 		}
-		luaL_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
-		unreachable();
+		lua_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
 	}
 	//always return a string, whereas lua might return nullptr
 	inline const char* lua_tostring_or_empty(lua_State* L, int idx) {
@@ -189,12 +195,11 @@ namespace scriptlib {
 		auto obj = lua_get<T*>(L, -1);
 		if(!obj) {
 			if(std::is_same<T, card>::value)
-				luaL_error(L, "Parameter 1 should be a lua reference to a Card.");
+				lua_error(L, "Parameter 1 should be a lua reference to a Card.");
 			else if(std::is_same<T, group>::value)
-				luaL_error(L, "Parameter 1 should be a lua reference to a Group.");
+				lua_error(L, "Parameter 1 should be a lua reference to a Group.");
 			else if(std::is_same<T, effect>::value)
-				luaL_error(L, "Parameter 1 should be a lua reference to an Effect.");
-			unreachable();
+				lua_error(L, "Parameter 1 should be a lua reference to an Effect.");
 		}
 		return 1;
 	}
