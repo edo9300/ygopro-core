@@ -1263,7 +1263,7 @@ uint32_t card::get_race(card* scard, uint64_t sumtype, uint8_t playerid) {
 	auto search = assume.find(ASSUME_RACE);
 	if(search != assume.end())
 		return search->second;
-	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER) && !sumtype)
+	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER))
 		return 0;
 	if (has_valid_property_val(temp.race))
 		return temp.race;
