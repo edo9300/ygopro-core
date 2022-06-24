@@ -108,6 +108,7 @@ project "ocgcore"
 
 project "ocgcoreshared"
 	kind "SharedLib"
+	flags "NoImportLib"
 	targetname "ocgcore"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
