@@ -1403,11 +1403,8 @@ uint32_t card::get_link_marker() {
 		rotate(link_marker);
 	return link_marker;
 }
-int32_t card::is_link_marker(uint32_t dir, uint32_t marker) {
-	if(marker)
-		return (int32_t)(marker & dir);
-	else
-		return (int32_t)(get_link_marker() & dir);
+int32_t card::is_link_marker(uint32_t dir) {
+	return (int32_t)(get_link_marker() & dir);
 }
 uint32_t card::get_linked_zone(bool free) {
 	if(!(get_type() & TYPE_LINK) || !(current.location & LOCATION_ONFIELD) || get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
@@ -1618,25 +1615,6 @@ int32_t card::is_extra_link_state() {
 			}
 		}
 	}
-	return FALSE;
-}
-int32_t card::is_position(int32_t pos) {
-	return current.position & pos;
-}
-void card::set_status(uint32_t _status, int32_t enabled) {
-	if (enabled)
-		this->status |= _status;
-	else
-		this->status &= ~_status;
-}
-// match at least 1 status
-int32_t card::get_status(uint32_t _status) {
-	return this->status & _status;
-}
-// match all status
-int32_t card::is_status(uint32_t _status) {
-	if ((this->status & _status) == _status)
-		return TRUE;
 	return FALSE;
 }
 uint32_t card::get_column_zone(int32_t loc1, int32_t left, int32_t right) {
