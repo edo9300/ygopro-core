@@ -2206,7 +2206,7 @@ LUA_FUNCTION(IsCanBeFusionMaterial) {
 	if(lua_gettop(L) >= 2 && !lua_isnoneornil(L, 2))
 		fcard = lua_get<card*, true>(L, 2);
 	auto summon_type = lua_get<uint64_t, SUMMON_TYPE_FUSION>(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
+	auto playerid = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	lua_pushboolean(L, pcard->is_can_be_fusion_material(fcard, summon_type, playerid));
 	return 1;
 }
