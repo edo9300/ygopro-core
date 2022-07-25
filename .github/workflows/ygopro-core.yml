@@ -147,6 +147,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-android
       TRAVIS_OS_NAME: android
+      OS_NAME: linux
     steps:
     - uses: actions/checkout@v1
       with:
@@ -158,12 +159,7 @@ jobs:
         svn checkout https://github.com/edo9300/edopro-android/trunk/deps/lua
     - name: Build
       shell: bash
-      run: |
-        ANDROID_ROOT=/usr/local/lib/android
-        ANDROID_SDK_ROOT=${ANDROID_ROOT}/sdk
-        ANDROID_NDK_ROOT=${ANDROID_SDK_ROOT}/ndk-bundle
-        ln -sfn $ANDROID_SDK_ROOT/ndk/21.4.7075529 $ANDROID_NDK_ROOT
-        $ANDROID_HOME/ndk-bundle/ndk-build -j2
+      run: ./travis/build-android.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
