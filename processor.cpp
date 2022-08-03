@@ -2760,11 +2760,6 @@ int32_t field::process_battle_command(uint16_t step) {
 		core.select_cards.clear();
 		return_cards.clear();
 		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
-		// only self targets aviable
-		if (core.select_cards.size() && core.attacker->direct_attackable) {
-			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 31);
-			return FALSE;
-		}
 		// direct attack
 		if(core.attacker->direct_attackable) {
 			if(core.select_cards.size() == 0) {

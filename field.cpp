@@ -2346,6 +2346,7 @@ int32_t field::get_attack_target(card* pcard, card_vector* v, uint8_t chain_atta
 	}
 	//chain attack or announce count check passed
 	uint32_t mcount = 0;
+	uint32_t total_targets = 0;
 	for(auto& atarget : *pv) {
 		if(!atarget)
 			continue;
@@ -2353,6 +2354,7 @@ int32_t field::get_attack_target(card* pcard, card_vector* v, uint8_t chain_atta
 			continue;
 		if(atarget->current.controler != p)
 			++mcount;
+		++total_targets;
 		if(chain_attack && core.chain_attack_target && atarget != core.chain_attack_target)
 			continue;
 		if(select_target && (atype == 2 || atype == 4)) {
@@ -2365,7 +2367,7 @@ int32_t field::get_attack_target(card* pcard, card_vector* v, uint8_t chain_atta
 	}
 	if(atype <= 3)
 		return atype;
-	if((mcount == 0 || pcard->is_affected_by_effect(EFFECT_DIRECT_ATTACK) || core.attack_player)
+	if((mcount == 0 || pcard->is_affected_by_effect(EFFECT_DIRECT_ATTACK) || core.attack_player || (mcount != total_targets))
 			&& !pcard->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK)
 			&& !(extra_count_m && pcard->announce_count > extra_count)
 			&& !(chain_attack && core.chain_attack_target))
