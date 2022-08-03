@@ -2786,7 +2786,7 @@ int32_t field::process_battle_command(uint16_t step) {
 			if(core.select_cards.size() == 1)
 				return_cards.list.push_back(core.select_cards.front());
 			else {
-				auto message = pduel->new_message(MSG_BECOME_TARGET);
+				auto message = pduel->new_message(MSG_CARD_SELECTED);
 				message->write<uint32_t>(1);
 				message->write(core.attacker->get_info_location());
 				message = pduel->new_message(MSG_HINT);
@@ -2812,11 +2812,13 @@ int32_t field::process_battle_command(uint16_t step) {
 		} else {
 			if(core.select_cards.size()) {
 				auto opposel = !!is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS);
+				const auto sel_player = opposel ? 1 - infos.turn_player : infos.turn_player;
+				const auto cancelable = (core.attack_cancelable && !opposel) ? 0x20000 : 0;
 				auto message = pduel->new_message(MSG_HINT);
 				message->write<uint8_t>(HINT_SELECTMSG);
 				message->write<uint8_t>(opposel ? 1 - infos.turn_player : infos.turn_player);
 				message->write<uint64_t>(549);
-				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, (opposel ? 1 - infos.turn_player : infos.turn_player) + (core.attack_cancelable ? 0x20000 : 0), 0x10001);
+				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, sel_player + cancelable, 0x10001);
 			} else {
 				core.units.begin()->arg3 = TRUE;
 				core.units.begin()->step = 6;
