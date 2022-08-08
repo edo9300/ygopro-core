@@ -24,7 +24,7 @@ namespace scriptlib {
 	int32_t is_deleted_object(lua_State* L);
 
 	template<typename... Args>
-	[[noreturn]] __forceinline void lua_error(Args&&... args) {
+	[[noreturn]] __forceinline void lua_error(Args... args) {
 		// std::forward is not used as visual studio 17+ isn't able to optimize
 		// it out even with the highest optimization level, the passed parameters are always
 		// integers/pointers so there's no loss in passing them by value.
