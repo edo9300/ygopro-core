@@ -105,6 +105,8 @@ LUA_FUNCTION(RemoveCard) {
 	if(pcard)
 		pgroup->container.erase(pcard);
 	else {
+		if(pgroup == sgroup)
+			lua_error(L, "Attempting to remove a group from itself");
 		for(auto& _pcard : sgroup->container)
 			pgroup->container.erase(_pcard);
 	}
