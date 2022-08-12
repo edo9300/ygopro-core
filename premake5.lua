@@ -83,6 +83,11 @@ if not subproject then
 
 	filter { "action:vs*", "configurations:Release", "architecture:*64" }
 		targetdir "bin/x64/release"
+
+	filter { "action:not vs*", "system:windows" }
+		buildoptions { "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
+		linkoptions { "-mthreads", "-municode", "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
+		defines { "UNICODE", "_UNICODE" }
 	
 	local function vcpkgStaticTriplet(prj)
 		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'Win32\'">x86-windows-static</VcpkgTriplet>')
