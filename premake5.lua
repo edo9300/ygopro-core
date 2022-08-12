@@ -5,7 +5,7 @@ local ocgcore_config=function()
 	cppdialect "C++14"
 	defines "LUA_COMPAT_5_2"
 
-	filter "system:not windows"
+	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 
 	filter "system:linux"
@@ -19,6 +19,10 @@ if not subproject then
 	newoption {
 		trigger = "oldwindows",
 		description = "Use some tricks to support up to windows 2000"
+	}
+	newoption {
+		trigger = "lua-path",
+		description = "Path where the lua library has been installed"
 	}
 	workspace "ocgcore"
 	location "build"
@@ -44,10 +48,6 @@ if not subproject then
 		filter {}
 	end
 	
-	filter "system:not windows"
-		includedirs "/usr/local/include"
-		libdirs "/usr/local/lib"
-	
 	filter "action:vs*"
 		flags "MultiProcessorCompile"
 		vectorextensions "SSE2"
@@ -56,6 +56,13 @@ if not subproject then
 
 	filter "action:not vs*"
 		buildoptions "-fno-strict-aliasing"
+		if _OPTIONS["lua-path"] then
+			includedirs{ _OPTIONS["lua-path"] .. "/include" }
+			libdirs{ _OPTIONS["lua-path"] .. "/lib" }
+		else
+			includedirs "/usr/local/include"
+			libdirs "/usr/local/lib"
+		end
 	
 	filter "configurations:Debug"
 		symbols "On"
@@ -123,5 +130,5 @@ project "ocgcoreshared"
 		filter {}
 	end
 	
-	filter "system:linux or macosx or ios"
+	filter "action:not vs*"
 		links "lua"
