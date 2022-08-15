@@ -369,7 +369,7 @@ LUA_FUNCTION(GetCategory) {
 LUA_FUNCTION(GetOwner) {
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	interpreter::pushobject(L, peffect->owner);
+	interpreter::pushobject(L, peffect->get_owner());
 	return 1;
 }
 LUA_FUNCTION(GetHandler) {
