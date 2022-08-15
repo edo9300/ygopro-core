@@ -79,7 +79,6 @@ if not subproject then
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
-		flags "LinkTimeOptimization"
 
 	filter { "action:vs*", "configurations:Release", "architecture:*64" }
 		targetdir "bin/x64/release"
