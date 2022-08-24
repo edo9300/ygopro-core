@@ -1624,6 +1624,8 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 					core.select_effects.push_back(peff);
 					core.select_options.push_back(peff->description);
 				}
+				if(core.select_options.empty())
+					return TRUE;
 				if(core.select_options.size() == 1)
 					returns.at<int32_t>(0) = 0;
 				else
