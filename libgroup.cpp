@@ -884,9 +884,9 @@ LUA_FUNCTION(GetBinClassCount) {
 	auto pgroup = lua_get<group*, true>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	int32_t extraargs = lua_gettop(L) - 2;
-	int32_t er = 0;
+	uint64_t er = 0;
 	for(auto& pcard : pgroup->container) {
-		er |= pduel->lua->get_operation_value(pcard, findex, extraargs);
+		er |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, findex, extraargs));
 	}
 	int32_t ans = 0;
 	while(er) {
