@@ -51,12 +51,7 @@ bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retf
 	}
 	if(retfalse)
 		return false;
-	if(param_type != PARAM_TYPE_INT)
-		lua_error(L, R"(Parameter %d should be "%s".)", index, type);
-	interpreter::print_stacktrace(L);
-	const auto pduel = lua_get<duel*>(L);
-	pduel->handle_message(pduel->lua->format(R"(Parameter %d should be "%s".)", index, type), OCG_LOG_TYPE_ERROR);
-	return false;
+	lua_error(L, R"(Parameter %d should be "%s".)", index, type);
 }
 void check_action_permission(lua_State* L) {
 	if(lua_get<duel*>(L)->lua->no_action)
