@@ -2443,7 +2443,7 @@ LUA_FUNCTION(SetHint) {
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto type = lua_get<uint8_t>(L, 2);
-	auto value = lua_get<uint32_t>(L, 3);
+	auto value = lua_get<uint64_t>(L, 3);
 	if(type >= CHINT_DESC_ADD)
 		return 0;
 	auto message = pduel->new_message(MSG_CARD_HINT);
