@@ -462,7 +462,7 @@ int32_t field::process() {
 		effect* reason_effect = nullptr;
 		card* reason_card = nullptr;
 		if(reason & REASON_BATTLE)
-			reason_card = (card*)it->peffect;
+			reason_card = static_cast<card*>(it->ptr1);
 		else
 			reason_effect = it->peffect;
 		uint32_t amount = static_cast<uint32_t>(it->arg3);
@@ -2760,11 +2760,6 @@ int32_t field::process_battle_command(uint16_t step) {
 		core.select_cards.clear();
 		return_cards.clear();
 		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
-		// only self targets aviable
-		if (core.select_cards.size() && core.attacker->direct_attackable) {
-			add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, infos.turn_player, 31);
-			return FALSE;
-		}
 		// direct attack
 		if(core.attacker->direct_attackable) {
 			if(core.select_cards.size() == 0) {
@@ -2791,7 +2786,7 @@ int32_t field::process_battle_command(uint16_t step) {
 			if(core.select_cards.size() == 1)
 				return_cards.list.push_back(core.select_cards.front());
 			else {
-				auto message = pduel->new_message(MSG_BECOME_TARGET);
+				auto message = pduel->new_message(MSG_CARD_SELECTED);
 				message->write<uint32_t>(1);
 				message->write(core.attacker->get_info_location());
 				message = pduel->new_message(MSG_HINT);
@@ -2817,11 +2812,13 @@ int32_t field::process_battle_command(uint16_t step) {
 		} else {
 			if(core.select_cards.size()) {
 				auto opposel = !!is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS);
+				const auto sel_player = opposel ? 1 - infos.turn_player : infos.turn_player;
+				const auto cancelable = (core.attack_cancelable && !opposel) ? 0x20000 : 0;
 				auto message = pduel->new_message(MSG_HINT);
 				message->write<uint8_t>(HINT_SELECTMSG);
 				message->write<uint8_t>(opposel ? 1 - infos.turn_player : infos.turn_player);
 				message->write<uint64_t>(549);
-				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, (opposel ? 1 - infos.turn_player : infos.turn_player) + (core.attack_cancelable ? 0x20000 : 0), 0x10001);
+				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, sel_player + cancelable, 0x10001);
 			} else {
 				core.units.begin()->arg3 = TRUE;
 				core.units.begin()->step = 6;
@@ -3025,7 +3022,7 @@ int32_t field::process_battle_command(uint16_t step) {
 	}
 	case 20: {
 		// start of PHASE_DAMAGE;
-		auto message = pduel->new_message(MSG_DAMAGE_STEP_START);
+		(void)pduel->new_message(MSG_DAMAGE_STEP_START);
 		raise_single_event(core.attacker, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
 		if(core.attack_target) {
 			raise_single_event(core.attack_target, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 1);
@@ -3035,7 +3032,7 @@ int32_t field::process_battle_command(uint16_t step) {
 		process_instant_event();
 		if(!is_flag(DUEL_6_STEP_BATLLE_STEP) || (core.new_fchain.size() || core.new_ochain.size())) {
 			core.units.begin()->arg4 = core.new_fchain.size() || core.new_ochain.size();
-			message = pduel->new_message(MSG_HINT);
+			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_EVENT);
 			message->write<uint8_t>(0);
 			message->write<uint64_t>(40);
@@ -3632,7 +3629,7 @@ int32_t field::process_damage_step(uint16_t step, uint32_t new_attack) {
 			message->write(loc_info{});
 		}
 		infos.phase = PHASE_DAMAGE;
-		message = pduel->new_message(MSG_DAMAGE_STEP_START);
+		(void)pduel->new_message(MSG_DAMAGE_STEP_START);
 		core.pre_field[0] = core.attacker->fieldid_r;
 		++core.attacker->attacked_count;
 		if(core.attack_target) {
@@ -4233,6 +4230,8 @@ int32_t field::process_turn(uint16_t step, uint8_t turn_player) {
 		return FALSE;
 	}
 	case 11: {
+		if(core.new_fchain.size() || core.new_ochain.size())
+			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0, 0);
 		add_process(PROCESSOR_PHASE_EVENT, 0, 0, 0, PHASE_BATTLE_START, 0);
 		/*if(core.set_forced_attack)
 			add_process(PROCESSOR_FORCED_BATTLE, 0, 0, 0, 0, 0);*/

@@ -2,6 +2,7 @@
 bin/
 libs/
 obj/
+subprojects/
 tmp/
 .vscode/
 .idea/

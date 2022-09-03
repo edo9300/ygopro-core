@@ -307,8 +307,6 @@ bool interpreter::check_condition(int32_t f, uint32_t param_count) {
 	return result;
 }
 bool interpreter::check_matching(card* pcard, int32_t findex, int32_t extraargs) {
-	if(!findex || lua_isnoneornil(current_state, findex))
-		return true;
 	deepen();
 	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);

@@ -57,7 +57,7 @@ public:
 	int32_t target{};
 	int32_t value{};
 	int32_t operation{};
-	std::vector<uint32_t> label;
+	std::vector<lua_Integer> label;
 
 	explicit effect(duel* pd) : lua_obj_helper(pd) {};
 	~effect() = default;
@@ -195,7 +195,7 @@ enum effect_flag : uint32_t {
 	EFFECT_FLAG_IMMEDIATELY_APPLY = 0x80000000,
 };
 enum effect_flag2 : uint32_t {
-//	EFFECT_FLAG2_NAGA               = 0x0001,
+	EFFECT_FLAG2_CONTINUOUS_EQUIP   = 0x0001,
 	EFFECT_FLAG2_COF                = 0x0002,
 	EFFECT_FLAG2_CHECK_SIMULTANEOUS = 0x0004,
 	EFFECT_FLAG2_MAJESTIC_MUST_COPY = 0x80000000,

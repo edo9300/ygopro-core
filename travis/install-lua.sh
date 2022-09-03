@@ -4,6 +4,7 @@ set -euxo pipefail
 
 TRAVIS_OS_NAME=${1:-$TRAVIS_OS_NAME}
 CXX=${CXX:-g++}
+MAKE=${MAKE:-sudo make}
 
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	mkdir -p "$VCPKG_ROOT"
@@ -20,9 +21,9 @@ else
 	tar xf lua-5.3.5.tar.gz
 	cd lua-5.3.5
 	if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-	  make -j2 macosx CC=$CXX MYCFLAGS="${CFLAGS:-""}" MYLDFLAGS="${LDFLAGS:-""}"
+	  make -j3 macosx CC=$CXX MYCFLAGS="${CFLAGS:-""}" MYLDFLAGS="${LDFLAGS:-""}"
 	else
-	  make -j2 linux CC=$CXX MYCFLAGS=-fPIC
+	  make -j2 posix CC=$CXX MYCFLAGS=-fPIC
 	fi
-	sudo make install
+	$MAKE install
 fi

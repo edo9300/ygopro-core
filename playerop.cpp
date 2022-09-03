@@ -870,7 +870,7 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, uint
 		return FALSE;
 	} else {
 		uint64_t rc = returns.at<uint64_t>(0);
-		uint32_t sel = 0;
+		uint8_t sel = 0;
 		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(!(ft & rc)) continue;
 			if(!(ft & available)) {
@@ -879,7 +879,7 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, uint
 			}
 			++sel;
 		}
-		if(sel != count) {
+		if(sel != static_cast<uint8_t>(count)) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}

@@ -30,8 +30,9 @@ int32_t field::negate_chain(uint8_t chaincount) {
 		}
 		auto message = pduel->new_message(MSG_CHAIN_NEGATED);
 		message->write<uint8_t>(chaincount);
-		if(pchain.triggering_location == LOCATION_DECK
-				|| (!is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
+		if(!is_flag(DUEL_RETURN_TO_DECK_TRIGGERS) &&
+		   (pchain.triggering_location == LOCATION_DECK
+			|| (pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN))))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
@@ -50,8 +51,9 @@ int32_t field::disable_chain(uint8_t chaincount) {
 		core.current_chain[chaincount - 1].disable_player = core.reason_player;
 		auto message = pduel->new_message(MSG_CHAIN_DISABLED);
 		message->write<uint8_t>(chaincount);
-		if(pchain.triggering_location == LOCATION_DECK
-				|| (!is_flag(DUEL_RETURN_TO_EXTRA_DECK_TRIGGERS) && pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN)))
+		if(!is_flag(DUEL_RETURN_TO_DECK_TRIGGERS) &&
+		   (pchain.triggering_location == LOCATION_DECK
+		   || (pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN))))
 			pchain.triggering_effect->handler->release_relation(pchain);
 		return TRUE;
 	}
@@ -140,7 +142,7 @@ void field::damage(effect* reason_effect, uint32_t reason, uint8_t reason_player
 		reason_effect = nullptr;
 	else
 		reason_card = nullptr;
-	add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2, amount, 0, reason_effect);
+	add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2, amount, 0, reason_card);
 }
 void field::recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, bool is_step) {
 	add_process(PROCESSOR_RECOVER, 0, reason_effect, 0, reason, (is_step << 28) + (reason_player << 26) + (playerid << 24), amount);
@@ -231,9 +233,10 @@ void field::special_summon_complete(effect* reason_effect, uint8_t reason_player
 	add_process(PROCESSOR_SPSUMMON, 1, reason_effect, ng, reason_player, 0);
 }
 void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence) {
+	const auto destroy_canceled_end = core.destroy_canceled.cend();
 	for(auto cit = targets.begin(); cit != targets.end();) {
 		card* pcard = *cit;
-		if(pcard->is_status(STATUS_DESTROY_CONFIRMED)) {
+		if(pcard->is_status(STATUS_DESTROY_CONFIRMED) && core.destroy_canceled.find(pcard) == destroy_canceled_end) {
 			targets.erase(cit++);
 			continue;
 		}
@@ -1621,6 +1624,8 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 					core.select_effects.push_back(peff);
 					core.select_options.push_back(peff->description);
 				}
+				if(core.select_options.empty())
+					return TRUE;
 				if(core.select_options.size() == 1)
 					returns.at<int32_t>(0) = 0;
 				else

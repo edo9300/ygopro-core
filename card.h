@@ -169,12 +169,12 @@ public:
 	uint32_t get_code();
 	uint32_t get_another_code();
 	uint32_t get_summon_code(card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
-	int32_t is_set_card(uint32_t set_code);
-	int32_t is_origin_set_card(uint32_t set_code);
-	int32_t is_pre_set_card(uint32_t set_code);
-	int32_t is_sumon_set_card(uint32_t set_code, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
+	int32_t is_set_card(uint16_t set_code);
+	int32_t is_origin_set_card(uint16_t set_code);
+	int32_t is_pre_set_card(uint16_t set_code);
+	int32_t is_sumon_set_card(uint16_t set_code, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
 	uint32_t get_set_card();
-	std::set<uint16_t> get_origin_set_card();
+	const std::set<uint16_t>& get_origin_set_card() const { return data.setcodes; }
 	uint32_t get_pre_set_card();
 	uint32_t get_summon_set_card(card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
 	uint32_t get_type(card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
@@ -193,7 +193,10 @@ public:
 	uint32_t get_lscale();
 	uint32_t get_rscale();
 	uint32_t get_link_marker();
-	int32_t is_link_marker(uint32_t dir, uint32_t marker = 0);
+	int32_t is_link_marker(uint32_t dir);
+	int32_t is_link_marker(uint32_t dir, uint32_t marker) const {
+		return (int32_t)(marker & dir);
+	}
 	uint32_t get_linked_zone(bool free = false);
 	void get_linked_cards(card_set* cset, uint32_t zones = 0);
 	uint32_t get_mutual_linked_zone();
@@ -201,10 +204,23 @@ public:
 	int32_t is_link_state();
 	int32_t is_mutual_linked(card* pcard, uint32_t zones1 = 0, uint32_t zones2 = 0);
 	int32_t is_extra_link_state();
-	int32_t is_position(int32_t pos);
-	void set_status(uint32_t status, int32_t enabled);
-	int32_t get_status(uint32_t status);
-	int32_t is_status(uint32_t status);
+	int32_t is_position(int32_t pos) const {
+		return (int32_t)(current.position & pos);
+	}
+	void set_status(uint32_t status_to_toggle, int32_t enabled) {
+		if(enabled)
+			status |= status_to_toggle;
+		else
+			status &= ~status_to_toggle;
+	}
+	// match at least 1 status
+	int32_t get_status(uint32_t status_to_check) const {
+		return (int32_t)(status & status_to_check);
+	}
+	// match all statuses
+	int32_t is_status(uint32_t status_to_check) const {
+		return (status & status_to_check) == status_to_check;
+	}
 	uint32_t get_column_zone(int32_t loc1, int32_t left, int32_t right);
 	void get_column_cards(card_set* cset, int32_t left, int32_t right);
 	int32_t is_all_column();
