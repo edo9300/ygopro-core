@@ -17,7 +17,7 @@
 
 using namespace scriptlib;
 
-interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
+interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(256), deleted(pd) {
 	lua_state = luaL_newstate();
 	current_state = lua_state;
 	pduel = pd;
@@ -33,7 +33,20 @@ interpreter::interpreter(duel* pd): coroutines(256), deleted(pd) {
 	open_lib(LUA_STRLIBNAME, luaopen_string);
 	open_lib(LUA_TABLIBNAME, luaopen_table);
 	open_lib(LUA_MATHLIBNAME, luaopen_math);
-	open_lib(LUA_IOLIBNAME, luaopen_io);
+	if(options.enableUnsafeLibraries != 0)
+		open_lib(LUA_IOLIBNAME, luaopen_io);
+	else {
+		// Remove "dangerous" functions
+		auto nil_out = [&](const char* name) {
+			lua_pushnil(lua_state);
+			lua_setglobal(lua_state, name);
+		};
+		nil_out("collectgarbage");
+		nil_out("dofile");
+		nil_out("load");
+		nil_out("loadfile");
+		nil_out("loadstring");
+	}
 	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);

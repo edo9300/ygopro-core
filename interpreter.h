@@ -22,6 +22,7 @@
 #include <cstring>
 #include <cmath>
 #include "lua_obj.h"
+#include "ocgapi_types.h"
 
 class card;
 class effect;
@@ -57,7 +58,7 @@ public:
 	int32_t call_depth;
 	lua_invalid deleted;
 
-	explicit interpreter(duel* pd);
+	explicit interpreter(duel* pd, const OCG_DuelOptions& options);
 	~interpreter();
 
 	void register_card(card* pcard);
