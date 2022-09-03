@@ -3,9 +3,8 @@
 set -euxo pipefail
 
 mkdir -p $DEPLOY_DIR
-cp LICENSE README.md $DEPLOY_DIR
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-	mv build/$BUILD_CONFIG/ocgcore.dll build/$BUILD_CONFIG/ocgcore_static.lib $DEPLOY_DIR
+	mv bin/$BUILD_CONFIG/ocgcore.dll $DEPLOY_DIR
 	powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path $DEPLOY_DIR -DestinationPath ocgcore-$TRAVIS_OS_NAME"
 elif [[ "$TRAVIS_OS_NAME" == "android" ]]; then
 	ARCH=("armeabi-v7a" "arm64-v8a" "x86" "x86_64" )
@@ -18,11 +17,10 @@ elif [[ "$TRAVIS_OS_NAME" == "android" ]]; then
 	done
 	tar -zcf ocgcore-$TRAVIS_OS_NAME.tar.gz $DEPLOY_DIR
 else
-	mv build/libocgcore_static.a $DEPLOY_DIR
 	if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-		mv build/libocgcore.dylib $DEPLOY_DIR
+		mv bin/$BUILD_CONFIG/libocgcore.dylib $DEPLOY_DIR
 	else
-		mv build/libocgcore.so $DEPLOY_DIR
+		mv bin/$BUILD_CONFIG/libocgcore.so $DEPLOY_DIR
 	fi
 	tar -zcf ocgcore-$TRAVIS_OS_NAME.tar.gz $DEPLOY_DIR
 fi

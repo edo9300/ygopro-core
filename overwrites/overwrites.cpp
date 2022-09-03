@@ -1,3 +1,4 @@
+#ifndef _WIN64
 #include <Windows.h>
 #include <winternl.h>
 
@@ -19,18 +20,36 @@ and internalimplxxx that is the fallback function called if the function isn't l
 on first call GetProcAddress is called, and if the function is found, then that will be called onwards
 otherwise fall back to the internal implementation
 */
-#define GETFUNC(funcname) (decltype(&handled##funcname))GetProcAddress(GetModuleHandleA(LIBNAME), #funcname)
-#define MAKELOADER(funcname,ret,args,argnames)\
-ret __stdcall internalimpl##funcname args ;\
-extern "C" ret __stdcall handled##funcname args {\
-	static auto basefunc = GETFUNC(funcname);\
-	if(basefunc)\
-		return basefunc argnames ;\
-	return internalimpl##funcname argnames ;\
-}\
+#define GETFUNC(funcname) (decltype(&handled##funcname))GetProcAddress(GetModuleHandle(LIBNAME), #funcname)
+#define MAKELOADER(funcname,ret,args,argnames) \
+ret __stdcall internalimpl##funcname args ; \
+extern "C" ret __stdcall handled##funcname args; \
+const auto basefunc##funcname = [] { \
+	auto func = GETFUNC(funcname); \
+	return func ? func : internalimpl##funcname; \
+}(); \
+extern "C" ret __stdcall handled##funcname args { \
+	return basefunc##funcname argnames ; \
+} \
 ret __stdcall internalimpl##funcname args
 
-#define LIBNAME "kernel32.dll"
+#define MAKELOADER_WITH_CHECK(funcname,ret,args,argnames) \
+ret __stdcall internalimpl##funcname args ; \
+extern "C" ret __stdcall handled##funcname args; \
+const auto basefunc##funcname = [] { \
+	auto func = GETFUNC(funcname); \
+	return func ? func : internalimpl##funcname; \
+}(); \
+extern "C" ret __stdcall handled##funcname args { \
+	if(!basefunc##funcname) { \
+		auto func = GETFUNC(funcname); \
+		return (func ? func : internalimpl##funcname) argnames ; \
+	} \
+	return basefunc##funcname argnames; \
+} \
+ret __stdcall internalimpl##funcname args
+
+#define LIBNAME TEXT("kernel32.dll")
 
 typedef struct _LDR_MODULE {
 	LIST_ENTRY InLoadOrderModuleList;
@@ -162,7 +181,7 @@ void SListUnlock(PSLIST_HEADER ListHead) {
 
 //Note: ListHead->Next.N== first node
 
-extern "C" PSLIST_ENTRY __stdcall handledInterlockedFlushSList(PSLIST_HEADER ListHead) {
+MAKELOADER(InterlockedFlushSList, PSLIST_ENTRY, (PSLIST_HEADER ListHead), (ListHead)) {
 	PSLIST_ENTRY ret;
 	SListLock(ListHead);
 	ret = ListHead->Next.Next;
@@ -173,29 +192,12 @@ extern "C" PSLIST_ENTRY __stdcall handledInterlockedFlushSList(PSLIST_HEADER Lis
 	return ret;
 }
 
-void __stdcall internalimplInitializeSListHead(PSLIST_HEADER ListHead) {
+MAKELOADER_WITH_CHECK(InitializeSListHead, void, (PSLIST_HEADER ListHead), (ListHead)) {
 	SListLock(ListHead);
 	ListHead->Next.Next = nullptr;
 	ListHead->Depth = 0;
 	ListHead->Sequence = 0;
 	SListUnlock(ListHead);
-}
-
-/*
-on first load this will be called when setting up the crt, calling GetProcAddress
-at that moment will make the program crash.
-*/
-extern "C" void __stdcall handledInitializeSListHead(PSLIST_HEADER ListHead) {
-	static decltype(&internalimplInitializeSListHead) basefunc = nullptr;
-	static int firstrun = 0;
-	if(firstrun == 1) {
-		firstrun++;
-		basefunc = GETFUNC(InitializeSListHead);
-	} else if(firstrun == 0)
-		firstrun++;
-	if(basefunc)
-		return basefunc(ListHead);
-	return internalimplInitializeSListHead(ListHead);
 }
 
 static BOOL IncLoadCount(HMODULE hMod) {
@@ -235,3 +237,4 @@ MAKELOADER(EncodePointer, PVOID, (PVOID ptr), (ptr)) {
 MAKELOADER(DecodePointer, PVOID, (PVOID ptr), (ptr)) {
 	return (PVOID)((UINT_PTR)ptr ^ 0xDEADBEEF);
 }
+#endif

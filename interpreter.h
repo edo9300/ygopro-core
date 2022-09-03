@@ -34,7 +34,19 @@ class interpreter {
 	char msgbuf[128];
 public:
 	using coroutine_map = std::unordered_map<int32_t, std::pair<lua_State*, int32_t>>;
-	using param_list = std::list<std::pair<lua_Integer, uint32_t>>;
+	union lua_param {
+		void* ptr;
+		lua_Integer integer;
+	};
+private:
+	void add_param(lua_param param, LuaParamType type, bool front) {
+		if(front)
+			params.emplace_front(param, type);
+		else
+			params.emplace_back(param, type);
+	}
+public:
+	using param_list = std::list<std::pair<lua_param, LuaParamType>>;
 	
 	duel* pduel;
 	lua_State* lua_state;
@@ -57,8 +69,22 @@ public:
 
 	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	bool load_card_script(uint32_t code);
-	void add_param(void* param, int32_t type, bool front = false);
-	void add_param(lua_Integer  param, int32_t type, bool front = false);
+	template<LuaParamType type, typename T>
+	void add_param(T* param, bool front = false) {
+		static_assert(type == PARAM_TYPE_STRING || type == PARAM_TYPE_CARD || type == PARAM_TYPE_GROUP || type == PARAM_TYPE_EFFECT,
+					  "Passed parameter type doesn't match provided LuaParamType");
+		lua_param p;
+		p.ptr = param;
+		add_param(p, type, front);
+	}
+	template<LuaParamType type, typename T>
+	void add_param(T param, bool front = false) {
+		static_assert(type == PARAM_TYPE_INT || type == PARAM_TYPE_FUNCTION || type == PARAM_TYPE_BOOLEAN || type == PARAM_TYPE_INDEX,
+					  "Passed parameter type doesn't match provided LuaParamType");
+		lua_param p;
+		p.integer = param;
+		add_param(p, type, front);
+	}
 	void push_param(lua_State* L, bool is_coroutine = false);
 	bool call_function(int32_t f, uint32_t param_count, int32_t ret_count);
 	bool call_card_function(card* pcard, const char* f, uint32_t param_count, int32_t ret_count, bool forced = true);
@@ -66,11 +92,11 @@ public:
 	bool check_condition(int32_t f, uint32_t param_count);
 	bool check_matching(card* pcard, int32_t findex, int32_t extraargs);
 	bool check_matching_table(card* pcard, int32_t findex, int32_t table_index);
-	int32_t get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
-	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<int32_t>* result);
-	int32_t get_function_value(int32_t f, uint32_t param_count);
-	bool get_function_value(int32_t f, uint32_t param_count, std::vector<int32_t>* result);
-	int32_t call_coroutine(int32_t f, uint32_t param_count, uint32_t* yield_value, uint16_t step);
+	lua_Integer get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
+	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<lua_Integer>& result);
+	lua_Integer get_function_value(int32_t f, uint32_t param_count);
+	bool get_function_value(int32_t f, uint32_t param_count, std::vector<lua_Integer>& result);
+	int32_t call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step);
 	int32_t clone_lua_ref(int32_t lua_ref);
 	void* get_ref_object(int32_t ref_handler);
 	bool call_function(int param_count, int ret_count);
@@ -90,11 +116,16 @@ public:
 	}
 	static void print_stacktrace(lua_State* L);
 
+	template <size_t N, typename... TR>
+	static inline const char* format_to(char (&out)[N], const char* format, TR&&... args) {
+		if(std::snprintf(out, sizeof(out), format, std::forward<TR>(args)...) >= 0)
+			return out;
+		return "";
+	}
+
 	template <typename... TR>
 	inline const char* format(const char* format, TR&&... args) {
-		if(std::snprintf(msgbuf, sizeof(msgbuf), format, std::forward<TR>(args)...) >= 0)
-			return msgbuf;
-		return "";
+		return format_to(msgbuf, format, std::forward<TR>(args)...);
 	}
 };
 
@@ -104,10 +135,5 @@ public:
 
 static_assert(LUA_VERSION_NUM == 503 || LUA_VERSION_NUM == 504, "Lua 5.3 or 5.4 is required, the core won't work with other lua versions");
 static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers");
-#if LUA_VERSION_NUM <= 503
-#define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs)
-#else
-#define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs, res)
-#endif
 
 #endif /* INTERPRETER_H_ */

@@ -57,7 +57,7 @@ public:
 	int32_t target{};
 	int32_t value{};
 	int32_t operation{};
-	std::vector<uint32_t> label;
+	std::vector<lua_Integer> label;
 
 	explicit effect(duel* pd) : lua_obj_helper(pd) {};
 	~effect() = default;
@@ -83,12 +83,12 @@ public:
 	void dec_count(uint32_t playerid = 2);
 	void recharge();
 	uint8_t get_client_mode() const;
-	int32_t get_value(uint32_t extraargs = 0);
-	int32_t get_value(card* pcard, uint32_t extraargs = 0);
-	int32_t get_value(effect* peffect, uint32_t extraargs = 0);
-	void get_value(uint32_t extraargs, std::vector<int32_t>* result);
-	void get_value(card* pcard, uint32_t extraargs, std::vector<int32_t>* result);
-	void get_value(effect* peffect, uint32_t extraargs, std::vector<int32_t>* result);
+	lua_Integer get_value(uint32_t extraargs = 0);
+	lua_Integer get_value(card* pcard, uint32_t extraargs = 0);
+	lua_Integer get_value(effect* peffect, uint32_t extraargs = 0);
+	void get_value(uint32_t extraargs, std::vector<lua_Integer>& result);
+	void get_value(card* pcard, uint32_t extraargs, std::vector<lua_Integer>& result);
+	void get_value(effect* peffect, uint32_t extraargs, std::vector<lua_Integer>& result);
 	int32_t check_value_condition(uint32_t extraargs = 0);
 	void* get_label_object();
 	int32_t get_speed();
@@ -195,7 +195,7 @@ enum effect_flag : uint32_t {
 	EFFECT_FLAG_IMMEDIATELY_APPLY = 0x80000000,
 };
 enum effect_flag2 : uint32_t {
-//	EFFECT_FLAG2_NAGA               = 0x0001,
+	EFFECT_FLAG2_CONTINUOUS_EQUIP   = 0x0001,
 	EFFECT_FLAG2_COF                = 0x0002,
 	EFFECT_FLAG2_CHECK_SIMULTANEOUS = 0x0004,
 	EFFECT_FLAG2_MAJESTIC_MUST_COPY = 0x80000000,

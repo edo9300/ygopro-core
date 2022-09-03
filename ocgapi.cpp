@@ -17,15 +17,15 @@ OCGAPI void OCG_GetVersion(int* major, int* minor) {
 		*minor = OCG_VERSION_MINOR;
 }
 
-OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
-	if(duel == nullptr)
+OCGAPI int OCG_CreateDuel(OCG_Duel* return_duel_ptr, OCG_DuelOptions options) {
+	if(return_duel_ptr == nullptr)
 		return OCG_DUEL_CREATION_NO_OUTPUT;
 	if(options.cardReader == nullptr) {
-		*duel = nullptr;
+		*return_duel_ptr = nullptr;
 		return OCG_DUEL_CREATION_NULL_DATA_READER;
 	}
 	if(options.scriptReader == nullptr) {
-		*duel = nullptr;
+		*return_duel_ptr = nullptr;
 		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
 	}
 	if(options.logHandler == nullptr) {
@@ -36,10 +36,10 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* duel, OCG_DuelOptions options) {
 		options.cardReaderDone = DefaultCardReaderDone;
 		options.payload4 = nullptr;
 	}
-	auto duelPtr = new class duel(options);
+	auto* duelPtr = new (std::nothrow) duel(options);
 	if(duelPtr == nullptr)
 		return OCG_DUEL_CREATION_NOT_CREATED;
-	*duel = static_cast<OCG_Duel>(duelPtr);
+	*return_duel_ptr = static_cast<OCG_Duel>(duelPtr);
 	return OCG_DUEL_CREATION_SUCCESS;
 }
 
@@ -76,7 +76,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 			player.extra_lists_hand.resize(info.duelist);
 			player.extra_extra_p_count.resize(info.duelist);
 		}
-		info.duelist--;
+		--info.duelist;
 		pcard->current.location = (uint8_t)info.loc;
 		pcard->owner = info.team;
 		pcard->current.controler = info.team;
@@ -133,11 +133,11 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 	uint32_t count = 0;
 	if(loc == LOCATION_MZONE) {
 		for(auto& pcard : player.list_mzone)
-			if(pcard) count++;
+			if(pcard) ++count;
 	}
 	if(loc == LOCATION_SZONE) {
 		for(auto& pcard : player.list_szone)
-			if(pcard) count++;
+			if(pcard) ++count;
 	}
 	return count;
 }

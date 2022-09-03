@@ -216,7 +216,10 @@ int32_t field::select_option(uint16_t step, uint8_t playerid) {
 		return TRUE;
 	}
 }
-bool field::parse_response_cards(uint8_t cancelable, uint8_t sort) {
+
+namespace {
+template<typename ReturnType>
+bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<ReturnType>& return_cards, const std::vector<ReturnType>& select_cards, bool cancelable) {
 	auto type = returns.at<int32_t>(0);
 	if(type == -1) {
 		if(cancelable) {
@@ -227,15 +230,15 @@ bool field::parse_response_cards(uint8_t cancelable, uint8_t sort) {
 	}
 	auto& list = return_cards.list;
 	if(type == 3) {
-		for(size_t i = 0; i < core.select_cards.size(); i++) {
+		for(size_t i = 0; i < select_cards.size(); ++i) {
 			if(returns.bitGet(i + (sizeof(uint32_t) * 8)))
-				list.push_back(core.select_cards[i]);
+				list.push_back(select_cards[i]);
 		}
 	} else {
 		try {
 			auto size = returns.at<uint32_t>(1);
 			for(uint32_t i = 0; i < size; ++i) {
-				list.push_back(core.select_cards.at(
+				list.push_back(select_cards.at(
 					(type == 0) ? returns.at<uint32_t>(i + 2) :
 					(type == 1) ? returns.at<uint16_t>(i + 4) :
 					returns.at<uint8_t>(i + 8)
@@ -246,7 +249,7 @@ bool field::parse_response_cards(uint8_t cancelable, uint8_t sort) {
 			return false;
 		}
 	}
-	if(sort) {
+	if(std::is_same<ReturnType, card*>::value) {
 		std::sort(list.begin(), list.end());
 		auto ip = std::unique(list.begin(), list.end());
 		bool res = (ip == list.end());
@@ -255,7 +258,11 @@ bool field::parse_response_cards(uint8_t cancelable, uint8_t sort) {
 	}
 	return true;
 }
-int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max, uint8_t use_code) {
+}
+bool inline field::parse_response_cards(bool cancelable) {
+	return ::parse_response_cards(returns, return_cards, core.select_cards, cancelable);
+}
+int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max) {
 	if(step == 0) {
 		return_cards.clear();
 		returns.clear();
@@ -271,7 +278,7 @@ int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, 
 		if(min > max)
 			min = max;
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
-			for(int32_t i = 0; i < min; i++) {
+			for(int32_t i = 0; i < min; ++i) {
 				return_cards.list.push_back(core.select_cards[i]);
 			}
 			return TRUE;
@@ -283,20 +290,14 @@ int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, 
 		message->write<uint32_t>(min);
 		message->write<uint32_t>(max);
 		message->write<uint32_t>((uint32_t)core.select_cards.size());
-		if(!use_code)
-			std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
+		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(auto& pcard : core.select_cards) {
-			if(use_code) {
-				message->write<uint32_t>(((std::pair<uint32_t, uint32_t>*)pcard)->first);
-				message->write(loc_info{ playerid, 0, 0, 0 });
-			} else {
-				message->write<uint32_t>(pcard->data.code);
-				message->write(pcard->get_info_location());
-			}
+			message->write<uint32_t>(pcard->data.code);
+			message->write(pcard->get_info_location());
 		}
 		return FALSE;
 	} else {
-		if(!parse_response_cards(cancelable || min == 0, !use_code)) {
+		if(!parse_response_cards(cancelable || min == 0)) {
 			return_cards.clear();
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
@@ -305,6 +306,55 @@ int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, 
 			return TRUE;
 		if(return_cards.list.size() < min || return_cards.list.size() > max) {
 			return_cards.clear();
+			pduel->new_message(MSG_RETRY);
+			return FALSE;
+		}
+		return TRUE;
+	}
+}
+int32_t field::select_card_codes(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max) {
+	if(step == 0) {
+		return_card_codes.clear();
+		returns.clear();
+		if(max == 0 || core.select_cards_codes.empty()) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8_t>(HINT_SELECTMSG);
+			message->write<uint8_t>(playerid);
+			message->write<uint64_t>(0);
+			return TRUE;
+		}
+		if(max > core.select_cards_codes.size())
+			max = static_cast<uint8_t>(core.select_cards_codes.size());
+		if(min > max)
+			min = max;
+		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
+			for(int32_t i = 0; i < min; ++i) {
+				return_card_codes.list.push_back(core.select_cards_codes[i]);
+			}
+			return TRUE;
+		}
+		core.units.begin()->arg2 = ((uint32_t)min) + (((uint32_t)max) << 16);
+		auto message = pduel->new_message(MSG_SELECT_CARD);
+		message->write<uint8_t>(playerid);
+		message->write<uint8_t>(cancelable || min == 0);
+		message->write<uint32_t>(min);
+		message->write<uint32_t>(max);
+		message->write<uint32_t>((uint32_t)core.select_cards_codes.size());
+		for(const auto& obj : core.select_cards_codes) {
+			message->write<uint32_t>(obj.first);
+			message->write(loc_info{ playerid, 0, 0, 0 });
+		}
+		return FALSE;
+	} else {
+		if(!::parse_response_cards(returns, return_card_codes, core.select_cards_codes, cancelable || min == 0)) {
+			return_card_codes.clear();
+			pduel->new_message(MSG_RETRY);
+			return FALSE;
+		}
+		if(return_card_codes.canceled)
+			return TRUE;
+		if(return_card_codes.list.size() < min || return_card_codes.list.size() > max) {
+			return_card_codes.clear();
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
@@ -700,23 +750,19 @@ int32_t field::select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc
 		message->write<uint32_t>(core.must_select_cards.size());
 		for(auto& pcard : core.must_select_cards) {
 			message->write<uint32_t>(pcard->data.code);
-			message->write<uint8_t>(pcard->current.controler);
-			message->write<uint8_t>(pcard->current.location);
-			message->write<uint32_t>(pcard->current.sequence);
+			message->write(pcard->get_info_location());
 			message->write<uint32_t>(pcard->sum_param);
 		}
 		message->write<uint32_t>(core.select_cards.size());
 		std::sort(core.select_cards.begin(), core.select_cards.end(), card::card_operation_sort);
 		for(auto& pcard : core.select_cards) {
 			message->write<uint32_t>(pcard->data.code);
-			message->write<uint8_t>(pcard->current.controler);
-			message->write<uint8_t>(pcard->current.location);
-			message->write<uint32_t>(pcard->current.sequence);
+			message->write(pcard->get_info_location());
 			message->write<uint32_t>(pcard->sum_param);
 		}
 		return FALSE;
 	} else {
-		if(!parse_response_cards()) {
+		if(!parse_response_cards(false)) {
 			return_cards.clear();
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
@@ -811,7 +857,7 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int3
 		int32_t scount = 0;
 		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(ft & available)
-				scount++;
+				++scount;
 		}
 		if(scount <= count) {
 			count = scount;
@@ -824,16 +870,16 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int3
 		return FALSE;
 	} else {
 		int32_t rc = returns.at<int32_t>(0);
-		int32_t sel = 0;
+		uint8_t sel = 0;
 		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(!(ft & rc)) continue;
 			if(!(ft & available)) {
 				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
-			sel++;
+			++sel;
 		}
-		if(sel != count) {
+		if(sel != static_cast<uint8_t>(count)) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
@@ -850,7 +896,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 		int32_t scount = 0;
 		for(int32_t ft = 0x1; ft != 0x80; ft <<= 1) {
 			if(ft & available)
-				scount++;
+				++scount;
 		}
 		if(scount <= count) {
 			count = scount;
@@ -870,7 +916,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
-			sel++;
+			++sel;
 		}
 		if(sel != count) {
 			pduel->new_message(MSG_RETRY);
@@ -1024,7 +1070,7 @@ int32_t field::rock_paper_scissors(uint16_t step, uint8_t repeat) {
 		const auto ret = returns.at<int32_t>(0);
 		if(ret < 1 || ret>3) {
 			pduel->new_message(MSG_RETRY);
-			core.units.begin()->step--;
+			--core.units.begin()->step;
 			return false;
 		}
 		return true;

@@ -5,7 +5,7 @@ local ocgcore_config=function()
 	cppdialect "C++14"
 	defines "LUA_COMPAT_5_2"
 
-	filter "system:not windows"
+	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 
 	filter "system:linux"
@@ -16,54 +16,91 @@ local ocgcore_config=function()
 end
 
 if not subproject then
-newoption {
-	trigger = "oldwindows",
-	description = "Use some tricks to support up to windows 2000"
-}
+	newoption {
+		trigger = "oldwindows",
+		description = "Use some tricks to support up to windows 2000"
+	}
+	newoption {
+		trigger = "lua-path",
+		description = "Path where the lua library has been installed"
+	}
 	workspace "ocgcore"
 	location "build"
 	language "C++"
 	objdir "obj"
-	if _OPTIONS["oldwindows"] then
-		filter "action:vs*"
-			toolset "v141_xp"
-
-		filter {}
-	end
 	configurations { "Debug", "Release" }
 	
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
-	
-	filter "system:not windows"
-		includedirs "/usr/local/include"
-		libdirs "/usr/local/lib"
+		platforms {"Win32", "x64"}
+
+	filter "platforms:Win32"
+		architecture "x86"
+
+	filter "platforms:x64"
+		architecture "x64"
+
+	if _OPTIONS["oldwindows"] then
+		filter { "action:vs2015" }
+			toolset "v140_xp"
+		filter { "action:not vs2015" }
+			toolset "v141_xp"
+		filter {}
+	end
 	
 	filter "action:vs*"
+		flags "MultiProcessorCompile"
 		vectorextensions "SSE2"
 		buildoptions "-wd4996"
 		defines "_CRT_SECURE_NO_WARNINGS"
-	
+
 	filter "action:not vs*"
-		buildoptions { "-fno-strict-aliasing", "-Wno-multichar" }
+		buildoptions "-fno-strict-aliasing"
+		if _OPTIONS["lua-path"] then
+			includedirs{ _OPTIONS["lua-path"] .. "/include" }
+			libdirs{ _OPTIONS["lua-path"] .. "/lib" }
+		else
+			includedirs "/usr/local/include"
+			libdirs "/usr/local/lib"
+		end
 	
 	filter "configurations:Debug"
 		symbols "On"
 		defines "_DEBUG"
 		targetdir "bin/debug"
 		runtime "Debug"
+
+	filter { "action:vs*", "configurations:Debug", "architecture:*64" }
+		targetdir "bin/x64/debug"
 	
 	filter { "configurations:Release" , "action:not vs*" }
-		symbols "On"
 		defines "NDEBUG"
 	
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
+
+	filter { "action:vs*", "configurations:Release", "architecture:*64" }
+		targetdir "bin/x64/release"
+
+	filter { "action:not vs*", "system:windows" }
+		buildoptions { "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
+		linkoptions { "-mthreads", "-municode", "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
+		defines { "UNICODE", "_UNICODE" }
 	
 	local function vcpkgStaticTriplet(prj)
 		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'Win32\'">x86-windows-static</VcpkgTriplet>')
 		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'x64\'">x64-windows-static</VcpkgTriplet>')
+	end
+
+	local function disableWinXPWarnings(prj)
+		premake.w('<XPDeprecationWarning>false</XPDeprecationWarning>')
+	end
+
+	local function vcpkgStaticTriplet202006(prj)
+		premake.w('<VcpkgEnabled>true</VcpkgEnabled>')
+		premake.w('<VcpkgUseStatic>true</VcpkgUseStatic>')
+		premake.w('<VcpkgAutoLink>true</VcpkgAutoLink>')
 	end
 	
 	require('vstudio')
@@ -71,6 +108,8 @@ newoption {
 	premake.override(premake.vstudio.vc2010.elements, "globals", function(base, prj)
 		local calls = base(prj)
 		table.insertafter(calls, premake.vstudio.vc2010.targetPlatformVersionGlobal, vcpkgStaticTriplet)
+		table.insertafter(calls, premake.vstudio.vc2010.targetPlatformVersionGlobal, disableWinXPWarnings)
+		table.insertafter(calls, premake.vstudio.vc2010.globals, vcpkgStaticTriplet202006)
 		return calls
 	end)
 end
@@ -81,6 +120,7 @@ project "ocgcore"
 
 project "ocgcoreshared"
 	kind "SharedLib"
+	flags "NoImportLib"
 	targetname "ocgcore"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
@@ -94,8 +134,5 @@ project "ocgcoreshared"
 		filter {}
 	end
 	
-	filter "system:linux"
-		links "lua:static"
-
-	filter "system:macosx or ios"
+	filter "action:not vs*"
 		links "lua"

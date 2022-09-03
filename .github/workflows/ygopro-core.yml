@@ -1,14 +1,14 @@
-name: Build EDOPro
+name: Build EDOPro-core
 on: [push, pull_request]
 env:
-  BUILD_CONFIG: Release
+  BUILD_CONFIG: release
   DEPENDENCIES_BASE_URL: https://github.com/kevinlul/edopro-vcpkg-cache/releases/download/20210211
   DEPLOY_DIR: ocgcore
   DEPLOY_REPO: ${{ secrets.DEPLOY_REPO }}
   DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
 jobs:
   Windows:
-    runs-on: windows-2016
+    runs-on: windows-2019
     env:
       DEPLOY_BRANCH: travis-core-windows
       TRAVIS_OS_NAME: windows
@@ -27,9 +27,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -51,7 +54,7 @@ jobs:
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Github
 
-  Linux-gcc:
+  Linux:
     runs-on: ubuntu-18.04
     env:
       DEPLOY_BRANCH: travis-core-linux-gcc7
@@ -63,9 +66,116 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      shell: bash
+      run: ./travis/deploy.sh
+    - name: Log Failure
+      uses: sarisia/actions-status-discord@v1
+      if: failure()
+      with:
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Github
+
+  Linux-aarch64:
+    runs-on: ubuntu-18.04
+    env:
+      DEPLOY_BRANCH: travis-core-linux-aarch64
+      TRAVIS_OS_NAME: linux
+      CC: /usr/bin/aarch64-linux-gnu-gcc
+      CXX: /usr/bin/aarch64-linux-gnu-g++
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Get apt packages
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu
+    - name: Install lua
+      shell: bash
+      run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
+    - name: Build
+      shell: bash
+      run: ./travis/build-premake5.sh
+    - name: Predeploy
+      shell: bash
+      run: ./travis/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      shell: bash
+      run: ./travis/deploy.sh
+    - name: Log Failure
+      uses: sarisia/actions-status-discord@v1
+      if: failure()
+      with:
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Github
+
+  Linux-musl:
+    strategy:
+      fail-fast: false
+      matrix:
+        docker-image: [x86_64-linux-musl, aarch64-linux-musl]
+        include:
+          - docker-image: x86_64-linux-musl
+            deploy-branch: travis-core-linux-musl
+          - docker-image: aarch64-linux-musl
+            deploy-branch: travis-core-linux-musl-aarch64
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
+      TRAVIS_OS_NAME: linux
+      CXX: musl-g++
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Setup alpine docker image
+      shell: bash
+      run: |
+        sudo docker build --build-arg target_arch=${{ matrix.docker-image }} . -t alpine-cmake -f ./travis/Dockerfile &&
+        sudo docker run -dt --rm --name alpine -v $PWD:/core -w="/core" alpine-cmake
+    - name: Install lua
+      shell: bash
+      run: |
+        sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e MAKE=make alpine ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
+    - name: Build
+      shell: bash
+      run: |
+        ./premake5 gmake2
+        sudo docker exec -t -w="/core" alpine make -Cbuild ocgcoreshared -j2 config=release LDFLAGS="-static -Wl,-Bstatic" &&
+        sudo chown -R $USER bin
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -92,6 +202,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-android
       TRAVIS_OS_NAME: android
+      OS_NAME: linux
     steps:
     - uses: actions/checkout@v1
       with:
@@ -103,8 +214,7 @@ jobs:
         svn checkout https://github.com/edo9300/edopro-android/trunk/deps/lua
     - name: Build
       shell: bash
-      run: |
-        $ANDROID_HOME/ndk-bundle/ndk-build -j2
+      run: ./travis/build-android.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -127,12 +237,11 @@ jobs:
         username: Github
 
   Mac-os:
-    runs-on: macos-10.15
+    runs-on: macos-11
     env:
       DEPLOY_BRANCH: travis-core-osx
       TRAVIS_OS_NAME: osx
-      VCPKG_ROOT: ./vcpkg2
-      DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_11.7.app/Contents/Developer
       MACOSX_DEPLOYMENT_TARGET: 10.11
     steps:
     - uses: actions/checkout@v1
@@ -146,9 +255,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -179,7 +291,6 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-osx-aarch64
       TRAVIS_OS_NAME: osx
-      VCPKG_ROOT: ./vcpkg2
       MACOSX_DEPLOYMENT_TARGET: 11.0
       CXXFLAGS: -target arm64-apple-macos11
       CFLAGS: -target arm64-apple-macos11
@@ -192,9 +303,12 @@ jobs:
     - name: Install lua
       shell: bash
       run: ./travis/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./travis/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./travis/build-cmake.sh
+      run: ./travis/build-premake5.sh
     - name: Predeploy
       shell: bash
       run: ./travis/predeploy.sh
@@ -239,7 +353,7 @@ jobs:
     - name: Move merged binary
       shell: bash
       run: |
-        mkdir -p $DEPLOY_DIR && cp LICENSE README.md $DEPLOY_DIR && mv libocgcore.dylib $DEPLOY_DIR
+        mkdir -p $DEPLOY_DIR && mv libocgcore.dylib $DEPLOY_DIR
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
@@ -260,6 +374,26 @@ jobs:
         title: |
                 
         color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Github
+
+  Notify-success:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_BRANCH: travis-osx-universal
+      TRAVIS_OS_NAME: osx
+    needs: [ Windows, Linux, Linux-musl, Android, Mac-os-universal ]
+    steps:
+    - name: Log Success
+      uses: sarisia/actions-status-discord@v1
+      with:
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] Build EDOPro-core success on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0x0f9826
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Github
