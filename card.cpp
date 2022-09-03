@@ -122,7 +122,7 @@ void card::get_infos(int32_t query_flag) {
 	CHECK_AND_INSERT(QUERY_LEVEL, get_level());
 	CHECK_AND_INSERT(QUERY_RANK, get_rank());
 	CHECK_AND_INSERT(QUERY_ATTRIBUTE, get_attribute());
-	CHECK_AND_INSERT(QUERY_RACE, get_race());
+	CHECK_AND_INSERT_T(QUERY_RACE, get_race(), uint64_t);
 	CHECK_AND_INSERT(QUERY_ATTACK, get_attack());
 	CHECK_AND_INSERT(QUERY_DEFENSE, get_defense());
 	CHECK_AND_INSERT(QUERY_BASE_ATTACK, get_base_attack());
@@ -1259,7 +1259,7 @@ uint32_t card::get_attribute(card* scard, uint64_t sumtype, uint8_t playerid) {
 	return attribute;
 }
 // see get_level()
-uint32_t card::get_race(card* scard, uint64_t sumtype, uint8_t playerid) {
+uint64_t card::get_race(card* scard, uint64_t sumtype, uint8_t playerid) {
 	auto search = assume.find(ASSUME_RACE);
 	if(search != assume.end())
 		return search->second;
@@ -1268,7 +1268,7 @@ uint32_t card::get_race(card* scard, uint64_t sumtype, uint8_t playerid) {
 	if (has_valid_property_val(temp.race))
 		return temp.race;
 	effect_set effects;
-	int32_t race = data.race, altrace = 0;
+	uint64_t race = data.race, altrace = 0;
 	bool changed = false;
 	temp.race = data.race;
 	filter_effect(EFFECT_ADD_RACE, &effects, FALSE);

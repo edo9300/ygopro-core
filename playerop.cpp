@@ -852,10 +852,10 @@ int32_t field::sort_card(int16_t step, uint8_t playerid, uint8_t is_chain) {
 	}
 	return TRUE;
 }
-int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int32_t available) {
+int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, uint64_t available) {
 	if(step == 0) {
 		int32_t scount = 0;
-		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
+		for(uint64_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(ft & available)
 				++scount;
 		}
@@ -866,10 +866,10 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int3
 		auto message = pduel->new_message(MSG_ANNOUNCE_RACE);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(count);
-		message->write<uint32_t>(available);
+		message->write<uint64_t>(available);
 		return FALSE;
 	} else {
-		int32_t rc = returns.at<int32_t>(0);
+		uint64_t rc = returns.at<uint64_t>(0);
 		uint8_t sel = 0;
 		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
 			if(!(ft & rc)) continue;
@@ -886,12 +886,12 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, int3
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_RACE);
 		message->write<uint8_t>(playerid);
-		message->write<uint64_t>(returns.at<int32_t>(0));
+		message->write<uint64_t>(returns.at<uint64_t>(0));
 		return TRUE;
 	}
 	return TRUE;
 }
-int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count, int32_t available) {
+int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count, uint32_t available) {
 	if(step == 0) {
 		int32_t scount = 0;
 		for(int32_t ft = 0x1; ft != 0x80; ft <<= 1) {
@@ -908,7 +908,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 		message->write<uint32_t>(available);
 		return FALSE;
 	} else {
-		int32_t rc = returns.at<int32_t>(0);
+		uint32_t rc = returns.at<uint32_t>(0);
 		int32_t sel = 0;
 		for(int32_t ft = 0x1; ft != 0x80; ft <<= 1) {
 			if(!(ft & rc)) continue;
@@ -925,16 +925,16 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_ATTRIB);
 		message->write<uint8_t>(playerid);
-		message->write<uint64_t>(returns.at<int32_t>(0));
+		message->write<uint64_t>(returns.at<uint32_t>(0));
 		return TRUE;
 	}
 	return TRUE;
 }
 #define BINARY_OP(opcode,op) case opcode: {\
 								if (stack.size() >= 2) {\
-									int32_t rhs = (int32_t)stack.top();\
+									auto rhs = stack.top();\
 									stack.pop();\
-									int32_t lhs = (int32_t)stack.top();\
+									auto lhs = stack.top();\
 									stack.pop();\
 									stack.push(lhs op rhs);\
 								}\
@@ -942,7 +942,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 							}
 #define UNARY_OP(opcode,op) case opcode: {\
 								if (stack.size() >= 1) {\
-									int32_t val = (int32_t)stack.top();\
+									auto val = stack.top();\
 									stack.pop();\
 									stack.push(op val);\
 								}\
