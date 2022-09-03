@@ -2531,7 +2531,6 @@ LUA_FUNCTION(SetSPSummonOnce) {
 	pduel->game_field->core.global_flag |= GLOBALFLAG_SPSUMMON_ONCE;
 	return 0;
 }
-
 #define CARD_INFO_FUNC(lua_name,attr) \
 LUA_FUNCTION(lua_name) { \
 	check_param_count(L, 1);\
