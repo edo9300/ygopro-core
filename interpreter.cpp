@@ -43,9 +43,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 		};
 		nil_out("collectgarbage");
 		nil_out("dofile");
-		nil_out("load");
 		nil_out("loadfile");
-		nil_out("loadstring");
 	}
 	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
