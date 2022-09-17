@@ -1307,7 +1307,8 @@ LUA_FUNCTION(SwapControl) {
 	} else if(obj1->lua_type == PARAM_TYPE_GROUP) {
 		pgroup1 = static_cast<group*>(obj1);
 		pgroup2 = static_cast<group*>(obj2);
-	}
+	} else
+		unreachable();
 	const auto pduel = lua_get<duel*>(L);
 	uint16_t reset_phase = lua_get<uint16_t, 0>(L, 3) & 0x3ff;
 	auto reset_count = lua_get<uint8_t, 0>(L, 4);

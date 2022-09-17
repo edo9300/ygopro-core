@@ -2551,9 +2551,9 @@ LUA_FUNCTION(Setcode) {
 	if(lua_gettop(L) > 1) {
 		pcard->data.setcodes.clear();
 		if(lua_istable(L, 2)) {
-			lua_table_iterate(L, 2, [&setcodes = pcard->data.setcodes, &L]{
+			lua_table_iterate(L, 2, [&setcodes = pcard->data.setcodes, &L] {
 				setcodes.insert(lua_get<uint16_t>(L, -1));
-							  });
+			});
 		} else
 			pcard->data.setcodes.insert(lua_get<uint16_t>(L, 2));
 		return 0;

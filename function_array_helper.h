@@ -6,10 +6,13 @@
 #ifndef FUNCTION_ARRAY_HELPER_H
 #define FUNCTION_ARRAY_HELPER_H
 
-#define MAKE_LUA_NAME_IMPL(mod, name) c_lua_##mod##_##name
-#define MAKE_LUA_NAME(mod, name) MAKE_LUA_NAME_IMPL(mod, name)
+#define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
+#define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
 
 #ifndef __INTELLISENSE__
+#include <type_traits>
+#include <array>
+#include <lauxlib.h>
 namespace {
 namespace Detail {
 template<std::size_t N>
@@ -48,10 +51,9 @@ struct Detail::LuaFunction<__COUNTER__> { \
     static constexpr luaL_Reg elem{#name,Detail::LuaFunction<__COUNTER__-1>::elem.func}; \
 }
 #else
-#define LUA_FUNCTION(name) \
-static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
+#define LUA_FUNCTION(name) static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
-#define LUA_FUNCTION_ALIAS(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
+#define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define GET_LUA_FUNCTIONS_ARRAY() std::array<luaL_Reg,1>{{{nullptr,nullptr}}};
 #endif // __INTELLISENSE__
 #endif // FUNCTION_ARRAY_HELPER_H

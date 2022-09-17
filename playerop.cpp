@@ -536,10 +536,10 @@ int32_t field::select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint
 		};
 		uint8_t pt = 0;
 		for(int8_t i = 0; i < count; ++i) {
-			uint8_t player = returns.at<uint8_t>(pt);
-			if(player > 1)
+			uint8_t select_player = returns.at<uint8_t>(pt);
+			if(select_player > 1)
 				return retry();
-			const bool isplayerid = player == playerid;
+			const bool isplayerid = (select_player == playerid);
 			uint8_t location = returns.at<uint8_t>(pt + 1);
 			if(location != LOCATION_MZONE && location != LOCATION_SZONE)
 				return retry();

@@ -58,7 +58,7 @@ public:
 	int32_t call_depth;
 	lua_invalid deleted;
 
-	explicit interpreter(duel* pd, const OCG_DuelOptions& options);
+	interpreter(duel* pd, const OCG_DuelOptions& options);
 	~interpreter();
 
 	void register_card(card* pcard);

@@ -1057,8 +1057,8 @@ uint32_t card::get_level() {
 	return level;
 }
 uint32_t card::get_rank() {
-	if(((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S)))
-	   || (data.type & TYPE_LINK))
+	if(((!(data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL)) && !(is_affected_by_effect(EFFECT_LEVEL_RANK) || is_affected_by_effect(EFFECT_LEVEL_RANK_S))) 
+	|| (data.type & TYPE_LINK))
 		return 0;
 	auto search = assume.find(ASSUME_RANK);
 	if(search != assume.end())

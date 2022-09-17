@@ -140,8 +140,8 @@ bool interpreter::load_script(const char* buffer, int len, const char* script_na
 	if(!buffer)
 		return false;
 	++no_action;
-	int32_t error = luaL_loadbuffer(current_state, buffer, len, script_name) || lua_pcall(current_state, 0, 0, 0);
-	if(error) {
+	if(luaL_loadbuffer(current_state, buffer, len, script_name) != LUA_OK
+	   || lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
 		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
 		--no_action;

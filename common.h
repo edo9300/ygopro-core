@@ -8,7 +8,7 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#ifdef _MSC_VER
+#if defined( _MSC_VER) && !defined(__clang_analyzer__)
 #pragma warning(disable: 4244)
 #define unreachable() __assume(0)
 #else
