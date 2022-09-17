@@ -572,17 +572,27 @@ LUA_FUNCTION(RemoveCards) {
 	group* pgroup = nullptr;
 	get_card_or_group(L, 1, pcard, pgroup);
 	const auto pduel = lua_get<duel*>(L);
-	auto message = pduel->new_message(MSG_REMOVE_CARDS);
 	if(pcard) {
+		auto message = pduel->new_message(MSG_REMOVE_CARDS);
 		message->write<uint32_t>(1);
 		message->write(pcard->get_info_location());
 		pcard->enable_field_effect(false);
 		pcard->cancel_field_effect();
 		pduel->game_field->remove_card(pcard);
 	} else {
-		message->write<uint32_t>(pgroup->container.size());
+		auto message = pduel->new_message(MSG_REMOVE_CARDS);
+		auto tot = pgroup->container.size();
+		auto cur = std::min<size_t>(tot, 255);
+		message->write<uint32_t>(cur);
 		for(auto& card : pgroup->container) {
 			message->write(card->get_info_location());
+			--tot;
+			--cur;
+			if(cur == 0 && tot > 0) {
+				message = pduel->new_message(MSG_REMOVE_CARDS);
+				cur = std::min<size_t>(tot, 255);
+				message->write<uint32_t>(cur);
+			}
 			card->enable_field_effect(false);
 			card->cancel_field_effect();
 		}
