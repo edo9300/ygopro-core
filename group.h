@@ -33,7 +33,9 @@ public:
 	group(duel* pd, const card_set& cset) : lua_obj_helper(pd), container(cset) {};
 	group(duel* pd, card_set&& cset) : lua_obj_helper(pd), container(std::move(cset)) {};
 	group(duel* pd, group* pgroup) : lua_obj_helper(pd), container(pgroup->container) {};
-	group(duel* pd, const std::vector<card*>& vcard) : lua_obj_helper(pd), container(vcard.begin(), vcard.end()) {};
+	template<typename Iter>
+	group(duel* pd, const Iter begin, const Iter end) : lua_obj_helper(pd), container(begin, end) {};
+	group(duel* pd, const std::vector<card*>& vcard) : group(pd, vcard.begin(), vcard.end()) {};
 	group(duel* pd, lua_obj* pobj);
 	~group() = default;
 };

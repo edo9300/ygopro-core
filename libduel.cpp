@@ -2255,12 +2255,11 @@ LUA_FUNCTION(GetFieldGroupCount) {
 LUA_FUNCTION(GetDecktopGroup) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
-	auto count = lua_get<uint32_t>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
-	group* pgroup = pduel->new_group();
-	auto cit = pduel->game_field->player[playerid].list_main.rbegin();
-	for(uint32_t i = 0; i < count && cit != pduel->game_field->player[playerid].list_main.rend(); ++i, ++cit)
-		pgroup->container.insert(*cit);
+	auto& main = pduel->game_field->player[playerid].list_main;
+	const auto count = std::min<uint32_t>(lua_get<uint32_t>(L, 2), main.size());
+	const auto offset = main.size() - count;
+	group* pgroup = pduel->new_group(main.begin() + offset, main.end());
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
