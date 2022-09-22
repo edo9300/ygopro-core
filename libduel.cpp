@@ -2263,6 +2263,16 @@ LUA_FUNCTION(GetDecktopGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
+LUA_FUNCTION(GetDeckbottomGroup) {
+	check_param_count(L, 2);
+	auto playerid = lua_get<uint8_t>(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	auto& main = pduel->game_field->player[playerid].list_main;
+	const auto count = std::min<uint32_t>(lua_get<uint32_t>(L, 2), main.size());
+	group* pgroup = pduel->new_group(main.begin(), main.begin() + count);
+	interpreter::pushobject(L, pgroup);
+	return 1;
+}
 /**
  * \brief Duel.GetExtraTopGroup
  * \param playerid, count
