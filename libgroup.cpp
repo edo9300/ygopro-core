@@ -233,42 +233,21 @@ LUA_FUNCTION(FilterCount) {
 	check_param_count(L, 3);
 	const auto findex = lua_get<function, true>(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 1);
+	card_set cset(pgroup->container);
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 3)) == nullptr)
-		pexgroup = lua_get<group*>(L, 3);
+	if((pexception = lua_get<card*>(L, 3)) != nullptr)
+		cset.erase(pexception);
+	else if((pexgroup = lua_get<group*>(L, 3)) != nullptr) {
+		for(auto& pcard : pexgroup->container)
+			cset.erase(pcard);
+	}
 	const auto pduel = lua_get<duel*>(L);
 	uint32_t extraargs = lua_gettop(L) - 3;
 	uint32_t count = 0;
-	const auto& cset = pgroup->container;
-	if(pexception) {
-		for(auto& pcard : cset) {
-			if(pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs))
-				++count;
-		}
-	} else if(pexgroup) {
-		auto pexbegin = pexgroup->container.cbegin();
-		auto pexend = pexgroup->container.cend();
-		auto should_exclude = [&pexbegin, &pexend](card* pcard) {
-			if(pexbegin == pexend)
-				return false;
-			if(*pexbegin == pcard) {
-				++pexbegin;
-				return true;
-			}
-			return false;
-		};
-		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
-			auto rm = cit++;
-			auto* pcard = *rm;
-			if(!should_exclude(pcard) && pduel->lua->check_matching(pcard, findex, extraargs))
-				++count;
-		}
-	} else {
-		for(auto& pcard : cset) {
-			if(pduel->lua->check_matching(pcard, findex, extraargs))
-				++count;
-		}
+	for (auto& pcard : cset) {
+		if(pduel->lua->check_matching(pcard, findex, extraargs))
+			++count;
 	}
 	lua_pushinteger(L, count);
 	return 1;
