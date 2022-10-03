@@ -103,8 +103,7 @@ public:
 	bool call_function(int param_count, int ret_count);
 	inline bool ret_fail(const char* message);
 	inline bool ret_fail(const char* message, bool error);
-	inline void deepen();
-	inline void flatten();
+	inline int call_lua(lua_State* L, int nargs, int nresults);
 
 	static void pushobject(lua_State* L, lua_obj* obj);
 	static void pushobject(lua_State* L, int32_t lua_ptr);
