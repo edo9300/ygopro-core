@@ -455,8 +455,10 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 		auto ret = coroutines.emplace(f, std::make_pair(rthread, threadref));
 		it = ret.first;
 	} else {
-		rthread = it->second.first;
 		if(step == 0) {
+			auto ref = it->second.second;
+			coroutines.erase(it);
+			luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
 			--call_depth;
 			if(call_depth == 0) {
 				pduel->release_script_group();
@@ -464,6 +466,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 			}
 			return ret_fail("recursive event trigger detected.");
 		}
+		rthread = it->second.first;
 	}
 	push_param(rthread, true);
 	int result, nresults;
