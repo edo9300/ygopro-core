@@ -449,8 +449,10 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 		rthread = lua_newthread(lua_state);
 		const auto threadref = luaL_ref(lua_state, LUA_REGISTRYINDEX);
 		pushobject(rthread, f);
-		if(!lua_isfunction(rthread, -1))
+		if(!lua_isfunction(rthread, -1)) {
+			luaL_unref(lua_state, LUA_REGISTRYINDEX, threadref);
 			return ret_fail(R"("CallCoroutine": attempt to call an error function)");
+		}
 		++call_depth;
 		auto ret = coroutines.emplace(f, std::make_pair(rthread, threadref));
 		it = ret.first;
