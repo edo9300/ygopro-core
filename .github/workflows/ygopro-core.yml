@@ -210,7 +210,6 @@ jobs:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
       TRAVIS_OS_NAME: linux
       CXX: musl-g++
-      CFLAGS: -fPIC -DLUA_USE_APICHECK
     steps:
     - uses: actions/checkout@v1
       with:
@@ -223,7 +222,7 @@ jobs:
     - name: Install lua
       shell: bash
       run: |
-        sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e MAKE=make alpine ./travis/install-lua.sh
+        sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e MAKE=make -e LUA_APICHECK=1 alpine ./travis/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./travis/install-premake5.sh

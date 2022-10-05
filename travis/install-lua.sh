@@ -21,6 +21,18 @@ else
 	curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz
 	tar xf lua-5.3.5.tar.gz
 	cd lua-5.3.5
+	if [[ -n ${LUA_APICHECK:-""} ]]; then
+	cat <<EOT >> src/luaconf.h
+
+#ifndef luaconf_h_ocgcore_api_check
+#define luaconf_h_ocgcore_api_check
+void ocgcore_lua_api_check(void* L, const char* error_message);
+#define luai_apicheck(l,e)	do { if(!e) ocgcore_lua_api_check(l,"Lua api check failed: " #e); } while(0)
+
+
+#endif
+EOT
+	fi
 	if [[ "$TARGET_OS" == "osx" ]]; then
 	  make -j3 macosx CC=$CXX MYCFLAGS="${CFLAGS:-""}" MYLDFLAGS="${LDFLAGS:-""}" AR="${AR:-"ar rcu"}" RANLIB="${RANLIB:-"ranlib"}"
 	else
