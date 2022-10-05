@@ -596,7 +596,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-osx-universal
       TRAVIS_OS_NAME: osx
-    needs: [ Windows, Linux, Linux-musl, Android, Mac-os-universal ]
+    needs: [ Windows, Linux, Linux-musl, Android, Mac-os-universal-cctools ]
     steps:
     - name: Log Success
       uses: sarisia/actions-status-discord@v1
