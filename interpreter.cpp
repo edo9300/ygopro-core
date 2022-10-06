@@ -443,12 +443,18 @@ int lua_resumec(lua_State* L, lua_State* from, int nargs, int* nresults) {
 #define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs, res)
 #endif
 int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step) {
+	auto ret_error = [&](const char* message) {
+		interpreter::print_stacktrace(current_state);
+		pduel->handle_message(message, OCG_LOG_TYPE_ERROR);
+		params.clear();
+		return COROUTINE_ERROR;
+	};
 	if(yield_value)
 		*yield_value = 0;
 	if (!f)
-		return ret_fail(R"("CallCoroutine": attempt to call a null function)");
+		return ret_error(R"("CallCoroutine": attempt to call a null function)");
 	if (param_count != params.size())
-		return ret_fail(R"("CallCoroutine": incorrect parameter count)");
+		return ret_error(R"("CallCoroutine": incorrect parameter count)");
 	auto it = coroutines.find(f);
 	lua_State* rthread;
 	if (it == coroutines.end()) {
@@ -457,7 +463,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 		pushobject(rthread, f);
 		if(!lua_isfunction(rthread, -1)) {
 			luaL_unref(lua_state, LUA_REGISTRYINDEX, threadref);
-			return ret_fail(R"("CallCoroutine": attempt to call an error function)");
+			return ret_error(R"("CallCoroutine": attempt to call an error function)");
 		}
 		++call_depth;
 		auto ret = coroutines.emplace(f, std::make_pair(rthread, threadref));
@@ -472,7 +478,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 				pduel->release_script_group();
 				pduel->restore_assumes();
 			}
-			return ret_fail("recursive event trigger detected.");
+			return ret_error("recursive event trigger detected.");
 		}
 		rthread = it->second.first;
 	}
