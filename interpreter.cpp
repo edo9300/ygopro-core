@@ -18,8 +18,9 @@
 using namespace scriptlib;
 
 // This function will be used by a lua library built with api check
-void ocgcore_lua_api_check(void* L, const char* error_message) {
-	auto pduel = lua_get<duel*>(static_cast<lua_State*>(L));
+void ocgcore_lua_api_check(void* state, const char* error_message) {
+	auto L = static_cast<lua_State*>(state);
+	auto pduel = lua_get<duel*>(L);
 	pduel->handle_message(error_message, OCG_LOG_TYPE_ERROR);
 }
 

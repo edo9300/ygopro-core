@@ -1609,7 +1609,6 @@ effect* field::is_player_affected_by_effect(uint8_t playerid, uint32_t code) {
 	return 0;
 }
 void field::get_player_effect(uint8_t playerid, uint32_t code, effect_set* eset) {
-	int32_t i = 0;
 	for (auto rg = effects.aura_effect.begin(); rg != effects.aura_effect.end(); ++rg) {
 		effect* peffect = rg->second;
 		if((code == 0 || peffect->code == code) && peffect->is_target_player(playerid) && peffect->is_available())

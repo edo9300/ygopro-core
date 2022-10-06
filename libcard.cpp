@@ -33,12 +33,16 @@ LUA_FUNCTION(GetCode) {
 			playerid = lua_get<uint8_t>(L, 4);
 		else if (sumtype == SUMMON_TYPE_FUSION)
 			playerid = pduel->game_field->core.reason_player;
-		int32_t count = pcard->get_summon_code(scard, sumtype, playerid);
-		if (count == 0) {
+		std::set<uint32_t> codes;
+		pcard->get_summon_code(codes, scard, sumtype, playerid);
+		if (codes.empty()) {
 			lua_pushnil(L);
 			return 1;
 		}
-		return count;
+		luaL_checkstack(L, codes.size(), nullptr);
+		for(uint32_t code : codes)
+			lua_pushinteger(pduel->lua->current_state, code);
+		return codes.size();
 	}
 	lua_pushinteger(L, pcard->get_code());
 	uint32_t otcode = pcard->get_another_code();
@@ -86,6 +90,7 @@ LUA_FUNCTION(GetSetCard) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
+	std::set<uint16_t> setcodes;
 	if (lua_gettop(L) > 1) {
 		card* scard = 0;
 		uint8_t playerid = PLAYER_NONE;
@@ -96,39 +101,41 @@ LUA_FUNCTION(GetSetCard) {
 			playerid = lua_get<uint8_t>(L, 4);
 		else if (sumtype == SUMMON_TYPE_FUSION)
 			playerid = pduel->game_field->core.reason_player;
-		int32_t count = pcard->get_summon_set_card(scard, sumtype, playerid);
-		if (count == 0) {
-			lua_pushnil(L);
-			return 1;
-		}
-		return count;
+		pcard->get_summon_set_card(setcodes, scard, sumtype, playerid);
+	} else {
+		pcard->get_set_card(setcodes);
 	}
-	int32_t count = pcard->get_set_card();
-	if (count == 0) {
+	if (setcodes.empty()) {
 		lua_pushnil(L);
 		return 1;
 	}
-	return count;
+	luaL_checkstack(L, setcodes.size(), nullptr);
+	for(const auto setcode : setcodes)
+		lua_pushinteger(L, setcode);
+	return setcodes.size();
 }
 LUA_FUNCTION(GetOriginalSetCard) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	uint32_t n = 0;
-	for(auto& setcode : pcard->get_origin_set_card()) {
+	const auto& setcodes = pcard->get_origin_set_card();
+	luaL_checkstack(L, setcodes.size(), nullptr);
+	for(auto& setcode : setcodes)
 		lua_pushinteger(L, setcode);
-		++n;
-	}
-	return n;
+	return setcodes.size();
 }
 LUA_FUNCTION(GetPreviousSetCard) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	int32_t count = pcard->get_pre_set_card();
-	if (count == 0) {
+	std::set<uint16_t> setcodes;
+	pcard->get_pre_set_card(setcodes);
+	if (setcodes.empty()) {
 		lua_pushnil(L);
 		return 1;
 	}
-	return count;
+	luaL_checkstack(L, setcodes.size(), nullptr);
+	for(auto& setcode : setcodes)
+		lua_pushinteger(L, setcode);
+	return setcodes.size();
 }
 LUA_FUNCTION(GetType) {
 	check_param_count(L, 1);
@@ -1253,14 +1260,15 @@ LUA_FUNCTION(GetOwnerTargetCount) {
 LUA_FUNCTION(GetActivateEffect) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	int32_t count = 0;
+	effect_set eset;
 	for(auto& eit : pcard->field_effect) {
-		if(eit.second->type & EFFECT_TYPE_ACTIVATE) {
-			interpreter::pushobject(L, eit.second);
-			++count;
-		}
+		if(eit.second->type & EFFECT_TYPE_ACTIVATE)
+			eset.push_back(eit.second);
 	}
-	return count;
+	luaL_checkstack(L, eset.size(), nullptr);
+	for(const auto& peffect : eset)
+		interpreter::pushobject(L, peffect);
+	return eset.size();
 }
 LUA_FUNCTION(CheckActivateEffect) {
 	check_param_count(L, 4);
@@ -1325,6 +1333,7 @@ LUA_FUNCTION(IsHasEffect) {
 		return 1;
 	}
 	auto check_player = lua_get<uint8_t, PLAYER_NONE>(L, 3);
+	luaL_checkstack(L, eset.size(), nullptr); // we waste a bit of stack space but keeps checking simple
 	for(const auto& peff : eset) {
 		if(check_player == PLAYER_NONE || peff->check_count_limit(check_player))
 			interpreter::pushobject(L, peff);
@@ -1343,8 +1352,10 @@ LUA_FUNCTION(GetCardEffect) {
 	auto code = lua_get<uint32_t, 0>(L, 2);
 	effect_set eset;
 	pcard->get_card_effect(code, &eset);
-	if(eset.empty())
-		return 0;
+	if(eset.empty()) {
+		lua_pushnil(L);
+		return 1;
+	}
 	luaL_checkstack(L, eset.size(), nullptr);
 	for(const auto& peff : eset)
 		interpreter::pushobject(L, peff);
@@ -1428,12 +1439,15 @@ LUA_FUNCTION(GetFlagEffectLabel) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
 	auto rg = pcard->single_effect.equal_range(code);
-	int32_t count = 0;
-	for(; rg.first != rg.second; ++rg.first, ++count)
-		lua_pushinteger(L, rg.first->second->label.size() ? rg.first->second->label[0] : 0);
+	auto count = std::distance(rg.first, rg.second);
 	if(!count) {
 		lua_pushnil(L);
 		return 1;
+	}
+	luaL_checkstack(L, count, nullptr);
+	for(; rg.first != rg.second; ++rg.first) {
+		const auto& label = rg.first->second->label;
+		lua_pushinteger(L, label.size() ? label[0] : 0);
 	}
 	return count;
 }
@@ -2560,6 +2574,7 @@ LUA_FUNCTION(Setcode) {
 			pcard->data.setcodes.insert(lua_get<uint16_t>(L, 2));
 		return 0;
 	} else {
+		luaL_checkstack(L, pcard->data.setcodes.size(), nullptr);
 		for(auto& setcode : pcard->data.setcodes)
 			lua_pushinteger(L, setcode);
 	}

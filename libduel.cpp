@@ -172,10 +172,11 @@ LUA_FUNCTION(GetFlagEffectLabel) {
 	const auto pduel = lua_get<duel*>(L);
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
-	if(!eset.size()) {
+	if(eset.empty()) {
 		lua_pushnil(L);
 		return 1;
 	}
+	luaL_checkstack(L, eset.size(), nullptr);
 	for(auto& eff : eset)
 		lua_pushinteger(L, eff->label.size() ? eff->label[0] : 0);
 	return eset.size();
@@ -1989,6 +1990,7 @@ LUA_FUNCTION(GetChainInfo) {
 	chain* ch = pduel->game_field->get_chain(lua_get<uint8_t>(L, 1));
 	if(!ch)
 		return 0;
+	luaL_checkstack(L, args, nullptr);
 	for(uint32_t i = 0; i < args; ++i) {
 		auto flag = lua_get<uint32_t>(L, 2 + i);
 		switch(flag) {
@@ -2064,8 +2066,7 @@ LUA_FUNCTION(GetChainInfo) {
 			lua_pushinteger(L, ch->triggering_effect->card_type);
 			break;
 		default:
-			lua_pushnil(L);
-			break;
+			lua_error(L, "Passed invalid CHAININFO flag.");
 		}
 	}
 	return args;
@@ -2090,9 +2091,11 @@ LUA_FUNCTION(GetFirstTarget) {
 	chain* ch = pduel->game_field->get_chain(0);
 	if(!ch || !ch->target_cards || ch->target_cards->container.size() == 0)
 		return 0;
-	for(auto& pcard : ch->target_cards->container)
+	const auto& cset = ch->target_cards->container;
+	luaL_checkstack(L, cset.size(), nullptr);
+	for(auto& pcard : cset)
 		interpreter::pushobject(L, pcard);
-	return ch->target_cards->container.size();
+	return cset.size();
 }
 LUA_FUNCTION(GetCurrentPhase) {
 	const auto pduel = lua_get<duel*>(L);
@@ -2434,9 +2437,11 @@ LUA_FUNCTION(SelectCardsFromCodes) {
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
 		int ret = 1;
-		if(!pduel->game_field->return_card_codes.canceled) {
+		const auto& ret_codes = pduel->game_field->return_card_codes;
+		if(!ret_codes.canceled) {
 			bool ret_index = lua_get<bool>(L, 5);
-			for(const auto& obj : pduel->game_field->return_card_codes.list) {
+			luaL_checkstack(L, ret_codes.list.size() + (3 * ret_index) /* account for table creation */, nullptr);
+			for(const auto& obj : ret_codes.list) {
 				if(ret_index) {
 					lua_newtable(L);
 					lua_pushinteger(L, 1);
@@ -2449,7 +2454,7 @@ LUA_FUNCTION(SelectCardsFromCodes) {
 					lua_settable(L, -3);
 				}
 			}
-			ret = (int)pduel->game_field->return_card_codes.list.size();
+			ret = (int)ret_codes.list.size();
 		} else
 			lua_pushnil(L);
 		return ret;
@@ -3608,6 +3613,7 @@ LUA_FUNCTION(TossCoin) {
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
 		int32_t count = lua_get<uint8_t>(L, 2);
+		luaL_checkstack(L, count, nullptr);
 		for(int32_t i = 0; i < count; ++i)
 			lua_pushinteger(L, pduel->game_field->core.coin_result[i]);
 		return count;
@@ -3631,6 +3637,7 @@ LUA_FUNCTION(TossDice) {
 		const auto pduel = lua_get<duel*>(L);
 		auto count1 = lua_get<uint8_t>(L, 2);
 		auto count2 = lua_get<uint8_t, 0>(L, 3);
+		luaL_checkstack(L, count1 + count2, nullptr);
 		for(int32_t i = 0; i < count1 + count2; ++i)
 			lua_pushinteger(L, pduel->game_field->core.dice_result[i]);
 		return count1 + count2;
@@ -3706,8 +3713,10 @@ LUA_FUNCTION(GetPlayerEffect) {
 	const auto pduel = lua_get<duel*>(L);
 	effect_set eset;
 	pduel->game_field->get_player_effect(playerid, code, &eset);
-	if(eset.empty())
-		return 0;
+	if(eset.empty()) {
+		lua_pushnil(L);
+		return 1;
+	}
 	luaL_checkstack(L, eset.size(), nullptr);
 	for(const auto& peff : eset)
 		interpreter::pushobject(L, peff);
@@ -4083,6 +4092,7 @@ LUA_FUNCTION(GetActivityCount) {
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
 	int32_t retct = lua_gettop(L) - 1;
+	luaL_checkstack(L, retct, nullptr);
 	for(int32_t i = 0; i < retct; ++i) {
 		auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, 2 + i));
 		switch(activity_type) {
@@ -4105,7 +4115,7 @@ LUA_FUNCTION(GetActivityCount) {
 				lua_pushinteger(L, pduel->game_field->core.battle_phase_count[playerid]);
 				break;
 			default:
-				lua_pushinteger(L, 0);
+				lua_error(L, "Passed invalid ACTIVITY flag.");
 				break;
 		}
 	}
@@ -4335,6 +4345,7 @@ LUA_FUNCTION(GetCardSetcodeFromCode) {
 	const auto& data = lua_get<duel*>(L)->read_card(code);
 	if(data.code == 0)
 		return 0;
+	luaL_checkstack(L, data.setcodes.size(), nullptr);
 	for(auto& setcode : data.setcodes)
 		lua_pushinteger(L, setcode);
 	return data.setcodes.size();

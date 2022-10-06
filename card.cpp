@@ -286,8 +286,7 @@ uint32_t card::get_another_code() {
 		return otcode;
 	return 0;
 }
-uint32_t card::get_summon_code(card* scard, uint64_t sumtype, uint8_t playerid) {
-	std::set<uint32_t> codes;
+void card::get_summon_code(std::set<uint32_t>& codes, card* scard, uint64_t sumtype, uint8_t playerid) {
 	effect_set eset;
 	bool changed = false;
 	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
@@ -319,9 +318,6 @@ uint32_t card::get_summon_code(card* scard, uint64_t sumtype, uint8_t playerid) 
 		if (code)
 			codes.insert(code);
 	}
-	for(uint32_t code : codes)
-		lua_pushinteger(pduel->lua->current_state, code);
-	return codes.size();
 }
 static inline bool match_setcode(uint16_t set_code, uint16_t to_match) {
 	return (set_code & 0xfffu) == (to_match & 0xfffu) && (set_code & to_match) == set_code;
@@ -437,53 +433,37 @@ int32_t card::is_sumon_set_card(uint16_t set_code, card* scard, uint64_t sumtype
 			return TRUE;
 	return FALSE;
 }
-uint32_t card::get_set_card() {
-	uint32_t count = 0;
+void card::get_set_card(std::set<uint16_t>& setcodes) {
 	uint32_t code = get_code();
-	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {
-		++count;
-		lua_pushinteger(pduel->lua->current_state, setcode);
-	}
+	setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
 	//add set code
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
 	for(auto& eff : eset) {
 		uint32_t value = eff->get_value(this);
-		for(; value > 0; ++count, value = value >> 16)
-			lua_pushinteger(pduel->lua->current_state, value & 0xffff);
+		for(; value > 0; value >>= 16)
+			setcodes.insert(value & 0xffff);
 	}
 	//another code
 	uint32_t code2 = get_another_code();
 	if (code2 != 0) {
-		for(auto& setcode : pduel->read_card(code2).setcodes) {
-			++count;
-			lua_pushinteger(pduel->lua->current_state, setcode);
-		}
+		for(auto& setcode : pduel->read_card(code2).setcodes)
+			setcodes.insert(setcode);
 	}
-	return count;
 }
-uint32_t card::get_pre_set_card() {
+void card::get_pre_set_card(std::set<uint16_t>& setcodes) {
 	uint32_t count = 0;
 	uint32_t code = previous.code;
-	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {
-		++count;
-		lua_pushinteger(pduel->lua->current_state, setcode);
-	}
+	setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
 	//add set code
-	for(auto& setcode : previous.setcodes) {
-		++count;
-		lua_pushinteger(pduel->lua->current_state, setcode);
-	}
+	setcodes.insert(previous.setcodes.begin(), previous.setcodes.end());
 	//another code
 	if (previous.code2 != 0) {
-		for(auto& setcode : pduel->read_card(previous.code2).setcodes) {
-			++count;
-			lua_pushinteger(pduel->lua->current_state, setcode);
-		}
+		const auto& other_setcodes = pduel->read_card(previous.code2).setcodes;
+		setcodes.insert(other_setcodes.begin(), other_setcodes.end());
 	}
-	return count;
 }
-uint32_t card::get_summon_set_card(card* scard, uint64_t sumtype, uint8_t playerid) {
+void card::get_summon_set_card(std::set<uint16_t>& setcodes, card* scard, uint64_t sumtype, uint8_t playerid) {
 	effect_set eset;
 	std::set<uint32_t> codes;
 	bool changed = false;
@@ -510,7 +490,6 @@ uint32_t card::get_summon_set_card(card* scard, uint64_t sumtype, uint8_t player
 			changed = true;
 		}
 	}
-	std::set<uint16_t> setcodes;
 	for (uint32_t code : codes) {
 		const auto& sets = pduel->read_card(code).setcodes;
 		if(sets.size())
@@ -534,12 +513,7 @@ uint32_t card::get_summon_set_card(card* scard, uint64_t sumtype, uint8_t player
 		}
 		setcodes.insert(setcode & 0xffff);
 	}
-	for (uint16_t setcode : setcodes)
-		lua_pushinteger(pduel->lua->current_state, setcode);
-	uint32_t count = setcodes.size();
-	if(!changed)
-		count += get_set_card();
-	return count;
+	get_set_card(setcodes);
 }
 uint32_t card::get_type(card* scard, uint64_t sumtype, uint8_t playerid) {
 	auto search = assume.find(ASSUME_TYPE);
