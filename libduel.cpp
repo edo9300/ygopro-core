@@ -3704,12 +3704,14 @@ LUA_FUNCTION(GetPlayerEffect) {
 	}
 	auto code = lua_get<uint32_t, 0>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
-	int32_t count = pduel->game_field->get_player_effect(playerid, code);
-	if (count==0) {
-		lua_pushnil(L);
-		return 1;
-	}
-	return count;
+	effect_set eset;
+	pduel->game_field->get_player_effect(playerid, code, &eset);
+	if(eset.empty())
+		return 0;
+	luaL_checkstack(L, eset.size(), nullptr);
+	for(const auto& peff : eset)
+		interpreter::pushobject(L, peff);
+	return eset.size();
 }
 LUA_FUNCTION(IsPlayerCanDraw) {
 	check_param_count(L, 1);

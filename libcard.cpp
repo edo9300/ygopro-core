@@ -1341,12 +1341,14 @@ LUA_FUNCTION(GetCardEffect) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto code = lua_get<uint32_t, 0>(L, 2);
-	int32_t count = pcard->get_card_effect(code);
-	if (count == 0) {
-		lua_pushnil(L);
-		return 1;
-	}
-	return count;
+	effect_set eset;
+	pcard->get_card_effect(code, &eset);
+	if(eset.empty())
+		return 0;
+	luaL_checkstack(L, eset.size(), nullptr);
+	for(const auto& peff : eset)
+		interpreter::pushobject(L, peff);
+	return eset.size();
 }
 LUA_FUNCTION(ResetEffect) {
 	check_param_count(L, 3);

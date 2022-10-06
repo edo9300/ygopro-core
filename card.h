@@ -280,7 +280,7 @@ public:
 	void filter_spsummon_procedure_g(uint8_t playerid, effect_set* eset);
 	effect* is_affected_by_effect(int32_t code);
 	effect* is_affected_by_effect(int32_t code, card* target);
-	int32_t get_card_effect(uint32_t code);
+	void get_card_effect(uint32_t code, effect_set* eset);
 	int32_t fusion_check(group* fusion_m, group* cg, uint32_t chkf);
 	void fusion_filter_valid(group* fusion_m, group* cg, uint32_t chkf, effect_set* eset);
 	int32_t check_fusion_substitute(card* fcard);

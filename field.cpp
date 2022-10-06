@@ -1608,16 +1608,13 @@ effect* field::is_player_affected_by_effect(uint8_t playerid, uint32_t code) {
 	}
 	return 0;
 }
-int32_t field::get_player_effect(uint8_t playerid, uint32_t code) {
+void field::get_player_effect(uint8_t playerid, uint32_t code, effect_set* eset) {
 	int32_t i = 0;
 	for (auto rg = effects.aura_effect.begin(); rg != effects.aura_effect.end(); ++rg) {
 		effect* peffect = rg->second;
-		if ((code == 0 || peffect->code == code) && peffect->is_target_player(playerid) && peffect->is_available()) {
-			interpreter::pushobject(pduel->lua->current_state, peffect);
-			++i;
-		}
+		if((code == 0 || peffect->code == code) && peffect->is_target_player(playerid) && peffect->is_available())
+			eset->push_back(peffect);
 	}
-	return i;
 }
 int32_t field::get_release_list(uint8_t playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t use_oppo) {
 	uint32_t rcount = 0;

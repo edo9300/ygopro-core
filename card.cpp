@@ -3126,32 +3126,25 @@ effect* card::is_affected_by_effect(int32_t code, card* target) {
 	}
 	return 0;
 }
-int32_t card::get_card_effect(uint32_t code) {
+void card::get_card_effect(uint32_t code, effect_set* eset) {
 	effect* peffect;
-	int32_t i = 0;
 	for (auto rg = single_effect.begin(); rg != single_effect.end();) {
 		peffect = rg->second;
 		++rg;
-		if ((code == 0 || peffect->code == code) && peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect))) {
-			interpreter::pushobject(pduel->lua->current_state, peffect);
-			++i;
-		}
+		if ((code == 0 || peffect->code == code) && peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
+			eset->push_back(peffect);
 	}
 	for (auto rg = field_effect.begin(); rg != field_effect.end(); ++rg) {
 		peffect = rg->second;
-		if ((code == 0 || peffect->code == code) && is_affect_by_effect(peffect)) {
-			interpreter::pushobject(pduel->lua->current_state, peffect);
-			++i;
-		}
+		if ((code == 0 || peffect->code == code) && is_affect_by_effect(peffect))
+			eset->push_back(peffect);
 	}
 	for (auto cit = equiping_cards.begin(); cit != equiping_cards.end(); ++cit) {
 		for (auto rg = (*cit)->equip_effect.begin(); rg != (*cit)->equip_effect.end();) {
 			peffect = rg->second;
 			++rg;
-			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
-				interpreter::pushobject(pduel->lua->current_state, peffect);
-				++i;
-			}
+			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect))
+				eset->push_back(peffect);
 		}
 	}
 	for(auto& pcard : effect_target_owner) {
@@ -3159,10 +3152,8 @@ int32_t card::get_card_effect(uint32_t code) {
 		for(auto eit = rg.first; eit != rg.second;) {
 			peffect = eit->second;
 			++eit;
-			if((code == 0 || peffect->code == code) && peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect)) {
-				interpreter::pushobject(pduel->lua->current_state, peffect);
-				++i;
-			}
+			if((code == 0 || peffect->code == code) && peffect->is_available() && peffect->is_target(this) && is_affect_by_effect(peffect))
+				eset->push_back(peffect);
 		}
 	}
 	for (auto cit = xyz_materials.begin(); cit != xyz_materials.end(); ++cit) {
@@ -3171,22 +3162,17 @@ int32_t card::get_card_effect(uint32_t code) {
 			++rg;
 			if (peffect->type & EFFECT_TYPE_FIELD)
 				continue;
-			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect)) {
-				interpreter::pushobject(pduel->lua->current_state, peffect);
-				++i;
-			}
+			if ((code == 0 || peffect->code == code) && peffect->is_available() && is_affect_by_effect(peffect))
+				eset->push_back(peffect);
 		}
 	}
 	for (auto rg = pduel->game_field->effects.aura_effect.begin(); rg != pduel->game_field->effects.aura_effect.end();) {
 		peffect = rg->second;
 		++rg;
 		if ((code == 0 || peffect->code == code) && !peffect->is_flag(EFFECT_FLAG_PLAYER_TARGET) && peffect->is_target(this)
-			&& peffect->is_available() && is_affect_by_effect(peffect)) {
-			interpreter::pushobject(pduel->lua->current_state, peffect);
-			++i;
-		}
+			&& peffect->is_available() && is_affect_by_effect(peffect))
+			eset->push_back(peffect);
 	}
-	return i;
 }
 int32_t card::fusion_check(group* fusion_m, group* cg, uint32_t chkf) {
 	effect* peffect = 0;
