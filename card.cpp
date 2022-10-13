@@ -452,7 +452,6 @@ void card::get_set_card(std::set<uint16_t>& setcodes) {
 	}
 }
 void card::get_pre_set_card(std::set<uint16_t>& setcodes) {
-	uint32_t count = 0;
 	uint32_t code = previous.code;
 	setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
 	//add set code
