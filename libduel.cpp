@@ -3610,13 +3610,13 @@ LUA_FUNCTION(TossCoin) {
 	if(count > 5)
 		count = 5;
 	pduel->game_field->add_process(PROCESSOR_TOSS_COIN, 0, pduel->game_field->core.reason_effect, 0, (pduel->game_field->core.reason_player << 16) + playerid, count);
-	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) -> int {
 		const auto pduel = lua_get<duel*>(L);
-		int32_t count = lua_get<uint8_t>(L, 2);
-		luaL_checkstack(L, count, nullptr);
-		for(int32_t i = 0; i < count; ++i)
-			lua_pushinteger(L, pduel->game_field->core.coin_result[i]);
-		return count;
+		const auto& coin_results = pduel->game_field->core.coin_results;
+		luaL_checkstack(L, coin_results.size(), nullptr);
+		for(const auto& result : coin_results)
+			lua_pushinteger(L, static_cast<int8_t>(result));
+		return coin_results.size();
 	});
 }
 LUA_FUNCTION(TossDice) {
@@ -3624,23 +3624,18 @@ LUA_FUNCTION(TossDice) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count1 = lua_get<uint8_t>(L, 2);
-	if((playerid != 0 && playerid != 1) || count1 <= 0)
+	if(playerid != 0 && playerid != 1)
 		return 0;
-	const auto pduel = lua_get<duel*>(L);
 	auto count2 = lua_get<uint8_t, 0>(L, 3);
-	if(count1 > 5)
-		count1 = 5;
-	if(count2 > 5 - count1)
-		count2 = 5 - count1;
+	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->add_process(PROCESSOR_TOSS_DICE, 0, pduel->game_field->core.reason_effect, 0, (pduel->game_field->core.reason_player << 16) + playerid, count1 + (count2 << 16));
-	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) -> int {
 		const auto pduel = lua_get<duel*>(L);
-		auto count1 = lua_get<uint8_t>(L, 2);
-		auto count2 = lua_get<uint8_t, 0>(L, 3);
-		luaL_checkstack(L, count1 + count2, nullptr);
-		for(int32_t i = 0; i < count1 + count2; ++i)
-			lua_pushinteger(L, pduel->game_field->core.dice_result[i]);
-		return count1 + count2;
+		const auto& dice_results = pduel->game_field->core.dice_results;
+		luaL_checkstack(L, dice_results.size(), nullptr);
+		for(const auto& result : dice_results)
+			lua_pushinteger(L, result);
+		return dice_results.size();
 	});
 }
 LUA_FUNCTION(RockPaperScissors) {
@@ -3653,33 +3648,33 @@ LUA_FUNCTION(RockPaperScissors) {
 	});
 }
 LUA_FUNCTION(GetCoinResult) {
-	const auto pduel = lua_get<duel*>(L);
-	for(const auto& coin : pduel->game_field->core.coin_result)
-		lua_pushinteger(L, coin);
-	return 5;
+	const auto& coin_results = lua_get<duel*>(L)->game_field->core.coin_results;
+	luaL_checkstack(L, coin_results.size(), nullptr);
+	for(const auto& coin : coin_results)
+		lua_pushinteger(L, static_cast<int>(coin));
+	return coin_results.size();
 }
 LUA_FUNCTION(GetDiceResult) {
-	const auto pduel = lua_get<duel*>(L);
-	for(const auto& dice : pduel->game_field->core.dice_result)
+	const auto& dice_results = lua_get<duel*>(L)->game_field->core.dice_results;
+	luaL_checkstack(L, dice_results.size(), nullptr);
+	for(const auto& dice : dice_results)
 		lua_pushinteger(L, dice);
-	return 5;
+	return dice_results.size();
 }
 LUA_FUNCTION(SetCoinResult) {
-	const auto pduel = lua_get<duel*>(L);
-	for(int32_t i = 0; i < 5; ++i) {
-		auto res = lua_get<uint8_t>(L, i + 1);
-		if(res != 0 && res != 1)
-			res = 0;
-		pduel->game_field->core.coin_result[i] = res;
-	}
+	auto& coin_results = lua_get<duel*>(L)->game_field->core.coin_results;
+	if(lua_gettop(L) != (int)coin_results.size())
+		lua_error(L, "The number of coin results passed didn't match the expected amount of %d. (Passed %d)", coin_results.size(), lua_gettop(L));
+	for(size_t i = 0; i < coin_results.size(); ++i)
+		coin_results[i] = static_cast<bool>(lua_get<uint8_t>(L, i + 1));
 	return 0;
 }
 LUA_FUNCTION(SetDiceResult) {
-	const auto pduel = lua_get<duel*>(L);
-	for(int32_t i = 0; i < 5; ++i) {
-		auto res = lua_get<uint8_t>(L, i + 1);
-		pduel->game_field->core.dice_result[i] = res;
-	}
+	auto& dice_results = lua_get<duel*>(L)->game_field->core.dice_results;
+	if(lua_gettop(L) != (int)dice_results.size())
+		lua_error(L, "The number of dice results passed didn't match the expected amount of %d. (Passed %d)", dice_results.size(), lua_gettop(L));
+	for(size_t i = 0; i < dice_results.size(); ++i)
+		dice_results[i] = lua_get<uint8_t>(L, i + 1);
 	return 0;
 }
 LUA_FUNCTION(IsDuelType) {

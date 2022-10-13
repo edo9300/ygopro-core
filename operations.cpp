@@ -5782,8 +5782,7 @@ int32_t field::toss_coin(uint16_t step, effect* reason_effect, uint8_t reason_pl
 		e.reason = 0;
 		e.reason_effect = reason_effect;
 		e.reason_player = reason_player;
-		for(auto& coin : core.coin_result)
-			coin = 0;
+		core.coin_results.clear();
 		auto pr = effects.continuous_effect.equal_range(EFFECT_TOSS_COIN_REPLACE);
 		for(auto eit = pr.first; eit != pr.second;) {
 			effect* pe = eit->second;
@@ -5811,9 +5810,11 @@ int32_t field::toss_coin(uint16_t step, effect* reason_effect, uint8_t reason_pl
 			auto message = pduel->new_message(MSG_TOSS_COIN);
 			message->write<uint8_t>(playerid);
 			message->write<uint8_t>(count);
+			core.coin_results.reserve(count);
 			for(int32_t i = 0; i < count; ++i) {
-				core.coin_result[i] = pduel->get_next_integer(0, 1);
-				message->write<uint8_t>(core.coin_result[i]);
+				auto coin = pduel->get_next_integer(0, 1);
+				core.coin_results.push_back(static_cast<bool>(coin));
+				message->write<uint8_t>(coin);
 			}
 			raise_event((card*)0, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
 			process_instant_event();
@@ -5834,7 +5835,7 @@ int32_t field::toss_coin(uint16_t step, effect* reason_effect, uint8_t reason_pl
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(count);
 		for(int32_t i = 0; i < count; ++i) {
-			message->write<uint8_t>(core.coin_result[i]);
+			message->write<uint8_t>(static_cast<uint8_t>(core.coin_results[i]));
 		}
 		raise_event((card*)0, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
 		process_instant_event();
@@ -5855,8 +5856,7 @@ int32_t field::toss_dice(uint16_t step, effect* reason_effect, uint8_t reason_pl
 		e.reason = 0;
 		e.reason_effect = reason_effect;
 		e.reason_player = reason_player;
-		for(auto& dice : core.dice_result)
-			dice = 0;
+		core.dice_results.clear();
 		auto pr = effects.continuous_effect.equal_range(EFFECT_TOSS_DICE_REPLACE);
 		for(auto eit = pr.first; eit != pr.second;) {
 			effect* pe = eit->second;
@@ -5881,20 +5881,23 @@ int32_t field::toss_dice(uint16_t step, effect* reason_effect, uint8_t reason_pl
 				core.units.begin()->step = 2;
 				return FALSE;
 			}
+			core.dice_results.reserve(count1 + count2);
 			auto message = pduel->new_message(MSG_TOSS_DICE);
 			message->write<uint8_t>(playerid);
 			message->write<uint8_t>(count1);
 			for(int32_t i = 0; i < count1; ++i) {
-				core.dice_result[i] = pduel->get_next_integer(1, 6);
-				message->write<uint8_t>(core.dice_result[i]);
+				const auto dice = pduel->get_next_integer(1, 6);
+				core.dice_results.push_back(dice);
+				message->write<uint8_t>(dice);
 			}
 			if(count2 > 0) {
 				message = pduel->new_message(MSG_TOSS_DICE);
 				message->write<uint8_t>(1 - playerid);
 				message->write<uint8_t>(count2);
 				for(int32_t i = 0; i < count2; ++i) {
-					core.dice_result[count1 + i] = pduel->get_next_integer(1, 6);
-					message->write<uint8_t>(core.dice_result[count1 + i]);
+					const auto dice = pduel->get_next_integer(1, 6);
+					core.dice_results.push_back(dice);
+					message->write<uint8_t>(dice);
 				}
 			}
 			raise_event((card*)0, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
@@ -5916,14 +5919,14 @@ int32_t field::toss_dice(uint16_t step, effect* reason_effect, uint8_t reason_pl
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(count1);
 		for(int32_t i = 0; i < count1; ++i) {
-			message->write<uint8_t>(core.dice_result[i]);
+			message->write<uint8_t>(core.dice_results[i]);
 		}
 		if(count2 > 0) {
 			auto mmessage = pduel->new_message(MSG_TOSS_DICE);
 			mmessage->write<uint8_t>(1 - playerid);
 			mmessage->write<uint8_t>(count2);
 			for(int32_t i = 0; i < count2; ++i) {
-				mmessage->write<uint8_t>(core.dice_result[count1 + i]);
+				mmessage->write<uint8_t>(core.dice_results[count1 + i]);
 			}
 		}
 		raise_event((card*)0, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));

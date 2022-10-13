@@ -339,8 +339,8 @@ struct processor {
 	uint32_t last_control_changed_id;
 	uint32_t set_group_used_zones;
 	uint8_t set_group_seq[7];
-	uint8_t dice_result[5];
-	uint8_t coin_result[5];
+	std::vector<uint8_t> dice_results;
+	std::vector<bool> coin_results;
 	uint8_t to_bp;
 	uint8_t to_m2;
 	uint8_t to_ep;
