@@ -3590,12 +3590,14 @@ LUA_FUNCTION(AnnounceCoin) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
-		auto playerid = lua_get<uint8_t>(L, 1);
-		auto message = pduel->new_message(MSG_HINT);
-		message->write<uint8_t>(HINT_OPSELECTED);
-		message->write<uint8_t>(playerid);
-		message->write<uint64_t>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32_t>(0)]);
-		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
+		if(/*bool sel_hint = */lua_get<bool, true>(L, 2)) {
+			auto playerid = lua_get<uint8_t>(L, 1);
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8_t>(HINT_OPSELECTED);
+			message->write<uint8_t>(playerid);
+			message->write<uint64_t>(pduel->game_field->core.select_options[pduel->game_field->returns.at<int32_t>(0)]);
+		}
+		lua_pushinteger(L, 1 - pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
