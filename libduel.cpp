@@ -3584,6 +3584,11 @@ LUA_FUNCTION(AnnounceCoin) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
+	auto desc = lua_get<uint64_t, 552>(L, 2);
+	auto message = pduel->new_message(MSG_HINT);
+	message->write<uint8_t>(HINT_SELECTMSG);
+	message->write<uint8_t>(playerid);
+	message->write<uint64_t>(desc);
 	pduel->game_field->core.select_options.clear();
 	pduel->game_field->core.select_options.push_back(60);
 	pduel->game_field->core.select_options.push_back(61);
