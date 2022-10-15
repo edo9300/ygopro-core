@@ -196,8 +196,13 @@ int32_t field::select_yes_no(uint16_t step, uint8_t playerid, uint64_t descripti
 int32_t field::select_option(uint16_t step, uint8_t playerid) {
 	if(step == 0) {
 		returns.set<int32_t>(0, -1);
-		if(core.select_options.size() == 0)
+		if(core.select_options.size() == 0) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8_t>(HINT_SELECTMSG);
+			message->write<uint8_t>(playerid);
+			message->write<uint64_t>(0);
 			return TRUE;
+		}
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.set<int32_t>(0, 0);
 			return TRUE;
