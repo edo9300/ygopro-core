@@ -1783,7 +1783,8 @@ LUA_FUNCTION(GetMZoneCount) {
 	bool swapped = false;
 	card* mcard = nullptr;
 	group* mgroup = nullptr;
-	uint32_t used_location[2] = { 0, 0 };
+	const uint32_t default_loc = 0x1111 * pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD);
+	uint32_t used_location[2] = { default_loc, default_loc };
 	card_vector list_mzone[2];
 	if(!lua_isnoneornil(L, 2)) {
 		get_card_or_group(L, 2, mcard, mgroup);
@@ -1827,7 +1828,8 @@ LUA_FUNCTION(GetLocationCountFromEx) {
 	bool swapped = false;
 	card* mcard = nullptr;
 	group* mgroup = nullptr;
-	uint32_t used_location[2] = { 0, 0 };
+	const uint32_t default_loc = 0x1111 * pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD);
+	uint32_t used_location[2] = { default_loc, default_loc };
 	card_vector list_mzone[2];
 	if(!lua_isnoneornil(L, 3)) {
 		get_card_or_group(L, 3, mcard, mgroup);
