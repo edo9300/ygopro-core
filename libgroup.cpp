@@ -43,10 +43,10 @@ LUA_FUNCTION(Clone) {
 LUA_FUNCTION(FromCards) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
-	for(int32_t i = 0; i < lua_gettop(L); ++i) {
-		if(lua_isnil(L, i + 1))
+	for(int32_t i = 1, tot = lua_gettop(L); i <= tot; ++i) {
+		if(lua_isnil(L, i))
 			continue;
-		auto pcard = lua_get<card*, true>(L, i + 1);
+		auto pcard = lua_get<card*, true>(L, i);
 		pgroup->container.insert(pcard);
 	}
 	interpreter::pushobject(L, pgroup);

@@ -186,7 +186,7 @@ LUA_FUNCTION(SetLabel) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	peffect->label.clear();
-	for(int32_t i = 2; i <= lua_gettop(L); ++i)
+	for(int32_t i = 2, tot = lua_gettop(L); i <= tot; ++i)
 		peffect->label.push_back(lua_get<lua_Integer>(L, i));
 	return 0;
 }

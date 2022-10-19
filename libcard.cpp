@@ -26,7 +26,7 @@ LUA_FUNCTION(GetCode) {
 	if (lua_gettop(L) > 1) {
 		card* scard = 0;
 		uint8_t playerid = PLAYER_NONE;
-		if (lua_gettop(L) > 1 && !lua_isnoneornil(L, 2))
+		if (!lua_isnoneornil(L, 2))
 			scard = lua_get<card*, true>(L, 2);
 		auto sumtype = lua_get<uint64_t, 0>(L, 3);
 		if (lua_gettop(L) > 3)
@@ -94,7 +94,7 @@ LUA_FUNCTION(GetSetCard) {
 	if (lua_gettop(L) > 1) {
 		card* scard = 0;
 		uint8_t playerid = PLAYER_NONE;
-		if (lua_gettop(L) > 1 && !lua_isnoneornil(L, 2))
+		if (!lua_isnoneornil(L, 2))
 			scard = lua_get<card*, true>(L, 2);
 		auto sumtype = lua_get<uint64_t, 0>(L, 3);
 		if (lua_gettop(L) > 3)
@@ -834,7 +834,7 @@ LUA_FUNCTION(IsSetCard) {
 	if (lua_gettop(L) > 2) {
 		card* scard = 0;
 		uint8_t playerid = PLAYER_NONE;
-		if (lua_gettop(L) > 2 && !lua_isnoneornil(L, 3))
+		if (!lua_isnoneornil(L, 3))
 			scard = lua_get<card*, true>(L, 3);
 		auto sumtype = lua_get<uint64_t, 0>(L, 4);
 		playerid = lua_get<uint8_t, PLAYER_NONE>(L, 5);
