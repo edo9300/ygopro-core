@@ -29,20 +29,6 @@ void assert_readonly_group(lua_State* L, group* pgroup) {
 LUA_FUNCTION(CreateGroup) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
-	interpreter::pushobject(L, pgroup);
-	return 1;
-}
-LUA_FUNCTION(Clone) {
-	check_param_count(L, 1);
-	const auto pduel = lua_get<duel*>(L);
-	auto pgroup = lua_get<group*, true>(L, 1);
-	group* newgroup = pduel->new_group(pgroup);
-	interpreter::pushobject(L, newgroup);
-	return 1;
-}
-LUA_FUNCTION(FromCards) {
-	const auto pduel = lua_get<duel*>(L);
-	group* pgroup = pduel->new_group();
 	for(int32_t i = 1, tot = lua_gettop(L); i <= tot; ++i) {
 		if(lua_isnil(L, i))
 			continue;
@@ -50,6 +36,15 @@ LUA_FUNCTION(FromCards) {
 		pgroup->container.insert(pcard);
 	}
 	interpreter::pushobject(L, pgroup);
+	return 1;
+}
+LUA_FUNCTION_ALIAS(FromCards);
+LUA_FUNCTION(Clone) {
+	check_param_count(L, 1);
+	const auto pduel = lua_get<duel*>(L);
+	auto pgroup = lua_get<group*, true>(L, 1);
+	group* newgroup = pduel->new_group(pgroup);
+	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 LUA_FUNCTION(DeleteGroup) {
