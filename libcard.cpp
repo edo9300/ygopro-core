@@ -726,6 +726,8 @@ LUA_FUNCTION(IsOriginalCodeRule) {
 		if(lua_isnoneornil(L, i + 2))
 			continue;
 		auto tcode = lua_get<uint32_t>(L, i + 2);
+		if(tcode == 0)
+			continue;
 		if(code1 == tcode || code2 == tcode) {
 			lua_pushboolean(L, TRUE);
 			return 1;
