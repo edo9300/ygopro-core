@@ -44,6 +44,8 @@ LUA_FUNCTION(FromCards) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
 	for(int32_t i = 0; i < lua_gettop(L); ++i) {
+		if(lua_isnil(L, i + 1))
+			continue;
 		auto pcard = lua_get<card*, true>(L, i + 1);
 		pgroup->container.insert(pcard);
 	}
