@@ -216,9 +216,7 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			else if(is_coroutine) {
 				//copy value from current_state to new stack
 				lua_pushvalue(current_state, index);
-				int32_t ref = luaL_ref(current_state, LUA_REGISTRYINDEX);
-				lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-				luaL_unref(current_state, LUA_REGISTRYINDEX, ref);
+				lua_xmove(current_state, L, 1);
 			} else {
 				//the calling function is pushed before the params, so the actual index is: index - pushed -1
 				lua_pushvalue(L, index - pushed - 1);
