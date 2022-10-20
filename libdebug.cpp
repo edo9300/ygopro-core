@@ -200,6 +200,25 @@ LUA_FUNCTION(PrintStacktrace) {
 	return 0;
 }
 
+LUA_FUNCTION(CardToStringWrapper) {
+	const auto pcard = lua_get<card*>(L, 1);
+	if(pcard) {
+		luaL_checkstack(L, 4, nullptr);
+		lua_getglobal(L, "Debug");
+		lua_pushstring(L, "CardToString");
+		lua_rawget(L, -2);
+		if(!lua_isnil(L, -1)) {
+			lua_pushvalue(L, 1);
+			lua_call(L, 1, 1);
+			return 1;
+		}
+		lua_settop(L, 1);
+	}
+	const char* kind = luaL_typename(L, 1);
+	lua_pushfstring(L, "%s: %p", kind, lua_topointer(L, 1));
+	return 1;
+}
+
 }
 
 void scriptlib::push_debug_lib(lua_State* L) {

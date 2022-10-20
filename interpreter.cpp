@@ -176,9 +176,21 @@ bool interpreter::load_card_script(uint32_t code) {
 	}
 	//create a table & set metatable
 	{
+		lua_createtable(current_state, 0, 0);						//+1
+		{
+			lua_pushstring(current_state, "__tostring");				//+1
+			{
+				//pushes Debug.CardStringWrapper to the stack
+				lua_getglobal(current_state, "Debug");					//+1
+				lua_pushstring(current_state, "CardToStringWrapper");	//+1
+				lua_rawget(current_state, -2);							//-1, +1
+				lua_remove(current_state, -2);							//-1
+			}
+			//cXXXXX.__tostring=Debug.CardToStringWrapper
+			lua_rawset(current_state, -3);								//-2
+		}
 		//cXXXXX={}
-		lua_createtable(current_state, 0, 0);		//+1
-		lua_setglobal(current_state, class_name);	//-1
+		lua_setglobal(current_state, class_name);					//-1
 	}
 	//push cXXXXX on the stack another time
 	lua_getglobal(current_state, class_name);	//+1
