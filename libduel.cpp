@@ -4209,10 +4209,9 @@ LUA_FUNCTION(LoadScript) {
 	using SLS = duel::SCRIPT_LOAD_STATUS;
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
-	lua_getglobal(L, "tostring");
-	lua_pushvalue(L, 1);
-	lua_call(L, 1, 1);
-	auto string = lua_tostring_or_empty(L, -1);
+	const auto* string = luaL_tolstring(L, 1, nullptr);
+	if(!string)
+		lua_error(L, "Parameter 1 should be \"String\".");
 	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
 		auto hash = [](const char* str)->uint32_t {
 			uint32_t hash = 5381, c;
