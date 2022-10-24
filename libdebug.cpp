@@ -18,13 +18,17 @@ namespace {
 using namespace scriptlib;
 
 LUA_FUNCTION(Message) {
-	if(lua_gettop(L) == 0)
+	int top = lua_gettop(L);
+	if(top == 0)
 		return 0;
+	luaL_checkstack(L, 1, nullptr);
 	const auto pduel = lua_get<duel*>(L);
-	lua_getglobal(L, "tostring");
-	lua_pushvalue(L, -2);
-	lua_pcall(L, 1, 1, 0);
-	pduel->handle_message(lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FROM_SCRIPT);
+	for(int i = 1; i <= top; ++i) {
+		const auto* str = luaL_tolstring(L, i, nullptr);
+		if(str)
+			pduel->handle_message(str, OCG_LOG_TYPE_FROM_SCRIPT);
+		lua_pop(L, 1);
+	}
 	return 0;
 }
 LUA_FUNCTION(AddCard) {
