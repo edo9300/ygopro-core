@@ -4209,7 +4209,7 @@ LUA_FUNCTION(LoadScript) {
 	using SLS = duel::SCRIPT_LOAD_STATUS;
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
-	const auto* string = luaL_tolstring(L, 1, nullptr);
+	const auto* string = lua_tolstring(L, 1, nullptr);
 	if(!string)
 		lua_error(L, "Parameter 1 should be \"String\".");
 	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
