@@ -183,6 +183,70 @@ namespace scriptlib {
 			lua_pop(L, 1);
 		}
 	}
+
+	template<typename T, typename T2>
+	using EnableOnReturn = std::enable_if_t<std::is_same<std::result_of_t<T()>, T2>::value, int>;
+
+	template<typename T, EnableOnReturn<T, void> = 0>
+	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
+		if(lua_istable(L, idx)) {
+			lua_table_iterate(L, idx, func);
+			return;
+		}
+		for(; idx <= max; ++idx) {
+			lua_pushvalue(L, idx);
+			func();
+			lua_pop(L, 1);
+		}
+	}
+
+	template<typename T, EnableOnReturn<T, int> = 0>
+	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
+		if(lua_istable(L, idx)) {
+			lua_pushnil(L);
+			while(lua_next(L, idx) != 0) {
+				const auto pushed_amount = func();
+				if(pushed_amount != 0) {
+					//if values are pushed, we need to fix the stack so that the values pushed are
+					//put below the key/pair used to iterate the current table
+					lua_remove(L, -(pushed_amount + 1));
+					lua_rotate(L, -(pushed_amount + 1), pushed_amount);
+				}
+				else
+					lua_pop(L, 1);
+			}
+			return;
+		}
+		for(; idx <= max; ++idx) {
+			lua_pushvalue(L, idx);
+			const auto pushed_amount = func();
+			if(pushed_amount != 0)
+				lua_remove(L, -(pushed_amount + 1));
+			else
+				lua_pop(L, 1);
+		}
+	}
+
+	template<typename T, EnableOnReturn<T, bool> = 0>
+	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
+		if(lua_istable(L, idx)) {
+			lua_pushnil(L);
+			while(lua_next(L, idx) != 0) {
+				const auto should_break = func();
+				lua_pop(L, 1);
+				if(should_break)
+					break;
+			}
+			return;
+		}
+		for(; idx <= max; ++idx) {
+			lua_pushvalue(L, idx);
+			const auto should_break = func();
+			lua_pop(L, 1);
+			if(should_break)
+				break;
+		}
+	}
 	template<typename T>
 	static int32_t get_lua_ref(lua_State* L) {
 		lua_pushinteger(L, lua_get<T*>(L, 1)->ref_handle);

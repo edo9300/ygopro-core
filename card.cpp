@@ -319,9 +319,6 @@ void card::get_summon_code(std::set<uint32_t>& codes, card* scard, uint64_t sumt
 			codes.insert(code);
 	}
 }
-static inline bool match_setcode(uint16_t set_code, uint16_t to_match) {
-	return (set_code & 0xfffu) == (to_match & 0xfffu) && (set_code & to_match) == set_code;
-}
 int32_t card::is_set_card(uint16_t set_code) {
 	uint32_t code = get_code();
 	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {

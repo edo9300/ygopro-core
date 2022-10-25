@@ -160,6 +160,9 @@ public:
 	explicit card(duel* pd);
 	~card() = default;
 	static bool card_operation_sort(card* c1, card* c2);
+	static bool match_setcode(uint16_t set_code, uint16_t to_match) {
+		return (set_code & 0xfffu) == (to_match & 0xfffu) && (set_code & to_match) == set_code;
+	}
 	bool is_extra_deck_monster() const { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK)) && !!(data.type & TYPE_MONSTER); }
 
 	void get_infos(int32_t query_flag);
