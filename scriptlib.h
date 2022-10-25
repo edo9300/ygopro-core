@@ -69,7 +69,7 @@ namespace scriptlib {
 
 	template<typename T>
 	EnableIf<T, lua_obj*> lua_get(lua_State* L, int idx) {
-		if(lua_gettop(L) < idx)
+		if(lua_isnone(L, idx))
 			return nullptr;
 		if(auto obj = lua_touserdata(L, idx)) {
 			auto* ret = *static_cast<lua_obj**>(obj);
@@ -82,7 +82,7 @@ namespace scriptlib {
 
 	template<typename T, bool check = false>
 	EnableIf<T, card*> lua_get(lua_State* L, int idx) {
-		if(!check && lua_gettop(L) < idx)
+		if(!check && lua_isnone(L, idx))
 			return nullptr;
 		card* ret = nullptr;
 		check_param(L, PARAM_TYPE_CARD, idx, !check, &ret);
@@ -91,7 +91,7 @@ namespace scriptlib {
 
 	template<typename T, bool check = false>
 	EnableIf<T, group*> lua_get(lua_State* L, int idx) {
-		if(!check && lua_gettop(L) < idx)
+		if(!check && lua_isnone(L, idx))
 			return nullptr;
 		group* ret = nullptr;
 		check_param(L, PARAM_TYPE_GROUP, idx, !check, &ret);
@@ -100,7 +100,7 @@ namespace scriptlib {
 
 	template<typename T, bool check = false>
 	EnableIf<T, effect*> lua_get(lua_State* L, int idx) {
-		if(!check && lua_gettop(L) < idx)
+		if(!check && lua_isnone(L, idx))
 			return nullptr;
 		effect* ret = nullptr;
 		check_param(L, PARAM_TYPE_EFFECT, idx, !check, &ret);
@@ -132,7 +132,7 @@ namespace scriptlib {
 	template<typename T>
 	typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
 	lua_get(lua_State* L, int idx, T chk) {
-		if(lua_gettop(L) < idx || !check_param(L, PARAM_TYPE_INT, idx, true))
+		if(lua_isnone(L, idx) || !check_param(L, PARAM_TYPE_INT, idx, true))
 			return chk;
 		if(lua_isinteger(L, idx))
 			return static_cast<T>(lua_tointeger(L, idx));
@@ -142,7 +142,7 @@ namespace scriptlib {
 	template<typename T, T def>
 	typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
 	lua_get(lua_State* L, int idx) {
-		if(lua_gettop(L) < idx || !check_param(L, PARAM_TYPE_INT, idx, true))
+		if(lua_isnone(L, idx) || !check_param(L, PARAM_TYPE_INT, idx, true))
 			return def;
 		if(lua_isinteger(L, idx))
 			return static_cast<T>(lua_tointeger(L, idx));

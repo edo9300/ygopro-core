@@ -41,7 +41,7 @@ bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retf
 		type = "Int";
 		break;
 	case PARAM_TYPE_BOOLEAN:
-		if(lua_gettop(L) >= index)
+		if(!lua_isnone(L, index))
 			return true;
 		type = "boolean";
 		break;
