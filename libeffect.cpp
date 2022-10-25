@@ -338,13 +338,15 @@ LUA_FUNCTION(GetProperty) {
 LUA_FUNCTION(GetLabel) {
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	if(peffect->label.empty()) {
+	const auto& label = peffect->label;
+	if(label.empty()) {
 		lua_pushinteger(L, 0);
 		return 1;
 	}
-	for(const auto& lab : peffect->label)
+	luaL_checkstack(L, label.size(), nullptr);
+	for(const auto& lab : label)
 		lua_pushinteger(L, lab);
-	return peffect->label.size();
+	return label.size();
 }
 LUA_FUNCTION(GetLabelObject) {
 	check_param_count(L, 1);
