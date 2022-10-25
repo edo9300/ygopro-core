@@ -829,16 +829,17 @@ LUA_FUNCTION(Split) {
 		}
 	}
 	const auto pduel = lua_get<duel*>(L);
-	group* new_group = pduel->new_group();
 	uint32_t extraargs = lua_gettop(L) - 3;
-	for(auto& pcard : cset) {
+	for(auto it = cset.begin(); it != cset.end();) {
+		auto pcard = *it;
 		if(pduel->lua->check_matching(pcard, findex, extraargs)) {
-			new_group->container.insert(pcard);
+			++it;
 		} else {
 			notmatching.insert(pcard);
+			it = cset.erase(it);
 		}
 	}
-	interpreter::pushobject(L, new_group);
+	interpreter::pushobject(L, pduel->new_group(std::move(cset)));
 	interpreter::pushobject(L, pduel->new_group(std::move(notmatching)));
 	return 2;
 }
