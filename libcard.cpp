@@ -840,7 +840,7 @@ LUA_FUNCTION(IsSetCard) {
 			scard = lua_get<card*, true>(L, 3);
 		auto sumtype = lua_get<uint64_t, 0>(L, 4);
 		playerid = lua_get<uint8_t, PLAYER_NONE>(L, 5);
-		lua_pushboolean(L, pcard->is_sumon_set_card(set_code, scard, sumtype, playerid));
+		lua_pushboolean(L, pcard->is_summon_set_card(set_code, scard, sumtype, playerid));
 	} else
 		lua_pushboolean(L, pcard->is_set_card(set_code));
 	return 1;

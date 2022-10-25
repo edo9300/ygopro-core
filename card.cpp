@@ -373,7 +373,7 @@ int32_t card::is_pre_set_card(uint16_t set_code) {
 	}
 	return FALSE;
 }
-int32_t card::is_sumon_set_card(uint16_t set_code, card* scard, uint64_t sumtype, uint8_t playerid) {
+int32_t card::is_summon_set_card(uint16_t set_code, card* scard, uint64_t sumtype, uint8_t playerid) {
 	uint32_t settype = set_code & 0xfff;
 	uint32_t setsubtype = set_code & 0xf000;
 	effect_set eset;

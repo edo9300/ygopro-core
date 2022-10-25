@@ -172,7 +172,7 @@ public:
 	int32_t is_set_card(uint16_t set_code);
 	int32_t is_origin_set_card(uint16_t set_code);
 	int32_t is_pre_set_card(uint16_t set_code);
-	int32_t is_sumon_set_card(uint16_t set_code, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
+	int32_t is_summon_set_card(uint16_t set_code, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
 	void get_set_card(std::set<uint16_t>& setcodes);
 	const std::set<uint16_t>& get_origin_set_card() const { return data.setcodes; }
 	void get_pre_set_card(std::set<uint16_t>& setcodes);
