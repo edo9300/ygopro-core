@@ -61,7 +61,7 @@ namespace scriptlib {
 
 	struct function{};
 
-	template<typename T>
+	template<typename T, EnableIfTemplate<T, duel*> = 0>
 	inline duel* lua_get(lua_State* L) {
 		duel* pduel = nullptr;
 		memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);
@@ -234,27 +234,28 @@ namespace scriptlib {
 	}
 
 	template<typename T, EnableOnReturn<T, bool> = 0>
-	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
+	inline bool lua_find_in_table_or_in_stack(lua_State* L, int idx, int max, T&& func) {
 		if(lua_istable(L, idx)) {
 			lua_pushnil(L);
 			while(lua_next(L, idx) != 0) {
-				const auto should_break = func();
+				const auto element_found = func();
 				lua_pop(L, 1);
-				if(should_break) {
-					//pops key from the table
+				if(element_found) {
+					//pops table key from the stack
 					lua_pop(L, 1);
-					break;
+					return true;
 				}
 			}
-			return;
+			return false;
 		}
 		for(; idx <= max; ++idx) {
 			lua_pushvalue(L, idx);
-			const auto should_break = func();
+			const auto element_found = func();
 			lua_pop(L, 1);
-			if(should_break)
-				break;
+			if(element_found)
+				return true;
 		}
+		return false;
 	}
 	template<typename T>
 	static int32_t get_lua_ref(lua_State* L) {
