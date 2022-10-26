@@ -433,7 +433,8 @@ int32_t card::is_summon_set_card(uint16_t set_code, card* scard, uint64_t sumtyp
 }
 void card::get_set_card(std::set<uint16_t>& setcodes) {
 	uint32_t code = get_code();
-	setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
+	const auto& og_setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
+	setcodes.insert(og_setcodes.begin(), og_setcodes.end());
 	//add set code
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
@@ -451,7 +452,8 @@ void card::get_set_card(std::set<uint16_t>& setcodes) {
 }
 void card::get_pre_set_card(std::set<uint16_t>& setcodes) {
 	uint32_t code = previous.code;
-	setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
+	const auto& og_setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
+	setcodes.insert(og_setcodes.begin(), og_setcodes.end());
 	//add set code
 	setcodes.insert(previous.setcodes.begin(), previous.setcodes.end());
 	//another code
