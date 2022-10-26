@@ -240,8 +240,11 @@ namespace scriptlib {
 			while(lua_next(L, idx) != 0) {
 				const auto should_break = func();
 				lua_pop(L, 1);
-				if(should_break)
+				if(should_break) {
+					//pops key from the table
+					lua_pop(L, 1);
 					break;
+				}
 			}
 			return;
 		}
