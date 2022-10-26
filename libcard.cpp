@@ -930,6 +930,7 @@ inline int32_t is_prop(lua_State* L, uint32_t val) {
 		found = val == lua_get<uint32_t>(L, -1);
 		return found;
 	});
+	lua_pushboolean(L, found);
 	return 1;
 }
 LUA_FUNCTION(IsLevel) {
