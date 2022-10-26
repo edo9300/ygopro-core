@@ -233,8 +233,9 @@ namespace scriptlib {
 		}
 	}
 
-	template<typename T, EnableOnReturn<T, bool> = 0>
+	template<typename T>
 	inline bool lua_find_in_table_or_in_stack(lua_State* L, int idx, int max, T&& func) {
+		static_assert(std::is_same<std::result_of_t<T()>, bool>::value, "Callback function must return bool");
 		if(lua_istable(L, idx)) {
 			lua_pushnil(L);
 			while(lua_next(L, idx) != 0) {
