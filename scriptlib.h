@@ -48,7 +48,16 @@ namespace scriptlib {
 #endif
 
 	template<typename T, typename type>
-	using EnableIf = typename std::enable_if_t<std::is_same<T, type>::value, T>;
+	using EnableIfTemplate = std::enable_if_t<std::is_same<T, type>::value, int>;
+
+	template<typename T>
+	using IsBool = std::is_same<T, bool>;
+
+	template<typename T>
+	using EnableIfBool = std::enable_if_t<IsBool<T>::value, bool>;
+
+	template<typename T>
+	using EnableIfIntegerNotBool = std::enable_if_t<std::integral_constant<bool, std::is_integral<T>::value && !IsBool<T>::value>::value, T>;
 
 	struct function{};
 
@@ -59,16 +68,16 @@ namespace scriptlib {
 		return pduel;
 	}
 
-	template<typename T, bool forced = false>
-	std::enable_if_t<std::is_same<T, function>::value, int32_t> lua_get(lua_State* L, int idx) {
+	template<typename T, bool forced = false, EnableIfTemplate<T, function> = 0>
+	inline int32_t lua_get(lua_State* L, int idx) {
 		if(lua_isnoneornil(L, idx) && !forced)
 			return 0;
 		check_param(L, PARAM_TYPE_FUNCTION, idx);
 		return idx;
 	}
 
-	template<typename T>
-	EnableIf<T, lua_obj*> lua_get(lua_State* L, int idx) {
+	template<typename T, EnableIfTemplate<T, lua_obj*> = 0>
+	inline lua_obj* lua_get(lua_State* L, int idx) {
 		if(lua_isnone(L, idx))
 			return nullptr;
 		if(auto obj = lua_touserdata(L, idx)) {
@@ -80,8 +89,8 @@ namespace scriptlib {
 		return nullptr;
 	}
 
-	template<typename T, bool check = false>
-	EnableIf<T, card*> lua_get(lua_State* L, int idx) {
+	template<typename T, bool check = false, EnableIfTemplate<T, card*> = 0>
+	inline card* lua_get(lua_State* L, int idx) {
 		if(!check && lua_isnone(L, idx))
 			return nullptr;
 		card* ret = nullptr;
@@ -89,8 +98,8 @@ namespace scriptlib {
 		return ret;
 	}
 
-	template<typename T, bool check = false>
-	EnableIf<T, group*> lua_get(lua_State* L, int idx) {
+	template<typename T, bool check = false, EnableIfTemplate<T, group*> = 0>
+	inline group* lua_get(lua_State* L, int idx) {
 		if(!check && lua_isnone(L, idx))
 			return nullptr;
 		group* ret = nullptr;
@@ -98,8 +107,8 @@ namespace scriptlib {
 		return ret;
 	}
 
-	template<typename T, bool check = false>
-	EnableIf<T, effect*> lua_get(lua_State* L, int idx) {
+	template<typename T, bool check = false, EnableIfTemplate<T, effect*> = 0>
+	inline effect* lua_get(lua_State* L, int idx) {
 		if(!check && lua_isnone(L, idx))
 			return nullptr;
 		effect* ret = nullptr;
@@ -108,21 +117,20 @@ namespace scriptlib {
 	}
 
 	template<typename T>
-	EnableIf<T, bool> lua_get(lua_State* L, int idx) {
+	inline EnableIfBool<T> lua_get(lua_State* L, int idx) {
 		check_param(L, PARAM_TYPE_BOOLEAN, idx);
 		return lua_toboolean(L, idx);
 	}
 
 	template<typename T, bool def>
-	EnableIf<T, bool> lua_get(lua_State* L, int idx) {
+	inline EnableIfBool<T> lua_get(lua_State* L, int idx) {
 		if(!check_param(L, PARAM_TYPE_BOOLEAN, idx, true))
 			return def;
 		return lua_toboolean(L, idx);
 	}
 
 	template<typename T>
-	typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
-	lua_get(lua_State* L, int idx) {
+	inline EnableIfIntegerNotBool<T> lua_get(lua_State* L, int idx) {
 		check_param(L, PARAM_TYPE_INT, idx);
 		if(lua_isinteger(L, idx))
 			return static_cast<T>(lua_tointeger(L, idx));
@@ -130,8 +138,7 @@ namespace scriptlib {
 	}
 
 	template<typename T>
-	typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
-	lua_get(lua_State* L, int idx, T chk) {
+	inline EnableIfIntegerNotBool<T> lua_get(lua_State* L, int idx, T chk) {
 		if(lua_isnone(L, idx) || !check_param(L, PARAM_TYPE_INT, idx, true))
 			return chk;
 		if(lua_isinteger(L, idx))
@@ -140,8 +147,7 @@ namespace scriptlib {
 	}
 
 	template<typename T, T def>
-	typename std::enable_if_t<std::is_integral<T>::value && !std::is_same<T, bool>::value, T>
-	lua_get(lua_State* L, int idx) {
+	inline EnableIfIntegerNotBool<T> lua_get(lua_State* L, int idx) {
 		if(lua_isnone(L, idx) || !check_param(L, PARAM_TYPE_INT, idx, true))
 			return def;
 		if(lua_isinteger(L, idx))
