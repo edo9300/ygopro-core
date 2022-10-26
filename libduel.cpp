@@ -1987,14 +1987,15 @@ LUA_FUNCTION(GetCurrentChain) {
 }
 LUA_FUNCTION(GetChainInfo) {
 	check_param_count(L, 1);
-	uint32_t args = lua_gettop(L) - 1;
 	const auto pduel = lua_get<duel*>(L);
 	chain* ch = pduel->game_field->get_chain(lua_get<uint8_t>(L, 1));
 	if(!ch)
 		return 0;
+	auto top = lua_gettop(L);
+	uint32_t args = lua_istable(L, 2) ? lua_rawlen(L, 2) : top - 1;
 	luaL_checkstack(L, args, nullptr);
-	for(uint32_t i = 0; i < args; ++i) {
-		auto flag = lua_get<uint32_t>(L, 2 + i);
+	lua_iterate_table_or_stack(L, 2, top, [L, ch]() -> int {
+		auto flag = lua_get<uint32_t>(L, -1);
 		switch(flag) {
 		case CHAININFO_CHAIN_COUNT:
 			lua_pushinteger(L, ch->chain_count);
@@ -2070,7 +2071,8 @@ LUA_FUNCTION(GetChainInfo) {
 		default:
 			lua_error(L, "Passed invalid CHAININFO flag.");
 		}
-	}
+		return 1;
+	});
 	return args;
 }
 LUA_FUNCTION(GetChainEvent) {
@@ -2433,8 +2435,9 @@ LUA_FUNCTION(SelectCardsFromCodes) {
 	auto max = lua_get<uint16_t>(L, 3);
 	bool cancelable = lua_get<bool>(L, 4);
 	/*bool ret_index = */(void)lua_get<bool>(L, 5);
-	for(int32_t i = 6, tot = lua_gettop(L); i <= tot; ++i)
-		pduel->game_field->core.select_cards_codes.emplace_back(lua_get<uint32_t>(L, i), i - 5);
+	lua_iterate_table_or_stack(L, 6, lua_gettop(L), [L, &select_codes = pduel->game_field->core.select_cards_codes]{
+		select_codes.emplace_back(lua_get<uint32_t>(L, -1), select_codes.size() + 1);
+	});
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD_CODES, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
@@ -3221,15 +3224,14 @@ LUA_FUNCTION(SelectYesNo) {
 LUA_FUNCTION(SelectOption) {
 	check_action_permission(L);
 	check_param_count(L, 1);
-	uint32_t count = lua_gettop(L) - 1;
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	uint8_t i = lua_isboolean(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.select_options.clear();
-	for(; i < count; ++i)
-		pduel->game_field->core.select_options.push_back(lua_get<uint64_t>(L, i + 2));
+	lua_iterate_table_or_stack(L, 2 + lua_isboolean(L, 2), lua_gettop(L), [L, &select_options = pduel->game_field->core.select_options] {
+		select_options.push_back(lua_get<uint64_t>(L, -1));
+	});
 	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
@@ -3571,8 +3573,9 @@ LUA_FUNCTION(AnnounceNumber) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.select_options.clear();
-	for(int32_t i = 2, tot = lua_gettop(L); i <= tot; ++i)
-		pduel->game_field->core.select_options.push_back(lua_get<uint64_t>(L, i));
+	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [L, &select_options = pduel->game_field->core.select_options] {
+		select_options.push_back(lua_get<uint64_t>(L, -1));
+	});
 	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_NUMBER, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
 		const auto pduel = lua_get<duel*>(L);
@@ -4095,34 +4098,36 @@ LUA_FUNCTION(GetActivityCount) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	const auto pduel = lua_get<duel*>(L);
-	int32_t retct = lua_gettop(L) - 1;
+	auto top = lua_gettop(L);
+	uint32_t retct = lua_istable(L, 2) ? lua_rawlen(L, 2) : top - 1;
 	luaL_checkstack(L, retct, nullptr);
-	for(int32_t i = 0; i < retct; ++i) {
-		auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, 2 + i));
+	lua_iterate_table_or_stack(L, 2, top, [L, &core = pduel->game_field->core, playerid]() -> int {
+		auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, -1));
 		switch(activity_type) {
-			case ACTIVITY_SUMMON:
-				lua_pushinteger(L, pduel->game_field->core.summon_state_count[playerid]);
-				break;
-			case ACTIVITY_NORMALSUMMON:
-				lua_pushinteger(L, pduel->game_field->core.normalsummon_state_count[playerid]);
-				break;
-			case ACTIVITY_SPSUMMON:
-				lua_pushinteger(L, pduel->game_field->core.spsummon_state_count[playerid]);
-				break;
-			case ACTIVITY_FLIPSUMMON:
-				lua_pushinteger(L, pduel->game_field->core.flipsummon_state_count[playerid]);
-				break;
-			case ACTIVITY_ATTACK:
-				lua_pushinteger(L, pduel->game_field->core.attack_state_count[playerid]);
-				break;
-			case ACTIVITY_BATTLE_PHASE:
-				lua_pushinteger(L, pduel->game_field->core.battle_phase_count[playerid]);
-				break;
-			default:
-				lua_error(L, "Passed invalid ACTIVITY flag.");
-				break;
+		case ACTIVITY_SUMMON:
+			lua_pushinteger(L, core.summon_state_count[playerid]);
+			break;
+		case ACTIVITY_NORMALSUMMON:
+			lua_pushinteger(L, core.normalsummon_state_count[playerid]);
+			break;
+		case ACTIVITY_SPSUMMON:
+			lua_pushinteger(L, core.spsummon_state_count[playerid]);
+			break;
+		case ACTIVITY_FLIPSUMMON:
+			lua_pushinteger(L, core.flipsummon_state_count[playerid]);
+			break;
+		case ACTIVITY_ATTACK:
+			lua_pushinteger(L, core.attack_state_count[playerid]);
+			break;
+		case ACTIVITY_BATTLE_PHASE:
+			lua_pushinteger(L, core.battle_phase_count[playerid]);
+			break;
+		default:
+			lua_error(L, "Passed invalid ACTIVITY flag.");
+			break;
 		}
-	}
+		return 1;
+	});
 	return retct;
 }
 LUA_FUNCTION(CheckPhaseActivity) {

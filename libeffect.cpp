@@ -186,8 +186,9 @@ LUA_FUNCTION(SetLabel) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	peffect->label.clear();
-	for(int32_t i = 2, tot = lua_gettop(L); i <= tot; ++i)
-		peffect->label.push_back(lua_get<lua_Integer>(L, i));
+	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [L, peffect] {
+		peffect->label.push_back(lua_get<lua_Integer>(L, -1));
+	});
 	return 0;
 }
 LUA_FUNCTION(SetLabelObject) {
