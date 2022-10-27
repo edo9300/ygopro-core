@@ -29,7 +29,7 @@ void assert_readonly_group(lua_State* L, group* pgroup) {
 LUA_FUNCTION(CreateGroup) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
-	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [L, &container = pgroup->container] {
+	lua_iterate_table_or_stack(L, 1, lua_gettop(L), [L, &container = pgroup->container] {
 		if(!lua_isnil(L, -1)) {
 			auto pcard = lua_get<card*, true>(L, -1);
 			container.insert(pcard);
