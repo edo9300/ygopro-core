@@ -61,7 +61,7 @@ LUA_FUNCTION(AddCard) {
 		} else
 			field->add_card(playerid, pcard, location, sequence);
 		pcard->current.position = position;
-		if(!(location & (LOCATION_ONFIELD | LOCATION_PZONE)) || (position & POS_FACEUP)) {
+		if(!(location & (LOCATION_ONFIELD | LOCATION_PZONE | LOCATION_FZONE)) || (position & POS_FACEUP)) {
 			pcard->enable_field_effect(true);
 			field->adjust_instant();
 		}
