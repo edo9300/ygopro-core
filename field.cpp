@@ -20,12 +20,19 @@ bool chain::chain_operation_sort(const chain& c1, const chain& c2) {
 }
 void chain::set_triggering_state(card* pcard) {
 	triggering_controler = pcard->current.controler;
-	if(pcard->current.is_location(LOCATION_FZONE))
-		triggering_location = LOCATION_SZONE | LOCATION_FZONE;
-	else if(pcard->current.is_location(LOCATION_PZONE))
-		triggering_location = LOCATION_SZONE | LOCATION_PZONE;
-	else
-		triggering_location = pcard->current.location;
+	triggering_location = pcard->current.location;
+	if(pcard->current.location & (LOCATION_MZONE | LOCATION_SZONE)) {
+		if(pcard->current.is_location(LOCATION_FZONE))
+			triggering_location |= LOCATION_FZONE;
+		else if(pcard->current.is_location(LOCATION_PZONE))
+			triggering_location |= LOCATION_PZONE;
+		else if(pcard->current.is_location(LOCATION_STZONE))
+			triggering_location |= LOCATION_STZONE;
+		else if(pcard->current.is_location(LOCATION_EMZONE))
+			triggering_location |= LOCATION_EMZONE;
+		else if(pcard->current.is_location(LOCATION_MMZONE))
+			triggering_location |= LOCATION_MMZONE;
+	}
 	triggering_sequence = pcard->current.sequence;
 	triggering_position = pcard->current.position;
 	triggering_state.code = pcard->get_code();
