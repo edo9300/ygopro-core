@@ -334,8 +334,12 @@ void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid,
 		destination = LOCATION_SZONE;
 		zone = 0x1 << 5;
 	}
-	if(destination == LOCATION_MMZONE || destination == LOCATION_STZONE) {
+	if(destination == LOCATION_MMZONE) {
 		destination = LOCATION_MZONE;
+		zone = (0x1 << 0) | (0x1 << 1) | (0x1 << 2) | (0x1 << 3) | (0x1 << 4);
+	}
+	if(destination == LOCATION_STZONE) {
+		destination = LOCATION_SZONE;
 		zone = (0x1 << 0) | (0x1 << 1) | (0x1 << 2) | (0x1 << 3) | (0x1 << 4);
 	}
 	if(destination == LOCATION_EMZONE) {
