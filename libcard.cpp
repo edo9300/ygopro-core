@@ -2015,7 +2015,7 @@ LUA_FUNCTION(IsLocation) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto loc = lua_get<uint16_t>(L, 2);
 	if(pcard->current.location == LOCATION_MZONE) {
-		if((loc & LOCATION_MZONE) && !pcard->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP))
+		if(pcard->current.is_location(loc) && !pcard->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP))
 			lua_pushboolean(L, 1);
 		else
 			lua_pushboolean(L, 0);
