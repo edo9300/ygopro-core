@@ -494,87 +494,70 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 	case LOCATION_MZONE: {
 		if(sequence < player[playerid].list_mzone.size())
 			return player[playerid].list_mzone[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_MMZONE: {
-		if(sequence < 5)
+		if(is_flag(DUEL_3_COLUMNS_FIELD)) {
+			if(sequence < 3)
+				return player[playerid].list_mzone[sequence + 1];
+		} else if(sequence < 5)
 			return player[playerid].list_mzone[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_EMZONE: {
 		if(sequence < 2)
 			return player[playerid].list_mzone[sequence + 5];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_SZONE: {
 		if(sequence < player[playerid].list_szone.size())
 			return player[playerid].list_szone[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_STZONE: {
-		if(sequence < 5)
+		if(is_flag(DUEL_3_COLUMNS_FIELD)) {
+			if(sequence < 3)
+				return player[playerid].list_szone[sequence + 1];
+		} else if(sequence < 5)
 			return player[playerid].list_szone[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_FZONE: {
 		if(sequence == 0)
 			return player[playerid].list_szone[5];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_PZONE: {
 		if(sequence < 2) {
 			card* pcard = player[playerid].list_szone[get_pzone_index(sequence, playerid)];
 			return pcard && pcard->current.pzone ? pcard : 0;
-		} else
-			return 0;
-		break;
+		}
+		return nullptr;
 	}
 	case LOCATION_DECK: {
 		if(sequence < player[playerid].list_main.size())
 			return player[playerid].list_main[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_HAND: {
 		if(sequence < player[playerid].list_hand.size())
 			return player[playerid].list_hand[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_GRAVE: {
 		if(sequence < player[playerid].list_grave.size())
 			return player[playerid].list_grave[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_REMOVED: {
 		if(sequence < player[playerid].list_remove.size())
 			return player[playerid].list_remove[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	case LOCATION_EXTRA: {
 		if(sequence < player[playerid].list_extra.size())
 			return player[playerid].list_extra[sequence];
-		else
-			return 0;
-		break;
+		return nullptr;
 	}
 	}
 	return 0;
@@ -1544,8 +1527,12 @@ int32_t field::filter_matching_card(int32_t findex, uint8_t self, uint32_t locat
 					return TRUE;
 			}
 			if(location & LOCATION_EMZONE) {
-				const auto mzonebegin = player[self].list_mzone.cbegin() + 5;
-				const auto mzoneend = mzonebegin + 2;
+				auto mzonebegin = player[self].list_mzone.cbegin() + 5;
+				auto mzoneend = mzonebegin + 2;
+				if(is_flag(DUEL_3_COLUMNS_FIELD)) {
+					++mzonebegin;
+					--mzoneend;
+				}
 				if(std::find_if(mzonebegin, mzoneend, mzonechk) != mzoneend)
 					return TRUE;
 			}
@@ -1555,8 +1542,12 @@ int32_t field::filter_matching_card(int32_t findex, uint8_t self, uint32_t locat
 				return TRUE;
 		} else {
 			if(location & LOCATION_STZONE) {
-				const auto szonebegin = player[self].list_szone.cbegin();
-				const auto szoneend = szonebegin + 5;
+				auto szonebegin = player[self].list_szone.cbegin();
+				auto szoneend = szonebegin + 5;
+				if(is_flag(DUEL_3_COLUMNS_FIELD)) {
+					++szonebegin;
+					--szoneend;
+				}
 				if(std::find_if(szonebegin, szoneend, szonechk) != szoneend)
 					return TRUE;
 			}
@@ -1595,8 +1586,14 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 			}
 		} else {
 			if(location & LOCATION_MMZONE) {
-				for(auto it = player[self].list_mzone.cbegin(), end = it + 5; it != end; ++it) {
-					auto* pcard = *it;
+				auto mzonebegin = player[self].list_mzone.cbegin();
+				auto mzoneend = mzonebegin + 5;
+				if(is_flag(DUEL_3_COLUMNS_FIELD)) {
+					++mzonebegin;
+					--mzoneend;
+				}
+				for(; mzonebegin != mzoneend; ++mzonebegin) {
+					auto* pcard = *mzonebegin;
 					if(pcard) {
 						if(pgroup)
 							pgroup->container.insert(pcard);
@@ -1625,8 +1622,14 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 			}
 		} else {
 			if(location & LOCATION_STZONE) {
-				for(auto it = player[self].list_szone.cbegin(), end = it + 5; it != end; ++it) {
-					auto* pcard = *it;
+				auto szonebegin = player[self].list_szone.cbegin();
+				auto szoneend = szonebegin + 5;
+				if(is_flag(DUEL_3_COLUMNS_FIELD)) {
+					++szonebegin;
+					--szoneend;
+				}
+				for(; szonebegin != szoneend; ++szonebegin) {
+					auto* pcard = *szonebegin;
 					if(pcard) {
 						if(pgroup)
 							pgroup->container.insert(pcard);
