@@ -576,10 +576,14 @@ int32_t field::is_location_useable(uint32_t playerid, uint32_t location, uint32_
 		sequence += 5;
 		location = LOCATION_MZONE;
 	}
-	if(location == LOCATION_MMZONE)
+	if(location == LOCATION_MMZONE) {
 		location = LOCATION_MZONE;
-	if(location == LOCATION_STZONE)
+		sequence += 1 * is_flag(DUEL_3_COLUMNS_FIELD);
+	}
+	if(location == LOCATION_STZONE) {
 		location = LOCATION_SZONE;
+		sequence += 1 * is_flag(DUEL_3_COLUMNS_FIELD);
+	}
 	if (location == LOCATION_MZONE) {
 		if(flag & (0x1u << sequence))
 			return FALSE;
