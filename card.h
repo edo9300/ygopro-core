@@ -59,7 +59,7 @@ struct card_state {
 	card* reason_card{};
 	uint8_t reason_player{};
 	effect* reason_effect{};
-	bool is_location(int32_t loc) const;
+	bool is_location(uint16_t loc) const;
 	void set0xff();
 };
 

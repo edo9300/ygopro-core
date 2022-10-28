@@ -319,7 +319,7 @@ void field::send_to(card* target, effect* reason_effect, uint32_t reason, uint32
 	send_to(card_set{ target }, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
 void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid, uint32_t destination, uint32_t positions, uint8_t enable, uint8_t ret, uint8_t zone, uint8_t rule, uint8_t reason, uint8_t confirm) {
-	if(!(destination & (LOCATION_MZONE | LOCATION_SZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions)
+	if(!(destination & (LOCATION_MZONE | LOCATION_MMZONE | LOCATION_EMZONE | LOCATION_SZONE | LOCATION_STZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions)
 		return;
 	if(destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE) && playerid == target->current.controler)
 		return;
@@ -333,6 +333,14 @@ void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid,
 	if(destination == LOCATION_FZONE) {
 		destination = LOCATION_SZONE;
 		zone = 0x1 << 5;
+	}
+	if(destination == LOCATION_MMZONE || destination == LOCATION_STZONE) {
+		destination = LOCATION_MZONE;
+		zone = (0x1 << 0) | (0x1 << 1) | (0x1 << 2) | (0x1 << 3) | (0x1 << 4);
+	}
+	if(destination == LOCATION_EMZONE) {
+		destination = LOCATION_MZONE;
+		zone = (0x1 << 5) | (0x1 << 6);
 	}
 	target->to_field_param = (move_player << 24) + (playerid << 16) + ((destination & 0xff) << 8) + positions;
 	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable | (ret << 8) | (pzone << 16) | (zone << 24), rule | (reason << 8) | (confirm << 16));

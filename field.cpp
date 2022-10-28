@@ -498,8 +498,29 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 			return 0;
 		break;
 	}
+	case LOCATION_MMZONE: {
+		if(sequence < 5)
+			return player[playerid].list_mzone[sequence];
+		else
+			return 0;
+		break;
+	}
+	case LOCATION_EMZONE: {
+		if(sequence < 2)
+			return player[playerid].list_mzone[sequence + 5];
+		else
+			return 0;
+		break;
+	}
 	case LOCATION_SZONE: {
 		if(sequence < player[playerid].list_szone.size())
+			return player[playerid].list_szone[sequence];
+		else
+			return 0;
+		break;
+	}
+	case LOCATION_STZONE: {
+		if(sequence < 5)
 			return player[playerid].list_szone[sequence];
 		else
 			return 0;
@@ -561,6 +582,14 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 // return: the given slot in LOCATION_MZONE or all LOCATION_SZONE is available or not
 int32_t field::is_location_useable(uint32_t playerid, uint32_t location, uint32_t sequence) {
 	uint32_t flag = player[playerid].disabled_location | player[playerid].used_location;
+	if(location == LOCATION_EMZONE) {
+		sequence += 5;
+		location = LOCATION_MZONE;
+	}
+	if(location == LOCATION_MMZONE)
+		location = LOCATION_MZONE;
+	if(location == LOCATION_STZONE)
+		location = LOCATION_SZONE;
 	if (location == LOCATION_MZONE) {
 		if(flag & (0x1u << sequence))
 			return FALSE;
@@ -1500,21 +1529,42 @@ int32_t field::filter_matching_card(int32_t findex, uint8_t self, uint32_t locat
 	auto pzonechk = [&checkc](auto pcard)->bool {
 		return checkc(pcard, [](auto pcard)->bool {return pcard->current.pzone && !pcard->is_status(STATUS_ACTIVATE_DISABLED); });
 	};
-	auto check_list = [](auto& list, auto func)->bool {
-		for(const auto& pcard : list)
-			if(func(pcard))
-				return true;
-		return false;
+	auto check_list = [](const auto& list, auto func)->bool {
+		return std::find_if(list.begin(), list.end(), func) != list.end();
 	};
 	for(uint32_t p = 0, location = location1; p < 2; ++p, location = location2, self = 1 - self) {
-		if((location & LOCATION_MZONE) && check_list(player[self].list_mzone, mzonechk))
-			return TRUE;
-		if((location & LOCATION_SZONE) && check_list(player[self].list_szone, szonechk))
-			return TRUE;
-		if((location & LOCATION_FZONE) && szonechk(player[self].list_szone[5]))
-			return TRUE;
-		if((location & LOCATION_PZONE) && (pzonechk(player[self].list_szone[get_pzone_index(0, self)]) || pzonechk(player[self].list_szone[get_pzone_index(1, self)])))
-			return TRUE;
+		if(location & LOCATION_MZONE) {
+			if(check_list(player[self].list_mzone, mzonechk))
+				return TRUE;
+		} else {
+			if(location & LOCATION_MMZONE) {
+				const auto mzonebegin = player[self].list_mzone.cbegin();
+				const auto mzoneend = mzonebegin + 5;
+				if(std::find_if(mzonebegin, mzoneend, mzonechk) != mzoneend)
+					return TRUE;
+			}
+			if(location & LOCATION_EMZONE) {
+				const auto mzonebegin = player[self].list_mzone.cbegin() + 5;
+				const auto mzoneend = mzonebegin + 2;
+				if(std::find_if(mzonebegin, mzoneend, mzonechk) != mzoneend)
+					return TRUE;
+			}
+		}
+		if(location & LOCATION_SZONE) {
+			if(check_list(player[self].list_szone, szonechk))
+				return TRUE;
+		} else {
+			if(location & LOCATION_STZONE) {
+				const auto szonebegin = player[self].list_szone.cbegin();
+				const auto szoneend = szonebegin + 5;
+				if(std::find_if(szonebegin, szoneend, szonechk) != szoneend)
+					return TRUE;
+			}
+			if((location & LOCATION_FZONE) && szonechk(player[self].list_szone[5]))
+				return TRUE;
+			if((location & LOCATION_PZONE) && (pzonechk(player[self].list_szone[get_pzone_index(0, self)]) || pzonechk(player[self].list_szone[get_pzone_index(1, self)])))
+				return TRUE;
+		}
 		if((location & LOCATION_DECK) && check_list(player[self].list_main, checkc))
 			return TRUE;
 		if((location & LOCATION_EXTRA) && check_list(player[self].list_extra, checkc))
@@ -1543,6 +1593,27 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 					++count;
 				}
 			}
+		} else {
+			if(location & LOCATION_MMZONE) {
+				for(auto it = player[self].list_mzone.cbegin(), end = it + 5; it != end; ++it) {
+					auto* pcard = *it;
+					if(pcard) {
+						if(pgroup)
+							pgroup->container.insert(pcard);
+						++count;
+					}
+				}
+			}
+			if(location & LOCATION_EMZONE) {
+				for(auto it = player[self].list_mzone.cbegin() + 5, end = it + 2; it != end; ++it) {
+					auto* pcard = *it;
+					if(pcard) {
+						if(pgroup)
+							pgroup->container.insert(pcard);
+						++count;
+					}
+				}
+			}
 		}
 		if(location & LOCATION_SZONE) {
 			for(auto& pcard : player[self].list_szone) {
@@ -1552,22 +1623,33 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 					++count;
 				}
 			}
-		}
-		if(location & LOCATION_FZONE) {
-			card* pcard = player[self].list_szone[5];
-			if(pcard) {
-				if(pgroup)
-					pgroup->container.insert(pcard);
-				++count;
+		} else {
+			if(location & LOCATION_STZONE) {
+				for(auto it = player[self].list_szone.cbegin(), end = it + 5; it != end; ++it) {
+					auto* pcard = *it;
+					if(pcard) {
+						if(pgroup)
+							pgroup->container.insert(pcard);
+						++count;
+					}
+				}
 			}
-		}
-		if(location & LOCATION_PZONE) {
-			for(int32_t i = 0; i < 2; ++i) {
-				card* pcard = player[self].list_szone[get_pzone_index(i, self)];
-				if(pcard && pcard->current.pzone) {
+			if(location & LOCATION_FZONE) {
+				card* pcard = player[self].list_szone[5];
+				if(pcard) {
 					if(pgroup)
 						pgroup->container.insert(pcard);
 					++count;
+				}
+			}
+			if(location & LOCATION_PZONE) {
+				for(int32_t i = 0; i < 2; ++i) {
+					card* pcard = player[self].list_szone[get_pzone_index(i, self)];
+					if(pcard && pcard->current.pzone) {
+						if(pgroup)
+							pgroup->container.insert(pcard);
+						++count;
+					}
 				}
 			}
 		}

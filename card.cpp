@@ -16,12 +16,18 @@
 bool card_sort::operator()(const card* c1, const card* c2) const {
 	return c1->cardid < c2->cardid;
 }
-bool card_state::is_location(int32_t loc) const {
+bool card_state::is_location(uint16_t loc) const {
+	if(location & static_cast<uint8_t>(loc))
+		return true;
+	if((loc & LOCATION_EMZONE) && location == LOCATION_MZONE && sequence >= 5)
+		return true;
+	if((loc & LOCATION_MMZONE) && location == LOCATION_MZONE && sequence < 5)
+		return true;
+	if((loc & LOCATION_STZONE) && location == LOCATION_SZONE && sequence < 5)
+		return true;
 	if((loc & LOCATION_FZONE) && location == LOCATION_SZONE && sequence == 5)
 		return true;
 	if((loc & LOCATION_PZONE) && location == LOCATION_SZONE && pzone)
-		return true;
-	if(location & loc)
 		return true;
 	return false;
 }
