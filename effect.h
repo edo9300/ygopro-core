@@ -198,6 +198,7 @@ enum effect_flag2 : uint32_t {
 	EFFECT_FLAG2_CONTINUOUS_EQUIP   = 0x0001,
 	EFFECT_FLAG2_COF                = 0x0002,
 	EFFECT_FLAG2_CHECK_SIMULTANEOUS = 0x0004,
+	EFFECT_FLAG2_FORCE_ACTIVATE_LOCATION = 0x40000000,
 	EFFECT_FLAG2_MAJESTIC_MUST_COPY = 0x80000000,
 };
 inline effect_flag operator|(effect_flag flag1, effect_flag flag2)

@@ -4420,8 +4420,8 @@ int32_t field::add_chain(uint16_t step) {
 					}
 				}
 			}
+			phandler->set_status(STATUS_ACT_FROM_HAND, phandler->current.location == LOCATION_HAND);
 			if(phandler->current.location == LOCATION_SZONE) {
-				phandler->set_status(STATUS_ACT_FROM_HAND, FALSE);
 				change_position(phandler, 0, phandler->current.controler, POS_FACEUP, 0);
 			} else {
 				uint32_t zone = 0xff;
@@ -4438,26 +4438,19 @@ int32_t field::add_chain(uint16_t step) {
 						return TRUE;
 				}
 				int32_t loc = LOCATION_SZONE;
-				if(phandler->current.location == LOCATION_HAND) {
-					phandler->set_status(STATUS_ACT_FROM_HAND, TRUE);
+				if(peffect->is_flag(EFFECT_FLAG2_FORCE_ACTIVATE_LOCATION)) {
+					loc = peffect->get_value();
+					if(!loc)
+						return TRUE;
+				} else if(phandler->current.location == LOCATION_HAND) {
 					if(phandler->data.type & TYPE_PENDULUM) {
 						loc = LOCATION_PZONE;
-					} else if(phandler->data.type & TYPE_FIELD){
+					} else if(phandler->data.type & TYPE_FIELD) {
 						loc = LOCATION_FZONE;
-					} else {
-						loc = LOCATION_SZONE;
 					}
 				}
-				if(peffect->value && !peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE))
-					loc = peffect->value;
-				if(loc > 0) {
-					phandler->enable_field_effect(false);
-					if(loc == LOCATION_MZONE) {
-						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP_ATTACK);
-					} else {
-						move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, POS_FACEUP, FALSE, 0, zone);
-					}
-				}
+				phandler->enable_field_effect(false);
+				move_to_field(phandler, phandler->current.controler, phandler->current.controler, loc, (loc == LOCATION_MZONE) ? POS_FACEUP_ATTACK : POS_FACEUP, FALSE, 0, zone);
 			}
 		}
 		return FALSE;
