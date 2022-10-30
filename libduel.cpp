@@ -2019,7 +2019,7 @@ LUA_FUNCTION(GetChainInfo) {
 			lua_pushinteger(L, ch->triggering_sequence);
 			break;
 		case CHAININFO_TRIGGERING_SEQUENCE_SYMBOLIC:
-			if(pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD) & ch->triggering_location & ~(LOCATION_STZONE | LOCATION_MMZONE))
+			if(pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD) && (ch->triggering_location & ~(LOCATION_STZONE | LOCATION_MMZONE)))
 				lua_pushinteger(L, ch->triggering_sequence + 1);
 			else if(ch->triggering_location & LOCATION_PZONE) {
 				if(ch->triggering_sequence == pduel->game_field->get_pzone_index(0, ch->triggering_controler))
