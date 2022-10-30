@@ -1212,7 +1212,7 @@ uint32_t field::get_pzone_zones_flag() const {
 		flag |= 0xC000 << 16;
 	return flag;
 }
-int32_t field::get_pzone_index(uint8_t seq, uint8_t p) const {
+uint8_t field::get_pzone_index(uint8_t seq, uint8_t p) const {
 	if(seq > 1)
 		return 0;
 	if(has_separate_pzone(p))        // 6 and 7
