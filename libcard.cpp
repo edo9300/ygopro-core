@@ -655,19 +655,19 @@ LUA_FUNCTION(GetPreviousSequence) {
 LUA_FUNCTION(GetSummonType) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	lua_pushinteger(L, pcard->summon_info & 0xff00ffff);
+	lua_pushinteger(L, pcard->summon.type & 0xff00ffff);
 	return 1;
 }
 LUA_FUNCTION(GetSummonLocation) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	lua_pushinteger(L, (pcard->summon_info >> 16) & 0xff);
+	lua_pushinteger(L, pcard->summon.location);
 	return 1;
 }
 LUA_FUNCTION(GetSummonPlayer) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	lua_pushinteger(L, pcard->summon_player);
+	lua_pushinteger(L, pcard->summon.player);
 	return 1;
 }
 LUA_FUNCTION(GetDestination) {
@@ -1011,7 +1011,7 @@ LUA_FUNCTION(IsReason) {
 LUA_FUNCTION(IsSummonType) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, summon_info = pcard->summon_info & 0xff00ffff] {
+	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, summon_info = pcard->summon.type & 0xff00ffff] {
 		if(lua_isnoneornil(L, -1))
 			return false;
 		auto ttype = lua_get<uint32_t>(L, -1);
@@ -1023,16 +1023,15 @@ LUA_FUNCTION(IsSummonType) {
 LUA_FUNCTION(IsSummonLocation) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	auto loc = lua_get<uint8_t>(L, 2);
-	const uint8_t prev_loc = (pcard->summon_info >> 16) & 0xff;
-	lua_pushboolean(L, prev_loc & loc);
+	auto loc = lua_get<uint16_t>(L, 2);
+	lua_pushboolean(L, card_state::is_location(pcard->summon, loc));
 	return 1;
 }
 LUA_FUNCTION(IsSummonPlayer) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto player = lua_get<uint8_t>(L, 2);
-	lua_pushboolean(L, pcard->summon_player == player);
+	lua_pushboolean(L, pcard->summon.player == player);
 	return 1;
 }
 LUA_FUNCTION(IsStatus) {

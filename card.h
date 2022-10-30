@@ -59,7 +59,25 @@ struct card_state {
 	card* reason_card{};
 	uint8_t reason_player{};
 	effect* reason_effect{};
-	bool is_location(uint16_t loc) const;
+	template<typename T>
+	static bool is_location(const T& loc_info, uint16_t loc) {
+		if(loc_info.location & static_cast<uint8_t>(loc))
+			return true;
+		if((loc & LOCATION_EMZONE) && loc_info.location == LOCATION_MZONE && loc_info.sequence >= 5)
+			return true;
+		if((loc & LOCATION_MMZONE) && loc_info.location == LOCATION_MZONE && loc_info.sequence < 5)
+			return true;
+		if((loc & LOCATION_STZONE) && loc_info.location == LOCATION_SZONE && loc_info.sequence < 5)
+			return true;
+		if((loc & LOCATION_FZONE) && loc_info.location == LOCATION_SZONE && loc_info.sequence == 5)
+			return true;
+		if((loc & LOCATION_PZONE) && loc_info.location == LOCATION_SZONE && loc_info.pzone)
+			return true;
+		return false;
+	}
+	bool is_location(uint16_t loc) const {
+		return is_location(*this, loc);
+	}
 	void set0xff();
 };
 
@@ -103,8 +121,14 @@ public:
 	card_state temp{};
 	card_state current{};
 	uint8_t owner{ PLAYER_NONE };
-	uint8_t summon_player{};
-	uint32_t summon_info{};
+	struct summon_info {
+		uint32_t type{};
+		uint8_t player{};
+		uint8_t location{};
+		uint8_t sequence{};
+		bool pzone{};
+	};
+	summon_info summon;
 	uint32_t status{};
 	uint32_t cover{};
 	sendto_param_t sendto_param{};

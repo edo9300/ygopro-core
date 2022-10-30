@@ -114,7 +114,12 @@ LUA_FUNCTION(PreSummon) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto summon_type = lua_get<uint32_t>(L, 2);
 	auto summon_location = lua_get<uint8_t, 0>(L, 3);
-	pcard->summon_info = summon_type | (summon_location << 16);
+	auto summon_sequence = lua_get<uint8_t, 0>(L, 4);
+	auto summon_pzone = lua_get<bool, false>(L, 5);
+	pcard->summon.location = summon_location;
+	pcard->summon.type = summon_type;
+	pcard->summon.sequence = summon_sequence;
+	pcard->summon.pzone = summon_pzone;
 	return 0;
 }
 LUA_FUNCTION(PreEquip) {

@@ -1703,17 +1703,17 @@ LUA_FUNCTION(NegateSummon) {
 	const auto pduel = lua_get<duel*>(L);
 	uint8_t sumplayer = PLAYER_NONE;
 	if(pcard) {
-		sumplayer = pcard->summon_player;
+		sumplayer = pcard->summon.player;
 		pcard->set_status(STATUS_SUMMONING, FALSE);
 		pcard->set_status(STATUS_SUMMON_DISABLED, TRUE);
-		if((pcard->summon_info & SUMMON_TYPE_PENDULUM) != SUMMON_TYPE_PENDULUM)
+		if((pcard->summon.type & SUMMON_TYPE_PENDULUM) != SUMMON_TYPE_PENDULUM)
 			pcard->set_status(STATUS_PROC_COMPLETE, FALSE);
 	} else {
 		for(auto& _pcard : pgroup->container) {
-			sumplayer = _pcard->summon_player;
+			sumplayer = _pcard->summon.player;
 			_pcard->set_status(STATUS_SUMMONING, FALSE);
 			_pcard->set_status(STATUS_SUMMON_DISABLED, TRUE);
-			if((_pcard->summon_info & SUMMON_TYPE_PENDULUM) != SUMMON_TYPE_PENDULUM)
+			if((_pcard->summon.type & SUMMON_TYPE_PENDULUM) != SUMMON_TYPE_PENDULUM)
 				_pcard->set_status(STATUS_PROC_COMPLETE, FALSE);
 		}
 	}
