@@ -555,7 +555,7 @@ void* interpreter::get_ref_object(int32_t ref_handler) {
 	if(ref_handler == 0)
 		return nullptr;
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, ref_handler);
-	auto obj = reinterpret_cast<lua_obj**>(lua_touserdata(current_state, -1));
+	auto obj = static_cast<lua_obj**>(lua_touserdata(current_state, -1));
 	void* p = obj ? *obj : nullptr;
 	lua_pop(current_state, 1);
 	return p;
