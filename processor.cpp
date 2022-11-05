@@ -774,6 +774,14 @@ int32_t field::process() {
 		}
 		return PROCESSOR_FLAG_CONTINUE;
 	}
+	case PROCESSOR_XYZ_OVERLAY: {
+		if(xyz_overlay(it->step, static_cast<card*>(it->ptr1), it->ptarget, !!it->arg1)) {
+			core.units.pop_front();
+		} else {
+			++it->step;
+		}
+		return PROCESSOR_FLAG_CONTINUE;
+	}
 	case PROCESSOR_REFRESH_RELAY: {
 		if (refresh_relay(it->step))
 			core.units.pop_front();

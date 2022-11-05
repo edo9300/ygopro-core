@@ -112,6 +112,14 @@ void field::remove_counter(uint32_t reason, card* pcard, uint32_t rplayer, uint8
 void field::remove_overlay_card(uint32_t reason, group* pgroup, uint32_t rplayer, uint8_t self, uint8_t oppo, uint16_t min, uint16_t max) {
 	add_process(PROCESSOR_REMOVE_OVERLAY, 0, nullptr, pgroup, (rplayer << 16) + (self << 8) + oppo, (max << 16) + min, reason);
 }
+void field::xyz_overlay(card* target, card_set materials, bool send_materials_to_grave) {
+	group* ng = pduel->new_group(std::move(materials));
+	ng->is_readonly = TRUE;
+	add_process(PROCESSOR_XYZ_OVERLAY, 0, nullptr, ng, send_materials_to_grave, 0, 0, 0, target);
+}
+void field::xyz_overlay(card* target, card* material, bool send_materials_to_grave) {
+	xyz_overlay(target, card_set{ material }, send_materials_to_grave);
+}
 void field::get_control(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
@@ -894,6 +902,114 @@ int32_t field::remove_overlay_card(uint16_t step, uint32_t reason, group* pgroup
 	case 4: {
 		returns.set<int32_t>(0, returns.at<int32_t>(0) + core.units.begin()->arg4);
 		return TRUE;
+	}
+	}
+	return TRUE;
+}
+int32_t field::xyz_overlay(uint16_t step, card* target, group* materials, bool send_materials_to_grave) {
+	switch(step) {
+	case 0: {
+		for(auto& pcard : materials->container) {
+			if(!pcard->overlay_target)
+				pcard->enable_field_effect(false);
+		}
+		if(!send_materials_to_grave)
+			return FALSE;
+		card_set to_grave;
+		for(auto& pcard : materials->container) {
+			to_grave.insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
+		}
+		send_to(std::move(to_grave), core.reason_effect, REASON_RULE, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		return FALSE;
+	}
+	case 1: {
+		card_set des, from_grave;
+		card_vector cv;
+		cv.reserve(materials->container.size());
+		std::copy_if(materials->container.begin(), materials->container.end(), std::back_inserter(cv), [target](const card* pcard) { return pcard->overlay_target != target; });
+		if(!send_materials_to_grave) {
+			const auto prev_size = cv.size();
+			for(auto& pcard : materials->container) {
+				cv.insert(cv.begin(), pcard->xyz_materials.begin(), pcard->xyz_materials.end());
+			}
+			const auto cur_size = cv.size();
+			if(cur_size - prev_size >= 2)
+				std::sort(cv.begin(), cv.begin() + ((cur_size - prev_size) - 1), card::card_operation_sort);
+			if(prev_size >= 2)
+				std::sort(cv.begin() + (cur_size - prev_size), cv.end(), card::card_operation_sort);
+		}
+		duel::duel_message* decktop[2] = { nullptr, nullptr };
+		const size_t s[2] = { player[0].list_main.size(), player[1].list_main.size() };
+		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
+			const auto m_end = materials->container.end();
+			if(s[0] > 0 && materials->container.find(player[0].list_main.back()) != m_end) {
+				decktop[0] = pduel->new_message(MSG_DECK_TOP);
+				decktop[0]->write<uint8_t>(0);
+			}
+			if(s[1] > 0 && materials->container.find(player[1].list_main.back()) != m_end) {
+				decktop[1] = pduel->new_message(MSG_DECK_TOP);
+				decktop[1]->write<uint8_t>(1);
+			}
+		}
+		for(auto& pcard : cv) {
+			pcard->current.reason = REASON_XYZ + REASON_MATERIAL;
+			pcard->reset(RESET_LEAVE + RESET_OVERLAY, RESET_EVENT);
+			if(pcard->unique_code)
+				remove_unique_card(pcard);
+			if(pcard->equiping_target)
+				pcard->unequip();
+			for(auto cit = pcard->equiping_cards.begin(); cit != pcard->equiping_cards.end();) {
+				card* equipc = *cit++;
+				des.insert(equipc);
+				equipc->unequip();
+			}
+			pcard->clear_card_target();
+			auto message = pduel->new_message(MSG_MOVE);
+			message->write<uint32_t>(pcard->data.code);
+			message->write(pcard->get_info_location());
+			if(pcard->overlay_target) {
+				pcard->overlay_target->xyz_remove(pcard);
+			} else {
+				remove_card(pcard);
+				add_to_disable_check_list(pcard);
+				if(pcard->previous.location == LOCATION_GRAVE) {
+					from_grave.insert(pcard);
+					raise_single_event(pcard, 0, EVENT_LEAVE_GRAVE, core.reason_effect, 0, core.reason_player, 0, 0);
+				}
+			}
+			target->xyz_add(pcard);
+			message->write(pcard->get_info_location());
+			message->write<uint32_t>(pcard->current.reason);
+		}
+		auto writetopcard = [rev = core.deck_reversed, &decktop, &player=player, &s](int playerid) {
+			if(!decktop[playerid])
+				return;
+			auto& msg = decktop[playerid];
+			const auto& list = player[playerid].list_main;
+			if(list.empty() || (!rev && list.back()->current.position != POS_FACEUP_DEFENSE))
+				msg->data.clear();
+			else {
+				auto& prevcount = s[playerid];
+				const auto* ptop = list.back();
+				msg->write<uint32_t>(prevcount - list.size());
+				msg->write<uint32_t>(ptop->data.code);
+				msg->write<uint32_t>(ptop->current.position);
+			}
+		};
+		writetopcard(0);
+		writetopcard(1);
+		if(from_grave.size()) {
+			raise_event(&from_grave, EVENT_LEAVE_GRAVE, core.reason_effect, 0, core.reason_player, 0, 0);
+			process_single_event();
+			process_instant_event();
+		}
+		if(des.size())
+			destroy(std::move(des), 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);
+		else
+			adjust_instant();
+		if(target->current.location & LOCATION_ONFIELD)
+			adjust_all();
+		return FALSE;
 	}
 	}
 	return TRUE;

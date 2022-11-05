@@ -3106,17 +3106,16 @@ LUA_FUNCTION(Overlay) {
 	card* pcard = nullptr;
 	group* pgroup = nullptr;
 	get_card_or_group(L, 2, pcard, pgroup);
+	bool send_materials_to_grave = lua_get<bool, false>(L, 3);
 	if(pcard) {
 		if(pcard == target)
 			lua_error(L, "Attempt to overlay a card with itself.");
-		target->xyz_overlay(card_set{ pcard });
+		pduel->game_field->xyz_overlay(target, pcard, send_materials_to_grave);
 	} else {
 		if(pgroup->has_card(target))
 			lua_error(L, "Attempt to overlay a card with itself.");
-		target->xyz_overlay(pgroup->container);
+		pduel->game_field->xyz_overlay(target, pgroup->container, send_materials_to_grave);
 	}
-	if(target->current.location & LOCATION_ONFIELD)
-		pduel->game_field->adjust_all();
 	return lua_yield(L, 0);
 }
 LUA_FUNCTION(GetOverlayGroup) {

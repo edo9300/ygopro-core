@@ -256,7 +256,6 @@ public:
 	void unequip();
 	int32_t get_union_count();
 	int32_t get_old_union_count();
-	void xyz_overlay(const card_set& materials);
 	void xyz_add(card* mat);
 	void xyz_remove(card* mat);
 	void apply_field_effect();
