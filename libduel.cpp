@@ -3458,7 +3458,7 @@ LUA_FUNCTION(AnnounceAttribute) {
 		return 1;
 	});
 }
-LUA_FUNCTION(AnnounceLevel) {
+LUA_FUNCTION(AnnounceNumberRange) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3496,6 +3496,7 @@ LUA_FUNCTION(AnnounceLevel) {
 		return 2;
 	});
 }
+LUA_FUNCTION_ALIAS(AnnounceLevel);
 LUA_FUNCTION(AnnounceCard) {
 	check_action_permission(L);
 	check_param_count(L, 1);
