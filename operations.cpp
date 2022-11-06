@@ -919,7 +919,7 @@ int32_t field::xyz_overlay(uint16_t step, card* target, group* materials, bool s
 		for(auto& pcard : materials->container) {
 			to_grave.insert(pcard->xyz_materials.begin(), pcard->xyz_materials.end());
 		}
-		send_to(std::move(to_grave), core.reason_effect, REASON_RULE | REASON_LOST_TARGET, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		send_to(std::move(to_grave), 0, REASON_RULE + REASON_LOST_TARGET, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 1: {
