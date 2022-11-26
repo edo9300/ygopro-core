@@ -4132,7 +4132,7 @@ int32_t field::process_turn(uint16_t step, uint8_t turn_player) {
 		if(is_flag(DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
 			int32_t count = get_draw_count(infos.turn_player);
 			if(count > 0 && is_flag(DUEL_DRAW_UNTIL_5)) {
-				count = std::max<int>(5 - player[turn_player].list_hand.size(), 1);
+				count = std::max<int>(5 - player[turn_player].list_hand.size(), count);
 			}
 			if(count > 0) {
 				draw(0, REASON_RULE, turn_player, turn_player, count);
