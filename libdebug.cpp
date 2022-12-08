@@ -56,6 +56,7 @@ LUA_FUNCTION(AddCard) {
 		if(location == LOCATION_PZONE) {
 			location = LOCATION_SZONE;
 			sequence = field->get_pzone_index(sequence, playerid);
+			pzone = true;
 		} else if(location == LOCATION_FZONE) {
 			location = LOCATION_SZONE;
 			sequence = 5;
