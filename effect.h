@@ -98,6 +98,7 @@ public:
 	card* get_handler() const;
 	uint8_t get_handler_player();
 	int32_t in_range(card* pcard);
+	int32_t is_in_range_of_symbolic_mzone(card* pcard);
 	int32_t in_range(const chain& ch);
 	void set_activate_location();
 	void set_active_type();

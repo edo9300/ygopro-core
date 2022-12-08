@@ -81,6 +81,14 @@ LUA_FUNCTION(SetRange) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	peffect->range = lua_get<uint16_t>(L, 2);
+	if((peffect->range & (LOCATION_MMZONE | LOCATION_EMZONE)) == (LOCATION_MMZONE | LOCATION_EMZONE))
+		peffect->range |= LOCATION_MZONE;
+	if(peffect->range & LOCATION_MZONE)
+		peffect->range &= ~(LOCATION_MMZONE | LOCATION_EMZONE);
+	if((peffect->range & (LOCATION_FZONE | LOCATION_STZONE | LOCATION_PZONE)) == (LOCATION_FZONE | LOCATION_STZONE | LOCATION_PZONE))
+		peffect->range |= LOCATION_SZONE;
+	if(peffect->range & LOCATION_SZONE)
+		peffect->range &= ~(LOCATION_FZONE | LOCATION_STZONE | LOCATION_PZONE);
 	return 0;
 }
 LUA_FUNCTION(SetTargetRange) {

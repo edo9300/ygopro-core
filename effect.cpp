@@ -46,6 +46,8 @@ int32_t effect::is_available() {
 		card* powner = get_owner();
 		if (phandler->current.controler == PLAYER_NONE && code != EFFECT_ADD_SETCODE && code != EFFECT_ADD_CODE && code != EFFECT_REVIVE_LIMIT)
 			return FALSE;
+		if(!is_in_range_of_symbolic_mzone(phandler))
+			return FALSE;
 		if(is_flag(EFFECT_FLAG_SINGLE_RANGE) && !in_range(phandler))
 			return FALSE;
 		if(is_flag(EFFECT_FLAG_SINGLE_RANGE) && !phandler->get_status(STATUS_EFFECT_ENABLED) && !is_flag(EFFECT_FLAG_IMMEDIATELY_APPLY))
@@ -85,7 +87,7 @@ int32_t effect::is_available() {
 		if (!is_flag(EFFECT_FLAG_FIELD_ONLY)) {
 			if(phandler->current.controler == PLAYER_NONE)
 				return FALSE;
-			if(!in_range(phandler))
+			if(!is_in_range_of_symbolic_mzone(phandler) || !in_range(phandler))
 				return FALSE;
 			if(!phandler->get_status(STATUS_EFFECT_ENABLED) && !is_flag(EFFECT_FLAG_IMMEDIATELY_APPLY))
 				return FALSE;
@@ -325,6 +327,9 @@ int32_t effect::is_action_check(uint8_t playerid) {
 }
 // check functions: condition, cost(chk=0), target(chk=0)
 int32_t effect::is_activate_ready(effect* reason_effect, uint8_t playerid, const tevent& e, int32_t neglect_cond, int32_t neglect_cost, int32_t neglect_target) {
+	if(!is_in_range_of_symbolic_mzone(reason_effect->get_handler())) {
+		return FALSE;
+	}
 	if(!neglect_cond && condition) {
 		pduel->lua->add_param<PARAM_TYPE_EFFECT>(reason_effect);
 		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
@@ -375,6 +380,8 @@ int32_t effect::is_activate_ready(uint8_t playerid, const tevent& e, int32_t neg
 int32_t effect::is_condition_check(uint8_t playerid, const tevent& e) {
 	card* phandler = get_handler();
 	if(!(type & EFFECT_TYPE_ACTIVATE) && (phandler->current.location & (LOCATION_ONFIELD | LOCATION_REMOVED)) && !phandler->is_position(POS_FACEUP))
+		return FALSE;
+	if(!is_in_range_of_symbolic_mzone(phandler))
 		return FALSE;
 	if(!condition)
 		return TRUE;
@@ -762,7 +769,17 @@ uint8_t effect::get_handler_player() {
 int32_t effect::in_range(card* pcard) {
 	if(type & EFFECT_TYPE_XMATERIAL)
 		return handler->overlay_target ? TRUE : FALSE;
-	return pcard->current.is_location(range);
+	auto real_range = range;
+	if((range & (LOCATION_MMZONE | LOCATION_EMZONE))) {
+		real_range &= ~(LOCATION_MMZONE | LOCATION_EMZONE);
+		real_range |= LOCATION_MZONE;
+	}
+	return pcard->current.is_location(real_range);
+}
+int32_t effect::is_in_range_of_symbolic_mzone(card* pcard) {
+	if(!(range & (LOCATION_MMZONE | LOCATION_EMZONE)))
+		return TRUE;
+	return !pcard->current.is_location(LOCATION_MZONE) || pcard->current.is_location(range);
 }
 int32_t effect::in_range(const chain& ch) {
 	if(type & EFFECT_TYPE_XMATERIAL)
