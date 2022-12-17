@@ -4397,35 +4397,37 @@ int32_t field::add_chain(uint16_t step) {
 		}
 		core.select_effects.clear();
 		core.select_options.clear();
-		if(peffect->type & EFFECT_TYPE_ACTIVATE) {
-			int32_t ecode = 0;
-			if(phandler->current.location == LOCATION_HAND) {
-				if(phandler->data.type & TYPE_TRAP)
-					ecode = EFFECT_TRAP_ACT_IN_HAND;
-				else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK))
-				        && infos.turn_player != phandler->current.controler)
-					ecode = EFFECT_QP_ACT_IN_NTPHAND;
-			} else if(phandler->current.location == LOCATION_SZONE) {
-				if((phandler->data.type & TYPE_TRAP) && phandler->get_status(STATUS_SET_TURN))
-					ecode = EFFECT_TRAP_ACT_IN_SET_TURN;
-				if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK)) && phandler->get_status(STATUS_SET_TURN))
-					ecode = EFFECT_QP_ACT_IN_SET_TURN;
-			}
-			if(ecode) {
-				eset.clear();
-				phandler->filter_effect(ecode, &eset);
-				if(!eset.empty()) {
-					for(const auto& peff : eset) {
-						if(peff->check_count_limit(phandler->current.controler)) {
-							core.select_effects.push_back(peff);
-							core.select_options.push_back(peff->description);
-						}
+		if((peffect->type & EFFECT_TYPE_ACTIVATE) == 0) {
+			core.units.begin()->step = 1;
+			return FALSE;
+		}
+		int32_t ecode = 0;
+		if(phandler->current.location == LOCATION_HAND) {
+			if(phandler->data.type & TYPE_TRAP)
+				ecode = EFFECT_TRAP_ACT_IN_HAND;
+			else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK))
+					&& infos.turn_player != phandler->current.controler)
+				ecode = EFFECT_QP_ACT_IN_NTPHAND;
+		} else if(phandler->current.location == LOCATION_SZONE) {
+			if((phandler->data.type & TYPE_TRAP) && phandler->get_status(STATUS_SET_TURN))
+				ecode = EFFECT_TRAP_ACT_IN_SET_TURN;
+			if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK)) && phandler->get_status(STATUS_SET_TURN))
+				ecode = EFFECT_QP_ACT_IN_SET_TURN;
+		}
+		if(ecode) {
+			eset.clear();
+			phandler->filter_effect(ecode, &eset);
+			if(!eset.empty()) {
+				for(const auto& peff : eset) {
+					if(peff->check_count_limit(phandler->current.controler)) {
+						core.select_effects.push_back(peff);
+						core.select_options.push_back(peff->description);
 					}
-					if(core.select_options.size() == 1)
-						returns.set<int32_t>(0, 0);
-					else
-						add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, phandler->current.controler, 0);
 				}
+				if(core.select_options.size() == 1)
+					returns.set<int32_t>(0, 0);
+				else
+					add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, phandler->current.controler, 0);
 			}
 		}
 		return FALSE;
