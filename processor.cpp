@@ -4381,7 +4381,15 @@ int32_t field::add_chain(uint16_t step) {
 			return TRUE;
 		auto& clit = core.new_chains.front();
 		effect* peffect = clit.triggering_effect;
-		card* phandler = peffect->get_handler();
+		core.units.begin()->arg4 = 0;
+		// if it's an activate effect, go to subroutine checking for effects allowing the card
+		// to be activated even when it shouldn't normally (the turn it was set, from the hand, etc)
+		if((peffect->type & EFFECT_TYPE_ACTIVATE) != 0)
+			core.units.begin()->step = 9;
+		return FALSE;
+	}
+	case 1: {
+		auto& clit = core.new_chains.front();
 		effect_set eset;
 		filter_player_effect(clit.triggering_player, EFFECT_ACTIVATE_COST, &eset);
 		for(const auto& peff : eset) {
@@ -4395,53 +4403,10 @@ int32_t field::add_chain(uint16_t step) {
 				add_process(PROCESSOR_EXECUTE_OPERATION, 0, peff, 0, clit.triggering_player, 0);
 			}
 		}
-		core.select_effects.clear();
-		core.select_options.clear();
-		if((peffect->type & EFFECT_TYPE_ACTIVATE) == 0) {
-			core.units.begin()->step = 1;
+		if(core.units.begin()->arg4 == 0)
 			return FALSE;
-		}
-		int32_t ecode = 0;
-		if(phandler->current.location == LOCATION_HAND) {
-			if(phandler->data.type & TYPE_TRAP)
-				ecode = EFFECT_TRAP_ACT_IN_HAND;
-			else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK))
-					&& infos.turn_player != phandler->current.controler)
-				ecode = EFFECT_QP_ACT_IN_NTPHAND;
-		} else if(phandler->current.location == LOCATION_SZONE) {
-			if((phandler->data.type & TYPE_TRAP) && phandler->get_status(STATUS_SET_TURN))
-				ecode = EFFECT_TRAP_ACT_IN_SET_TURN;
-			if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK)) && phandler->get_status(STATUS_SET_TURN))
-				ecode = EFFECT_QP_ACT_IN_SET_TURN;
-		}
-		if(ecode) {
-			eset.clear();
-			phandler->filter_effect(ecode, &eset);
-			if(!eset.empty()) {
-				for(const auto& peff : eset) {
-					if(peff->check_count_limit(phandler->current.controler)) {
-						core.select_effects.push_back(peff);
-						core.select_options.push_back(peff->description);
-					}
-				}
-				if(core.select_options.size() == 1)
-					returns.set<int32_t>(0, 0);
-				else
-					add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, phandler->current.controler, 0);
-			}
-		}
-		return FALSE;
-	}
-	case 1:	{
-		auto& clit = core.new_chains.front();
 		effect* peffect = clit.triggering_effect;
 		card* phandler = peffect->get_handler();
-		if(!core.select_effects.empty()) {
-			auto* eff = core.select_effects[returns.at<int32_t>(0)];
-			eff->dec_count(phandler->current.controler);
-			pduel->lua->add_param<PARAM_TYPE_EFFECT>(peffect);
-			eff->get_value(phandler, 1);
-		}
 		phandler->set_status(STATUS_ACT_FROM_HAND, phandler->current.location == LOCATION_HAND);
 		if(phandler->current.location == LOCATION_SZONE) {
 			change_position(phandler, 0, phandler->current.controler, POS_FACEUP, 0);
@@ -4686,6 +4651,59 @@ int32_t field::add_chain(uint16_t step) {
 			add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
 		adjust_all();
 		return TRUE;
+	}
+	case 10: {
+		core.units.begin()->arg4 = 1;
+		auto& clit = core.new_chains.front();
+		effect* peffect = clit.triggering_effect;
+		card* phandler = peffect->get_handler();
+		int32_t ecode = 0;
+		if(phandler->current.location == LOCATION_HAND) {
+			if(phandler->data.type & TYPE_TRAP)
+				ecode = EFFECT_TRAP_ACT_IN_HAND;
+			else if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK))
+					&& infos.turn_player != phandler->current.controler)
+				ecode = EFFECT_QP_ACT_IN_NTPHAND;
+		} else if(phandler->current.location == LOCATION_SZONE) {
+			if((phandler->data.type & TYPE_TRAP) && phandler->get_status(STATUS_SET_TURN))
+				ecode = EFFECT_TRAP_ACT_IN_SET_TURN;
+			if((phandler->data.type & TYPE_SPELL) && (phandler->data.type & TYPE_QUICKPLAY || phandler->is_affected_by_effect(EFFECT_BECOME_QUICK)) && phandler->get_status(STATUS_SET_TURN))
+				ecode = EFFECT_QP_ACT_IN_SET_TURN;
+		}
+		if(ecode) {
+			core.select_effects.clear();
+			core.select_options.clear();
+			effect_set eset;
+			phandler->filter_effect(ecode, &eset);
+			if(!eset.empty()) {
+				for(const auto& peff : eset) {
+					if(peff->check_count_limit(phandler->current.controler)) {
+						core.select_effects.push_back(peff);
+						core.select_options.push_back(peff->description);
+					}
+				}
+				if(core.select_options.size() == 1)
+					returns.set<int32_t>(0, 0);
+				else
+					add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, phandler->current.controler, 0);
+			}
+		} else {
+			core.units.begin()->step = 0;
+		}
+		return FALSE;
+	}
+	case 11: {
+		auto& clit = core.new_chains.front();
+		effect* peffect = clit.triggering_effect;
+		card* phandler = peffect->get_handler();
+		if(!core.select_effects.empty()) {
+			auto* eff = core.select_effects[returns.at<int32_t>(0)];
+			eff->dec_count(phandler->current.controler);
+			pduel->lua->add_param<PARAM_TYPE_EFFECT>(peffect);
+			eff->get_value(phandler, 1);
+		}
+		core.units.begin()->step = 0;
+		return FALSE;
 	}
 	}
 	return TRUE;
