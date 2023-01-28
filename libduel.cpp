@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <numeric>
 #include "scriptlib.h"
 #include "duel.h"
 #include "field.h"
@@ -3463,29 +3464,39 @@ LUA_FUNCTION(AnnounceNumberRange) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto min = lua_get<uint32_t, 1>(L, 2);
 	auto max = lua_get<uint32_t, 12>(L, 3);
-	auto paramcount = lua_gettop(L);
 	if(min > max)
 		std::swap(min, max);
 	const auto pduel = lua_get<duel*>(L);
-	pduel->game_field->core.select_options.clear();
-	if(paramcount > 3) {
-		std::set<uint32_t> excluded;
-		for(int32_t j = 4; j <= paramcount; ++j)
-			excluded.insert(lua_get<uint32_t>(L, j));
-		auto it = excluded.begin();
-		while(it != excluded.end() && *it < min) ++it;
-		for(uint32_t i = min; i <= max; ++i) {
-			if(it != excluded.end() && *it == i) {
+	std::set<uint32_t> excluded;
+	lua_iterate_table_or_stack(L, 4, lua_gettop(L), [L, &excluded, min, max] {
+		if(!lua_isnil(L, -1)) {
+			auto val = lua_get<uint32_t>(L, -1);
+			if(val >= min && val <= max)
+				excluded.insert(val);
+		}
+	});
+	auto& select_options = pduel->game_field->core.select_options;
+	if(excluded.empty()) {
+		select_options.resize((max - min) + 1);
+		std::iota(select_options.begin(), select_options.end(), min);
+	} else {
+		select_options.clear();
+		auto it = excluded.cbegin();
+		const auto cend = excluded.cend();
+		uint32_t i = min;
+		for(; i <= max; ++i) {
+			if(it == cend)
+				break;
+			if(*it == i) {
 				++it;
 				continue;
 			}
-			pduel->game_field->core.select_options.push_back(i);
+			select_options.push_back(i);
 		}
-	} else {
-		for(uint32_t i = min; i <= max; ++i)
-			pduel->game_field->core.select_options.push_back(i);
+		for(; i <= max; ++i)
+			select_options.push_back(i);
 	}
-	if(pduel->game_field->core.select_options.empty())
+	if(select_options.empty())
 		return 0;
 	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_NUMBER, 0, 0, 0, playerid, 0);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
