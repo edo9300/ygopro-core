@@ -61,11 +61,12 @@ LUA_FUNCTION(KeepAlive) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	if(pgroup->is_readonly == 1)
-		return 0;
-	pgroup->is_readonly = 2;
-	pduel->sgroups.erase(pgroup);
-	return 0;
+	if(pgroup->is_readonly != 1) {
+		pgroup->is_readonly = 2;
+		pduel->sgroups.erase(pgroup);
+	}
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 LUA_FUNCTION(Clear) {
 	check_param_count(L, 1);
@@ -73,7 +74,8 @@ LUA_FUNCTION(Clear) {
 	assert_readonly_group(L, pgroup);
 	pgroup->is_iterator_dirty = true;
 	pgroup->container.clear();
-	return 0;
+	interpreter::pushobject(L, pgroup);
+	return 1;
 }
 LUA_FUNCTION(AddCard) {
 	check_param_count(L, 2);
