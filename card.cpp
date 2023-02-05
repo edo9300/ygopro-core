@@ -3527,6 +3527,15 @@ int32_t card::is_affect_by_effect(effect* peffect) {
 		return FALSE;
 	return TRUE;
 }
+int32_t card::is_can_be_disabled_by_effect(effect* reason_effect) {
+	if(is_status(STATUS_DISABLED))
+		return FALSE;
+	if(is_affected_by_effect(EFFECT_CANNOT_DISABLE))
+		return FALSE;
+	if(!is_affect_by_effect(reason_effect))
+		return FALSE;
+	return TRUE;
+}
 int32_t card::is_destructable() {
 	if(overlay_target)
 		return FALSE;
