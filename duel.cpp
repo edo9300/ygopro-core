@@ -91,7 +91,7 @@ void duel::delete_effect(effect* peffect) {
 }
 void duel::generate_buffer() {
 	for(auto& message : messages) {
-		uint32_t size = message.data.size();
+		uint32_t size = static_cast<uint32_t>(message.data.size());
 		if(size) {
 			write_buffer(&size, sizeof(size));
 			write_buffer(message.data.data(), size);

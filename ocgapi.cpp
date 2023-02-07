@@ -83,7 +83,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
 		auto& list = (info.loc == LOCATION_DECK) ? player.extra_lists_main[info.duelist] : player.extra_lists_extra[info.duelist];
 		list.push_back(pcard);
-		pcard->current.sequence = list.size() - 1;
+		pcard->current.sequence = static_cast<uint32_t>(list.size() - 1);
 	}
 }
 
@@ -104,7 +104,7 @@ OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
 OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, uint32_t* length) {
 	DUEL->generate_buffer();
 	if(length)
-		*length = DUEL->buff.size();
+		*length = static_cast<uint32_t>(DUEL->buff.size());
 	return DUEL->buff.data();
 }
 
@@ -121,15 +121,15 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
 		return 0;
 	auto& player = DUEL->game_field->player[team];
 	if(loc == LOCATION_HAND)
-		return player.list_hand.size();
+		return static_cast<uint32_t>(player.list_hand.size());
 	if(loc == LOCATION_GRAVE)
-		return player.list_grave.size();
-	if(loc == LOCATION_REMOVED)
-		return player.list_remove.size();
-	if(loc == LOCATION_EXTRA)
-		return player.list_extra.size();
-	if(loc == LOCATION_DECK)
-		return player.list_main.size();
+		return static_cast<uint32_t>(player.list_grave.size());
+	if (loc == LOCATION_REMOVED)
+		return static_cast<uint32_t>(player.list_remove.size());
+	if (loc == LOCATION_EXTRA)
+		return static_cast<uint32_t>(player.list_extra.size());
+	if (loc == LOCATION_DECK)
+		return static_cast<uint32_t>(player.list_main.size());
 	uint32_t count = 0;
 	if(loc == LOCATION_MZONE) {
 		for(auto& pcard : player.list_mzone)
@@ -172,7 +172,7 @@ OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) 
 		pcard->get_infos(info.flags);
 	}
 	if(length)
-		*length = DUEL->query_buffer.size();
+		*length = static_cast<uint32_t>(DUEL->query_buffer.size());
 	return DUEL->query_buffer.data();
 }
 
@@ -213,7 +213,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 		buffer.insert(buffer.begin(), tmp_vector.begin(), tmp_vector.end());
 	}
 	if(length)
-		*length = buffer.size();
+		*length = static_cast<uint32_t>(buffer.size());
 	return buffer.data();
 }
 
@@ -265,7 +265,7 @@ OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
 		insert_value<uint64_t>(query, peffect->description);
 	}
 	if(length)
-		*length = query.size();
+		*length = static_cast<uint32_t>(query.size());
 	return query.data();
 }
 

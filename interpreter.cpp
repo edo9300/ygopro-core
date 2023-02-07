@@ -225,7 +225,7 @@ bool interpreter::load_card_script(uint32_t code) {
 }
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	int32_t pushed = 0;
-	luaL_checkstack(L, params.size(), nullptr);
+	luaL_checkstack(L, static_cast<uint32_t>(params.size()), nullptr);
 	for (const auto& it : params) {
 		switch(it.second) {
 		case PARAM_TYPE_INT:

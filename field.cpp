@@ -125,13 +125,13 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 	case LOCATION_DECK: {
 		if (sequence == 0) {		//deck top
 			player[playerid].list_main.push_back(pcard);
-			pcard->current.sequence = player[playerid].list_main.size() - 1;
+			pcard->current.sequence = static_cast<uint32_t>(player[playerid].list_main.size() - 1);
 		} else if (sequence == 1) {		//deck bottom
 			player[playerid].list_main.insert(player[playerid].list_main.begin(), pcard);
 			reset_sequence(playerid, LOCATION_DECK);
 		} else {		//deck top & shuffle
 			player[playerid].list_main.push_back(pcard);
-			pcard->current.sequence = player[playerid].list_main.size() - 1;
+			pcard->current.sequence = static_cast<uint32_t>(player[playerid].list_main.size() - 1);
 			if(!core.shuffle_check_disabled)
 				core.shuffle_deck_check[playerid] = TRUE;
 		}
@@ -140,7 +140,7 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 	}
 	case LOCATION_HAND: {
 		player[playerid].list_hand.push_back(pcard);
-		pcard->current.sequence = player[playerid].list_hand.size() - 1;
+		pcard->current.sequence = static_cast<uint32_t>(player[playerid].list_hand.size() - 1);
 		uint32_t pos = pcard->is_affected_by_effect(EFFECT_PUBLIC) ? POS_FACEUP : POS_FACEDOWN;
 		pcard->sendto_param.position = pos;
 		if(!(pcard->current.reason & REASON_DRAW) && !core.shuffle_check_disabled)
@@ -149,12 +149,12 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 	}
 	case LOCATION_GRAVE: {
 		player[playerid].list_grave.push_back(pcard);
-		pcard->current.sequence = player[playerid].list_grave.size() - 1;
+		pcard->current.sequence = static_cast<uint32_t>(player[playerid].list_grave.size() - 1);
 		break;
 	}
 	case LOCATION_REMOVED: {
 		player[playerid].list_remove.push_back(pcard);
-		pcard->current.sequence = player[playerid].list_remove.size() - 1;
+		pcard->current.sequence = static_cast<uint32_t>(player[playerid].list_remove.size() - 1);
 		break;
 	}
 	case LOCATION_EXTRA: {
@@ -905,11 +905,11 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		}
 	}
 	if(location == LOCATION_HAND || !is_flag(DUEL_PSEUDO_SHUFFLE)) {
-		auto upper_bound = to_shuffle.size();
+		int32_t upper_bound = static_cast<int32_t>(to_shuffle.size());
 		if(location == LOCATION_EXTRA)
 			upper_bound -= player[playerid].extra_p_count;
 		if(upper_bound > 1) {
-			for(size_t i = 0; i < upper_bound - 1; ++i) {
+			for(int32_t i = 0; i < upper_bound - 1; ++i) {
 				auto r = pduel->get_next_integer(i, upper_bound - 1);
 				auto* t = to_shuffle[i];
 				to_shuffle[i] = to_shuffle[r];
@@ -1064,19 +1064,19 @@ void field::swap_deck_and_grave(uint8_t playerid) {
 	}
 }
 void field::reverse_deck(uint8_t playerid) {
-	int32_t count = player[playerid].list_main.size();
+	auto count = player[playerid].list_main.size();
 	if(count == 0)
 		return;
-	for(int32_t i = 0; i < count / 2; ++i) {
+	for(size_t i = 0; i < count / 2; ++i) {
 		card* tmp = player[playerid].list_main[i];
-		tmp->current.sequence = count - 1 - i;
-		player[playerid].list_main[count - 1 - i]->current.sequence = i;
+		tmp->current.sequence = static_cast<uint32_t>(count - 1 - i);
+		player[playerid].list_main[count - 1 - i]->current.sequence = static_cast<uint32_t>(i);
 		player[playerid].list_main[i] = player[playerid].list_main[count - 1 - i];
 		player[playerid].list_main[count - 1 - i] = tmp;
 	}
 }
 int field::get_player_count(uint8_t playerid) {
-	return player[playerid].extra_lists_main.size() + 1;
+	return static_cast<int>(player[playerid].extra_lists_main.size() + 1);
 }
 void field::tag_swap(uint8_t playerid) {
 	if(player[playerid].extra_lists_main.empty())
@@ -1585,7 +1585,7 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 	if(self != 0 && self != 1)
 		return 0;
 	uint32_t location = location1;
-	uint32_t count = 0;
+	size_t count = 0;
 	for(uint32_t p = 0; p < 2; ++p, location = location2, self = 1 - self) {
 		if(location & LOCATION_MZONE) {
 			for(auto& pcard : player[self].list_mzone) {
@@ -1693,7 +1693,7 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 			count += player[self].list_remove.size();
 		}
 	}
-	return count;
+	return static_cast<int32_t>(count);
 }
 effect* field::is_player_affected_by_effect(uint8_t playerid, uint32_t code) {
 	auto rg = effects.aura_effect.equal_range(code);
@@ -1980,13 +1980,13 @@ void field::get_overlay_group(uint8_t playerid, uint8_t self, uint8_t oppo, card
 	}
 }
 int32_t field::get_overlay_count(uint8_t playerid, uint8_t self, uint8_t oppo, group* pgroup) {
-	uint32_t count = 0;
+	size_t count = 0;
 	if(pgroup) {
 		for(auto& pcard : pgroup->container) {
 			if(pcard && !pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 				count += pcard->xyz_materials.size();
 		}
-		return count;
+		return static_cast<int32_t>(count);
 	}
 	for(int i = 0; i < 2; ++i) {
 		if((i == playerid && self) || (i == (1 - playerid) && oppo)) {
@@ -1996,7 +1996,7 @@ int32_t field::get_overlay_count(uint8_t playerid, uint8_t self, uint8_t oppo, g
 			}
 		}
 	}
-	return count;
+	return static_cast<int32_t>(count);
 }
 // put all cards in the target of peffect into effects.disable_check_set
 void field::update_disable_check_list(effect* peffect) {

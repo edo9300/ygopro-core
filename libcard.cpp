@@ -39,10 +39,10 @@ LUA_FUNCTION(GetCode) {
 			lua_pushnil(L);
 			return 1;
 		}
-		luaL_checkstack(L, codes.size(), nullptr);
+		luaL_checkstack(L, static_cast<int>(codes.size()), nullptr);
 		for(uint32_t code : codes)
 			lua_pushinteger(pduel->lua->current_state, code);
-		return codes.size();
+		return static_cast<int32_t>(codes.size());
 	}
 	lua_pushinteger(L, pcard->get_code());
 	uint32_t otcode = pcard->get_another_code();
@@ -109,19 +109,19 @@ LUA_FUNCTION(GetSetCard) {
 		lua_pushnil(L);
 		return 1;
 	}
-	luaL_checkstack(L, setcodes.size(), nullptr);
+	luaL_checkstack(L, static_cast<int>(setcodes.size()), nullptr);
 	for(const auto setcode : setcodes)
 		lua_pushinteger(L, setcode);
-	return setcodes.size();
+	return static_cast<int32_t>(setcodes.size());
 }
 LUA_FUNCTION(GetOriginalSetCard) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
 	const auto& setcodes = pcard->get_origin_set_card();
-	luaL_checkstack(L, setcodes.size(), nullptr);
+	luaL_checkstack(L, static_cast<int>(setcodes.size()), nullptr);
 	for(auto& setcode : setcodes)
 		lua_pushinteger(L, setcode);
-	return setcodes.size();
+	return static_cast<int32_t>(setcodes.size());
 }
 LUA_FUNCTION(GetPreviousSetCard) {
 	check_param_count(L, 1);
@@ -132,10 +132,10 @@ LUA_FUNCTION(GetPreviousSetCard) {
 		lua_pushnil(L);
 		return 1;
 	}
-	luaL_checkstack(L, setcodes.size(), nullptr);
+	luaL_checkstack(L, static_cast<int>(setcodes.size()), nullptr);
 	for(auto& setcode : setcodes)
 		lua_pushinteger(L, setcode);
-	return setcodes.size();
+	return static_cast<int32_t>(setcodes.size());
 }
 LUA_FUNCTION(GetType) {
 	check_param_count(L, 1);
@@ -1317,7 +1317,7 @@ LUA_FUNCTION(IsHasCardTarget) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto rcard = lua_get<card*, true>(L, 2);
-	lua_pushboolean(L, pcard->effect_target_cards.count(rcard));
+	lua_pushboolean(L, pcard->effect_target_cards.find(rcard) != pcard->effect_target_cards.end());
 	return 1;
 }
 LUA_FUNCTION(CancelCardTarget) {
@@ -1349,10 +1349,10 @@ LUA_FUNCTION(GetActivateEffect) {
 		if(eit.second->type & EFFECT_TYPE_ACTIVATE)
 			eset.push_back(eit.second);
 	}
-	luaL_checkstack(L, eset.size(), nullptr);
+	luaL_checkstack(L, static_cast<int>(eset.size()), nullptr);
 	for(const auto& peffect : eset)
 		interpreter::pushobject(L, peffect);
-	return eset.size();
+	return static_cast<int32_t>(eset.size());
 }
 LUA_FUNCTION(CheckActivateEffect) {
 	check_param_count(L, 4);
@@ -1411,13 +1411,13 @@ LUA_FUNCTION(IsHasEffect) {
 	}
 	effect_set eset;
 	pcard->filter_effect(code, &eset);
-	int32_t size = eset.size();
+	auto size = eset.size();
 	if(!size) {
 		lua_pushnil(L);
 		return 1;
 	}
 	auto check_player = lua_get<uint8_t, PLAYER_NONE>(L, 3);
-	luaL_checkstack(L, eset.size(), nullptr); // we waste a bit of stack space but keeps checking simple
+	luaL_checkstack(L, static_cast<int>(eset.size()), nullptr); // we waste a bit of stack space but keeps checking simple
 	for(const auto& peff : eset) {
 		if(check_player == PLAYER_NONE || peff->check_count_limit(check_player))
 			interpreter::pushobject(L, peff);
@@ -1428,7 +1428,7 @@ LUA_FUNCTION(IsHasEffect) {
 		lua_pushnil(L);
 		return 1;
 	}
-	return size;
+	return static_cast<int32_t>(size);
 }
 LUA_FUNCTION(GetCardEffect) {
 	check_param_count(L, 1);
@@ -1440,10 +1440,10 @@ LUA_FUNCTION(GetCardEffect) {
 		lua_pushnil(L);
 		return 1;
 	}
-	luaL_checkstack(L, eset.size(), nullptr);
+	luaL_checkstack(L, static_cast<int>(eset.size()), nullptr);
 	for(const auto& peff : eset)
 		interpreter::pushobject(L, peff);
-	return eset.size();
+	return static_cast<int32_t>(eset.size());
 }
 LUA_FUNCTION(ResetEffect) {
 	check_param_count(L, 3);
@@ -2228,7 +2228,7 @@ LUA_FUNCTION(GetAllCounters) {
 LUA_FUNCTION(HasCounters) {
 	check_param_count(L, 1);
 	auto pcard = lua_get<card*, true>(L, 1);
-	lua_pushboolean(L, pcard->counters.size());
+	lua_pushboolean(L, !pcard->counters.empty());
 	return 1;
 }
 LUA_FUNCTION(EnableCounterPermit) {
@@ -2672,11 +2672,11 @@ LUA_FUNCTION(Setcode) {
 			pcard->data.setcodes.insert(lua_get<uint16_t>(L, 2));
 		return 0;
 	} else {
-		luaL_checkstack(L, pcard->data.setcodes.size(), nullptr);
+		luaL_checkstack(L, static_cast<int>(pcard->data.setcodes.size()), nullptr);
 		for(auto& setcode : pcard->data.setcodes)
 			lua_pushinteger(L, setcode);
 	}
-	return pcard->data.setcodes.size();
+	return static_cast<int32_t>(pcard->data.setcodes.size());
 }
 
 CARD_INFO_FUNC(Type, type)
@@ -2735,7 +2735,7 @@ LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
 void scriptlib::push_card_lib(lua_State* L) {
 	static constexpr auto cardlib = GET_LUA_FUNCTIONS_ARRAY();
 	static_assert(cardlib.back().name == nullptr, "");
-	lua_createtable(L, 0, cardlib.size() - 1);
+	lua_createtable(L, 0, static_cast<int>(cardlib.size() - 1));
 	luaL_setfuncs(L, cardlib.data(), 0);
 	lua_pushstring(L, "__index");
 	lua_pushvalue(L, -2);

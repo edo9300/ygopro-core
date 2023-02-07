@@ -352,10 +352,10 @@ LUA_FUNCTION(GetLabel) {
 		lua_pushinteger(L, 0);
 		return 1;
 	}
-	luaL_checkstack(L, label.size(), nullptr);
+	luaL_checkstack(L, static_cast<int>(label.size()), nullptr);
 	for(const auto& lab : label)
 		lua_pushinteger(L, lab);
-	return label.size();
+	return static_cast<int32_t>(label.size());
 }
 LUA_FUNCTION(GetLabelObject) {
 	check_param_count(L, 1);
@@ -529,7 +529,7 @@ LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
 void scriptlib::push_effect_lib(lua_State* L) {
 	static constexpr auto effectlib = GET_LUA_FUNCTIONS_ARRAY();
 	static_assert(effectlib.back().name == nullptr, "");
-	lua_createtable(L, 0, effectlib.size() - 1);
+	lua_createtable(L, 0, static_cast<int>(effectlib.size() - 1));
 	luaL_setfuncs(L, effectlib.data(), 0);
 	lua_pushstring(L, "__index");
 	lua_pushvalue(L, -2);

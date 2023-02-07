@@ -712,11 +712,11 @@ int32_t field::process() {
 	case PROCESSOR_SORT_DECK: {
 		uint8_t sort_player = it->arg1 & 0xffff;
 		uint8_t target_player = it->arg1 >> 16;
-		uint32_t count = it->arg2;
+		uint32_t count = static_cast<uint32_t>(it->arg2);
 		bool bottom = it->arg3;
 		auto& list = player[target_player].list_main;
 		if(count > list.size())
-			count = list.size();
+			count = static_cast<uint32_t>(list.size());
 		if(it->step == 0) {
 			if(bottom) {
 				const auto clit = list.begin();
@@ -822,7 +822,7 @@ int32_t field::execute_cost(uint16_t step, effect* triggering_effect, uint8_t tr
 	}
 	core.reason_effect = triggering_effect;
 	core.reason_player = triggering_player;
-	uint32_t count = pduel->lua->params.size();
+	uint32_t count = static_cast<uint32_t>(pduel->lua->params.size());
 	lua_Integer yield_value = 0;
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->cost, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
@@ -874,7 +874,7 @@ int32_t field::execute_operation(uint16_t step, effect* triggering_effect, uint8
 	}
 	core.reason_effect = triggering_effect;
 	core.reason_player = triggering_player;
-	uint32_t count = pduel->lua->params.size();
+	uint32_t count = static_cast<uint32_t>(pduel->lua->params.size());
 	lua_Integer yield_value = 0;
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->operation, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
@@ -931,7 +931,7 @@ int32_t field::execute_target(uint16_t step, effect* triggering_effect, uint8_t 
 	}
 	core.reason_effect = triggering_effect;
 	core.reason_player = triggering_player;
-	uint32_t count = pduel->lua->params.size();
+	uint32_t count = static_cast<uint32_t>(pduel->lua->params.size());
 	lua_Integer yield_value = 0;
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->target, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
@@ -1307,7 +1307,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 		filter_player_effect(infos.turn_player, EFFECT_HAND_LIMIT, &eset);
 		if(eset.size())
 			limit = eset.back()->get_value();
-		int32_t hd = player[infos.turn_player].list_hand.size();
+		int32_t hd = static_cast<int32_t>(player[infos.turn_player].list_hand.size());
 		if(hd <= limit || is_flag(DUEL_NO_HAND_LIMIT)) {
 			core.units.begin()->step = 24;
 			return FALSE;
@@ -1846,7 +1846,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 				newchain.triggering_player = priority;
 			}
 		}
-		core.spe_effect[priority] = core.select_chains.size();
+		core.spe_effect[priority] = static_cast<int32_t>(core.select_chains.size());
 		if(!skip_freechain) {
 			nil_event.event_code = EVENT_FREE_CHAIN;
 			auto pr = effects.activate_effect.equal_range(EVENT_FREE_CHAIN);
@@ -1889,7 +1889,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 			}
 		}
 		if(core.current_chain.size() || (core.hint_timing[0] & TIMING_ATTACK) || (core.hint_timing[1] & TIMING_ATTACK))
-			core.spe_effect[priority] = core.select_chains.size();
+			core.spe_effect[priority] = static_cast<int32_t>(core.select_chains.size());
 		add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, priority, core.spe_effect[priority]);
 		return FALSE;
 	}
@@ -4132,7 +4132,7 @@ int32_t field::process_turn(uint16_t step, uint8_t turn_player) {
 		if(is_flag(DUEL_1ST_TURN_DRAW) || (infos.turn_id > 1)) {
 			int32_t count = get_draw_count(infos.turn_player);
 			if(count > 0 && is_flag(DUEL_DRAW_UNTIL_5)) {
-				count = std::max<int>(5 - player[turn_player].list_hand.size(), count);
+				count = std::max<int32_t>(static_cast<int32_t>(5 - player[turn_player].list_hand.size()), count);
 			}
 			if(count > 0) {
 				draw(0, REASON_RULE, turn_player, turn_player, count);
@@ -5807,7 +5807,7 @@ int32_t field::startup(uint16_t step) {
 					hand.push_back(pcard);
 					pcard->current.controler = p;
 					pcard->current.location = LOCATION_HAND;
-					pcard->current.sequence = hand.size() - 1;
+					pcard->current.sequence = static_cast<uint32_t>(hand.size() - 1);
 					pcard->current.position = POS_FACEDOWN;
 				}
 

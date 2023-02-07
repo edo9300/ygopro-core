@@ -1054,7 +1054,7 @@ int32_t field::get_control(uint16_t step, effect* reason_effect, uint8_t chose_p
 			message->write<uint8_t>(HINT_SELECTMSG);
 			message->write<uint8_t>(playerid);
 			message->write<uint64_t>(502);
-			uint32_t ct = targets->container.size() - fcount;
+			uint16_t ct = static_cast<uint16_t>(targets->container.size() - fcount);
 			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, ct + (ct << 16));
 		} else
 			core.units.begin()->step = 1;
@@ -1125,7 +1125,7 @@ int32_t field::get_control(uint16_t step, effect* reason_effect, uint8_t chose_p
 	}
 	case 7: {
 		core.operated_set = targets->container;
-		returns.set<int32_t>(0, targets->container.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
 		pduel->delete_group(targets);
 		return TRUE;
 	}
@@ -1304,7 +1304,7 @@ int32_t field::control_adjust(uint16_t step) {
 					core.units.begin()->step = 4;
 				} else {
 					core.units.begin()->arg1 = 0;
-					uint32_t count = core.control_adjust_set[0].size() - core.control_adjust_set[1].size() - b1;
+					uint32_t count = static_cast<uint32_t>(core.control_adjust_set[0].size() - core.control_adjust_set[1].size() - b1);
 					core.select_cards.clear();
 					for(auto& pcard : core.control_adjust_set[0])
 						core.select_cards.push_back(pcard);
@@ -1323,7 +1323,7 @@ int32_t field::control_adjust(uint16_t step) {
 					core.units.begin()->step = 4;
 				} else {
 					core.units.begin()->arg1 = 1;
-					uint32_t count = core.control_adjust_set[1].size() - core.control_adjust_set[0].size() - b0;
+					uint32_t count = static_cast<uint32_t>(core.control_adjust_set[1].size() - core.control_adjust_set[0].size() - b0);
 					core.select_cards.clear();
 					for(auto& pcard : core.control_adjust_set[1])
 						core.select_cards.push_back(pcard);
@@ -1985,7 +1985,7 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		else
 			min = 2;
 		if(tributes)
-			min -= tributes->size();
+			min -= static_cast<int32_t>(tributes->size());
 		if(min > 0) {
 			effect_set eset;
 			target->filter_effect(EFFECT_DECREASE_TRIBUTE, &eset);
@@ -2932,7 +2932,7 @@ int32_t field::sset_g(uint16_t step, uint8_t setplayer, uint8_t toplayer, group*
 		return FALSE;
 	}
 	case 8: {
-		returns.set<int32_t>(0, core.operated_set.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(core.operated_set.size()));
 		return TRUE;
 	}
 	}
@@ -3721,7 +3721,7 @@ int32_t field::special_summon(uint16_t step, effect* reason_effect, uint8_t reas
 	case 5: {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
-		returns.set<int32_t>(0, targets->container.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
 		pduel->delete_group(targets);
 		return TRUE;
 	}
@@ -3953,7 +3953,7 @@ int32_t field::destroy(uint16_t step, group* targets, effect* reason_effect, uin
 			else
 				++cit;
 		}
-		returns.set<int32_t>(0, core.operated_set.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(core.operated_set.size()));
 		pduel->delete_group(targets);
 		return TRUE;
 	}
@@ -4172,7 +4172,7 @@ int32_t field::release(uint16_t step, group* targets, effect* reason_effect, uin
 		core.dec_count_reserve.clear();
 		core.operated_set.clear();
 		core.operated_set = targets->container;
-		returns.set<int32_t>(0, targets->container.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
 		pduel->delete_group(targets);
 		return TRUE;
 	}
@@ -4357,14 +4357,14 @@ int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uin
 		if(param->cv.size() > 1)
 			std::sort(param->cv.begin(), param->cv.end(), card::card_operation_sort);
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-			int32_t d0 = player[0].list_main.size() - 1, s0 = d0;
-			int32_t d1 = player[1].list_main.size() - 1, s1 = d1;
+			size_t d0 = player[0].list_main.size() - 1, s0 = d0;
+			size_t d1 = player[1].list_main.size() - 1, s1 = d1;
 			for(auto& pcard : param->cv) {
 				if(pcard->current.location != LOCATION_DECK)
 					continue;
-				if((pcard->current.controler == 0) && (pcard->current.sequence == (uint32_t)s0))
+				if((pcard->current.controler == 0) && (pcard->current.sequence == static_cast<uint32_t>(s0)))
 					--s0;
-				if((pcard->current.controler == 1) && (pcard->current.sequence == (uint32_t)s1))
+				if((pcard->current.controler == 1) && (pcard->current.sequence == static_cast<uint32_t>(s1)))
 					--s1;
 			}
 			if((s0 != d0) && (s0 > 0)) {
@@ -4372,7 +4372,7 @@ int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uin
 				if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
 					auto message = pduel->new_message(MSG_DECK_TOP);
 					message->write<uint8_t>(0);
-					message->write<uint32_t>(d0 - s0);
+					message->write<uint32_t>(static_cast<uint32_t>(d0 - s0));
 					message->write<uint32_t>(ptop->data.code);
 					message->write<uint32_t>(ptop->current.position);
 				}
@@ -4692,7 +4692,7 @@ int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uin
 	case 11: {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
-		returns.set<int32_t>(0, targets->container.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
 		pduel->delete_group(targets);
 		return TRUE;
 	}
@@ -4818,7 +4818,7 @@ int32_t field::discard_deck(uint16_t step, uint8_t playerid, uint8_t count, uint
 	case 2: {
 		core.operated_set.clear();
 		core.operated_set = core.discarded_set;
-		returns.set<int32_t>(0, core.discarded_set.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(core.discarded_set.size()));
 		core.discarded_set.clear();
 		return TRUE;
 	}
@@ -5271,7 +5271,7 @@ int32_t field::change_position(uint16_t step, group* targets, effect* reason_eff
 	case 5: {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
-		returns.set<int32_t>(0, targets->container.size());
+		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
 		pduel->delete_group(targets);
 		return TRUE;
 	}
@@ -5609,7 +5609,7 @@ int32_t field::select_release_cards(int16_t step, uint8_t playerid, uint8_t canc
 			core.select_cards.insert(core.select_cards.begin(), core.release_cards_ex_oneof.begin(), core.release_cards_ex_oneof.end());
 		}
 		if(allmust)
-			min = core.release_cards_ex.size();
+			min = static_cast<int32_t>(core.release_cards_ex.size());
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(playerid);
@@ -5623,7 +5623,7 @@ int32_t field::select_release_cards(int16_t step, uint8_t playerid, uint8_t canc
 			delete must_choose_one;
 		if(return_cards.canceled)
 			return TRUE;
-		int32_t count = return_cards.list.size();
+		int32_t count = static_cast<int32_t>(return_cards.list.size());
 		core.operated_set.insert(return_cards.list.begin(), return_cards.list.end());
 		if((min-count) > 0) {
 			/*something wrong happened when selecting*/
@@ -5662,7 +5662,7 @@ int32_t field::select_release_cards(int16_t step, uint8_t playerid, uint8_t canc
 			}
 		}
 
-		int32_t curmax = max - core.operated_set.size();
+		int32_t curmax = static_cast<int32_t>(max - core.operated_set.size());
 		if(!must_chosen) {
 			--curmax;
 		}
@@ -5818,7 +5818,7 @@ int32_t field::select_tribute_cards(int16_t step, card* target, uint8_t playerid
 		return FALSE;
 	}
 	case 2: {
-		uint32_t rmin = core.operated_set.size();
+		uint32_t rmin = static_cast<uint32_t>(core.operated_set.size());
 		uint32_t rmax = 0;
 		for(auto& pcard : core.operated_set)
 			rmax += pcard->release_param;
@@ -5895,7 +5895,7 @@ int32_t field::select_tribute_cards(int16_t step, card* target, uint8_t playerid
 					core.units.begin()->peffect = nullptr;
 			}
 		}
-		uint32_t rmin = core.operated_set.size();
+		uint32_t rmin = static_cast<uint32_t>(core.operated_set.size());
 		uint32_t rmax = 0;
 		for(auto& pcard : core.operated_set)
 			rmax += pcard->release_param;

@@ -151,7 +151,7 @@ void card::get_infos(int32_t query_flag) {
 	if(query_flag & QUERY_TARGET_CARD) {
 		insert_value<uint16_t>(pduel->query_buffer, sizeof(uint32_t) + sizeof(uint32_t) + static_cast<uint16_t>(effect_target_cards.size()) * (sizeof(uint16_t) + sizeof(uint64_t)));
 		insert_value<uint32_t>(pduel->query_buffer, QUERY_TARGET_CARD);
-		insert_value<uint32_t>(pduel->query_buffer, effect_target_cards.size());
+		insert_value<uint32_t>(pduel->query_buffer, static_cast<uint32_t>(effect_target_cards.size()));
 		for(auto& pcard : effect_target_cards) {
 			loc_info info = pcard->get_info_location();
 			insert_value<uint8_t>(pduel->query_buffer, info.controler);
@@ -163,14 +163,14 @@ void card::get_infos(int32_t query_flag) {
 	if(query_flag & QUERY_OVERLAY_CARD) {
 		insert_value<uint16_t>(pduel->query_buffer, sizeof(uint32_t) + sizeof(uint32_t) + static_cast<uint16_t>(xyz_materials.size()) * sizeof(uint32_t));
 		insert_value<uint32_t>(pduel->query_buffer, QUERY_OVERLAY_CARD);
-		insert_value<uint32_t>(pduel->query_buffer, xyz_materials.size());
+		insert_value<uint32_t>(pduel->query_buffer, static_cast<uint32_t>(xyz_materials.size()));
 		for(auto& xcard : xyz_materials)
 			insert_value<uint32_t>(pduel->query_buffer, xcard->data.code);
 	}
 	if(query_flag & QUERY_COUNTERS) {
 		insert_value<uint16_t>(pduel->query_buffer, sizeof(uint32_t) + sizeof(uint32_t) + static_cast<uint16_t>(counters.size()) * sizeof(uint32_t));
 		insert_value<uint32_t>(pduel->query_buffer, QUERY_COUNTERS);
-		insert_value<uint32_t>(pduel->query_buffer, counters.size());
+		insert_value<uint32_t>(pduel->query_buffer, static_cast<uint32_t>(counters.size()));
 		for(auto& cmit : counters)
 			insert_value<uint32_t>(pduel->query_buffer, cmit.first + ((cmit.second[0] + cmit.second[1]) << 16));
 	}
@@ -575,10 +575,10 @@ int32_t card::get_base_attack() {
 		bdef = 0;
 	temp.base_attack = batk;
 	effect_set eset;
-	int32_t swap = 0;
+	bool swap = false;
 	if(!(data.type & TYPE_LINK)) {
 		filter_effect(EFFECT_SWAP_BASE_AD, &eset, FALSE);
-		swap = eset.size();
+		swap = !eset.empty();
 	}
 	filter_effect(EFFECT_SET_BASE_ATTACK, &eset, FALSE);
 	if(swap)
@@ -778,7 +778,7 @@ int32_t card::get_base_defense() {
 	temp.base_defense = bdef;
 	effect_set eset;
 	filter_effect(EFFECT_SWAP_BASE_AD, &eset, FALSE);
-	int32_t swap = eset.size();
+	bool swap = !eset.empty();
 	filter_effect(EFFECT_SET_BASE_DEFENSE, &eset, FALSE);
 	if(swap)
 		filter_effect(EFFECT_SET_BASE_ATTACK, &eset, FALSE);
@@ -1684,7 +1684,7 @@ void card::xyz_add(card* mat) {
 	mat->overlay_target = this;
 	mat->current.controler = PLAYER_NONE;
 	mat->current.location = LOCATION_OVERLAY;
-	mat->current.sequence = xyz_materials.size() - 1;
+	mat->current.sequence = static_cast<uint32_t>(xyz_materials.size() - 1);
 	for(auto& eit : mat->xmaterial_effect) {
 		effect* peffect = eit.second;
 		if(peffect->type & EFFECT_TYPE_FIELD)
@@ -3394,7 +3394,7 @@ int32_t card::is_special_summonable(uint8_t playerid, uint32_t summon_type) {
 	effect_set eset;
 	filter_spsummon_procedure(playerid, &eset, summon_type);
 	pduel->game_field->restore_lp_cost();
-	return eset.size();
+	return static_cast<uint32_t>(eset.size());
 }
 int32_t card::is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype, uint8_t sumpos, uint8_t sumplayer, uint8_t toplayer, uint8_t nocheck, uint8_t nolimit, uint32_t zone) {
 	if(reason_effect->get_handler() == this)

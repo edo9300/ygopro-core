@@ -772,14 +772,14 @@ int32_t field::select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
-		int32_t tot = return_cards.list.size();
+		int32_t tot = static_cast<int32_t>(return_cards.list.size());
 		if (max) {
 			if(tot < min || tot > max) {
 				return_cards.clear();
 				pduel->new_message(MSG_RETRY);
 				return FALSE;
 			}
-			int32_t mcount = core.must_select_cards.size();
+			int32_t mcount = static_cast<int32_t>(core.must_select_cards.size());
 			std::vector<int32_t> oparam;
 			for(auto& list : { &core.must_select_cards , &return_cards.list })
 				for(auto& pcard : *list)
