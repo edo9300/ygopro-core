@@ -3724,6 +3724,11 @@ LUA_FUNCTION(IsDuelType) {
 	lua_pushboolean(L, pduel->game_field->is_flag(duel_type));
 	return 1;
 }
+LUA_FUNCTION(GetDuelType) {
+	const auto pduel = lua_get<duel*>(L);
+	lua_pushinteger(L, pduel->game_field->core.duel_options);
+	return 1;
+}
 LUA_FUNCTION(IsPlayerAffectedByEffect) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
