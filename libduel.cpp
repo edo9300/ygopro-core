@@ -191,7 +191,7 @@ LUA_FUNCTION(Destroy) {
 	const auto pduel = lua_get<duel*>(L);
 	auto reason = lua_get<uint32_t>(L, 2);
 	auto dest = lua_get<uint16_t, LOCATION_GRAVE>(L, 3);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 4);
+	auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	if(pcard)
 		pduel->game_field->destroy(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, PLAYER_NONE, dest, 0);
 	else
@@ -211,7 +211,7 @@ LUA_FUNCTION(Remove) {
 	auto pos = lua_get<uint8_t, 0>(L, 2);
 	auto reason = lua_get<uint32_t>(L, 3);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 5);
+	auto reasonplayer = lua_get<uint8_t>(L, 5, pduel->game_field->core.reason_player);
 	if (pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_REMOVED, 0, pos);
 	else
@@ -230,7 +230,7 @@ LUA_FUNCTION(SendtoGrave) {
 	const auto pduel = lua_get<duel*>(L);
 	auto reason = lua_get<uint32_t>(L, 2);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 3);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 4);
+	auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	if (pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
 	else
@@ -496,7 +496,7 @@ LUA_FUNCTION(SendtoHand) {
 	if(playerid > PLAYER_NONE)
 		return 0;
 	auto reason = lua_get<uint32_t>(L, 3);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 4);
+	auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_HAND, 0, POS_FACEUP);
 	else
@@ -518,7 +518,7 @@ LUA_FUNCTION(SendtoDeck) {
 		return 0;
 	auto sequence = lua_get<int32_t>(L, 3);
 	auto reason = lua_get<uint32_t>(L, 4);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 5);
+	auto reasonplayer = lua_get<uint8_t>(L, 5, pduel->game_field->core.reason_player);
 	uint16_t location = (sequence == -2) ? 0 : LOCATION_DECK;
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, POS_FACEUP);
@@ -540,7 +540,7 @@ LUA_FUNCTION(SendtoExtraP) {
 	if(playerid > PLAYER_NONE)
 		return 0;
 	auto reason = lua_get<uint32_t>(L, 3);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 4);
+	auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
 	else
@@ -564,7 +564,7 @@ LUA_FUNCTION(Sendto) {
 	if(playerid > PLAYER_NONE)
 		return 0;
 	auto sequence = lua_get<uint32_t, 0>(L, 6);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 7);
+	auto reasonplayer = lua_get<uint8_t>(L, 7, pduel->game_field->core.reason_player);
 	if(pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, pos, TRUE);
 	else
@@ -709,7 +709,7 @@ LUA_FUNCTION(Release) {
 	get_card_or_group(L, 1, pcard, pgroup);
 	const auto pduel = lua_get<duel*>(L);
 	auto reason = lua_get<uint32_t>(L, 2);
-	auto reasonplayer = lua_get<uint8_t, pduel->game_field->core.reason_player>(L, 3);
+	auto reasonplayer = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
 	if(pcard)
 		pduel->game_field->release(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer);
 	else
