@@ -273,14 +273,14 @@ public:
 
 	void count_turn(uint16_t ct);
 	void create_relation(card* target, uint32_t reset);
-	int32_t is_has_relation(card* target);
+	int32_t is_has_relation(card* target) const;
 	void release_relation(card* target);
 	void create_relation(const chain& ch);
-	int32_t is_has_relation(const chain& ch);
+	int32_t is_has_relation(const chain& ch) const;
 	void release_relation(const chain& ch);
 	void clear_relate_effect();
 	void create_relation(effect* peffect);
-	int32_t is_has_relation(effect* peffect);
+	int32_t is_has_relation(effect* peffect) const;
 	void release_relation(effect* peffect);
 	int32_t leave_field_redirect(uint32_t reason);
 	int32_t destination_redirect(uint8_t destination, uint32_t reason);

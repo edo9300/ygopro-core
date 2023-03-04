@@ -2194,27 +2194,19 @@ void card::count_turn(uint16_t ct) {
 	message->write<uint64_t>(ct);
 }
 void card::create_relation(card* target, uint32_t reset) {
-	if (relations.find(target) != relations.end())
-		return;
-	relations[target] = reset;
+	relations.insert(std::make_pair(target, reset));
 }
-int32_t card::is_has_relation(card* target) {
-	if (relations.find(target) != relations.end())
-		return TRUE;
-	return FALSE;
+int32_t card::is_has_relation(card* target) const {
+	return relations.find(target) != relations.end();
 }
 void card::release_relation(card* target) {
-	if (relations.find(target) == relations.end())
-		return;
 	relations.erase(target);
 }
 void card::create_relation(const chain& ch) {
 	relate_effect.emplace(ch.triggering_effect, ch.chain_id);
 }
-int32_t card::is_has_relation(const chain& ch) {
-	if (relate_effect.find(std::make_pair(ch.triggering_effect, ch.chain_id)) != relate_effect.end())
-		return TRUE;
-	return FALSE;
+int32_t card::is_has_relation(const chain& ch) const {
+	return relate_effect.find(std::make_pair(ch.triggering_effect, ch.chain_id)) != relate_effect.end();
 }
 void card::release_relation(const chain& ch) {
 	relate_effect.erase(std::make_pair(ch.triggering_effect, ch.chain_id));
@@ -2231,7 +2223,7 @@ void card::create_relation(effect* peffect) {
 	}
 	relate_effect.emplace(peffect, (uint16_t)0);
 }
-int32_t card::is_has_relation(effect* peffect) {
+int32_t card::is_has_relation(effect* peffect) const {
 	for(auto& it : relate_effect) {
 		if(it.first == peffect)
 			return TRUE;

@@ -6,10 +6,6 @@
 
 #define DUEL (static_cast<class duel*>(duel))
 
-void DefaultLogHandler(void* payload, const char* string, int type);
-
-void DefaultCardReaderDone(void* payload, OCG_CardData* data);
-
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
 		*major = OCG_VERSION_MAJOR;
@@ -29,11 +25,11 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* return_duel_ptr, OCG_DuelOptions options) {
 		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
 	}
 	if(options.logHandler == nullptr) {
-		options.logHandler = DefaultLogHandler;
+		options.logHandler = [](void* /*payload*/, const char* /*string*/, int /*type*/) {};
 		options.payload3 = nullptr;
 	}
 	if(options.cardReaderDone == nullptr) {
-		options.cardReaderDone = DefaultCardReaderDone;
+		options.cardReaderDone = [](void* /*payload*/, OCG_CardData* /*data*/) {};
 		options.payload4 = nullptr;
 	}
 	auto* duelPtr = new (std::nothrow) duel(options);
@@ -267,10 +263,4 @@ OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
 	if(length)
 		*length = static_cast<uint32_t>(query.size());
 	return query.data();
-}
-
-void DefaultLogHandler(void* /*payload*/, const char* /*string*/, int /*type*/) {
-}
-
-void DefaultCardReaderDone(void* /*payload*/, OCG_CardData* /*data*/) {
 }
