@@ -120,7 +120,7 @@ int32_t effect::is_available() {
 // reset_count: count of effect reset
 // count_limit: left count of activation
 // count_limit_max: max count of activation
-int32_t effect::check_count_limit(uint8_t playerid) {
+int32_t effect::check_count_limit(uint8_t playerid) const {
 	if(is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
 		if(count_limit == 0)
 			return FALSE;
