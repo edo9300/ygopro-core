@@ -4675,7 +4675,7 @@ int32_t field::add_chain(uint16_t step) {
 			core.select_options.clear();
 			effect_set eset;
 			phandler->filter_effect(ecode, &eset);
-			bool has_no_side_effect_effs;
+			bool has_no_side_effect_effs = false;
 			if(!eset.empty()) {
 				for(const auto& peff : eset) {
 					if(peff->has_function_value() || peff->has_count_limit()) {
