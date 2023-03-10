@@ -3,16 +3,9 @@ local ocgcore_config=function()
 	warnings "Extra"
 	optimize "Speed"
 	cppdialect "C++14"
-	defines "LUA_COMPAT_5_2"
 
 	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
-
-	filter "system:linux"
-		defines "LUA_USE_LINUX"
-
-	filter "system:macosx"
-		defines "LUA_USE_MACOSX"
 end
 
 if not subproject then
