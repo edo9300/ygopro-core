@@ -5,6 +5,7 @@
  *      Author: Argon
  */
 
+#include <algorithm>
 #include "scriptlib.h"
 #include "duel.h"
 #include "field.h"
@@ -810,6 +811,11 @@ LUA_FUNCTION(IsSummonCode) {
 	lua_pushboolean(L, found);
 	return 1;
 }
+inline bool set_contains_setcode(const std::set<uint16_t>& setcodes, uint16_t to_match_setcode) {
+	return std::any_of(setcodes.cbegin(), setcodes.cend(), [to_match_setcode](uint16_t setcode) {
+		return card::match_setcode(to_match_setcode, setcode);
+	});
+}
 LUA_FUNCTION(IsSetCard) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
@@ -825,12 +831,7 @@ LUA_FUNCTION(IsSetCard) {
 	} else
 		pcard->get_set_card(setcodes);
 	bool found = lua_find_in_table_or_in_stack(L, 2, 2, [L, &setcodes] {
-		const auto set_code = lua_get<uint16_t>(L, -1);
-		for(auto setcode : setcodes) {
-			if(card::match_setcode(set_code, setcode))
-				return true;
-		}
-		return false;
+		return set_contains_setcode(setcodes, lua_get<uint16_t>(L, -1));
 	});
 	lua_pushboolean(L, found);
 	return 1;
@@ -840,12 +841,7 @@ LUA_FUNCTION(IsOriginalSetCard) {
 	auto pcard = lua_get<card*, true>(L, 1);
 	const auto& setcodes = pcard->get_origin_set_card();
 	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, &setcodes] {
-		const auto set_code = lua_get<uint16_t>(L, -1);
-		for(auto setcode : setcodes) {
-			if(card::match_setcode(set_code, setcode))
-				return true;
-		}
-		return false;
+		return set_contains_setcode(setcodes, lua_get<uint16_t>(L, -1));
 	});
 	lua_pushboolean(L, found);
 	return 1;
@@ -856,12 +852,7 @@ LUA_FUNCTION(IsPreviousSetCard) {
 	std::set<uint16_t> setcodes;
 	pcard->get_pre_set_card(setcodes);
 	bool found = lua_find_in_table_or_in_stack(L, 2, 2, [L, &setcodes] {
-		const auto set_code = lua_get<uint16_t>(L, -1);
-		for(auto setcode : setcodes) {
-			if(card::match_setcode(set_code, setcode))
-				return true;
-		}
-		return false;
+		return set_contains_setcode(setcodes, lua_get<uint16_t>(L, -1));
 	});
 	lua_pushboolean(L, found);
 	return 1;
