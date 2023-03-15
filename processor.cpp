@@ -4678,13 +4678,13 @@ int32_t field::add_chain(uint16_t step) {
 			bool has_no_side_effect_effs = false;
 			if(!eset.empty()) {
 				for(const auto& peff : eset) {
-					if(peff->has_function_value() || peff->has_count_limit()) {
+					if(peff->has_function_value() || peff->has_count_limit() || peff->has_condition() || peff->has_target()) {
 						if(peff->check_count_limit(phandler->current.controler)) {
 							core.select_effects.push_back(peff);
 							core.select_options.push_back(peff->description);
 						}
 					} else {
-						has_no_side_effect_effs = has_no_side_effect_effs || true;
+						has_no_side_effect_effs = true;
 					}
 				}
 				if(core.select_options.empty()) {
