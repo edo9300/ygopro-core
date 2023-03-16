@@ -1266,22 +1266,27 @@ LUA_FUNCTION(Equip) {
 }
 LUA_FUNCTION(EquipComplete) {
 	const auto pduel = lua_get<duel*>(L);
+	const auto& field = pduel->game_field;
+	auto& core = field->core;
 	card_set etargets;
-	for(auto& equip_card : pduel->game_field->core.equiping_cards) {
+	for(auto& equip_card : core.equiping_cards) {
 		if(equip_card->is_position(POS_FACEUP))
 			equip_card->enable_field_effect(true);
 		etargets.insert(equip_card->equiping_target);
 	}
-	pduel->game_field->adjust_instant();
-	for(auto& equip_target : etargets)
-		pduel->game_field->raise_single_event(equip_target, &pduel->game_field->core.equiping_cards, EVENT_EQUIP,
-		                                      pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, PLAYER_NONE, 0);
-	pduel->game_field->raise_event(&pduel->game_field->core.equiping_cards, EVENT_EQUIP,
-	                               pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, PLAYER_NONE, 0);
-	pduel->game_field->core.hint_timing[0] |= TIMING_EQUIP;
-	pduel->game_field->core.hint_timing[1] |= TIMING_EQUIP;
-	pduel->game_field->process_single_event();
-	pduel->game_field->process_instant_event();
+	if (etargets.size() == 0)
+		return 0;
+	field->adjust_instant();
+	for(auto& equip_target : etargets) {
+		field->raise_single_event(equip_target, &core.equiping_cards, EVENT_EQUIP,
+		                          core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
+	}
+	field->raise_event(&core.equiping_cards, EVENT_EQUIP,
+	                               core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
+	core.hint_timing[0] |= TIMING_EQUIP;
+	core.hint_timing[1] |= TIMING_EQUIP;
+	field->process_single_event();
+	field->process_instant_event();
 	return lua_yield(L, 0);
 }
 LUA_FUNCTION(GetControl) {
