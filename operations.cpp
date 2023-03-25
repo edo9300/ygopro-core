@@ -4357,8 +4357,8 @@ int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uin
 		if(param->cv.size() > 1)
 			std::sort(param->cv.begin(), param->cv.end(), card::card_operation_sort);
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-			size_t d0 = player[0].list_main.size() - 1, s0 = d0;
-			size_t d1 = player[1].list_main.size() - 1, s1 = d1;
+			int32_t d0 = static_cast<int32_t>(player[0].list_main.size() - 1), s0 = d0;
+			int32_t d1 = static_cast<int32_t>(player[1].list_main.size() - 1), s1 = d1;
 			for(auto& pcard : param->cv) {
 				if(pcard->current.location != LOCATION_DECK)
 					continue;
