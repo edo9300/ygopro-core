@@ -90,12 +90,6 @@ public:
 	bool has_function_value() const {
 		return is_flag(EFFECT_FLAG_FUNC_VALUE);
 	}
-	bool has_condition() const {
-		return !!condition;
-	}
-	bool has_target() const {
-		return !!target;
-	}
 	lua_Integer get_value(uint32_t extraargs = 0);
 	lua_Integer get_value(card* pcard, uint32_t extraargs = 0);
 	lua_Integer get_value(effect* peffect, uint32_t extraargs = 0);
