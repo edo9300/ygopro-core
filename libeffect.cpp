@@ -118,7 +118,9 @@ LUA_FUNCTION(SetAbsoluteRange) {
 LUA_FUNCTION(SetCountLimit) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	auto v = lua_get<uint8_t>(L, 2);
+	auto count = lua_get<uint8_t>(L, 2);
+	if(count == 0)
+		lua_error(L, "The count must not be 0");
 	uint8_t hopt_index = 0;
 	uint32_t code = 0;
 	if(lua_istable(L, 3)) {
@@ -138,11 +140,11 @@ LUA_FUNCTION(SetCountLimit) {
 	} else
 		code = lua_get<uint32_t, 0>(L, 3);
 	uint8_t flag = lua_get<uint8_t, 0>(L, 4);
-	if(v == 0)
-		v = 1;
+	if((flag & EFFECT_COUNT_CODE_DUEL) != 0 && code == 0)
+		lua_error(L, "EFFECT_COUNT_CODE_DUEL must have an associated code");
 	peffect->flag[0] |= EFFECT_FLAG_COUNT_LIMIT;
-	peffect->count_limit = v;
-	peffect->count_limit_max = v;
+	peffect->count_limit = count;
+	peffect->count_limit_max = count;
 	peffect->count_code = code;
 	peffect->count_flag = flag;
 	peffect->count_hopt_index = hopt_index;
