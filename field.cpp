@@ -1376,6 +1376,9 @@ void field::reset_phase(uint32_t phase) {
 	}
 }
 void field::reset_chain() {
+	for(const auto& ch_lim_p : core.chain_limit_p)
+		luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
+	core.chain_limit_p.clear();
 	for(auto eit = effects.cheff.begin(); eit != effects.cheff.end();) {
 		auto rm = eit++;
 		if((*rm)->is_flag(EFFECT_FLAG_FIELD_ONLY))
