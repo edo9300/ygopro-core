@@ -583,7 +583,7 @@ void effect::dec_count(uint32_t playerid) {
 		return;
 	if(count_limit == 0)
 		return;
-	if(count_code == 0 || is_flag(EFFECT_FLAG_NO_TURN_RESET))
+	if((count_code == 0 && count_flag == 0) || is_flag(EFFECT_FLAG_NO_TURN_RESET))
 		count_limit -= 1;
 	if(count_code || count_flag) {
 		if(count_flag & EFFECT_COUNT_CODE_SINGLE)
