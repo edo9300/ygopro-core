@@ -465,6 +465,7 @@ public:
 	void release_oath_relation(effect* reason_effect);
 	void reset_phase(uint32_t phase);
 	void reset_chain();
+	processor::effect_count_map& get_count_map(uint8_t flag);
 	void add_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid);
 	uint32_t get_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid);
 	void dec_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid);

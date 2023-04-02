@@ -1387,22 +1387,30 @@ void field::reset_chain() {
 			(*rm)->handler->remove_effect((*rm));
 	}
 }
+processor::effect_count_map& field::get_count_map(uint8_t flag) {
+	if(flag & EFFECT_COUNT_CODE_DUEL)
+		return core.effect_count_code_duel;
+	return core.effect_count_code;
+}
+static inline uint64_t generate_count_map_key(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid) {
+	return static_cast<uint64_t>(code) << 32 | (hopt_index << 16 | flag << 8 | playerid);
+}
 void field::add_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid) {
-	auto& count_map = (flag & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
-	const auto key = static_cast<uint64_t>(code) << 32 | hopt_index << 16 | flag << 8 | playerid;
+	auto& count_map = get_count_map(flag);
+	const auto key = generate_count_map_key(code, hopt_index, flag, playerid);
 	++count_map[key];
 }
 uint32_t field::get_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid) {
-	const auto& count_map = (flag & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
-	const auto key = static_cast<uint64_t>(code) << 32 | hopt_index << 16 | flag << 8 | playerid;
+	const auto& count_map = get_count_map(flag);
+	const auto key = generate_count_map_key(code, hopt_index, flag, playerid);
 	auto iter = count_map.find(key);
 	if(iter == count_map.end())
 		return 0;
 	return iter->second;
 }
 void field::dec_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid) {
-	auto& count_map = (flag & EFFECT_COUNT_CODE_DUEL) ? core.effect_count_code_duel : core.effect_count_code;
-	const auto key = static_cast<uint64_t>(code) << 32 | hopt_index << 16 | flag << 8 | playerid;
+	auto& count_map = get_count_map(flag);
+	const auto key = generate_count_map_key(code, hopt_index, flag, playerid);
 	auto iter = count_map.find(key);
 	if(iter == count_map.end())
 		return;
