@@ -1379,6 +1379,7 @@ void field::reset_chain() {
 	for(const auto& ch_lim_p : core.chain_limit_p)
 		luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 	core.chain_limit_p.clear();
+	core.effect_count_code_chain.clear();
 	for(auto eit = effects.cheff.begin(); eit != effects.cheff.end();) {
 		auto rm = eit++;
 		if((*rm)->is_flag(EFFECT_FLAG_FIELD_ONLY))
@@ -1390,6 +1391,8 @@ void field::reset_chain() {
 processor::effect_count_map& field::get_count_map(uint8_t flag) {
 	if(flag & EFFECT_COUNT_CODE_DUEL)
 		return core.effect_count_code_duel;
+	if(flag & EFFECT_COUNT_CODE_CHAIN)
+		return core.effect_count_code_chain;
 	return core.effect_count_code;
 }
 static inline uint64_t generate_count_map_key(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid) {

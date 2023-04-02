@@ -295,6 +295,7 @@ struct processor {
 	std::unordered_set<card*> unique_cards[2];
 	effect_count_map effect_count_code;
 	effect_count_map effect_count_code_duel;
+	effect_count_map effect_count_code_chain;
 	std::unordered_map<uint32_t, uint32_t> spsummon_once_map[2];
 	std::unordered_map<uint32_t, uint32_t> spsummon_once_map_rst[2];
 	std::multimap<int32_t, card*, std::greater<int32_t>> xmaterial_lst;

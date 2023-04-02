@@ -5,6 +5,8 @@
 #ifndef EFFECT_CONSTANTS_H_
 #define EFFECT_CONSTANTS_H_
 
+#include <cstdint>
+
 //status
 #define EFFECT_STATUS_AVAILABLE 0x0001
 //#define EFFECT_STATUS_ACTIVATED 0x0002
@@ -13,6 +15,7 @@
 #define EFFECT_COUNT_CODE_OATH   0x1
 #define EFFECT_COUNT_CODE_DUEL   0x2
 #define EFFECT_COUNT_CODE_SINGLE 0x4
+#define EFFECT_COUNT_CODE_CHAIN  0x8
 
 //========== Reset ==========
 #define RESET_SELF_TURN 0x10000000
