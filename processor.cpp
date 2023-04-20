@@ -580,7 +580,7 @@ int32_t field::process() {
 		return PROCESSOR_FLAG_CONTINUE;
 	}
 	case PROCESSOR_ANNOUNCE_RACE: {
-		if(announce_race(it->step, it->arg1 & 0xffff, it->arg1 >> 16, it->arg2)) {
+		if(announce_race(it->step, static_cast<uint8_t>(it->arg1), static_cast<uint8_t>(static_cast<uint64_t>(it->arg1) >> 16), static_cast<uint64_t>(it->arg2))) {
 			core.units.pop_front();
 			return PROCESSOR_FLAG_CONTINUE;
 		} else {
@@ -589,7 +589,7 @@ int32_t field::process() {
 		return PROCESSOR_FLAG_WAITING;
 	}
 	case PROCESSOR_ANNOUNCE_ATTRIB: {
-		if(announce_attribute(it->step, it->arg1 & 0xffff, it->arg1 >> 16, it->arg2)) {
+		if(announce_attribute(it->step, static_cast<uint8_t>(it->arg1), static_cast<uint8_t>(static_cast<uint64_t>(it->arg1) >> 16), static_cast<uint32_t>(it->arg2))) {
 			core.units.pop_front();
 			return PROCESSOR_FLAG_CONTINUE;
 		} else {
