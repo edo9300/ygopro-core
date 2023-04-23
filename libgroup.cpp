@@ -12,6 +12,7 @@
 #include "card.h"
 #include "effect.h"
 #include "duel.h"
+#include "bit.h"
 
 #define LUA_MODULE Group
 #include "function_array_helper.h"
@@ -864,15 +865,9 @@ LUA_FUNCTION(GetBinClassCount) {
 	const auto pduel = lua_get<duel*>(L);
 	int32_t extraargs = lua_gettop(L) - 2;
 	uint64_t er = 0;
-	for(auto& pcard : pgroup->container) {
+	for(auto& pcard : pgroup->container)
 		er |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, findex, extraargs));
-	}
-	int32_t ans = 0;
-	while(er) {
-		er &= er - 1;
-		++ans;
-	}
-	lua_pushinteger(L, ans);
+	lua_pushinteger(L, bit::popcnt(er));
 	return 1;
 }
 LUA_FUNCTION_EXISTING(GetLuaRef, get_lua_ref<group>);
