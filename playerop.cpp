@@ -874,7 +874,7 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, uint8_t count, uint
 		return FALSE;
 	} else {
 		uint64_t selected_races = returns.at<uint64_t>(0);
-		if(bit::has_invalid_bits(available, selected_races)) {
+		if(bit::has_invalid_bits(selected_races, available)) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
@@ -906,7 +906,7 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, uint8_t count,
 		return FALSE;
 	} else {
 		auto selected_attributes = returns.at<uint32_t>(0);
-		if(bit::has_invalid_bits(available, selected_attributes)) {
+		if(bit::has_invalid_bits(selected_attributes, available)) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}

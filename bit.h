@@ -16,8 +16,8 @@ inline uint8_t popcnt(T val) {
 }
 
 template<typename T, typename T2>
-inline bool has_invalid_bits(T available, T2 selected) {
-	return (selected & (~available)) != 0;
+inline bool has_invalid_bits(T value, T2 allowed) {
+	return (value & (~allowed)) != 0;
 }
 
 }
