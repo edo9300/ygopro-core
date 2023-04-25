@@ -2332,8 +2332,13 @@ int32_t card::add_counter(uint8_t playerid, uint16_t countertype, uint16_t count
 	message->write<uint8_t>(current.location);
 	message->write<uint8_t>(current.sequence);
 	message->write<uint16_t>(pcount);
-	pduel->game_field->raise_single_event(this, 0, EVENT_ADD_COUNTER + countertype, pduel->game_field->core.reason_effect, REASON_EFFECT, playerid, playerid, pcount);
+	const auto code = EVENT_ADD_COUNTER + countertype;
+	const auto peffect = pduel->game_field->core.reason_effect;
+	const auto reason_player = playerid;
+	pduel->game_field->raise_single_event(this, 0, code, peffect , REASON_EFFECT, playerid, playerid, pcount);
+	pduel->game_field->raise_event(this, code, peffect, REASON_EFFECT, playerid, playerid, pcount);
 	pduel->game_field->process_single_event();
+	pduel->game_field->process_instant_event();
 	return TRUE;
 }
 int32_t card::remove_counter(uint16_t countertype, uint16_t count) {
