@@ -5,6 +5,7 @@
  *      Author: Argon
  */
 
+#include "bit.h"
 #include "field.h"
 #include "duel.h"
 #include "effect.h"
@@ -857,16 +858,14 @@ int32_t field::sort_card(int16_t step, uint8_t playerid, uint8_t is_chain) {
 	}
 	return TRUE;
 }
-int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, uint64_t available) {
+int32_t field::announce_race(int16_t step, uint8_t playerid, uint8_t count, uint64_t available) {
 	if(step == 0) {
-		int32_t scount = 0;
-		for(uint64_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
-			if(ft & available)
-				++scount;
-		}
-		if(scount <= count) {
-			count = scount;
-			core.units.begin()->arg1 = (count << 16) + playerid;
+		if(count == 0) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8_t>(HINT_SELECTMSG);
+			message->write<uint8_t>(playerid);
+			message->write<uint64_t>(0);
+			return TRUE;
 		}
 		auto message = pduel->new_message(MSG_ANNOUNCE_RACE);
 		message->write<uint8_t>(playerid);
@@ -874,17 +873,12 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, uint
 		message->write<uint64_t>(available);
 		return FALSE;
 	} else {
-		uint64_t rc = returns.at<uint64_t>(0);
-		uint8_t sel = 0;
-		for(int32_t ft = 0x1; ft != 0x2000000; ft <<= 1) {
-			if(!(ft & rc)) continue;
-			if(!(ft & available)) {
-				pduel->new_message(MSG_RETRY);
-				return FALSE;
-			}
-			++sel;
+		uint64_t selected_races = returns.at<uint64_t>(0);
+		if(bit::has_invalid_bits(selected_races, available)) {
+			pduel->new_message(MSG_RETRY);
+			return FALSE;
 		}
-		if(sel != static_cast<uint8_t>(count)) {
+		if(bit::popcnt(selected_races) != count) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
@@ -896,16 +890,14 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, int32_t count, uint
 	}
 	return TRUE;
 }
-int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count, uint32_t available) {
+int32_t field::announce_attribute(int16_t step, uint8_t playerid, uint8_t count, uint32_t available) {
 	if(step == 0) {
-		int32_t scount = 0;
-		for(int32_t ft = 0x1; ft != 0x80; ft <<= 1) {
-			if(ft & available)
-				++scount;
-		}
-		if(scount <= count) {
-			count = scount;
-			core.units.begin()->arg1 = (count << 16) + playerid;
+		if(count == 0) {
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8_t>(HINT_SELECTMSG);
+			message->write<uint8_t>(playerid);
+			message->write<uint64_t>(0);
+			return TRUE;
 		}
 		auto message = pduel->new_message(MSG_ANNOUNCE_ATTRIB);
 		message->write<uint8_t>(playerid);
@@ -913,17 +905,12 @@ int32_t field::announce_attribute(int16_t step, uint8_t playerid, int32_t count,
 		message->write<uint32_t>(available);
 		return FALSE;
 	} else {
-		uint32_t rc = returns.at<uint32_t>(0);
-		int32_t sel = 0;
-		for(int32_t ft = 0x1; ft != 0x80; ft <<= 1) {
-			if(!(ft & rc)) continue;
-			if(!(ft & available)) {
-				pduel->new_message(MSG_RETRY);
-				return FALSE;
-			}
-			++sel;
+		auto selected_attributes = returns.at<uint32_t>(0);
+		if(bit::has_invalid_bits(selected_attributes, available)) {
+			pduel->new_message(MSG_RETRY);
+			return FALSE;
 		}
-		if(sel != count) {
+		if(bit::popcnt(selected_attributes) != count) {
 			pduel->new_message(MSG_RETRY);
 			return FALSE;
 		}
