@@ -952,7 +952,7 @@ LUA_FUNCTION(IsRace) {
 		playerid = lua_get<uint8_t>(L, 5);
 	else if(sumtype==SUMMON_TYPE_FUSION)
 		playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, pcard->get_race(scard, sumtype, playerid) & trace);
+	lua_pushboolean(L, (pcard->get_race(scard, sumtype, playerid) & trace) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsOriginalRace) {
@@ -962,7 +962,7 @@ LUA_FUNCTION(IsOriginalRace) {
 	if(pcard->status & STATUS_NO_LEVEL)
 		lua_pushboolean(L, FALSE);
 	else
-		lua_pushboolean(L, pcard->data.race & trace);
+		lua_pushboolean(L, (pcard->data.race & trace) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsAttribute) {
