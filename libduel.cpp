@@ -4379,7 +4379,7 @@ LUA_FUNCTION(GetStartingHand) {
 #define INFO_FUNC_FROM_CODE(lua_name,attr) \
 LUA_FUNCTION(GetCard ##lua_name ##FromCode) { \
 	check_param_count(L, 1); \
-	auto code = lua_get<uint32_t>(L, 1); \
+	auto code = lua_get<decltype(card_data::attr)>(L, 1); \
 	const auto& data = lua_get<duel*>(L)->read_card(code); \
 	if(data.code == 0) \
 		return 0; \
