@@ -30,7 +30,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 	pduel = pd;
 	no_action = 0;
 	call_depth = 0;
-	memcpy(lua_getextraspace(lua_state), &pd, LUA_EXTRASPACE);
+	memcpy(lua_getextraspace(lua_state), &pd, sizeof(duel*));
 	// Open basic and used functionality
 	auto open_lib = [L=lua_state](const char* libname, lua_CFunction openf) {
 		luaL_requiref(L, libname, openf, 1);

@@ -64,7 +64,7 @@ namespace scriptlib {
 	template<typename T, EnableIfTemplate<T, duel*> = 0>
 	inline duel* lua_get(lua_State* L) {
 		duel* pduel = nullptr;
-		memcpy(&pduel, lua_getextraspace(L), LUA_EXTRASPACE);
+		memcpy(&pduel, lua_getextraspace(L), sizeof(duel*));
 		return pduel;
 	}
 
