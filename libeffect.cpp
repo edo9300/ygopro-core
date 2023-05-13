@@ -313,6 +313,12 @@ LUA_FUNCTION(GetCode) {
 	lua_pushinteger(L, peffect->code);
 	return 1;
 }
+LUA_FUNCTION(GetRange) {
+	check_param_count(L, 1);
+	auto peffect = lua_get<effect*, true>(L, 1);
+	lua_pushinteger(L, peffect->range);
+	return 1;
+}
 LUA_FUNCTION(GetTargetRange) {
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
