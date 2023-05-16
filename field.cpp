@@ -3019,7 +3019,7 @@ int32_t field::check_chain_target(uint8_t chaincount, card* pcard) {
 	return pduel->lua->check_condition(peffect->target, 10);
 }
 chain* field::get_chain(uint8_t chaincount) {
-	if(chaincount == 0 && core.continuous_chain.size() && (core.reason_effect->type & EFFECT_TYPE_CONTINUOUS))
+	if(chaincount == 0 && core.continuous_chain.size() && (core.reason_effect != nullptr && core.reason_effect->type & EFFECT_TYPE_CONTINUOUS))
 		return &core.continuous_chain.back();
 	if(chaincount == 0 || chaincount > core.current_chain.size()) {
 		chaincount = (uint8_t)core.current_chain.size();
