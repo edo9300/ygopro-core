@@ -2614,14 +2614,19 @@ int32_t field::is_player_can_discard_deck_as_cost(uint8_t playerid, int32_t coun
 	card* topcard = player[playerid].list_main.back();
 	if((count == 1) && topcard->is_position(POS_FACEUP))
 		return topcard->is_capable_cost_to_grave(playerid);
-	bool cant_remove = !is_player_can_action(playerid, EFFECT_CANNOT_REMOVE);
+	bool cant_remove_s = !is_player_can_action(playerid, EFFECT_CANNOT_REMOVE);
+	bool cant_remove_o = !is_player_can_action(1 - playerid, EFFECT_CANNOT_REMOVE);
 	effect_set eset;
 	filter_field_effect(EFFECT_TO_GRAVE_REDIRECT, &eset);
 	for(const auto& peff : eset) {
 		uint32_t redirect = peff->get_value();
-		if((redirect & LOCATION_REMOVED) && (cant_remove || topcard->is_affected_by_effect(EFFECT_CANNOT_REMOVE)))
-			continue;
 		uint8_t p = peff->get_handler_player();
+		if(redirect & LOCATION_REMOVED) {
+			if(topcard->is_affected_by_effect(EFFECT_CANNOT_REMOVE))
+				continue;
+			if(cant_remove_s && (p == playerid) || cant_remove_o && (p != playerid))
+				continue;
+		}
 		if((p == playerid && peff->s_range & LOCATION_DECK) || (p != playerid && peff->o_range & LOCATION_DECK))
 			return FALSE;
 	}
