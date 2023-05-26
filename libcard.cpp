@@ -2398,7 +2398,8 @@ LUA_FUNCTION(IsCanBeDisabledByEffect) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 2);
-	lua_pushboolean(L, pcard->is_can_be_disabled_by_effect(peffect));
+	bool is_monster_effect = lua_get<bool, true>(L, 3);
+	lua_pushboolean(L, pcard->is_can_be_disabled_by_effect(peffect, is_monster_effect));
 	return 1;
 }
 LUA_FUNCTION(IsCanBeEffectTarget) {
