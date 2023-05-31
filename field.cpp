@@ -2624,7 +2624,7 @@ int32_t field::is_player_can_discard_deck_as_cost(uint8_t playerid, int32_t coun
 		if(redirect & LOCATION_REMOVED) {
 			if(topcard->is_affected_by_effect(EFFECT_CANNOT_REMOVE))
 				continue;
-			if(cant_remove_s && (p == playerid) || cant_remove_o && (p != playerid))
+			if((cant_remove_s && (p == playerid)) || (cant_remove_o && (p != playerid)))
 				continue;
 		}
 		if((p == playerid && peff->s_range & LOCATION_DECK) || (p != playerid && peff->o_range & LOCATION_DECK))
