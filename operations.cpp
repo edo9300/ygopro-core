@@ -19,21 +19,22 @@ int32_t field::negate_chain(uint8_t chaincount) {
 	if(chaincount > core.current_chain.size() || chaincount < 1)
 		chaincount = static_cast<uint8_t>(core.current_chain.size());
 	chain& pchain = core.current_chain[chaincount - 1];
+	card* effect_handler = pchain.triggering_effect->get_handler();
 	if(!(pchain.flag & CHAIN_DISABLE_ACTIVATE) && is_chain_negatable(pchain.chain_count)
-		&& pchain.triggering_effect->handler->is_affect_by_effect(core.reason_effect)) {
+		&& effect_handler->is_affect_by_effect(core.reason_effect)) {
 		pchain.flag |= CHAIN_DISABLE_ACTIVATE;
 		pchain.disable_reason = core.reason_effect;
 		pchain.disable_player = core.reason_player;
-		if((pchain.triggering_effect->type & EFFECT_TYPE_ACTIVATE) && (pchain.triggering_effect->handler->current.location == LOCATION_SZONE)) {
-			pchain.triggering_effect->handler->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
-			pchain.triggering_effect->handler->set_status(STATUS_ACTIVATE_DISABLED, TRUE);
+		if((pchain.triggering_effect->type & EFFECT_TYPE_ACTIVATE) && (effect_handler->current.location == LOCATION_SZONE)) {
+			effect_handler->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
+			effect_handler->set_status(STATUS_ACTIVATE_DISABLED, TRUE);
 		}
 		auto message = pduel->new_message(MSG_CHAIN_NEGATED);
 		message->write<uint8_t>(chaincount);
 		if(!is_flag(DUEL_RETURN_TO_DECK_TRIGGERS) &&
 		   (pchain.triggering_location == LOCATION_DECK
 			|| (pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN))))
-			pchain.triggering_effect->handler->release_relation(pchain);
+			effect_handler->release_relation(pchain);
 		return TRUE;
 	}
 	return FALSE;
@@ -44,8 +45,9 @@ int32_t field::disable_chain(uint8_t chaincount) {
 	if(chaincount > core.current_chain.size() || chaincount < 1)
 		chaincount = static_cast<uint8_t>(core.current_chain.size());
 	chain& pchain = core.current_chain[chaincount - 1];
+	card* effect_handler = pchain.triggering_effect->get_handler();
 	if(!(pchain.flag & CHAIN_DISABLE_EFFECT) && is_chain_disablable(pchain.chain_count)
-		&& pchain.triggering_effect->handler->is_affect_by_effect(core.reason_effect)) {
+		&& effect_handler->is_affect_by_effect(core.reason_effect)) {
 		core.current_chain[chaincount - 1].flag |= CHAIN_DISABLE_EFFECT;
 		core.current_chain[chaincount - 1].disable_reason = core.reason_effect;
 		core.current_chain[chaincount - 1].disable_player = core.reason_player;
@@ -54,7 +56,7 @@ int32_t field::disable_chain(uint8_t chaincount) {
 		if(!is_flag(DUEL_RETURN_TO_DECK_TRIGGERS) &&
 		   (pchain.triggering_location == LOCATION_DECK
 		   || (pchain.triggering_location == LOCATION_EXTRA && (pchain.triggering_position & POS_FACEDOWN))))
-			pchain.triggering_effect->handler->release_relation(pchain);
+			effect_handler->release_relation(pchain);
 		return TRUE;
 	}
 	return FALSE;
