@@ -1921,7 +1921,7 @@ int32_t field::get_draw_count(uint8_t playerid) {
 }
 void field::get_ritual_material(uint8_t playerid, effect* peffect, card_set* material, bool check_level) {
 	auto mzonecheck = [&](card* pcard) {
-		return pcard && (!check_level || pcard->get_level()) && pcard->is_affect_by_effect(peffect)
+		return pcard && (!check_level || pcard->get_level() > 0) && pcard->is_affect_by_effect(peffect)
 			&& pcard->is_releasable_by_effect(playerid, peffect);
 	};
 	for(auto& pcard : player[playerid].list_mzone) {
@@ -1937,6 +1937,14 @@ void field::get_ritual_material(uint8_t playerid, effect* peffect, card_set* mat
 			material->insert(pcard);
 	for(auto& pcard : player[playerid].list_grave)
 		if((pcard->data.type & TYPE_MONSTER) && pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL) && pcard->is_removeable(playerid, POS_FACEUP, REASON_EFFECT))
+			material->insert(pcard);
+	for(auto& pcard : player[playerid].list_main)
+		if(pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL)
+		   && (!check_level || pcard->get_level() > 0))
+			material->insert(pcard);
+	for(auto& pcard : player[playerid].list_extra)
+		if(pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL)
+		   && (!check_level || pcard->get_level() > 0))
 			material->insert(pcard);
 	for(auto& pcard : player[playerid].list_mzone) {
 		if(!pcard)
