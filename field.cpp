@@ -1929,7 +1929,7 @@ void field::get_ritual_material(uint8_t playerid, effect* peffect, card_set* mat
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[1 - playerid].list_mzone) {
-		if(mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE))
+		if(pcard->is_position(POS_FACEUP) && mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE))
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[playerid].list_hand)
