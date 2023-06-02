@@ -1921,15 +1921,15 @@ int32_t field::get_draw_count(uint8_t playerid) {
 }
 void field::get_ritual_material(uint8_t playerid, effect* peffect, card_set* material, bool check_level) {
 	auto mzonecheck = [&](card* pcard) {
-		return pcard && (!check_level || pcard->get_level() > 0) && pcard->is_affect_by_effect(peffect)
+		return  (!check_level || pcard->get_level() > 0) && pcard->is_affect_by_effect(peffect)
 			&& pcard->is_releasable_by_effect(playerid, peffect);
 	};
 	for(auto& pcard : player[playerid].list_mzone) {
-		if(mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid))
+		if(pcard && mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid))
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[1 - playerid].list_mzone) {
-		if(pcard->is_position(POS_FACEUP) && mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE))
+		if(pcard && pcard->is_position(POS_FACEUP) && mzonecheck(pcard) && pcard->is_releasable_by_nonsummon(playerid) && pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE))
 			material->insert(pcard);
 	}
 	for(auto& pcard : player[playerid].list_hand)
