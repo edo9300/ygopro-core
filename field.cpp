@@ -1971,16 +1971,16 @@ void field::get_fusion_material(uint8_t playerid, card_set* material) {
 			material->insert(pcard);
 }
 void field::ritual_release(const card_set& material) {
-	card_set rel, rem, overlay;
+	card_set rel, rem, tograve;
 	for(auto& pcard : material) {
 		if(pcard->current.location == LOCATION_GRAVE)
 			rem.insert(pcard);
-		else if(pcard->current.location == LOCATION_OVERLAY)
-			overlay.insert(pcard);
+		else if((pcard->current.location & (LOCATION_OVERLAY | LOCATION_EXTRA | LOCATION_DECK)) != 0)
+			tograve.insert(pcard);
 		else
 			rel.insert(pcard);
 	}
-	send_to(std::move(overlay), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+	send_to(std::move(tograve), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 	release(std::move(rel), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player);
 	send_to(std::move(rem), core.reason_effect, REASON_RITUAL + REASON_EFFECT + REASON_MATERIAL, core.reason_player, PLAYER_NONE, LOCATION_REMOVED, 0, POS_FACEUP);
 }
