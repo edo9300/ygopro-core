@@ -114,7 +114,7 @@ void duel::restore_assumes() {
 		pcard->assume.clear();
 	assumes.clear();
 }
-void duel::write_buffer(void* data, size_t size) {
+void duel::write_buffer(const void* data, size_t size) {
 	if(size) {
 		const auto vec_size = buff.size();
 		buff.resize(vec_size + size);
@@ -157,7 +157,7 @@ const card_data& duel::read_card(uint32_t code) {
 	}
 	return *ret;
 }
-duel::duel_message::duel_message(uint8_t _message) :message(_message) {
+duel::duel_message::duel_message(uint8_t message) {
 	write<uint8_t>(message);
 }
 void duel::duel_message::write(const void* buff, size_t size) {

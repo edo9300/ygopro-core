@@ -51,9 +51,7 @@ public:
 		}
 	public:
 		std::vector<uint8_t> data;
-		uint8_t message;
-		duel_message() :message(0) {};
-		duel_message(uint8_t _message);
+		explicit duel_message(uint8_t _message);
 		void write(const void* buff, size_t size);
 		void write(loc_info loc);
 		template<typename T, typename T2>
@@ -105,7 +103,7 @@ public:
 	void release_script_group();
 	void restore_assumes();
 	void generate_buffer();
-	void write_buffer(void* data, size_t size);
+	void write_buffer(const void* data, size_t size);
 	void clear_buffer();
 	void set_response(const void* resp, size_t len);
 	int32_t get_next_integer(int32_t l, int32_t h);

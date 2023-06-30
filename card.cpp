@@ -3520,7 +3520,7 @@ int32_t card::is_affect_by_effect(effect* peffect) {
 	return TRUE;
 }
 int32_t card::is_can_be_disabled_by_effect(effect* reason_effect, bool is_monster_effect) {
-	if (is_monster_effect && is_status(STATUS_DISABLED))
+	if(is_monster_effect && is_status(STATUS_DISABLED))
 		return FALSE;
 	if(!is_monster_effect && !(get_type() & TYPE_TRAPMONSTER) && is_status(STATUS_DISABLED))
 		return FALSE;
