@@ -4036,7 +4036,7 @@ LUA_FUNCTION(IsPlayerCanSendtoGrave) {
 	return 1;
 }
 LUA_FUNCTION(IsPlayerCanSendtoDeck) {
-	check_param_count(L, 2);
+	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
