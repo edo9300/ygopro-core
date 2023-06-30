@@ -19,6 +19,7 @@
 #include "card.h"
 #include "common.h"
 #include "containers_fwd.h"
+#include "mpark/variant.hpp"
 #include "progressivebuffer.h"
 
 class duel;
@@ -176,6 +177,294 @@ struct lpcost {
 	int32_t amount{ 0 };
 	int32_t lpstack[8]{};
 };
+
+#define PROCESSOR_ADJUST			1
+#define PROCESSOR_TURN				3
+#define PROCESSOR_REFRESH_LOC		5
+#define PROCESSOR_STARTUP			6
+#define PROCESSOR_SELECT_IDLECMD	10
+#define PROCESSOR_SELECT_EFFECTYN	11
+#define PROCESSOR_SELECT_BATTLECMD	12
+#define PROCESSOR_SELECT_YESNO		13
+#define PROCESSOR_SELECT_OPTION		14
+#define PROCESSOR_SELECT_CARD		15
+#define PROCESSOR_SELECT_CHAIN		16
+#define PROCESSOR_SELECT_UNSELECT_CARD	17
+#define PROCESSOR_SELECT_PLACE		18
+#define PROCESSOR_SELECT_POSITION	19
+#define PROCESSOR_SELECT_TRIBUTE_P	20
+#define PROCESSOR_SORT_CHAIN		21
+#define PROCESSOR_SELECT_COUNTER	22
+#define PROCESSOR_SELECT_SUM		23
+#define PROCESSOR_SELECT_DISFIELD	24
+#define PROCESSOR_SORT_CARD			25
+#define PROCESSOR_SELECT_RELEASE	26
+#define PROCESSOR_SELECT_TRIBUTE	27
+#define PROCESSOR_SELECT_CARD_CODES	28
+#define PROCESSOR_POINT_EVENT		30
+#define PROCESSOR_QUICK_EFFECT		31
+#define PROCESSOR_IDLE_COMMAND		32
+#define PROCESSOR_PHASE_EVENT		33
+#define PROCESSOR_BATTLE_COMMAND	34
+#define PROCESSOR_DAMAGE_STEP		35
+#define PROCESSOR_FORCED_BATTLE		36
+#define PROCESSOR_ADD_CHAIN			40
+#define PROCESSOR_SOLVE_CHAIN		42
+#define PROCESSOR_SOLVE_CONTINUOUS	43
+#define PROCESSOR_EXECUTE_COST		44
+#define PROCESSOR_EXECUTE_OPERATION	45
+#define PROCESSOR_EXECUTE_TARGET	46
+#define PROCESSOR_DESTROY			50
+#define PROCESSOR_RELEASE			51
+#define PROCESSOR_SENDTO			52
+#define PROCESSOR_MOVETOFIELD		53
+#define PROCESSOR_CHANGEPOS			54
+#define PROCESSOR_OPERATION_REPLACE	55
+#define PROCESSOR_DESTROY_REPLACE	56
+#define PROCESSOR_RELEASE_REPLACE	57
+#define PROCESSOR_SENDTO_REPLACE	58
+#define PROCESSOR_SUMMON_RULE		60
+#define PROCESSOR_SPSUMMON_RULE		61
+#define PROCESSOR_SPSUMMON			62
+#define PROCESSOR_FLIP_SUMMON		63
+#define PROCESSOR_MSET				64
+#define PROCESSOR_SSET				65
+#define PROCESSOR_SPSUMMON_STEP		66
+#define PROCESSOR_SSET_G			67
+#define PROCESSOR_SPSUMMON_RULE_G	68
+#define PROCESSOR_DRAW				70
+#define PROCESSOR_DAMAGE			71
+#define PROCESSOR_RECOVER			72
+#define PROCESSOR_EQUIP				73
+#define PROCESSOR_GET_CONTROL		74
+#define PROCESSOR_SWAP_CONTROL		75
+#define PROCESSOR_CONTROL_ADJUST	76
+#define PROCESSOR_SELF_DESTROY		77
+#define PROCESSOR_TRAP_MONSTER_ADJUST	78
+#define PROCESSOR_PAY_LPCOST		80
+#define PROCESSOR_REMOVE_COUNTER	81
+#define PROCESSOR_ATTACK_DISABLE	82
+#define PROCESSOR_ACTIVATE_EFFECT	83
+
+#define PROCESSOR_ANNOUNCE_RACE		110
+#define PROCESSOR_ANNOUNCE_ATTRIB	111
+#define PROCESSOR_ANNOUNCE_LEVEL	112
+#define PROCESSOR_ANNOUNCE_CARD		113
+#define PROCESSOR_ANNOUNCE_TYPE		114
+#define PROCESSOR_ANNOUNCE_NUMBER	115
+#define PROCESSOR_ANNOUNCE_COIN		116
+#define PROCESSOR_TOSS_DICE			117
+#define PROCESSOR_TOSS_COIN			118
+#define PROCESSOR_ROCK_PAPER_SCISSORS	119
+
+#define PROCESSOR_SELECT_FUSION		131
+#define PROCESSOR_DISCARD_HAND	150
+#define PROCESSOR_DISCARD_DECK	151
+#define PROCESSOR_SORT_DECK		152
+#define PROCESSOR_REMOVE_OVERLAY		160
+#define PROCESSOR_XYZ_OVERLAY		161
+
+#define PROCESSOR_REFRESH_RELAY		170
+
+namespace Processors {
+struct Adjust {
+	int16_t step;
+	Adjust(int16_t step_) : step(step_) {};
+};
+struct Turn {
+	int16_t step;
+	uint8_t turn_player;
+	Turn(int16_t step_, uint8_t turn_player_) : step(step_), turn_player(turn_player_) {};
+};
+struct RefreshLoc {
+	int16_t step;
+	RefreshLoc(int16_t step_) : step(step_) {};
+};
+struct Startup {
+	int16_t step;
+	Startup(int16_t step_) : step(step_) {};
+};
+struct SelectBattleCmd {
+	int16_t step;
+	uint8_t playerid;
+	SelectBattleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+};
+struct SelectIdleCmd {
+	int16_t step;
+	uint8_t playerid;
+	SelectIdleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+};
+struct SelectEffectYesNo {
+	int16_t step;
+	uint8_t playerid;
+	card* pcard;
+	uint64_t description;
+	SelectEffectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_, card* pcard_) :
+		step(step_), playerid(playerid_), pcard(pcard_), description(description_) {};
+};
+struct SelectYesNo {
+	int16_t step;
+	uint8_t playerid;
+	uint64_t description;
+	SelectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_) :
+		step(step_), playerid(playerid_), description(description_) {};
+};
+struct SelectOption {
+	int16_t step;
+	uint8_t playerid;
+	SelectOption(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+};
+struct SelectCard {
+	int16_t step;
+	uint8_t playerid;
+	bool cancelable;
+	uint8_t min;
+	uint8_t max;
+	SelectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
+			   uint8_t min_, uint8_t max_) :
+		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {};
+};
+struct SelectCardCodes {
+	int16_t step;
+	uint8_t playerid;
+	bool cancelable;
+	uint8_t min;
+	uint8_t max;
+	SelectCardCodes(int16_t step_, uint8_t playerid_, bool cancelable_,
+					uint8_t min_, uint8_t max_) :
+		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {};
+};
+struct SelectUnselectCard {
+	int16_t step;
+	uint8_t playerid;
+	bool cancelable;
+	uint8_t min;
+	uint8_t max;
+	bool finishable;
+	SelectUnselectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
+					   uint8_t min_, uint8_t max_, bool finishable_) :
+		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_),
+		finishable(finishable_) {};
+};
+struct SelectChain {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t spe_count;
+	bool forced;
+	SelectChain(int16_t step_, uint8_t playerid_, uint8_t spe_count_, bool forced_) :
+		step(step_), playerid(playerid_), spe_count(spe_count_), forced(forced_) {};
+};
+struct SelectPlace {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t count;
+	uint32_t flag;
+	SelectPlace(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
+		step(step_), playerid(playerid_), flag(flag_), count(count_) {};
+};
+struct SelectDisField {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t count;
+	uint32_t flag;
+	SelectDisField(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
+		step(step_), playerid(playerid_), count(count_), flag(flag_) {};
+};
+struct SelectPosition {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t positions;
+	uint32_t code;
+	SelectPosition(int16_t step_, uint8_t playerid_, uint32_t code_, uint8_t positions_) :
+		step(step_), playerid(playerid_), positions(positions_), code(code_) {};
+};
+struct SelectTributeP {
+	int16_t step;
+	uint8_t playerid;
+	bool cancelable;
+	uint8_t min;
+	uint8_t max;
+	SelectTributeP(int16_t step_, uint8_t playerid_, bool cancelable_, uint8_t min_, uint8_t max_) :
+		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {};
+};
+struct SortChain {
+	int16_t step;
+	uint8_t playerid;
+	SortChain(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+};
+struct SelectCounter {
+	int16_t step;
+	uint16_t countertype;
+	uint16_t count;
+	uint8_t playerid;
+	uint8_t s;
+	uint8_t o;
+	SelectCounter(uint16_t step_, uint8_t playerid_, uint16_t countertype_, uint16_t count_,
+				  uint8_t s_, uint8_t o_) :
+		step(step_), countertype(countertype_), count(count_), playerid(playerid_), s(s_), o(o_) {};
+};
+struct SelectSum {
+	int16_t step;
+	uint8_t playerid;
+	int32_t acc;
+	int32_t min;
+	int32_t max;
+	SelectSum(int16_t step_, uint8_t playerid_, int32_t acc_, int32_t min_, int32_t max_) :
+		step(step_), playerid(playerid_), acc(acc_), min(min_), max(max_) {};
+};
+struct SortCard {
+	int16_t step;
+	uint8_t playerid;
+	bool is_chain;
+	SortCard(int16_t step_, uint8_t playerid_, bool is_chain_) :
+		step(step_), playerid(playerid_), is_chain(is_chain_) {};
+};
+struct SelectRelease {
+	int16_t step;
+	uint8_t playerid;
+	bool cancelable;
+	bool check_field;
+	uint8_t toplayer;
+	uint8_t zone;
+	int32_t min;
+	int32_t max;
+	card* to_check;
+	SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, int32_t min_,
+				  int32_t max_, bool check_field_, card* to_check_, uint8_t toplayer_,
+				  uint8_t zone_) :
+		step(step_), playerid(playerid_), cancelable(cancelable_), check_field(check_field_),
+		toplayer(toplayer_), zone(zone_), min(min_), max(max_), to_check(to_check_) {};
+};
+struct SelectTribute {
+	int16_t step;
+	uint8_t playerid;
+	bool cancelable;
+	uint8_t toplayer;
+	uint8_t zone;
+	int32_t min;
+	int32_t max;
+	card* target;
+	SelectTribute(int16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
+				  int32_t max_, uint8_t toplayer_, uint8_t zone_) :
+		step(step_), playerid(playerid_), cancelable(cancelable_),
+		toplayer(toplayer_), zone(zone_), min(min_), max(max_), target(target_) {};
+};
+struct PointEvent {
+	int16_t step;
+	bool skip_trigger;
+	bool skip_freechain;
+	bool skip_new;
+	PointEvent(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
+		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_), skip_new(skip_new_) {};
+};
+}
+
+using processor_unit2 = mpark::variant<Processors::Adjust, Processors::Turn, Processors::RefreshLoc, Processors::Startup,
+	Processors::SelectBattleCmd, Processors::SelectIdleCmd, Processors::SelectEffectYesNo, Processors::SelectYesNo,
+	Processors::SelectOption, Processors::SelectCard, Processors::SelectCardCodes, Processors::SelectUnselectCard,
+	Processors::SelectChain, Processors::SelectPlace, Processors::SelectDisField, Processors::SelectPosition,
+	Processors::SelectTributeP, Processors::SortChain, Processors::SelectCounter, Processors::SelectSum, Processors::SortCard,
+	Processors::SelectRelease>;
 struct processor_unit {
 	uint16_t type;
 	int16_t step;
@@ -206,6 +495,7 @@ using return_card_code = return_card_generic<std::pair<uint32_t, uint32_t>>;
 struct processor {
 	using option_vector = std::vector<uint64_t>;
 	using processor_list = std::list<processor_unit>;
+	using processor_list2 = std::list<processor_unit2>;
 	using delayed_effect_collection = std::set<std::pair<effect*, tevent>>;
 	using effect_count_map = std::unordered_map<uint64_t, uint32_t>;
 	struct chain_limit_t {
@@ -222,6 +512,8 @@ struct processor {
 
 	processor_list units;
 	processor_list subunits;
+	processor_list2 units2;
+	processor_list2 subunits2;
 	processor_unit reserved;
 	card_set just_sent_cards;
 	card_vector select_cards;
@@ -565,8 +857,13 @@ public:
 	int32_t check_spself_from_hand_trigger(const chain& ch) const;
 	int32_t is_able_to_enter_bp();
 
-	void add_process(uint16_t type, uint16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
+	template<typename T, typename... Args>
+	void emplace_process(Args&&... args) {
+		core.subunits2.emplace_back(mpark::in_place_type<T>, std::forward<Args>(args)...);
+	}
+	void add_process(uint16_t type, int16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
 	int32_t process();
+	int32_t process2();
 	int32_t execute_cost(uint16_t step, effect* peffect, uint8_t triggering_player);
 	int32_t execute_operation(uint16_t step, effect* peffect, uint8_t triggering_player);
 	int32_t execute_target(uint16_t step, effect* peffect, uint8_t triggering_player);
@@ -587,7 +884,7 @@ public:
 	int32_t process_forced_battle(uint16_t step);
 	int32_t process_damage_step(uint16_t step, uint32_t new_attack);
 	void calculate_battle_damage(effect** pdamchange, card** preason_card, std::array<bool, 2>* battle_destroyed);
-	int32_t process_turn(uint16_t step, uint8_t turn_player);
+	int32_t process_turn(Processors::Turn& arg);
 
 	int32_t add_chain(uint16_t step);
 	int32_t sort_chain(uint16_t step, uint8_t tp);
@@ -598,9 +895,9 @@ public:
 	void adjust_instant();
 	void adjust_all();
 	void refresh_location_info_instant();
-	int32_t refresh_location_info(uint16_t step);
-	int32_t adjust_step(uint16_t step);
-	int32_t startup(uint16_t step);
+	int32_t refresh_location_info(const Processors::RefreshLoc& arg);
+	int32_t adjust_step(const Processors::Adjust& arg);
+	int32_t startup(const Processors::Startup& arg);
 	int32_t refresh_relay(uint16_t step);
 
 	//operations
@@ -678,17 +975,17 @@ public:
 	int32_t toss_dice(uint16_t step, effect* reason_effect, uint8_t reason_player, uint8_t playerid, uint8_t count1, uint8_t count2);
 	int32_t rock_paper_scissors(uint16_t step, uint8_t repeat);
 
-	int32_t select_battle_command(uint16_t step, uint8_t playerid);
-	int32_t select_idle_command(uint16_t step, uint8_t playerid);
-	int32_t select_effect_yes_no(uint16_t step, uint8_t playerid, uint64_t description, card* pcard);
-	int32_t select_yes_no(uint16_t step, uint8_t playerid, uint64_t description);
-	int32_t select_option(uint16_t step, uint8_t playerid);
+	int32_t select_battle_command(const Processors::SelectBattleCmd& arg);
+	int32_t select_idle_command(const Processors::SelectIdleCmd& arg);
+	int32_t select_effect_yes_no(const Processors::SelectEffectYesNo& arg);
+	int32_t select_yes_no(const Processors::SelectYesNo& arg);
+	int32_t select_option(const Processors::SelectOption& arg);
 	bool parse_response_cards(bool cancelable);
-	int32_t select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max);
-	int32_t select_card_codes(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max);
-	int32_t select_unselect_card(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max, uint8_t finishable);
-	int32_t select_chain(uint16_t step, uint8_t playerid, uint8_t spe_count, uint8_t forced);
-	int32_t select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint8_t count);
+	int32_t select_card(const Processors::SelectCard& arg);
+	int32_t select_card_codes(const Processors::SelectCardCodes& arg);
+	int32_t select_unselect_card(const Processors::SelectUnselectCard& arg);
+	int32_t select_chain(const Processors::SelectChain& arg);
+	int32_t select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint8_t count, bool disable_field);
 	int32_t select_position(uint16_t step, uint8_t playerid, uint32_t code, uint8_t positions);
 	int32_t select_tribute(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max);
 	int32_t select_counter(uint16_t step, uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t s, uint8_t o);
@@ -698,6 +995,31 @@ public:
 	int32_t announce_attribute(int16_t step, uint8_t playerid, uint8_t count, uint32_t available);
 	int32_t announce_card(int16_t step, uint8_t playerid);
 	int32_t announce_number(int16_t step, uint8_t playerid);
+
+	int32_t operator()(Processors::Adjust& arg);
+	int32_t operator()(Processors::Turn& arg);
+	int32_t operator()(Processors::RefreshLoc& arg);
+	int32_t operator()(Processors::Startup& arg);
+	int32_t operator()(Processors::SelectBattleCmd& arg);
+	int32_t operator()(Processors::SelectIdleCmd& arg);
+	int32_t operator()(Processors::SelectEffectYesNo& arg);
+	int32_t operator()(Processors::SelectYesNo& arg);
+	int32_t operator()(Processors::SelectOption& arg);
+	int32_t operator()(Processors::SelectCard& arg);
+	int32_t operator()(Processors::SelectCardCodes& arg);
+	int32_t operator()(Processors::SelectUnselectCard& arg);
+	int32_t operator()(Processors::SelectChain& arg);
+	int32_t operator()(Processors::SelectPlace& arg);
+	int32_t operator()(Processors::SelectDisField& arg);
+	int32_t operator()(Processors::SelectPosition& arg);
+	int32_t operator()(Processors::SelectTributeP& arg);
+	int32_t operator()(Processors::SortChain& arg);
+	int32_t operator()(Processors::SelectCounter& arg);
+	int32_t operator()(Processors::SelectSum& arg);
+	int32_t operator()(Processors::SortCard& arg);
+	int32_t operator()(Processors::SelectRelease& arg);
+	int32_t operator()(Processors::SelectTribute& arg);
+	int32_t operator()(Processors::PointEvent& arg);
 };
 
 //Location Use Reason
@@ -792,125 +1114,5 @@ enum class CHAININFO {
 #define PROCESSOR_FLAG_END		0
 #define PROCESSOR_FLAG_WAITING	0x1
 #define PROCESSOR_FLAG_CONTINUE	0x2
-
-#define PROCESSOR_ADJUST			1
-#define PROCESSOR_HINT				2
-#define PROCESSOR_TURN				3
-#define PROCESSOR_REFRESH_LOC		5
-#define PROCESSOR_STARTUP			6
-#define PROCESSOR_SELECT_IDLECMD	10
-#define PROCESSOR_SELECT_EFFECTYN	11
-#define PROCESSOR_SELECT_BATTLECMD	12
-#define PROCESSOR_SELECT_YESNO		13
-#define PROCESSOR_SELECT_OPTION		14
-#define PROCESSOR_SELECT_CARD		15
-#define PROCESSOR_SELECT_CHAIN		16
-#define PROCESSOR_SELECT_UNSELECT_CARD	17
-#define PROCESSOR_SELECT_PLACE		18
-#define PROCESSOR_SELECT_POSITION	19
-#define PROCESSOR_SELECT_TRIBUTE_P	20
-#define PROCESSOR_SORT_CHAIN		21
-#define PROCESSOR_SELECT_COUNTER	22
-#define PROCESSOR_SELECT_SUM		23
-#define PROCESSOR_SELECT_DISFIELD	24
-#define PROCESSOR_SORT_CARD			25
-#define PROCESSOR_SELECT_RELEASE	26
-#define PROCESSOR_SELECT_TRIBUTE	27
-#define PROCESSOR_SELECT_CARD_CODES	28
-#define PROCESSOR_POINT_EVENT		30
-#define PROCESSOR_QUICK_EFFECT		31
-#define PROCESSOR_IDLE_COMMAND		32
-#define PROCESSOR_PHASE_EVENT		33
-#define PROCESSOR_BATTLE_COMMAND	34
-#define PROCESSOR_DAMAGE_STEP		35
-#define PROCESSOR_FORCED_BATTLE		36
-#define PROCESSOR_ADD_CHAIN			40
-#define PROCESSOR_SOLVE_CHAIN		42
-#define PROCESSOR_SOLVE_CONTINUOUS	43
-#define PROCESSOR_EXECUTE_COST		44
-#define PROCESSOR_EXECUTE_OPERATION	45
-#define PROCESSOR_EXECUTE_TARGET	46
-#define PROCESSOR_DESTROY			50
-#define PROCESSOR_RELEASE			51
-#define PROCESSOR_SENDTO			52
-#define PROCESSOR_MOVETOFIELD		53
-#define PROCESSOR_CHANGEPOS			54
-#define PROCESSOR_OPERATION_REPLACE	55
-#define PROCESSOR_DESTROY_REPLACE	56
-#define PROCESSOR_RELEASE_REPLACE	57
-#define PROCESSOR_SENDTO_REPLACE	58
-#define PROCESSOR_SUMMON_RULE		60
-#define PROCESSOR_SPSUMMON_RULE		61
-#define PROCESSOR_SPSUMMON			62
-#define PROCESSOR_FLIP_SUMMON		63
-#define PROCESSOR_MSET				64
-#define PROCESSOR_SSET				65
-#define PROCESSOR_SPSUMMON_STEP		66
-#define PROCESSOR_SSET_G			67
-#define PROCESSOR_SPSUMMON_RULE_G	68
-#define PROCESSOR_DRAW				70
-#define PROCESSOR_DAMAGE			71
-#define PROCESSOR_RECOVER			72
-#define PROCESSOR_EQUIP				73
-#define PROCESSOR_GET_CONTROL		74
-#define PROCESSOR_SWAP_CONTROL		75
-#define PROCESSOR_CONTROL_ADJUST	76
-#define PROCESSOR_SELF_DESTROY		77
-#define PROCESSOR_TRAP_MONSTER_ADJUST	78
-#define PROCESSOR_PAY_LPCOST		80
-#define PROCESSOR_REMOVE_COUNTER	81
-#define PROCESSOR_ATTACK_DISABLE	82
-#define PROCESSOR_ACTIVATE_EFFECT	83
-
-#define PROCESSOR_ANNOUNCE_RACE		110
-#define PROCESSOR_ANNOUNCE_ATTRIB	111
-#define PROCESSOR_ANNOUNCE_LEVEL	112
-#define PROCESSOR_ANNOUNCE_CARD		113
-#define PROCESSOR_ANNOUNCE_TYPE		114
-#define PROCESSOR_ANNOUNCE_NUMBER	115
-#define PROCESSOR_ANNOUNCE_COIN		116
-#define PROCESSOR_TOSS_DICE			117
-#define PROCESSOR_TOSS_COIN			118
-#define PROCESSOR_ROCK_PAPER_SCISSORS	119
-
-#define PROCESSOR_SELECT_FUSION		131
-#define PROCESSOR_DISCARD_HAND	150
-#define PROCESSOR_DISCARD_DECK	151
-#define PROCESSOR_SORT_DECK		152
-#define PROCESSOR_REMOVE_OVERLAY		160
-#define PROCESSOR_XYZ_OVERLAY		161
-
-#define PROCESSOR_REFRESH_RELAY		170
-
-//#define PROCESSOR_DESTROY_S			100
-//#define PROCESSOR_RELEASE_S			101
-//#define PROCESSOR_SENDTO_S			102
-//#define PROCESSOR_CHANGEPOS_S		103
-//#define PROCESSOR_SELECT_YESNO_S	120
-//#define PROCESSOR_SELECT_OPTION_S	121
-//#define PROCESSOR_SELECT_CARD_S		122
-//#define PROCESSOR_SELECT_EFFECTYN_S	123
-//#define PROCESSOR_SELECT_UNSELECT_CARD_S	124
-//#define PROCESSOR_SELECT_PLACE_S	125
-//#define PROCESSOR_SELECT_POSITION_S	126
-//#define PROCESSOR_SELECT_TRIBUTE_S	127
-//#define PROCESSOR_SORT_CARDS_S		128
-//#define PROCESSOR_SELECT_RELEASE_S	129
-//#define PROCESSOR_SELECT_TARGET		130
-//#define PROCESSOR_SELECT_SYNCHRO	132
-//#define PROCESSOR_SELECT_XMATERIAL	139
-//#define PROCESSOR_SELECT_SUM_S		133
-//#define PROCESSOR_SELECT_DISFIELD_S	134
-//#define PROCESSOR_SPSUMMON_S		135
-//#define PROCESSOR_SPSUMMON_STEP_S	136
-//#define PROCESSOR_SPSUMMON_COMP_S	137
-//#define PROCESSOR_RANDOM_SELECT_S	138
-//#define PROCESSOR_DRAW_S			140
-//#define PROCESSOR_DAMAGE_S			141
-//#define PROCESSOR_RECOVER_S			142
-//#define PROCESSOR_EQUIP_S			143
-//#define PROCESSOR_GET_CONTROL_S		144
-//#define PROCESSOR_SWAP_CONTROL_S	145
-//#define PROCESSOR_MOVETOFIELD_S		161
 
 #endif /* FIELD_H_ */

@@ -15,8 +15,9 @@
 #include "effect.h"
 #include "field.h"
 
-int32_t field::select_battle_command(uint16_t step, uint8_t playerid) {
-	if(step == 0) {
+int32_t field::select_battle_command(const Processors::SelectBattleCmd& arg) {
+	auto playerid = arg.playerid;
+	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_SELECT_BATTLECMD);
 		message->write<uint8_t>(playerid);
 		//Activatable
@@ -65,8 +66,9 @@ int32_t field::select_battle_command(uint16_t step, uint8_t playerid) {
 		return TRUE;
 	}
 }
-int32_t field::select_idle_command(uint16_t step, uint8_t playerid) {
-	if(step == 0) {
+int32_t field::select_idle_command(const Processors::SelectIdleCmd& arg) {
+	auto playerid = arg.playerid;
+	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_SELECT_IDLECMD);
 		message->write<uint8_t>(playerid);
 		//idle summon
@@ -155,9 +157,12 @@ int32_t field::select_idle_command(uint16_t step, uint8_t playerid) {
 		return TRUE;
 	}
 }
-int32_t field::select_effect_yes_no(uint16_t step, uint8_t playerid, uint64_t description, card* pcard) {
-	if(step == 0) {
-		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
+int32_t field::select_effect_yes_no(const Processors::SelectEffectYesNo& arg) {
+	auto playerid = arg.playerid;
+	auto pcard = arg.pcard;
+	auto description = arg.description;
+	if(arg.step == 0) {
+		if((arg.playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.set<int32_t>(0, 1);
 			return TRUE;
 		}
@@ -176,8 +181,10 @@ int32_t field::select_effect_yes_no(uint16_t step, uint8_t playerid, uint64_t de
 		return TRUE;
 	}
 }
-int32_t field::select_yes_no(uint16_t step, uint8_t playerid, uint64_t description) {
-	if(step == 0) {
+int32_t field::select_yes_no(const Processors::SelectYesNo& arg) {
+	auto playerid = arg.playerid;
+	auto description = arg.description;
+	if(arg.step == 0) {
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.set<int32_t>(0, 1);
 			return TRUE;
@@ -195,8 +202,9 @@ int32_t field::select_yes_no(uint16_t step, uint8_t playerid, uint64_t descripti
 		return TRUE;
 	}
 }
-int32_t field::select_option(uint16_t step, uint8_t playerid) {
-	if(step == 0) {
+int32_t field::select_option(const Processors::SelectOption& arg) {
+	auto playerid = arg.playerid;
+	if(arg.step == 0) {
 		returns.set<int32_t>(0, -1);
 		if(core.select_options.size() == 0) {
 			auto message = pduel->new_message(MSG_HINT);
@@ -269,8 +277,12 @@ bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<Return
 bool inline field::parse_response_cards(bool cancelable) {
 	return ::parse_response_cards(returns, return_cards, core.select_cards, cancelable);
 }
-int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max) {
-	if(step == 0) {
+int32_t field::select_card(const Processors::SelectCard& arg) {
+	auto playerid = arg.playerid;
+	auto cancelable = arg.cancelable;
+	auto min = arg.min;
+	auto max = arg.max;
+	if(arg.step == 0) {
 		return_cards.clear();
 		returns.clear();
 		if(max == 0 || core.select_cards.empty()) {
@@ -319,8 +331,12 @@ int32_t field::select_card(uint16_t step, uint8_t playerid, uint8_t cancelable, 
 		return TRUE;
 	}
 }
-int32_t field::select_card_codes(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max) {
-	if(step == 0) {
+int32_t field::select_card_codes(const Processors::SelectCardCodes& arg) {
+	auto playerid = arg.playerid;
+	auto cancelable = arg.cancelable;
+	auto min = arg.min;
+	auto max = arg.max;
+	if(arg.step == 0) {
 		return_card_codes.clear();
 		returns.clear();
 		if(max == 0 || core.select_cards_codes.empty()) {
@@ -368,8 +384,13 @@ int32_t field::select_card_codes(uint16_t step, uint8_t playerid, uint8_t cancel
 		return TRUE;
 	}
 }
-int32_t field::select_unselect_card(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max, uint8_t finishable) {
-	if (step == 0) {
+int32_t field::select_unselect_card(const Processors::SelectUnselectCard& arg) {
+	auto playerid = arg.playerid;
+	auto cancelable = arg.cancelable;
+	auto min = arg.min;
+	auto max = arg.max;
+	auto finishable = arg.finishable;
+	if (arg.step == 0) {
 		return_cards.clear();
 		returns.clear();
 		if (core.select_cards.empty() && core.unselect_cards.empty()) {
@@ -429,8 +450,11 @@ int32_t field::select_unselect_card(uint16_t step, uint8_t playerid, uint8_t can
 		return TRUE;
 	}
 }
-int32_t field::select_chain(uint16_t step, uint8_t playerid, uint8_t spe_count, uint8_t forced) {
-	if(step == 0) {
+int32_t field::select_chain(const Processors::SelectChain& arg) {
+	auto playerid = arg.playerid;
+	auto spe_count = arg.spe_count;
+	auto forced = arg.forced;
+	if(arg.step == 0) {
 		returns.set<int32_t>(0, -1);
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			if(core.select_chains.size() == 0)
@@ -476,7 +500,7 @@ int32_t field::select_chain(uint16_t step, uint8_t playerid, uint8_t spe_count, 
 		return TRUE;
 	}
 }
-int32_t field::select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint8_t count) {
+int32_t field::select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint8_t count, bool disable_field) {
 	if(step == 0) {
 		if(count == 0) {
 			auto message = pduel->new_message(MSG_HINT);
@@ -530,7 +554,7 @@ int32_t field::select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint
 			}
 			return TRUE;
 		}
-		auto message = pduel->new_message((core.units.begin()->type == PROCESSOR_SELECT_PLACE) ? MSG_SELECT_PLACE : MSG_SELECT_DISFIELD);
+		auto message = pduel->new_message(disable_field ? MSG_SELECT_DISFIELD : MSG_SELECT_PLACE);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(count);
 		message->write<uint32_t>(flag);
