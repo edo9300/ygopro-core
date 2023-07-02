@@ -5119,7 +5119,10 @@ int32_t field::change_position(uint16_t step, group* targets, effect* reason_eff
 				continue;
 			uint8_t disallowpos = 0;
 			for(const auto& eff : eset)
-				disallowpos |= eff->get_value(reason_effect);
+			for(const auto& eff : eset) {
+				auto val = eff->get_value(reason_effect);
+				disallowpos |= val ? val : POS_FACEUP | POS_FACEDOWN;
+			}
 			//If no value is found, no position change is allowed
 			if(!disallowpos)
 				disallowpos = POS_FACEUP | POS_FACEDOWN;
