@@ -5103,11 +5103,30 @@ int32_t field::change_position(uint16_t step, group* targets, effect* reason_eff
 			uint8_t npos = pcard->position_param & 0xff;
 			uint8_t opos = pcard->current.position;
 			if((pcard->current.location != LOCATION_MZONE && pcard->current.location != LOCATION_SZONE)
-				|| ((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER))
-				|| pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)
-				|| (reason_effect && !pcard->is_affect_by_effect(reason_effect)) || npos == opos
-				|| (!(pcard->data.type & TYPE_TOKEN) && (opos & POS_FACEUP) && (npos & POS_FACEDOWN) && !pcard->is_capable_turn_set(reason_player))
-				|| (reason_effect && pcard->is_affected_by_effect(EFFECT_CANNOT_CHANGE_POS_E))) {
+			   || ((pcard->data.type & TYPE_LINK) && (pcard->data.type & TYPE_MONSTER))
+			   || pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)
+			   || (reason_effect && !pcard->is_affect_by_effect(reason_effect)) || npos == opos
+			   || (!(pcard->data.type & TYPE_TOKEN) && (opos & POS_FACEUP) && (npos & POS_FACEDOWN) && !pcard->is_capable_turn_set(reason_player))) {
+				targets->container.erase(pcard);
+				continue;
+			}
+			//For cards that cannot be changed to an specific position via effects
+			if(!reason_effect)
+				continue;
+			effect_set eset;
+			pcard->filter_effect(EFFECT_CANNOT_CHANGE_POS_E, &eset);
+			if(eset.empty())
+				continue;
+			uint8_t disallowpos = 0;
+			for(const auto& eff : eset)
+			for(const auto& eff : eset) {
+				auto val = eff->get_value(reason_effect);
+				disallowpos |= val ? val : POS_FACEUP | POS_FACEDOWN;
+			}
+			//If no value is found, no position change is allowed
+			if(!disallowpos)
+				disallowpos = POS_FACEUP | POS_FACEDOWN;
+			if(npos & disallowpos) {
 				targets->container.erase(pcard);
 				continue;
 			}
