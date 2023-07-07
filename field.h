@@ -269,50 +269,50 @@ struct lpcost {
 namespace Processors {
 struct Adjust {
 	int16_t step;
-	Adjust(int16_t step_) : step(step_) {};
+	explicit Adjust(int16_t step_) : step(step_) {};
 };
 struct Turn {
 	int16_t step;
 	uint8_t turn_player;
-	Turn(int16_t step_, uint8_t turn_player_) : step(step_), turn_player(turn_player_) {};
+	explicit Turn(int16_t step_, uint8_t turn_player_) : step(step_), turn_player(turn_player_) {};
 };
 struct RefreshLoc {
 	int16_t step;
-	RefreshLoc(int16_t step_) : step(step_) {};
+	explicit RefreshLoc(int16_t step_) : step(step_) {};
 };
 struct Startup {
 	int16_t step;
-	Startup(int16_t step_) : step(step_) {};
+	explicit Startup(int16_t step_) : step(step_) {};
 };
 struct SelectBattleCmd {
 	int16_t step;
 	uint8_t playerid;
-	SelectBattleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+	explicit SelectBattleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
 };
 struct SelectIdleCmd {
 	int16_t step;
 	uint8_t playerid;
-	SelectIdleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+	explicit SelectIdleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
 };
 struct SelectEffectYesNo {
 	int16_t step;
 	uint8_t playerid;
 	card* pcard;
 	uint64_t description;
-	SelectEffectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_, card* pcard_) :
+	explicit SelectEffectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_, card* pcard_) :
 		step(step_), playerid(playerid_), pcard(pcard_), description(description_) {};
 };
 struct SelectYesNo {
 	int16_t step;
 	uint8_t playerid;
 	uint64_t description;
-	SelectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_) :
+	explicit SelectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_) :
 		step(step_), playerid(playerid_), description(description_) {};
 };
 struct SelectOption {
 	int16_t step;
 	uint8_t playerid;
-	SelectOption(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+	explicit SelectOption(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
 };
 struct SelectCard {
 	int16_t step;
@@ -320,7 +320,7 @@ struct SelectCard {
 	bool cancelable;
 	uint8_t min;
 	uint8_t max;
-	SelectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
+	explicit SelectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
 			   uint8_t min_, uint8_t max_) :
 		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {};
 };
@@ -330,7 +330,7 @@ struct SelectCardCodes {
 	bool cancelable;
 	uint8_t min;
 	uint8_t max;
-	SelectCardCodes(int16_t step_, uint8_t playerid_, bool cancelable_,
+	explicit SelectCardCodes(int16_t step_, uint8_t playerid_, bool cancelable_,
 					uint8_t min_, uint8_t max_) :
 		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {};
 };
@@ -341,7 +341,7 @@ struct SelectUnselectCard {
 	uint8_t min;
 	uint8_t max;
 	bool finishable;
-	SelectUnselectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
+	explicit SelectUnselectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
 					   uint8_t min_, uint8_t max_, bool finishable_) :
 		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_),
 		finishable(finishable_) {};
@@ -351,7 +351,7 @@ struct SelectChain {
 	uint8_t playerid;
 	uint8_t spe_count;
 	bool forced;
-	SelectChain(int16_t step_, uint8_t playerid_, uint8_t spe_count_, bool forced_) :
+	explicit SelectChain(int16_t step_, uint8_t playerid_, uint8_t spe_count_, bool forced_) :
 		step(step_), playerid(playerid_), spe_count(spe_count_), forced(forced_) {};
 };
 struct SelectPlace {
@@ -359,23 +359,22 @@ struct SelectPlace {
 	uint8_t playerid;
 	uint8_t count;
 	uint32_t flag;
-	SelectPlace(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
-		step(step_), playerid(playerid_), flag(flag_), count(count_) {};
+	bool disable_field;
+	explicit SelectPlace(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
+		step(step_), playerid(playerid_), count(count_), flag(flag_), disable_field(false) {};
 };
-struct SelectDisField {
-	int16_t step;
-	uint8_t playerid;
-	uint8_t count;
-	uint32_t flag;
-	SelectDisField(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
-		step(step_), playerid(playerid_), count(count_), flag(flag_) {};
+struct SelectDisField : SelectPlace {
+	explicit SelectDisField(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
+		SelectPlace(step_, playerid_, flag_, count_) {
+		disable_field = true;
+	};
 };
 struct SelectPosition {
 	int16_t step;
 	uint8_t playerid;
 	uint8_t positions;
 	uint32_t code;
-	SelectPosition(int16_t step_, uint8_t playerid_, uint32_t code_, uint8_t positions_) :
+	explicit SelectPosition(int16_t step_, uint8_t playerid_, uint32_t code_, uint8_t positions_) :
 		step(step_), playerid(playerid_), positions(positions_), code(code_) {};
 };
 struct SelectTributeP {
@@ -384,13 +383,13 @@ struct SelectTributeP {
 	bool cancelable;
 	uint8_t min;
 	uint8_t max;
-	SelectTributeP(int16_t step_, uint8_t playerid_, bool cancelable_, uint8_t min_, uint8_t max_) :
+	explicit SelectTributeP(int16_t step_, uint8_t playerid_, bool cancelable_, uint8_t min_, uint8_t max_) :
 		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {};
 };
 struct SortChain {
 	int16_t step;
 	uint8_t playerid;
-	SortChain(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
+	explicit SortChain(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {};
 };
 struct SelectCounter {
 	int16_t step;
@@ -399,7 +398,7 @@ struct SelectCounter {
 	uint8_t playerid;
 	uint8_t s;
 	uint8_t o;
-	SelectCounter(uint16_t step_, uint8_t playerid_, uint16_t countertype_, uint16_t count_,
+	explicit SelectCounter(uint16_t step_, uint8_t playerid_, uint16_t countertype_, uint16_t count_,
 				  uint8_t s_, uint8_t o_) :
 		step(step_), countertype(countertype_), count(count_), playerid(playerid_), s(s_), o(o_) {};
 };
@@ -409,14 +408,14 @@ struct SelectSum {
 	int32_t acc;
 	int32_t min;
 	int32_t max;
-	SelectSum(int16_t step_, uint8_t playerid_, int32_t acc_, int32_t min_, int32_t max_) :
+	explicit SelectSum(int16_t step_, uint8_t playerid_, int32_t acc_, int32_t min_, int32_t max_) :
 		step(step_), playerid(playerid_), acc(acc_), min(min_), max(max_) {};
 };
 struct SortCard {
 	int16_t step;
 	uint8_t playerid;
 	bool is_chain;
-	SortCard(int16_t step_, uint8_t playerid_, bool is_chain_) :
+	explicit SortCard(int16_t step_, uint8_t playerid_, bool is_chain_) :
 		step(step_), playerid(playerid_), is_chain(is_chain_) {};
 };
 struct SelectRelease {
@@ -429,7 +428,7 @@ struct SelectRelease {
 	int32_t min;
 	int32_t max;
 	card* to_check;
-	SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, int32_t min_,
+	explicit SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, int32_t min_,
 				  int32_t max_, bool check_field_, card* to_check_, uint8_t toplayer_,
 				  uint8_t zone_) :
 		step(step_), playerid(playerid_), cancelable(cancelable_), check_field(check_field_),
@@ -444,7 +443,7 @@ struct SelectTribute {
 	int32_t min;
 	int32_t max;
 	card* target;
-	SelectTribute(int16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
+	explicit SelectTribute(int16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
 				  int32_t max_, uint8_t toplayer_, uint8_t zone_) :
 		step(step_), playerid(playerid_), cancelable(cancelable_),
 		toplayer(toplayer_), zone(zone_), min(min_), max(max_), target(target_) {};
@@ -454,17 +453,95 @@ struct PointEvent {
 	bool skip_trigger;
 	bool skip_freechain;
 	bool skip_new;
-	PointEvent(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
+	explicit PointEvent(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
 		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_), skip_new(skip_new_) {};
 };
+struct QuickEffect {
+	int16_t step;
+	bool skip_freechain;
+	uint8_t priority_player;
+	explicit QuickEffect(int16_t step_, bool skip_freechain_, uint8_t priority_player_) :
+		step(step_), skip_freechain(skip_freechain_), priority_player(priority_player_) {};
+};
+struct IdleCommand {
+	int16_t step;
+	explicit IdleCommand(int16_t step_) :
+		step(step_) {};
+};
+struct PhaseEvent {
+	int16_t step;
+	uint16_t phase;
+	explicit PhaseEvent(int16_t step_, uint16_t phase_) :
+		step(step_), phase(phase_) {};
+};
+struct BattleCommand {
+	int16_t step;
+	explicit BattleCommand(int16_t step_) :
+		step(step_) {};
+};
+struct DamageStep {
+	int16_t step;
+	bool new_attack;
+	explicit DamageStep(int16_t step_, bool new_attack_) :
+		step(step_), new_attack(new_attack_) {};
+};
+struct ForcedBattle {
+	int16_t step;
+	explicit ForcedBattle(int16_t step_) :
+		step(step_) {};
+};
+struct AddChain {
+	int16_t step;
+	explicit AddChain(int16_t step_) :
+		step(step_) {};
+};
+struct SolveChain {
+	int16_t step;
+	bool skip_trigger;
+	bool skip_freechain;
+	bool skip_new;
+	explicit SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
+		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_), skip_new(skip_new_) {};
+};
+struct SolveContinuous {
+	int16_t step;
+	explicit SolveContinuous(int16_t step_) :
+		step(step_) {};
+};
+struct ExecuteCost {
+	int16_t step;
+	uint8_t triggering_player;
+	effect* triggering_effect;
+	explicit ExecuteCost(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
+		step(step_), triggering_player(triggering_player_), triggering_effect(triggering_effect_) {};
+};
+struct ExecuteOperation {
+	int16_t step;
+	uint8_t triggering_player;
+	effect* triggering_effect;
+	explicit ExecuteOperation(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
+		step(step_), triggering_player(triggering_player_), triggering_effect(triggering_effect_) {};
+};
+struct ExecuteTarget {
+	int16_t step;
+	uint8_t triggering_player;
+	effect* triggering_effect;
+	explicit ExecuteTarget(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
+		step(step_), triggering_player(triggering_player_), triggering_effect(triggering_effect_) {};
+};
+
+using processor_unit2 = mpark::variant<Adjust, Turn, RefreshLoc, Startup,
+	SelectBattleCmd, SelectIdleCmd, SelectEffectYesNo, SelectYesNo,
+	SelectOption, SelectCard, SelectCardCodes, SelectUnselectCard,
+	SelectChain, SelectPlace, SelectDisField, SelectPosition,
+	SelectTributeP, SortChain, SelectCounter, SelectSum, SortCard,
+	SelectRelease, QuickEffect, IdleCommand, PhaseEvent, BattleCommand,
+	DamageStep, ForcedBattle, AddChain, SolveChain, SolveContinuous,
+	ExecuteCost, ExecuteOperation, ExecuteTarget>;
 }
 
-using processor_unit2 = mpark::variant<Processors::Adjust, Processors::Turn, Processors::RefreshLoc, Processors::Startup,
-	Processors::SelectBattleCmd, Processors::SelectIdleCmd, Processors::SelectEffectYesNo, Processors::SelectYesNo,
-	Processors::SelectOption, Processors::SelectCard, Processors::SelectCardCodes, Processors::SelectUnselectCard,
-	Processors::SelectChain, Processors::SelectPlace, Processors::SelectDisField, Processors::SelectPosition,
-	Processors::SelectTributeP, Processors::SortChain, Processors::SelectCounter, Processors::SelectSum, Processors::SortCard,
-	Processors::SelectRelease>;
+using Processors::processor_unit2;
+
 struct processor_unit {
 	uint16_t type;
 	int16_t step;
@@ -864,40 +941,40 @@ public:
 	void add_process(uint16_t type, int16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
 	int32_t process();
 	int32_t process2();
-	int32_t execute_cost(uint16_t step, effect* peffect, uint8_t triggering_player);
-	int32_t execute_operation(uint16_t step, effect* peffect, uint8_t triggering_player);
-	int32_t execute_target(uint16_t step, effect* peffect, uint8_t triggering_player);
+	int32_t execute_cost(Processors::ExecuteCost& arg);
+	int32_t execute_operation(Processors::ExecuteOperation& arg);
+	int32_t execute_target(Processors::ExecuteTarget& arg);
 	void raise_event(card* event_card, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value);
 	void raise_event(card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value);
 	void raise_single_event(card* trigger_card, card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value);
 	int32_t check_event(uint32_t code, tevent* pe = 0);
 	int32_t check_event_c(effect* peffect, uint8_t playerid, int32_t neglect_con, int32_t neglect_cost, int32_t copy_info, tevent* pe = 0);
 	int32_t check_hint_timing(effect* peffect);
-	int32_t process_phase_event(int16_t step, int32_t phase_event);
-	int32_t process_point_event(int16_t step, int32_t skip_trigger, int32_t skip_freechain, int32_t skip_new);
-	int32_t process_quick_effect(int16_t step, int32_t skip_freechain, uint8_t priority);
+	int32_t process_phase_event(Processors::PhaseEvent& arg);
+	int32_t process_point_event(Processors::PointEvent& arg);
+	int32_t process_quick_effect(Processors::QuickEffect& arg);
 	int32_t process_instant_event();
 	int32_t process_single_event();
 	int32_t process_single_event(effect* peffect, const tevent& e, chain_list& tp, chain_list& ntp);
-	int32_t process_idle_command(uint16_t step);
-	int32_t process_battle_command(uint16_t step);
-	int32_t process_forced_battle(uint16_t step);
-	int32_t process_damage_step(uint16_t step, uint32_t new_attack);
+	int32_t process_idle_command(Processors::IdleCommand& arg);
+	int32_t process_battle_command(Processors::BattleCommand& arg);
+	int32_t process_forced_battle(Processors::ForcedBattle& arg);
+	int32_t process_damage_step(Processors::DamageStep& arg);
 	void calculate_battle_damage(effect** pdamchange, card** preason_card, std::array<bool, 2>* battle_destroyed);
 	int32_t process_turn(Processors::Turn& arg);
 
-	int32_t add_chain(uint16_t step);
-	int32_t sort_chain(uint16_t step, uint8_t tp);
+	int32_t add_chain(Processors::AddChain& arg);
+	int32_t sort_chain(Processors::SortChain& arg);
 	void solve_continuous(uint8_t playerid, effect* peffect, const tevent& e);
-	int32_t solve_continuous(uint16_t step);
-	int32_t solve_chain(uint16_t step, uint32_t chainend_arg1, uint32_t chainend_arg2);
+	int32_t solve_continuous(Processors::SolveContinuous& arg);
+	int32_t solve_chain(Processors::SolveChain& arg);
 	int32_t break_effect(bool clear_sent = true);
 	void adjust_instant();
 	void adjust_all();
 	void refresh_location_info_instant();
-	int32_t refresh_location_info(const Processors::RefreshLoc& arg);
-	int32_t adjust_step(const Processors::Adjust& arg);
-	int32_t startup(const Processors::Startup& arg);
+	int32_t refresh_location_info(Processors::RefreshLoc& arg);
+	int32_t adjust_step(Processors::Adjust& arg);
+	int32_t startup(Processors::Startup& arg);
 	int32_t refresh_relay(uint16_t step);
 
 	//operations
@@ -969,28 +1046,28 @@ public:
 	int32_t change_position(uint16_t step, group* targets, effect* reason_effect, uint8_t reason_player, uint32_t enable);
 	int32_t operation_replace(uint16_t step, effect* replace_effect, group* targets, card* target, int32_t is_destroy);
 	int32_t activate_effect(uint16_t step, effect* peffect);
-	int32_t select_release_cards(int16_t step, uint8_t playerid, uint8_t cancelable, int32_t min, int32_t max, uint8_t check_field, card* to_check, uint8_t toplayer, uint8_t zone);
-	int32_t select_tribute_cards(int16_t step, card* target, uint8_t playerid, uint8_t cancelable, int32_t min, int32_t max, uint8_t toplayer, uint32_t zone);
+	int32_t select_release_cards(Processors::SelectRelease& arg);
+	int32_t select_tribute_cards(Processors::SelectTribute& arg);
 	int32_t toss_coin(uint16_t step, effect* reason_effect, uint8_t reason_player, uint8_t playerid, uint8_t count);
 	int32_t toss_dice(uint16_t step, effect* reason_effect, uint8_t reason_player, uint8_t playerid, uint8_t count1, uint8_t count2);
 	int32_t rock_paper_scissors(uint16_t step, uint8_t repeat);
 
-	int32_t select_battle_command(const Processors::SelectBattleCmd& arg);
-	int32_t select_idle_command(const Processors::SelectIdleCmd& arg);
-	int32_t select_effect_yes_no(const Processors::SelectEffectYesNo& arg);
-	int32_t select_yes_no(const Processors::SelectYesNo& arg);
-	int32_t select_option(const Processors::SelectOption& arg);
+	int32_t select_battle_command(Processors::SelectBattleCmd& arg);
+	int32_t select_idle_command(Processors::SelectIdleCmd& arg);
+	int32_t select_effect_yes_no(Processors::SelectEffectYesNo& arg);
+	int32_t select_yes_no(Processors::SelectYesNo& arg);
+	int32_t select_option(Processors::SelectOption& arg);
 	bool parse_response_cards(bool cancelable);
-	int32_t select_card(const Processors::SelectCard& arg);
-	int32_t select_card_codes(const Processors::SelectCardCodes& arg);
-	int32_t select_unselect_card(const Processors::SelectUnselectCard& arg);
-	int32_t select_chain(const Processors::SelectChain& arg);
-	int32_t select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint8_t count, bool disable_field);
-	int32_t select_position(uint16_t step, uint8_t playerid, uint32_t code, uint8_t positions);
-	int32_t select_tribute(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max);
-	int32_t select_counter(uint16_t step, uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t s, uint8_t o);
-	int32_t select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc, int32_t min, int32_t max);
-	int32_t sort_card(int16_t step, uint8_t playerid, uint8_t is_chain);
+	int32_t select_card(Processors::SelectCard& arg);
+	int32_t select_card_codes(Processors::SelectCardCodes& arg);
+	int32_t select_unselect_card(Processors::SelectUnselectCard& arg);
+	int32_t select_chain(Processors::SelectChain& arg);
+	int32_t select_place(Processors::SelectPlace& arg);
+	int32_t select_position(Processors::SelectPosition& arg);
+	int32_t select_tribute(Processors::SelectTributeP& arg);
+	int32_t select_counter(Processors::SelectCounter& arg);
+	int32_t select_with_sum_limit(Processors::SelectSum& arg);
+	int32_t sort_card(Processors::SortCard& arg);
 	int32_t announce_race(int16_t step, uint8_t playerid, uint8_t count, uint64_t available);
 	int32_t announce_attribute(int16_t step, uint8_t playerid, uint8_t count, uint32_t available);
 	int32_t announce_card(int16_t step, uint8_t playerid);
@@ -1020,6 +1097,18 @@ public:
 	int32_t operator()(Processors::SelectRelease& arg);
 	int32_t operator()(Processors::SelectTribute& arg);
 	int32_t operator()(Processors::PointEvent& arg);
+	int32_t operator()(Processors::SolveContinuous& arg);
+	int32_t operator()(Processors::ExecuteCost& arg);
+	int32_t operator()(Processors::ExecuteOperation& arg);
+	int32_t operator()(Processors::ExecuteTarget& arg);
+	int32_t operator()(Processors::QuickEffect& arg);
+	int32_t operator()(Processors::IdleCommand& arg);
+	int32_t operator()(Processors::PhaseEvent& arg);
+	int32_t operator()(Processors::BattleCommand& arg);
+	int32_t operator()(Processors::DamageStep& arg);
+	int32_t operator()(Processors::ForcedBattle& arg);
+	int32_t operator()(Processors::AddChain& arg);
+	int32_t operator()(Processors::SolveChain& arg);
 };
 
 //Location Use Reason

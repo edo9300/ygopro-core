@@ -5588,8 +5588,16 @@ int32_t field::activate_effect(uint16_t step, effect* peffect) {
 	}
 	return TRUE;
 }
-int32_t field::select_release_cards(int16_t step, uint8_t playerid, uint8_t cancelable, int32_t min, int32_t max, uint8_t check_field, card* to_check, uint8_t toplayer, uint8_t zone) {
-	switch(step) {
+int32_t field::select_release_cards(Processors::SelectRelease& arg) {
+	auto playerid = arg.playerid;
+	auto cancelable = arg.cancelable;
+	auto min = arg.min;
+	auto max = arg.max;
+	auto check_field = arg.check_field;
+	auto to_check = arg.to_check;
+	auto toplayer = arg.toplayer;
+	auto zone = arg.zone;
+	switch(arg.step) {
 	case 0: {
 		if(check_field) {
 			int32_t ct = 0;
@@ -5747,8 +5755,15 @@ int32_t field::select_release_cards(int16_t step, uint8_t playerid, uint8_t canc
 	}
 	return TRUE;
 }
-int32_t field::select_tribute_cards(int16_t step, card* target, uint8_t playerid, uint8_t cancelable, int32_t min, int32_t max, uint8_t toplayer, uint32_t zone) {
-	switch(step) {
+int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
+	auto target = arg.target;
+	auto playerid = arg.playerid;
+	auto cancelable = arg.cancelable;
+	auto min = arg.min;
+	auto max = arg.max;
+	auto toplayer = arg.toplayer;
+	auto zone = arg.zone;
+	switch(arg.step) {
 	case 0: {
 		core.operated_set.clear();
 		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));

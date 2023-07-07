@@ -15,7 +15,7 @@
 #include "effect.h"
 #include "field.h"
 
-int32_t field::select_battle_command(const Processors::SelectBattleCmd& arg) {
+int32_t field::select_battle_command(Processors::SelectBattleCmd& arg) {
 	auto playerid = arg.playerid;
 	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_SELECT_BATTLECMD);
@@ -66,7 +66,7 @@ int32_t field::select_battle_command(const Processors::SelectBattleCmd& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_idle_command(const Processors::SelectIdleCmd& arg) {
+int32_t field::select_idle_command(Processors::SelectIdleCmd& arg) {
 	auto playerid = arg.playerid;
 	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_SELECT_IDLECMD);
@@ -157,7 +157,7 @@ int32_t field::select_idle_command(const Processors::SelectIdleCmd& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_effect_yes_no(const Processors::SelectEffectYesNo& arg) {
+int32_t field::select_effect_yes_no(Processors::SelectEffectYesNo& arg) {
 	auto playerid = arg.playerid;
 	auto pcard = arg.pcard;
 	auto description = arg.description;
@@ -181,7 +181,7 @@ int32_t field::select_effect_yes_no(const Processors::SelectEffectYesNo& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_yes_no(const Processors::SelectYesNo& arg) {
+int32_t field::select_yes_no(Processors::SelectYesNo& arg) {
 	auto playerid = arg.playerid;
 	auto description = arg.description;
 	if(arg.step == 0) {
@@ -202,7 +202,7 @@ int32_t field::select_yes_no(const Processors::SelectYesNo& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_option(const Processors::SelectOption& arg) {
+int32_t field::select_option(Processors::SelectOption& arg) {
 	auto playerid = arg.playerid;
 	if(arg.step == 0) {
 		returns.set<int32_t>(0, -1);
@@ -277,7 +277,7 @@ bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<Return
 bool inline field::parse_response_cards(bool cancelable) {
 	return ::parse_response_cards(returns, return_cards, core.select_cards, cancelable);
 }
-int32_t field::select_card(const Processors::SelectCard& arg) {
+int32_t field::select_card(Processors::SelectCard& arg) {
 	auto playerid = arg.playerid;
 	auto cancelable = arg.cancelable;
 	auto min = arg.min;
@@ -331,7 +331,7 @@ int32_t field::select_card(const Processors::SelectCard& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_card_codes(const Processors::SelectCardCodes& arg) {
+int32_t field::select_card_codes(Processors::SelectCardCodes& arg) {
 	auto playerid = arg.playerid;
 	auto cancelable = arg.cancelable;
 	auto min = arg.min;
@@ -384,7 +384,7 @@ int32_t field::select_card_codes(const Processors::SelectCardCodes& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_unselect_card(const Processors::SelectUnselectCard& arg) {
+int32_t field::select_unselect_card(Processors::SelectUnselectCard& arg) {
 	auto playerid = arg.playerid;
 	auto cancelable = arg.cancelable;
 	auto min = arg.min;
@@ -450,7 +450,7 @@ int32_t field::select_unselect_card(const Processors::SelectUnselectCard& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_chain(const Processors::SelectChain& arg) {
+int32_t field::select_chain(Processors::SelectChain& arg) {
 	auto playerid = arg.playerid;
 	auto spe_count = arg.spe_count;
 	auto forced = arg.forced;
@@ -500,8 +500,12 @@ int32_t field::select_chain(const Processors::SelectChain& arg) {
 		return TRUE;
 	}
 }
-int32_t field::select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint8_t count, bool disable_field) {
-	if(step == 0) {
+int32_t field::select_place(Processors::SelectPlace& arg) {
+	auto playerid = arg.playerid;
+	auto flag = arg.flag;
+	auto count = arg.count;
+	auto disable_field = arg.disable_field;
+	if(arg.step == 0) {
 		if(count == 0) {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_SELECTMSG);
@@ -591,8 +595,11 @@ int32_t field::select_place(uint16_t step, uint8_t playerid, uint32_t flag, uint
 		return TRUE;
 	}
 }
-int32_t field::select_position(uint16_t step, uint8_t playerid, uint32_t code, uint8_t positions) {
-	if(step == 0) {
+int32_t field::select_position(Processors::SelectPosition& arg) {
+	auto playerid = arg.playerid;
+	auto code = arg.code;
+	uint8_t positions = arg.positions;
+	if(arg.step == 0) {
 		if(positions == 0) {
 			returns.set<int32_t>(0, POS_FACEUP_ATTACK);
 			return TRUE;
@@ -628,8 +635,12 @@ int32_t field::select_position(uint16_t step, uint8_t playerid, uint32_t code, u
 		return TRUE;
 	}
 }
-int32_t field::select_tribute(uint16_t step, uint8_t playerid, uint8_t cancelable, uint8_t min, uint8_t max) {
-	if(step == 0) {
+int32_t field::select_tribute(Processors::SelectTributeP& arg) {
+	auto playerid = arg.playerid;
+	auto cancelable = arg.cancelable;
+	auto min = arg.min;
+	auto max = arg.max;
+	if(arg.step == 0) {
 		returns.clear();
 		return_cards.clear();
 		if(max == 0 || core.select_cards.empty()) {
@@ -688,8 +699,13 @@ int32_t field::select_tribute(uint16_t step, uint8_t playerid, uint8_t cancelabl
 		return TRUE;
 	}
 }
-int32_t field::select_counter(uint16_t step, uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t s, uint8_t o) {
-	if(step == 0) {
+int32_t field::select_counter(Processors::SelectCounter& arg) {
+	auto playerid = arg.playerid;
+	auto countertype = arg.countertype;
+	auto count = arg.count;
+	auto s = arg.s;
+	auto o = arg.o;
+	if(arg.step == 0) {
 		if(count == 0)
 			return TRUE;
 		uint8_t avail = s;
@@ -756,8 +772,12 @@ static int32_t select_sum_check1(const std::vector<int32_t>& oparam, int32_t siz
 	return (acc > o1 && select_sum_check1(oparam, size, index + 1, acc - o1))
 	       || (o2 > 0 && acc > o2 && select_sum_check1(oparam, size, index + 1, acc - o2));
 }
-int32_t field::select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc, int32_t min, int32_t max) {
-	if(step == 0) {
+int32_t field::select_with_sum_limit(Processors::SelectSum& arg) {
+	auto playerid = arg.playerid;
+	auto acc = arg.acc;
+	auto min = arg.min;
+	auto max = arg.max;
+	if(arg.step == 0) {
 		return_cards.clear();
 		returns.clear();
 		if(core.select_cards.empty()) {
@@ -842,8 +862,10 @@ int32_t field::select_with_sum_limit(int16_t step, uint8_t playerid, int32_t acc
 	}
 	return TRUE;
 }
-int32_t field::sort_card(int16_t step, uint8_t playerid, uint8_t is_chain) {
-	if(step == 0) {
+int32_t field::sort_card(Processors::SortCard& arg) {
+	auto playerid = arg.playerid;
+	auto is_chain = arg.is_chain;
+	if(arg.step == 0) {
 		returns.clear();
 		if((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
 			returns.set<int8_t>(0, -1);
