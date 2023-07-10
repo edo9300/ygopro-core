@@ -11,7 +11,7 @@ end
 if not subproject then
 	newoption {
 		trigger = "oldwindows",
-		description = "Use some tricks to support up to windows 2000"
+		description = "Use some tricks to support up to windows XP"
 	}
 	newoption {
 		trigger = "lua-path",
