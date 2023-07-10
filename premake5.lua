@@ -11,7 +11,7 @@ end
 if not subproject then
 	newoption {
 		trigger = "oldwindows",
-		description = "Use some tricks to support up to windows XP"
+		description = "Use the v140_xp or v141_xp toolset to support windows XP sp3"
 	}
 	newoption {
 		trigger = "lua-path",
@@ -119,13 +119,6 @@ project "ocgcoreshared"
 	staticruntime "on"
 	visibility "Hidden"
 	ocgcore_config()
-	if _OPTIONS["oldwindows"] then
-		filter {}
-		files { "./overwrites/overwrites.cpp", "./overwrites/loader.asm" }
-		filter "files:**.asm"
-			exceptionhandling 'SEH'
-		filter {}
-	end
 	
 	filter "action:not vs*"
 		links "lua"
