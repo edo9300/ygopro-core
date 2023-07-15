@@ -3733,7 +3733,10 @@ int32_t field::special_summon(uint16_t step, effect* reason_effect, uint8_t reas
 	}
 	return TRUE;
 }
-int32_t field::destroy_replace(uint16_t /*step*/, group* targets, card* target, uint8_t battle) {
+int32_t field::destroy_replace(Processors::DestroyReplace& arg) {
+	auto targets = arg.targets;
+	auto target = arg.target;
+	auto battle = arg.battle;
 	if(target->current.location & (LOCATION_GRAVE | LOCATION_REMOVED)) {
 		target->current.reason = target->temp.reason;
 		target->current.reason_effect = target->temp.reason_effect;
@@ -3756,8 +3759,12 @@ int32_t field::destroy_replace(uint16_t /*step*/, group* targets, card* target, 
 	}
 	return TRUE;
 }
-int32_t field::destroy(uint16_t step, group* targets, effect* reason_effect, uint32_t reason, uint8_t reason_player) {
-	switch(step) {
+int32_t field::destroy(Processors::Destroy& arg) {
+	auto targets = arg.targets;
+	auto reason_effect = arg.reason_effect;
+	auto reason = arg.reason;
+	auto reason_player = arg.reason_player;
+	switch(arg.step) {
 	case 0: {
 		card_set extra;
 		effect_set eset;
@@ -4088,7 +4095,9 @@ int32_t field::destroy(uint16_t step, group* targets, effect* reason_effect, uin
 	}
 	return TRUE;
 }
-int32_t field::release_replace(uint16_t /*step*/, group* targets, card* target) {
+int32_t field::release_replace(Processors::ReleaseReplace& arg) {
+	auto targets = arg.targets;
+	auto target = arg.target;
 	if(!(target->current.location & (LOCATION_ONFIELD | LOCATION_HAND))) {
 		target->current.reason = target->temp.reason;
 		target->current.reason_effect = target->temp.reason_effect;
@@ -4107,8 +4116,12 @@ int32_t field::release_replace(uint16_t /*step*/, group* targets, card* target) 
 	}
 	return TRUE;
 }
-int32_t field::release(uint16_t step, group* targets, effect* reason_effect, uint32_t reason, uint8_t reason_player) {
-	switch(step) {
+int32_t field::release(Processors::Release& arg) {
+	auto targets = arg.targets;
+	auto reason_effect = arg.reason_effect;
+	auto reason = arg.reason;
+	auto reason_player = arg.reason_player;
+	switch(arg.step) {
 	case 0: {
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
 			auto rm = cit++;
@@ -4184,7 +4197,9 @@ int32_t field::release(uint16_t step, group* targets, effect* reason_effect, uin
 	}
 	return TRUE;
 }
-int32_t field::send_replace(uint16_t /*step*/, group* targets, card* target) {
+int32_t field::send_replace(Processors::SendToReplace& arg) {
+	auto targets = arg.targets;
+	auto target = arg.target;
 	uint8_t playerid = target->sendto_param.playerid;
 	uint8_t dest = target->sendto_param.location;
 	if(!targets->has_card(target))
@@ -4205,7 +4220,7 @@ int32_t field::send_replace(uint16_t /*step*/, group* targets, card* target) {
 	}
 	return TRUE;
 }
-int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uint32_t reason, uint8_t reason_player) {
+int32_t field::send_to(Processors::SendTo& arg) {
 	struct exargs {
 		group* targets;
 		card_set leave_field, leave_grave, detach;
@@ -4214,7 +4229,11 @@ int32_t field::send_to(uint16_t step, group* targets, effect* reason_effect, uin
 		card_vector::iterator cvit;
 		effect* predirect;
 	};
-	switch(step) {
+	auto targets = arg.targets;
+	auto reason_effect = arg.reason_effect;
+	auto reason = arg.reason;
+	auto reason_player = arg.reason_player;
+	switch(arg.step) {
 	case 0: {
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
 			auto rm = cit++;
@@ -4833,12 +4852,20 @@ int32_t field::discard_deck(uint16_t step, uint8_t playerid, uint8_t count, uint
 // move a card from anywhere to field, including sp_summon, Duel.MoveToField(), Duel.ReturnToField()
 // ret: 0 = default, 1 = return after temporarily banished, 2 = trap_monster return to LOCATION_SZONE
 // call move_card() in step 2
-int32_t field::move_to_field(uint16_t step, card* target, uint8_t enable, uint8_t ret, uint8_t pzone, uint8_t zone, uint8_t rule, uint8_t reason, uint8_t confirm) {
+int32_t field::move_to_field(Processors::MoveToField& arg) {
+	auto target = arg.target;
+	auto enable = arg.enable;
+	auto ret = arg.ret;
+	auto pzone = arg.pzone;
+	auto zone = arg.zone;
+	auto rule = arg.rule;
+	auto reason = arg.location_reason;
+	auto confirm = arg.confirm;
 	uint32_t move_player = (target->to_field_param >> 24) & 0xff;
 	uint32_t playerid = (target->to_field_param >> 16) & 0xff;
 	uint32_t location = (target->to_field_param >> 8) & 0xff;
 	uint32_t positions = (target->to_field_param) & 0xff;
-	switch(step) {
+	switch(arg.step) {
 	case 0: {
 		returns.set<int32_t>(0, FALSE);
 		if((ret == 1) && (!(target->current.reason & REASON_TEMPORARY) || (target->current.reason_effect->owner != core.reason_effect->owner)))
@@ -5098,8 +5125,12 @@ int32_t field::move_to_field(uint16_t step, card* target, uint8_t enable, uint8_
 	}
 	return TRUE;
 }
-int32_t field::change_position(uint16_t step, group* targets, effect* reason_effect, uint8_t reason_player, uint32_t enable) {
-	switch(step) {
+int32_t field::change_position(Processors::ChangePos& arg) {
+	auto targets = arg.targets;
+	auto reason_effect = arg.reason_effect;
+	auto reason_player = arg.reason_player;
+	auto enable = arg.enable;
+	switch(arg.step) {
 	case 0: {
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
 			card* pcard = *cit++;
