@@ -924,8 +924,9 @@ struct TossDice {
 struct RockPaperScissors {
 	int16_t step;
 	bool repeat;
+	uint8_t hand0;
 	RockPaperScissors(uint16_t step_, bool repeat_) :
-		step(step_), repeat(repeat_) {}
+		step(step_), repeat(repeat_), hand0(0) {}
 };
 struct SelectFusion {
 	int16_t step;

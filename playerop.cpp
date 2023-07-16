@@ -302,7 +302,8 @@ int32_t field::select_card(Processors::SelectCard& arg) {
 			}
 			return TRUE;
 		}
-		core.units.begin()->arg2 = ((uint32_t)min) + (((uint32_t)max) << 16);
+		arg.min = min;
+		arg.max = max;
 		auto message = pduel->new_message(MSG_SELECT_CARD);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(cancelable || min == 0);
@@ -356,7 +357,8 @@ int32_t field::select_card_codes(Processors::SelectCardCodes& arg) {
 			}
 			return TRUE;
 		}
-		core.units.begin()->arg2 = ((uint32_t)min) + (((uint32_t)max) << 16);
+		arg.min = min;
+		arg.max = max;
 		auto message = pduel->new_message(MSG_SELECT_CARD);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(cancelable || min == 0);
@@ -659,7 +661,8 @@ int32_t field::select_tribute(Processors::SelectTributeP& arg) {
 			max = tm;
 		if(min > max)
 			min = max;
-		core.units.begin()->arg2 = ((uint32_t)min) + (((uint32_t)max) << 16);
+		arg.min = min;
+		arg.max = max;
 		auto message = pduel->new_message(MSG_SELECT_TRIBUTE);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(cancelable || min == 0);
@@ -1113,11 +1116,11 @@ int32_t field::announce_number(Processors::AnnounceNumber& arg) {
 	}
 }
 int32_t field::rock_paper_scissors(Processors::RockPaperScissors& arg) {
-	auto checkvalid = [this] {
+	auto checkvalid = [&] {
 		const auto ret = returns.at<int32_t>(0);
-		if(ret < 1 || ret>3) {
+		if(ret < 1 || ret > 3) {
 			pduel->new_message(MSG_RETRY);
-			--core.units.begin()->step;
+			--arg.step;
 			return false;
 		}
 		return true;
@@ -1131,7 +1134,7 @@ int32_t field::rock_paper_scissors(Processors::RockPaperScissors& arg) {
 	}
 	case 1: {
 		if(checkvalid()) {
-			core.units.begin()->arg2 = returns.at<int32_t>(0);
+			arg.hand0 = returns.at<int32_t>(0);
 			auto message = pduel->new_message(MSG_ROCK_PAPER_SCISSORS);
 			message->write<uint8_t>(1);
 		}
@@ -1140,15 +1143,15 @@ int32_t field::rock_paper_scissors(Processors::RockPaperScissors& arg) {
 	case 2: {
 		if(!checkvalid())
 			return FALSE;
-		int32_t hand0 = core.units.begin()->arg2;
-		int32_t hand1 = returns.at<int32_t>(0);
+		auto hand0 = arg.hand0;
+		auto hand1 = static_cast<uint8_t>(returns.at<int32_t>(0));
 		auto message = pduel->new_message(MSG_HAND_RES);
 		message->write<uint8_t>(hand0 + (hand1 << 2));
 		if(hand0 == hand1) {
 			if(repeat) {
 				message = pduel->new_message(MSG_ROCK_PAPER_SCISSORS);
 				message->write<uint8_t>(0);
-				core.units.begin()->step = 0;
+				arg.step = 0;
 				return FALSE;
 			} else
 				returns.set<int32_t>(0, PLAYER_NONE);
