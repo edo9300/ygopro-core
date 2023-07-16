@@ -1184,7 +1184,7 @@ LUA_STATIC_FUNCTION(Recover) {
 	});
 }
 LUA_STATIC_FUNCTION(RDComplete) {
-	pduel->game_field->core.subunits2.splice(pduel->game_field->core.subunits2.end(), pduel->game_field->core.recover_damage_reserve);
+	pduel->game_field->core.subunits.splice(pduel->game_field->core.subunits.end(), pduel->game_field->core.recover_damage_reserve);
 	return yield();
 }
 LUA_STATIC_FUNCTION(Equip) {

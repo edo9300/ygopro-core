@@ -991,7 +991,7 @@ struct RefreshRelay {
 		step(step_) {}
 };
 
-using processor_unit2 = mpark::variant<InvalidState, Adjust, Turn, RefreshLoc, Startup,
+using processor_unit = mpark::variant<InvalidState, Adjust, Turn, RefreshLoc, Startup,
 	SelectBattleCmd, SelectIdleCmd, SelectEffectYesNo, SelectYesNo,
 	SelectOption, SelectCard, SelectCardCodes, SelectUnselectCard,
 	SelectChain, SelectPlace, SelectDisField, SelectPosition,
@@ -1009,20 +1009,8 @@ using processor_unit2 = mpark::variant<InvalidState, Adjust, Turn, RefreshLoc, S
 	DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay, RefreshRelay>;
 }
 
-using Processors::processor_unit2;
+using Processors::processor_unit;
 
-struct processor_unit {
-	uint16_t type;
-	int16_t step;
-	effect* peffect;
-	group* ptarget;
-	int64_t arg1;
-	int64_t arg2;
-	int64_t arg3;
-	int64_t arg4;
-	void* ptr1;
-	void* ptr2;
-};
 template<typename T>
 class return_card_generic {
 public:
@@ -1041,7 +1029,6 @@ using return_card_code = return_card_generic<std::pair<uint32_t, uint32_t>>;
 struct processor {
 	using option_vector = std::vector<uint64_t>;
 	using processor_list = std::list<processor_unit>;
-	using processor_list2 = std::list<processor_unit2>;
 	using delayed_effect_collection = std::set<std::pair<effect*, tevent>>;
 	using effect_count_map = std::unordered_map<uint64_t, uint32_t>;
 	struct chain_limit_t {
@@ -1058,8 +1045,6 @@ struct processor {
 
 	processor_list units;
 	processor_list subunits;
-	processor_list2 units2;
-	processor_list2 subunits2;
 	processor_unit reserved;
 	card_set just_sent_cards;
 	card_vector select_cards;
@@ -1221,7 +1206,7 @@ struct processor {
 	action_counter_t flipsummon_counter;
 	action_counter_t attack_counter;
 	action_counter_t chain_counter;
-	processor_list2 recover_damage_reserve;
+	processor_list recover_damage_reserve;
 	effect_vector dec_count_reserve;
 	action_counter_t& get_counter_map(ActivityType counter_type) {
 		switch(counter_type) {
@@ -1405,11 +1390,10 @@ public:
 
 	template<typename T, typename... Args>
 	void emplace_process(Args&&... args) {
-		core.subunits2.emplace_back(mpark::in_place_type<T>, std::forward<Args>(args)...);
+		core.subunits.emplace_back(mpark::in_place_type<T>, std::forward<Args>(args)...);
 	}
 	void add_process(uint16_t type, int16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
 	int32_t process();
-	int32_t process2();
 	int32_t execute_cost(Processors::ExecuteCost& arg);
 	int32_t execute_operation(Processors::ExecuteOperation& arg);
 	int32_t execute_target(Processors::ExecuteTarget& arg);
