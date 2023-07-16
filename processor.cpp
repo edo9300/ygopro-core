@@ -21,7 +21,8 @@ void field::add_process(uint16_t type, int16_t step, effect* peffect, group* tar
 }
 
 int32_t field::operator()(Processors::InvalidState& arg) {
-	return PROCESSOR_FLAG_CONTINUE;
+	(void)arg;
+	unreachable();
 }
 int32_t field::operator()(Processors::Adjust& arg) {
 	if(adjust_step(arg))
