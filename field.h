@@ -439,7 +439,7 @@ struct SelectRelease {
 	uint8_t zone;
 	card* to_check;
 	effect* extra_release_nonsum_effect;
-	std::shared_ptr<card_set> must_choose_one;
+	std::unique_ptr<card_set> must_choose_one;
 	SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, uint16_t min_,
 				  uint16_t max_, bool check_field_, card* to_check_, uint8_t toplayer_,
 				  uint8_t zone_) :
@@ -457,7 +457,7 @@ struct SelectTribute {
 	uint8_t zone;
 	card* target;
 	effect* extra_release_effect;
-	std::shared_ptr<card_set> must_choose_one;
+	std::unique_ptr<card_set> must_choose_one;
 	SelectTribute(int16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
 				  int32_t max_, uint8_t toplayer_, uint8_t zone_) :
 		step(step_), min(min_), max(max_), playerid(playerid_), cancelable(cancelable_),
@@ -603,15 +603,23 @@ struct Release {
 		reason_effect(reason_effect_) {}
 };
 struct SendTo {
+	struct exargs {
+		card_set leave_field, leave_grave, detach;
+		bool show_decktop[2];
+		card_vector cv;
+		card_vector::iterator cvit;
+		effect* predirect;
+	};
 	int16_t step;
 	uint8_t reason_player;
 	uint32_t reason;
 	group* targets;
 	effect* reason_effect;
+	std::unique_ptr<exargs> extra_args;
 	SendTo(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
 					uint8_t reason_player_) :
 		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
-		reason_effect(reason_effect_) {}
+		reason_effect(reason_effect_), extra_args(nullptr) {}
 };
 struct DestroyReplace {
 	int16_t step;
@@ -654,12 +662,14 @@ struct ChangePos {
 	int16_t step;
 	uint8_t reason_player;
 	bool enable;
+	bool oppo_selection;
 	effect* reason_effect;
 	group* targets;
+	std::unique_ptr<card_set> to_grave_set;
 	ChangePos(uint16_t step_, group* targets_, effect* reason_effect_,
 					   uint8_t reason_player_, bool enable_) :
-		step(step_), reason_player(reason_player_), enable(enable_),
-		reason_effect(reason_effect_), targets(targets_) {}
+		step(step_), reason_player(reason_player_), enable(enable_), oppo_selection(false),
+		reason_effect(reason_effect_), targets(targets_), to_grave_set(nullptr) {}
 };
 struct OperationReplace {
 	int16_t step;
@@ -685,11 +695,11 @@ struct SummonRule {
 	bool ignore_count;
 	uint32_t zone;
 	card* target;
-	effect* proc;
+	effect* summon_procedure_effect;
 	SummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, effect* proc_,
 						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
 		step(step_), sumplayer(sumplayer_), min_tribute(min_tribute_), ignore_count(ignore_count_),
-		zone(zone_), target(target_), proc(proc_) {}
+		zone(zone_), target(target_), summon_procedure_effect(proc_) {}
 };
 struct SpSummonRule {
 	int16_t step;
@@ -714,21 +724,25 @@ struct FlipSummon {
 	int16_t step;
 	uint8_t sumplayer;
 	card* target;
+	std::unique_ptr<effect_set> flip_spsummon_cost_effects;
 	FlipSummon(uint16_t step_, uint8_t sumplayer_, card* target_) :
-		step(step_), sumplayer(sumplayer_), target(target_) {}
+		step(step_), sumplayer(sumplayer_), target(target_), flip_spsummon_cost_effects(nullptr) {}
 };
 struct MonsterSet {
 	int16_t step;
 	uint8_t setplayer;
 	uint8_t min_tribute;
+	uint8_t max_allowed_tributes;
 	bool ignore_count;
 	uint32_t zone;
 	card* target;
-	effect* proc;
+	effect* summon_procedure_effect;
+	effect* extra_summon_effect;
+	std::unique_ptr<card_set> tributes;
 	MonsterSet(uint16_t step_, uint8_t setplayer_, card* target_, effect* proc_,
 						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
-		step(step_), setplayer(setplayer_), min_tribute(min_tribute_), ignore_count(ignore_count_),
-		zone(zone_), target(target_), proc(proc_) {}
+		step(step_), setplayer(setplayer_), min_tribute(min_tribute_), max_allowed_tributes(0), ignore_count(ignore_count_),
+		zone(zone_), target(target_), summon_procedure_effect(proc_), extra_summon_effect(nullptr), tributes(nullptr) {}
 };
 struct SpellSet {
 	int16_t step;
@@ -746,8 +760,9 @@ struct SpsummonStep {
 	uint32_t zone;
 	group* targets;
 	card* target;
+	std::unique_ptr<effect_set> spsummon_cost_effects;
 	SpsummonStep(uint16_t step_, group* targets_, card* target_, uint32_t zone_) :
-		step(step_), zone(zone_), target(target_), targets(targets_) {}
+		step(step_), zone(zone_), target(target_), targets(targets_), spsummon_cost_effects(nullptr) {}
 };
 struct SpellSetGroup {
 	int16_t step;
@@ -828,28 +843,34 @@ struct GetControl {
 	uint32_t zone;
 	effect* reason_effect;
 	group* targets;
+	std::unique_ptr<card_set> destroy_set;
 	GetControl(uint16_t step_, effect* reason_effect_, uint8_t chose_player_, group* targets_,
 						uint8_t playerid_,	uint16_t reset_phase_, uint8_t reset_count_, uint32_t zone_) :
 		step(step_), chose_player(chose_player_), playerid(playerid_), reset_count(reset_count_),
-		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_) {}
+		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_),
+		destroy_set(nullptr) {}
 };
 struct SwapControl {
 	int16_t step;
 	uint8_t reset_count;
 	uint8_t reason_player;
+	uint8_t self_selected_sequence;
 	uint16_t reset_phase;
 	effect* reason_effect;
 	group* targets1;
 	group* targets2;
 	SwapControl(uint16_t step_, effect* reason_effect_, uint8_t reason_player_,
 						 group* targets1_, group* targets2_, uint16_t reset_phase_, uint8_t reset_count_) :
-		step(step_), reset_count(reset_count_), reason_player(reason_player_), reset_phase(reset_phase_)
-		, reason_effect(reason_effect_), targets1(targets1_), targets2(targets2_) {}
+		step(step_), reset_count(reset_count_), reason_player(reason_player_), self_selected_sequence(0),
+		reset_phase(reset_phase_), reason_effect(reason_effect_), targets1(targets1_), targets2(targets2_) {}
 };
 struct ControlAdjust {
 	int16_t step;
+	uint8_t adjusting_player;
+	std::unique_ptr<card_set> destroy_set;
+	std::unique_ptr<card_set> adjust_set;
 	ControlAdjust(uint16_t step_) :
-		step(step_) {}
+		step(step_), adjusting_player(0), destroy_set(nullptr), adjust_set(nullptr) {}
 };
 struct SelfDestroy {
 	int16_t step;
@@ -860,8 +881,10 @@ struct SelfDestroy {
 };
 struct TrapMonsterAdjust {
 	int16_t step;
+	bool oppo_selection;
+	std::unique_ptr<card_set> to_grave_set;
 	TrapMonsterAdjust(uint16_t step_) :
-		step(step_) {}
+		step(step_), oppo_selection(false), to_grave_set(nullptr) {}
 };
 struct PayLPCost {
 	int16_t step;
@@ -991,6 +1014,8 @@ struct RemoveOverlay {
 	int16_t step;
 	uint16_t min;
 	uint16_t max;
+	uint16_t replaced_amount;
+	bool has_used_overlay_remove_replace_effect;
 	uint8_t rplayer;
 	uint8_t self;
 	uint8_t oppo;
@@ -998,8 +1023,9 @@ struct RemoveOverlay {
 	group* pgroup;
 	RemoveOverlay(uint16_t step_, uint32_t reason_, group* pgroup_, uint8_t rplayer_,
 						   uint8_t self_, uint8_t oppo_, uint16_t min_, uint16_t max_) :
-		step(step_), min(min_), max(max_), rplayer(rplayer_), self(self_), oppo(oppo_),
-		reason(reason_), pgroup(pgroup_) {}
+		step(step_), min(min_), max(max_), replaced_amount(0),
+		has_used_overlay_remove_replace_effect(false), rplayer(rplayer_), self(self_),
+		oppo(oppo_), reason(reason_), pgroup(pgroup_) {}
 };
 struct XyzOverlay {
 	int16_t step;
@@ -1474,8 +1500,8 @@ public:
 	void draw(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t count);
 	void damage(effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, bool is_step = false);
 	void recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, bool is_step = false);
-	void summon(uint32_t sumplayer, card* target, effect* proc, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone = 0x1f);
-	void mset(uint32_t setplayer, card* target, effect* proc, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone = 0x1f);
+	void summon(uint32_t sumplayer, card* target, effect* summon_procedure_effect, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone = 0x1f);
+	void mset(uint32_t setplayer, card* target, effect* summon_procedure_effect, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone = 0x1f);
 	void special_summon_rule(uint32_t sumplayer, card* target, uint32_t summon_type);
 	void special_summon_rule_group(uint32_t sumplayer, uint32_t summon_type);
 	void special_summon(card_set target, uint32_t sumtype, uint32_t sumplayer, uint32_t playerid, uint32_t nocheck, uint32_t nolimit, uint32_t positions, uint32_t zone);
