@@ -275,11 +275,18 @@ struct Adjust {
 struct Turn {
 	int16_t step;
 	uint8_t turn_player;
-	Turn(int16_t step_, uint8_t turn_player_) : step(step_), turn_player(turn_player_) {}
+	bool has_performed_second_battle_phase;
+	Turn(int16_t step_, uint8_t turn_player_) : step(step_), turn_player(turn_player_),
+		has_performed_second_battle_phase(false) {}
 };
 struct RefreshLoc {
 	int16_t step;
-	RefreshLoc(int16_t step_) : step(step_) {}
+	uint8_t dis_count;
+	uint32_t previously_disabled_locations;
+	effect* current_disable_field_effect;
+	RefreshLoc(int16_t step_) :
+		step(step_), dis_count(0), previously_disabled_locations(0),
+		current_disable_field_effect(nullptr) {}
 };
 struct Startup {
 	int16_t step;
@@ -514,23 +521,27 @@ struct ForcedBattle {
 };
 struct AddChain {
 	int16_t step;
+	bool is_activated_effect;
 	AddChain(int16_t step_) :
-		step(step_) {}
+		step(step_), is_activated_effect(false) {}
 };
 struct SolveChain {
 	int16_t step;
 	bool skip_trigger;
 	bool skip_freechain;
 	bool skip_new;
+	int32_t backed_up_operation;
 	SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_,
 						bool skip_new_) :
 		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_),
-		skip_new(skip_new_) {}
+		skip_new(skip_new_), backed_up_operation(0) {}
 };
 struct SolveContinuous {
 	int16_t step;
+	uint8_t reason_player;
+	effect* reason_effect;
 	SolveContinuous(int16_t step_) :
-		step(step_) {}
+		step(step_), reason_player(0), reason_effect(nullptr) {}
 };
 struct ExecuteCost {
 	int16_t step;

@@ -4221,8 +4221,8 @@ int32_t field::process_turn(Processors::Turn& arg) {
 		return FALSE;
 	}
 	case 13: {
-		if(arg.arg2 == 0 && returns.at<int32_t>(1)) { // 2nd Battle Phase
-			arg.arg2 = 1;
+		if(!arg.has_performed_second_battle_phase && returns.at<int32_t>(1)) { // 2nd Battle Phase
+			arg.has_performed_second_battle_phase = true;
 			arg.step = 9;
 			for(uint8_t p = 0; p < 2; ++p) {
 				for(auto& pcard : player[p].list_mzone) {
@@ -4238,7 +4238,7 @@ int32_t field::process_turn(Processors::Turn& arg) {
 			}
 			return FALSE;
 		}
-		arg.arg2 = 0;
+		arg.has_performed_second_battle_phase = false;
 		if(is_flag(DUEL_NO_MAIN_PHASE_2)) {
 			arg.step = 15;
 			adjust_all();
@@ -4330,7 +4330,7 @@ int32_t field::process_turn(Processors::Turn& arg) {
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
 		arg.step = -1;
-		arg.arg1 = 1 - arg.arg1;
+		arg.turn_player = 1 - arg.turn_player;
 		return FALSE;
 	}
 	}
@@ -4343,7 +4343,7 @@ int32_t field::add_chain(Processors::AddChain& arg) {
 			return TRUE;
 		auto& clit = core.new_chains.front();
 		effect* peffect = clit.triggering_effect;
-		arg.arg4 = 0;
+		arg.is_activated_effect = false;
 		// if it's an activate effect, go to subroutine checking for effects allowing the card
 		// to be activated even when it shouldn't normally (the turn it was set, from the hand, etc)
 		if((peffect->type & EFFECT_TYPE_ACTIVATE) != 0)
@@ -4365,7 +4365,7 @@ int32_t field::add_chain(Processors::AddChain& arg) {
 				add_process(PROCESSOR_EXECUTE_OPERATION, 0, peff, 0, clit.triggering_player, 0);
 			}
 		}
-		if(arg.arg4 == 0)
+		if(!arg.is_activated_effect)
 			return FALSE;
 		effect* peffect = clit.triggering_effect;
 		card* phandler = peffect->get_handler();
@@ -4615,7 +4615,7 @@ int32_t field::add_chain(Processors::AddChain& arg) {
 		return TRUE;
 	}
 	case 10: {
-		arg.arg4 = 1;
+		arg.is_activated_effect = true;
 		auto& clit = core.new_chains.front();
 		effect* peffect = clit.triggering_effect;
 		card* phandler = peffect->get_handler();
@@ -4738,8 +4738,8 @@ int32_t field::solve_continuous(Processors::SolveContinuous& arg) {
 		core.continuous_chain.push_back(clit);
 		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START))))
 			core.conti_solving = true;
-		arg.ptarget = (group*)core.reason_effect;
-		arg.arg2 = core.reason_player;
+		arg.reason_effect = core.reason_effect;
+		arg.reason_player = core.reason_player;
 		if(!peffect->target)
 			return FALSE;
 		core.sub_solving_event.push_back(clit.evt);
@@ -4763,10 +4763,8 @@ int32_t field::solve_continuous(Processors::SolveContinuous& arg) {
 	case 3: {
 		auto& clit = core.solving_continuous.front();
 		effect* peffect = clit.triggering_effect;
-		// UNUSED VARIABLE
-		// uint8_t triggering_player = clit.triggering_player;
-		core.reason_effect = (effect*)arg.ptarget;
-		core.reason_player = arg.arg2;
+		core.reason_effect = arg.reason_effect;
+		core.reason_player = arg.reason_player;
 		if(core.continuous_chain.back().target_cards)
 			pduel->delete_group(core.continuous_chain.back().target_cards);
 		for(auto& oit : core.continuous_chain.back().opinfos) {
@@ -4810,8 +4808,6 @@ int32_t field::solve_continuous(Processors::SolveContinuous& arg) {
 }
 int32_t field::solve_chain(Processors::SolveChain& arg) {
 	auto step = arg.step;
-	uint32_t chainend_arg1 = arg.skip_trigger | ((arg.skip_freechain | arg.skip_new) << 8);
-	uint32_t chainend_arg2 = arg.skip_new;
 	if(core.current_chain.size() == 0 && step == 0)
 		return TRUE;
 	auto cait = core.current_chain.rbegin();
@@ -4914,10 +4910,10 @@ int32_t field::solve_chain(Processors::SolveChain& arg) {
 			return FALSE;
 		}
 		if(cait->replace_op) {
-			arg.arg4 = cait->triggering_effect->operation;
+			arg.backed_up_operation = cait->triggering_effect->operation;
 			cait->triggering_effect->operation = cait->replace_op;
 		} else
-			arg.arg4 = 0;
+			arg.backed_up_operation = 0;
 		if(cait->triggering_effect->operation) {
 			core.sub_solving_event.push_back(cait->evt);
 			add_process(PROCESSOR_EXECUTE_OPERATION, 0, cait->triggering_effect, 0, cait->triggering_player, 0);
@@ -4926,18 +4922,17 @@ int32_t field::solve_chain(Processors::SolveChain& arg) {
 	}
 	case 4: {
 		effect* peffect = cait->triggering_effect;
-		if(arg.arg4) {
+		if(arg.backed_up_operation) {
 			if(peffect->operation != 0)
 				luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, peffect->operation);
-			peffect->operation = arg.arg4;
-			arg.arg4 = 0;
+			peffect->operation = arg.backed_up_operation;
 		}
 		core.special_summoning.clear();
 		core.equiping_cards.clear();
 		return FALSE;
 	}
 	case 5: {
-		if(arg.arg4 == 0) {
+		if(std::exchange(arg.backed_up_operation, 0) == 0) {
 			if(cait->opinfos.count(0x200) && cait->opinfos[0x200].op_count) {
 				if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 					if(core.spsummon_state_count_tmp[cait->triggering_player] == core.spsummon_state_count[cait->triggering_player])
@@ -5079,10 +5074,10 @@ int32_t field::solve_chain(Processors::SolveChain& arg) {
 		raise_event((card*)0, EVENT_CHAIN_END, 0, 0, 0, 0, 0);
 		process_instant_event();
 		adjust_all();
-		if(chainend_arg1 != 0x101 || chainend_arg2 != TRUE) {
+		if(!arg.skip_trigger || !(arg.skip_freechain || arg.skip_new) || !arg.skip_new) {
 			core.hint_timing[0] |= TIMING_CHAIN_END;
 			core.hint_timing[1] |= TIMING_CHAIN_END;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, chainend_arg1, chainend_arg2);
+			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, arg.skip_trigger | ((arg.skip_freechain | arg.skip_new) << 8), arg.skip_new);
 		}
 		returns.set<int32_t>(0, TRUE);
 		return TRUE;
@@ -5215,7 +5210,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 			player[0].used_location |= 0x1111;
 			player[1].used_location |= 0x1111;
 		}
-		arg.arg2 = player[0].disabled_location | (player[1].disabled_location << 16);
+		arg.previously_disabled_locations = player[0].disabled_location & 0xffff | (player[1].disabled_location << 16);
 		player[0].disabled_location = 0;
 		player[1].disabled_location = 0;
 		core.disfield_effects.clear();
@@ -5251,12 +5246,12 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 		return FALSE;
 	}
 	case 1: {
-		if(core.disfield_effects.size() == 0) {
+		if(core.disfield_effects.empty()) {
 			arg.step = 2;
 			return FALSE;
 		}
 		effect* peffect = core.disfield_effects[0];
-		arg.peffect = peffect;
+		arg.current_disable_field_effect = peffect;
 		core.disfield_effects.erase(core.disfield_effects.begin());
 		if(!peffect->operation) {
 			peffect->value = 0x80;
@@ -5272,12 +5267,12 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 		disabled_locations &= 0xff7fff7f;
 		if(disabled_locations == 0)
 			disabled_locations = 0x80;
-		if(arg.peffect->get_handler_player() == 0) {
-			arg.peffect->value = disabled_locations;
+		if(arg.current_disable_field_effect->get_handler_player() == 0) {
+			arg.current_disable_field_effect->value = disabled_locations;
 			player[0].disabled_location |= disabled_locations & 0xff7f;
 			player[1].disabled_location |= (disabled_locations >> 16) & 0xff7f;
 		} else {
-			arg.peffect->value = ((disabled_locations << 16) | (disabled_locations >> 16));
+			arg.current_disable_field_effect->value = ((disabled_locations << 16) | (disabled_locations >> 16));
 			player[1].disabled_location |= disabled_locations & 0xff7f;
 			player[0].disabled_location |= (disabled_locations >> 16) & 0xff7f;
 		}
@@ -5291,7 +5286,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 			return FALSE;
 		}
 		effect* peffect = core.extra_mzone_effects[0];
-		arg.peffect = peffect;
+		arg.current_disable_field_effect = peffect;
 		core.extra_mzone_effects.erase(core.extra_mzone_effects.begin());
 		uint32_t p = peffect->get_handler_player();
 		uint32_t mzone_flag = (player[p].disabled_location | player[p].used_location) & 0x1f;
@@ -5305,12 +5300,12 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 		uint32_t flag = mzone_flag | 0xffffffe0;
 		if(dis_count > empty_count)
 			dis_count = empty_count;
-		arg.arg1 = dis_count;
+		arg.dis_count = dis_count;
 		add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, p, flag, dis_count);
 		return FALSE;
 	}
 	case 4: {
-		uint32_t dis_count = arg.arg1;
+		uint32_t dis_count = arg.dis_count;
 		uint32_t mzone_flag = 0;
 		uint8_t pt = 0;
 		for(uint32_t i = 0; i < dis_count; ++i) {
@@ -5318,7 +5313,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 			mzone_flag |= 0x1u << s;
 			pt += 3;
 		}
-		effect* peffect = arg.peffect;
+		effect* peffect = arg.current_disable_field_effect;
 		player[peffect->get_handler_player()].disabled_location |= mzone_flag;
 		peffect->value = (int32_t)(peffect->value | (mzone_flag << 16));
 		arg.step = 2;
@@ -5330,7 +5325,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 			return FALSE;
 		}
 		effect* peffect = core.extra_szone_effects[0];
-		arg.peffect = peffect;
+		arg.current_disable_field_effect = peffect;
 		core.extra_szone_effects.erase(core.extra_szone_effects.begin());
 		uint32_t p = peffect->get_handler_player();
 		uint32_t szone_flag = ((player[p].disabled_location | player[p].used_location) >> 8) & 0x1f;
@@ -5344,12 +5339,12 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 		uint32_t flag = (szone_flag << 8) | 0xffffe0ff;
 		if(dis_count > empty_count)
 			dis_count = empty_count;
-		arg.arg1 = dis_count;
+		arg.dis_count = dis_count;
 		add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, p, flag, dis_count);
 		return FALSE;
 	}
 	case 6: {
-		uint32_t dis_count = arg.arg1;
+		uint32_t dis_count = arg.dis_count;
 		uint32_t szone_flag = 0;
 		uint8_t pt = 0;
 		for(uint32_t i = 0; i < dis_count; ++i) {
@@ -5357,7 +5352,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 			szone_flag |= 0x1u << s;
 			pt += 3;
 		}
-		effect* peffect = arg.peffect;
+		effect* peffect = arg.current_disable_field_effect;
 		player[peffect->get_handler_player()].disabled_location |= szone_flag << 8;
 		peffect->value = (int32_t)(peffect->value | (szone_flag << 16));
 		arg.step = 4;
@@ -5367,7 +5362,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 		player[0].disabled_location |= (((player[1].disabled_location >> 5) & 1) << 6) | (((player[1].disabled_location >> 6) & 1) << 5);
 		player[1].disabled_location |= (((player[0].disabled_location >> 5) & 1) << 6) | (((player[0].disabled_location >> 6) & 1) << 5);
 		uint32_t dis = player[0].disabled_location | (player[1].disabled_location << 16);
-		if(dis != (uint32_t)arg.arg2) {
+		if(dis != arg.previously_disabled_locations) {
 			auto message = pduel->new_message(MSG_FIELD_DISABLED);
 			message->write<uint32_t>(dis);
 		}
