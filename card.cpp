@@ -3115,9 +3115,9 @@ int32_t card::check_unique_code(card* pcard) {
 		return TRUE;
 	return FALSE;
 }
-void card::get_unique_target(card_set* cset, int32_t controler, card* icard) {
+void card::get_unique_target(card_set* cset, uint8_t controler, card* icard) {
 	cset->clear();
-	for(int32_t p = 0; p < 2; ++p) {
+	for(uint8_t p = 0; p < 2; ++p) {
 		if(!unique_pos[p])
 			continue;
 		const auto& player = pduel->game_field->player[controler ^ p];
@@ -3136,7 +3136,7 @@ void card::get_unique_target(card_set* cset, int32_t controler, card* icard) {
 		}
 	}
 }
-int32_t card::check_cost_condition(int32_t ecode, int32_t playerid) {
+int32_t card::check_cost_condition(uint32_t ecode, uint8_t playerid) {
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, ecode, &eset, FALSE);
 	filter_effect(ecode, &eset);
@@ -3149,7 +3149,7 @@ int32_t card::check_cost_condition(int32_t ecode, int32_t playerid) {
 	}
 	return TRUE;
 }
-int32_t card::check_cost_condition(int32_t ecode, int32_t playerid, int32_t sumtype) {
+int32_t card::check_cost_condition(uint32_t ecode, uint8_t playerid, uint32_t sumtype) {
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, ecode, &eset, FALSE);
 	filter_effect(ecode, &eset);

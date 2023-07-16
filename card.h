@@ -313,9 +313,9 @@ public:
 	int32_t is_not_tuner(card* scard, uint8_t playerid);
 
 	int32_t check_unique_code(card* pcard);
-	void get_unique_target(card_set* cset, int32_t controler, card* icard = 0);
-	int32_t check_cost_condition(int32_t ecode, int32_t playerid);
-	int32_t check_cost_condition(int32_t ecode, int32_t playerid, int32_t sumtype);
+	void get_unique_target(card_set* cset, uint8_t controler, card* icard = nullptr);
+	int32_t check_cost_condition(uint32_t ecode, uint8_t playerid);
+	int32_t check_cost_condition(uint32_t ecode, uint8_t playerid, uint32_t sumtype);
 	int32_t is_summonable_card();
 	int32_t is_fusion_summonable_card(uint32_t summon_type);
 	int32_t is_spsummonable(effect* peffect);
