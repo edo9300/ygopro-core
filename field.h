@@ -692,22 +692,32 @@ struct SummonRule {
 	int16_t step;
 	uint8_t sumplayer;
 	uint8_t min_tribute;
+	uint8_t max_allowed_tributes;
 	bool ignore_count;
 	uint32_t zone;
 	card* target;
 	effect* summon_procedure_effect;
+	effect* extra_summon_effect;
+	std::unique_ptr<card_set> tributes;
+	std::unique_ptr<effect_set> spsummon_cost_effects;
 	SummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, effect* proc_,
 						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
-		step(step_), sumplayer(sumplayer_), min_tribute(min_tribute_), ignore_count(ignore_count_),
-		zone(zone_), target(target_), summon_procedure_effect(proc_) {}
+		step(step_), sumplayer(sumplayer_), min_tribute(min_tribute_), max_allowed_tributes(0),
+		ignore_count(ignore_count_), zone(zone_), target(target_), summon_procedure_effect(proc_),
+		extra_summon_effect(nullptr), tributes(nullptr), spsummon_cost_effects(nullptr) {}
 };
 struct SpSummonRule {
 	int16_t step;
 	uint8_t sumplayer;
+	bool is_mid_chain;
 	uint32_t summon_type;
 	card* target;
-	SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_) :
-		step(step_), sumplayer(sumplayer_), summon_type(summon_type_), target(target_) {}
+	effect* summon_proc_effect;
+	group* cards_to_summon_g;
+	std::unique_ptr<effect_set> special_spsummon_cost_effects;
+	SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_, bool is_mid_chain_ = false) :
+		step(step_), sumplayer(sumplayer_), is_mid_chain(is_mid_chain_), summon_type(summon_type_), target(target_),
+		summon_proc_effect(nullptr), cards_to_summon_g(nullptr), special_spsummon_cost_effects(nullptr) {}
 };
 struct SpSummon {
 	int16_t step;
