@@ -30,6 +30,9 @@ void field::add_process(uint16_t type, int16_t step, effect* peffect, group* tar
 	new_unit.ptr2 = ptr2;
 }
 
+int32_t field::operator()(Processors::InvalidState& arg) {
+	return PROCESSOR_FLAG_CONTINUE;
+}
 int32_t field::operator()(Processors::Adjust& arg) {
 	if(adjust_step(arg))
 		core.units2.pop_front();
