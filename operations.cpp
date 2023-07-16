@@ -5735,12 +5735,11 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 			zone &= (0x1f & get_forced_zones(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
 			ct = get_useable_count(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
 			if(ct < min) {
-				card_set* must_choose_one = new card_set;
+				arg.must_choose_one = std::make_shared<card_set>();
 				for(auto& pcard : core.release_cards) {
 					if((pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer && ((zone >> pcard->current.sequence) & 1)))
-						must_choose_one->insert(pcard);
+						arg.must_choose_one->insert(pcard);
 				}
-				arg.ptr1 = must_choose_one;
 			}
 		}
 		core.operated_set.clear();
@@ -5751,7 +5750,7 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 		bool allmust = ((int32_t)core.release_cards_ex.size() >= max) || (core.release_cards.size() + core.release_cards_ex_oneof.size()) == 0;
 		/*only self cards available, no need for special check*/
 		bool onlyself = (core.release_cards_ex.size() + core.release_cards_ex_oneof.size()) == 0;
-		if((!allminimum && !allmust && !onlyself) || arg.ptr1) {
+		if((!allminimum && !allmust && !onlyself) || arg.must_choose_one) {
 			arg.step = 1;
 			return FALSE;
 		}
@@ -5771,9 +5770,6 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 		return FALSE;
 	}
 	case 1: {
-		card_set* must_choose_one = (card_set*)arg.ptr1;
-		if(must_choose_one)
-			delete must_choose_one;
 		if(return_cards.canceled)
 			return TRUE;
 		int32_t count = static_cast<int32_t>(return_cards.list.size());
@@ -5795,10 +5791,10 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 		core.unselect_cards.clear();
 		core.unselect_cards.insert(core.unselect_cards.begin(), core.operated_set.begin(), core.operated_set.end());
 
-		uint8_t finishable = (int32_t)core.operated_set.size() >= min;
-		uint8_t must_chosen = !arg.ptr1;
+		auto finishable = (int32_t)core.operated_set.size() >= min;
+		auto must_chosen = !arg.must_choose_one;
 
-		auto must_choose = static_cast<card_set*>(arg.ptr1);
+		auto& must_choose = arg.must_choose_one;
 		uint32_t to_select = 0;
 		for(auto& pcard : core.release_cards_ex) {
 			if(core.operated_set.find(pcard) == core.operated_set.end()) {
@@ -5834,7 +5830,7 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 			}
 		} else {
 			diff.insert(diff.begin(), core.release_cards.begin(), core.release_cards.end());
-			if(arg.peffect == nullptr)
+			if(arg.extra_release_nonsum_effect == nullptr)
 				diff.insert(diff.begin(), core.release_cards_ex_oneof.begin(), core.release_cards_ex_oneof.end());
 		}
 		std::set_difference(diff.begin(), diff.end(), core.unselect_cards.begin(), core.unselect_cards.end(),
@@ -5849,13 +5845,10 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 	}
 	case 3: {
 		if(return_cards.canceled && (core.operated_set.empty() || (int32_t)core.operated_set.size() >= min)) {
-			if(arg.peffect)
-				core.dec_count_reserve.push_back(arg.peffect);
+			if(arg.extra_release_nonsum_effect)
+				core.dec_count_reserve.push_back(arg.extra_release_nonsum_effect);
 			return_cards.list.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
-			card_set* must_choose_one = (card_set*)arg.ptr1;
-			if(must_choose_one)
-				delete must_choose_one;
 			if(core.operated_set.size())
 				return_cards.canceled = false;
 			return TRUE;
@@ -5864,20 +5857,17 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 		if(core.operated_set.find(pcard) == core.operated_set.end()) {
 			core.operated_set.insert(pcard);
 			if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-				arg.peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_NONSUM);
+				arg.extra_release_nonsum_effect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_NONSUM);
 		} else {
 			core.operated_set.erase(pcard);
 			if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-				arg.peffect = nullptr;
+				arg.extra_release_nonsum_effect = nullptr;
 		}
 		if((int32_t)core.operated_set.size() == max) {
 			return_cards.list.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
-			card_set* must_choose_one = (card_set*)arg.ptr1;
-			if(must_choose_one)
-				delete must_choose_one;
-			if(arg.peffect)
-				core.dec_count_reserve.push_back(arg.peffect);
+			if(arg.extra_release_nonsum_effect)
+				core.dec_count_reserve.push_back(arg.extra_release_nonsum_effect);
 			return TRUE;
 		}
 		arg.step = 1;
@@ -5925,14 +5915,13 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		int32_t rmax = 0;
 		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
 		int32_t ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
-		card_set* must_choose_one = new card_set;
+		auto must_choose_one = std::make_shared<card_set>();
 		for(auto& pcard : core.release_cards) {
 			if((pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer && ((zone >> pcard->current.sequence) & 1)))
 				if(ct <= 0)
 					must_choose_one->insert(pcard);
 			rmax += (pcard)->release_param;
 		}
-		arg.ptr1 = must_choose_one;
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(playerid);
@@ -5944,7 +5933,6 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 					core.select_cards.push_back(pcard);
 			}
 			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
-			delete must_choose_one;
 			return TRUE;
 		}
 		bool force = !must_choose_one->empty();
@@ -5975,6 +5963,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		}
 		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
 		arg.step = 2;
+		arg.must_choose_one = std::move(must_choose_one);
 		return FALSE;
 	}
 	case 2: {
@@ -5987,7 +5976,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		max -= rmin;
 		min = min > 0 ? min : 0;
 		max = max > 0 ? max : 0;
-		card_set* must_choose_one = (card_set*)arg.ptr1;
+		auto& must_choose_one = arg.must_choose_one;
 		bool force = !must_choose_one->empty();
 		for(auto& pcard : *must_choose_one) {
 			if(core.operated_set.find(pcard) != core.operated_set.end())
@@ -6020,7 +6009,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 			for(auto& pcard : core.release_cards_ex)
 				if(core.operated_set.find(pcard) == core.operated_set.end())
 					core.select_cards.push_back(pcard);
-			if(!arg.peffect)
+			if(!arg.extra_release_effect)
 				for(auto& pcard : core.release_cards_ex_oneof)
 					if(core.operated_set.find(pcard) == core.operated_set.end())
 						core.select_cards.push_back(pcard);
@@ -6037,22 +6026,18 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		return FALSE;
 	}
 	case 3: {
-		if(return_cards.canceled && core.operated_set.empty()) {
-			card_set* must_choose_one = (card_set*)arg.ptr1;
-			if(must_choose_one)
-				delete must_choose_one;
+		if(return_cards.canceled && core.operated_set.empty())
 			return TRUE;
-		}
 		if(!return_cards.canceled) {
 			card* pcard = return_cards.list[0];
 			if(core.operated_set.find(pcard) == core.operated_set.end()) {
 				core.operated_set.insert(pcard);
 				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-					arg.peffect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
+					arg.extra_release_effect = pcard->is_affected_by_effect(EFFECT_EXTRA_RELEASE_SUM);
 			} else {
 				core.operated_set.erase(pcard);
 				if(core.release_cards_ex_oneof.find(pcard) != core.release_cards_ex_oneof.end())
-					arg.peffect = nullptr;
+					arg.extra_release_effect = nullptr;
 			}
 		}
 		uint32_t rmin = static_cast<uint32_t>(core.operated_set.size());
@@ -6066,12 +6051,9 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		if((return_cards.canceled && min <= 0) || !max) {
 			return_cards.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
-			effect* peffect = arg.peffect;
+			effect* peffect = arg.extra_release_effect;
 			if(peffect)
 				peffect->dec_count();
-			card_set* must_choose_one = (card_set*)arg.ptr1;
-			if(must_choose_one)
-				delete must_choose_one;
 			return TRUE;
 		}
 		arg.step = 1;

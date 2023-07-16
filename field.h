@@ -8,8 +8,10 @@
 #define FIELD_H_
 
 #include <array>
+#include <functional>
 #include <list>
 #include <map>
+#include <memory> //std::shared_ptr
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -428,33 +430,39 @@ struct SortCard {
 };
 struct SelectRelease {
 	int16_t step;
+	uint16_t min;
+	uint16_t max;
 	uint8_t playerid;
 	bool cancelable;
 	bool check_field;
 	uint8_t toplayer;
 	uint8_t zone;
-	int32_t min;
-	int32_t max;
 	card* to_check;
-	SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, int32_t min_,
-				  int32_t max_, bool check_field_, card* to_check_, uint8_t toplayer_,
+	effect* extra_release_nonsum_effect;
+	std::shared_ptr<card_set> must_choose_one;
+	SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, uint16_t min_,
+				  uint16_t max_, bool check_field_, card* to_check_, uint8_t toplayer_,
 				  uint8_t zone_) :
-		step(step_), playerid(playerid_), cancelable(cancelable_), check_field(check_field_),
-		toplayer(toplayer_), zone(zone_), min(min_), max(max_), to_check(to_check_) {}
+		step(step_), min(min_), max(max_), playerid(playerid_), cancelable(cancelable_),
+		check_field(check_field_), toplayer(toplayer_), zone(zone_), to_check(to_check_),
+		extra_release_nonsum_effect(nullptr), must_choose_one(nullptr) {}
 };
 struct SelectTribute {
 	int16_t step;
+	uint16_t min;
+	uint16_t max;
 	uint8_t playerid;
 	bool cancelable;
 	uint8_t toplayer;
 	uint8_t zone;
-	int32_t min;
-	int32_t max;
 	card* target;
+	effect* extra_release_effect;
+	std::shared_ptr<card_set> must_choose_one;
 	SelectTribute(int16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
 				  int32_t max_, uint8_t toplayer_, uint8_t zone_) :
-		step(step_), playerid(playerid_), cancelable(cancelable_),
-		toplayer(toplayer_), zone(zone_), min(min_), max(max_), target(target_) {}
+		step(step_), min(min_), max(max_), playerid(playerid_), cancelable(cancelable_),
+		toplayer(toplayer_), zone(zone_), target(target_), extra_release_effect(nullptr),
+		must_choose_one(nullptr) {}
 };
 struct PointEvent {
 	int16_t step;
