@@ -8,7 +8,7 @@
 #include <array>
 #include <iterator> //std::next
 #include <set>
-#include <utility> //std::make_pair, std::exchange, std::move
+#include <utility> //std::make_pair, std::exchange, std::move, std::swap
 #include "duel.h"
 #include "effect.h"
 #include "card.h"
@@ -3322,7 +3322,9 @@ int32_t field::process_battle_command(Processors::BattleCommand& arg) {
 		process_single_event();
 		process_instant_event();
 		if(core.effect_damage_step) {
-			core.reserved.ptr1 = arg.ptarget;
+			auto* damage_step = mpark::get_if<Processors::DamageStep>(&core.reserved);
+			if(damage_step)
+				damage_step->cards_destroyed_by_battle = arg.cards_destroyed_by_battle;
 			return TRUE;
 		}
 		arg.step = 32;
@@ -3497,7 +3499,7 @@ int32_t field::process_forced_battle(Processors::ForcedBattle& arg) {
 			message->write<uint16_t>(infos.phase);
 			return TRUE;
 		}
-		arg.arg1 = infos.phase;
+		arg.backup_phase = infos.phase;
 		auto tmp_attacker = core.forced_attacker;
 		auto tmp_attack_target = core.forced_attack_target;
 		if(!tmp_attacker->is_capable_attack_announce(infos.turn_player))
@@ -3541,7 +3543,7 @@ int32_t field::process_forced_battle(Processors::ForcedBattle& arg) {
 	case 1: {
 		reset_phase(infos.phase);
 		core.forced_attack = false;
-		infos.phase = arg.arg1;
+		infos.phase = arg.backup_phase;
 		core.new_fchain.clear();
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
@@ -3574,13 +3576,9 @@ int32_t field::process_damage_step(Processors::DamageStep& arg) {
 		if(core.effect_damage_step && !new_attack)
 			return TRUE;
 		core.effect_damage_step = 1;
-		card* tmp = core.attacker;
-		core.attacker = (card*)arg.peffect;
-		arg.peffect = (effect*)tmp;
-		tmp = core.attack_target;
-		core.attack_target = (card*)arg.ptarget;
-		arg.ptarget = (group*)tmp;
-		arg.arg1 = infos.phase;
+		std::swap(core.attacker, arg.attacker);
+		std::swap(core.attack_target, arg.attack_target);
+		arg.backup_phase = infos.phase;
 		if(core.attacker->current.location != LOCATION_MZONE || (core.attack_target && core.attack_target->current.location != LOCATION_MZONE)) {
 			arg.step = 2;
 			return FALSE;
@@ -3617,23 +3615,23 @@ int32_t field::process_damage_step(Processors::DamageStep& arg) {
 		infos.phase = PHASE_DAMAGE_CAL;
 		add_process(PROCESSOR_BATTLE_COMMAND, 26, 0, 0, 0, 0);
 		arg.step = 2;
-		core.reserved = core.units.front();
+		core.reserved = arg;
 		return TRUE;
 	}
 	case 2: {
 		core.effect_damage_step = 2;
-		add_process(PROCESSOR_BATTLE_COMMAND, 32, 0, (group*)arg.ptr1, 0, 0);
+		add_process(PROCESSOR_BATTLE_COMMAND, 32, 0, arg.cards_destroyed_by_battle, 0, 0);
 		return FALSE;
 	}
 	case 3: {
-		core.attacker = (card*)arg.peffect;
-		core.attack_target = (card*)arg.ptarget;
+		std::swap(core.attacker, arg.attacker);
+		std::swap(core.attack_target, arg.attack_target);
 		if(core.attacker)
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		if(core.attack_target)
 			core.attack_target->set_status(STATUS_ATTACK_CANCELED, TRUE);
 		core.effect_damage_step = 0;
-		infos.phase = arg.arg1;
+		infos.phase = arg.backup_phase;
 		return TRUE;
 	}
 	}

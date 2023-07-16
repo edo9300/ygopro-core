@@ -490,22 +490,27 @@ struct BattleCommand {
 	bool previous_point_event_had_any_trigger_to_resolve;
 	effect* damage_change_effect;
 	group* cards_destroyed_by_battle;
-	BattleCommand(int16_t step_) :
+	BattleCommand(int16_t step_, group* cards_destroyed_by_battle_ = nullptr) :
 		step(step_), phase_to_change_to(0), is_replaying_attack(false), attack_announce_failed(false),
 		repeat_battle_phase(false), second_battle_phase_is_optional(false),
 		previous_point_event_had_any_trigger_to_resolve(false), damage_change_effect(nullptr),
-		cards_destroyed_by_battle(nullptr) {}
+		cards_destroyed_by_battle(cards_destroyed_by_battle_) {}
 };
 struct DamageStep {
 	int16_t step;
+	uint16_t backup_phase;
 	bool new_attack;
-	DamageStep(int16_t step_, bool new_attack_) :
-		step(step_), new_attack(new_attack_) {}
+	card* attacker;
+	card* attack_target;
+	group* cards_destroyed_by_battle;
+	DamageStep(int16_t step_, card* attacker_, card* attack_target_, bool new_attack_) :
+		step(step_), backup_phase(0), new_attack(new_attack_), attacker(attacker_), attack_target(attack_target_), cards_destroyed_by_battle(nullptr) {}
 };
 struct ForcedBattle {
 	int16_t step;
+	uint16_t backup_phase;
 	ForcedBattle(int16_t step_) :
-		step(step_) {}
+		step(step_), backup_phase(0) {}
 };
 struct AddChain {
 	int16_t step;
