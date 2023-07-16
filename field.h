@@ -772,7 +772,7 @@ struct SpsummonStep {
 	card* target;
 	std::unique_ptr<effect_set> spsummon_cost_effects;
 	SpsummonStep(uint16_t step_, group* targets_, card* target_, uint32_t zone_) :
-		step(step_), zone(zone_), target(target_), targets(targets_), spsummon_cost_effects(nullptr) {}
+		step(step_), zone(zone_), targets(targets_), target(target_), spsummon_cost_effects(nullptr) {}
 };
 struct SpellSetGroup {
 	int16_t step;

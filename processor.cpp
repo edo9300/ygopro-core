@@ -16,7 +16,7 @@
 #include "group.h"
 #include "interpreter.h"
 
-void field::add_process(uint16_t type, int16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3, int64_t arg4, void* ptr1, void* ptr2) {
+void field::add_process(uint16_t, int16_t, effect*, group*, int64_t, int64_t, int64_t, int64_t, void*, void*) {
 	core.subunits.emplace_back();
 }
 
@@ -5211,7 +5211,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 			player[0].used_location |= 0x1111;
 			player[1].used_location |= 0x1111;
 		}
-		arg.previously_disabled_locations = player[0].disabled_location & 0xffff | (player[1].disabled_location << 16);
+		arg.previously_disabled_locations = (player[0].disabled_location & 0xffff) | (player[1].disabled_location << 16);
 		player[0].disabled_location = 0;
 		player[1].disabled_location = 0;
 		core.disfield_effects.clear();
