@@ -458,9 +458,9 @@ int32_t field::draw(Processors::Draw& arg) {
 		}
 		core.hint_timing[playerid] |= TIMING_DRAW + TIMING_TOHAND;
 		adjust_instant();
-		arg.arg2 = (arg.arg2 & 0xff000000) + drawn;
-		card_set* drawn_set = new card_set;
-		arg.ptarget = (group*)drawn_set;
+		arg.count = drawn;
+		auto& drawn_set = arg.drawn_set;
+		drawn_set = std::make_unique<card_set>();
 		drawn_set->insert(cv.begin(), cv.end());
 		if(drawn) {
 			if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
@@ -510,17 +510,15 @@ int32_t field::draw(Processors::Draw& arg) {
 				raise_single_event(pcard, 0, EVENT_MOVE, reason_effect, reason, reason_player, playerid, 0);
 			}
 			process_single_event();
-			raise_event(drawn_set, EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
-			raise_event(drawn_set, EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
-			raise_event(drawn_set, EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set.get(), EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set.get(), EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set.get(), EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
 			process_instant_event();
 		}
 		return FALSE;
 	}
 	case 1: {
-		card_set* drawn_set = (card_set*)arg.ptarget;
-		core.operated_set.swap(*drawn_set);
-		delete drawn_set;
+		core.operated_set.swap(*arg.drawn_set);
 		returns.set<uint32_t>(0, count);
 		return TRUE;
 	}
@@ -565,7 +563,7 @@ int32_t field::damage(Processors::Damage& arg) {
 			pduel->lua->add_param<LuaParam::CARD>(reason_card);
 			if (peff->check_value_condition(5)) {
 				playerid = 1 - playerid;
-				arg.arg2 |= 1 << 29;
+				arg.is_reflected = true;
 				break;
 			}
 		}
@@ -583,7 +581,7 @@ int32_t field::damage(Processors::Damage& arg) {
 			if(val == 0)
 				return TRUE;
 		}
-		arg.arg3 = val;
+		arg.amount = val;
 		if(is_step) {
 			arg.step = 9;
 			return TRUE;
@@ -591,10 +589,9 @@ int32_t field::damage(Processors::Damage& arg) {
 		return FALSE;
 	}
 	case 1: {
-		bool is_reflect = (arg.arg2 >> 29) & 1;
-		if(is_reflect)
+		if(arg.is_reflected)
 			playerid = 1 - playerid;
-		if(is_reflect || (reason & REASON_RRECOVER))
+		if(arg.is_reflected || (reason & REASON_RRECOVER))
 			arg.step = 2;
 		core.hint_timing[playerid] |= TIMING_DAMAGE;
 		player[playerid].lp -= amount;
