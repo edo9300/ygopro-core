@@ -239,7 +239,7 @@ LUA_STATIC_FUNCTION(Summon) {
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->summon(playerid, pcard, peffect, ignore_count, min_tribute, zone);
 	if(pduel->game_field->core.current_chain.size()) {
-		pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+		pduel->game_field->core.reserved = std::move(pduel->game_field->core.subunits.back());
 		pduel->game_field->core.subunits.pop_back();
 		pduel->game_field->core.summoning_card = pcard;
 	}
@@ -258,7 +258,7 @@ LUA_STATIC_FUNCTION(SpecialSummonRule) {
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule(playerid, pcard, sumtype);
 	if(pduel->game_field->core.current_chain.size()) {
-		pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+		pduel->game_field->core.reserved = std::move(pduel->game_field->core.subunits.back());
 		pduel->game_field->core.subunits.pop_back();
 		pduel->game_field->core.summoning_card = pcard;
 	}
@@ -299,7 +299,7 @@ inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule(playerid, pcard, summon_type);
 	if(pduel->game_field->core.current_chain.size()) {
-		pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+		pduel->game_field->core.reserved = std::move(pduel->game_field->core.subunits.back());
 		pduel->game_field->core.subunits.pop_back();
 		pduel->game_field->core.summoning_card = pcard;
 	}
@@ -326,7 +326,7 @@ inline int32_t spsummon_rule_group(lua_State* L, uint32_t summon_type, [[maybe_u
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule_group(playerid, summon_type);
 	if(pduel->game_field->core.current_chain.size()) {
-		pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+		pduel->game_field->core.reserved = std::move(pduel->game_field->core.subunits.back());
 		pduel->game_field->core.subunits.pop_back();
 		pduel->game_field->core.summoning_proc_group_type = summon_type;
 	}
@@ -356,7 +356,7 @@ LUA_STATIC_FUNCTION(MSet) {
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->mset(playerid, pcard, peffect, ignore_count, min_tribute, zone);
 	if(pduel->game_field->core.current_chain.size()) {
-		pduel->game_field->core.reserved = pduel->game_field->core.subunits.back();
+		pduel->game_field->core.reserved = std::move(pduel->game_field->core.subunits.back());
 		pduel->game_field->core.subunits.pop_back();
 		pduel->game_field->core.summoning_card = pcard;
 	}
