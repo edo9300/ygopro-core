@@ -500,8 +500,10 @@ struct SolveChain {
 	bool skip_trigger;
 	bool skip_freechain;
 	bool skip_new;
-	explicit SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
-		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_), skip_new(skip_new_) {}
+	explicit SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_,
+						bool skip_new_) :
+		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_),
+		skip_new(skip_new_) {}
 };
 struct SolveContinuous {
 	int16_t step;
@@ -512,15 +514,19 @@ struct ExecuteCost {
 	int16_t step;
 	uint8_t triggering_player;
 	effect* triggering_effect;
-	explicit ExecuteCost(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
-		step(step_), triggering_player(triggering_player_), triggering_effect(triggering_effect_) {}
+	explicit ExecuteCost(int16_t step_, effect* triggering_effect_,
+						 uint8_t triggering_player_) :
+		step(step_), triggering_player(triggering_player_),
+		triggering_effect(triggering_effect_) {}
 };
 struct ExecuteOperation {
 	int16_t step;
 	uint8_t triggering_player;
 	effect* triggering_effect;
-	explicit ExecuteOperation(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
-		step(step_), triggering_player(triggering_player_), triggering_effect(triggering_effect_) {}
+	explicit ExecuteOperation(int16_t step_, effect* triggering_effect_,
+							  uint8_t triggering_player_) :
+		step(step_), triggering_player(triggering_player_),
+		triggering_effect(triggering_effect_) {}
 };
 struct ExecuteTarget {
 	int16_t step;
@@ -535,8 +541,10 @@ struct Destroy {
 	uint32_t reason;
 	group* targets;
 	effect* reason_effect;
-	explicit Destroy(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_) :
-		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_), reason_effect(reason_effect_) {}
+	explicit Destroy(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
+					 uint8_t reason_player_) :
+		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
+		reason_effect(reason_effect_) {}
 };
 struct Release {
 	int16_t step;
@@ -544,8 +552,10 @@ struct Release {
 	uint32_t reason;
 	group* targets;
 	effect* reason_effect;
-	explicit Release(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_) :
-		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_), reason_effect(reason_effect_) {}
+	explicit Release(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
+					 uint8_t reason_player_) :
+		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
+		reason_effect(reason_effect_) {}
 };
 struct SendTo {
 	int16_t step;
@@ -553,8 +563,10 @@ struct SendTo {
 	uint32_t reason;
 	group* targets;
 	effect* reason_effect;
-	explicit SendTo(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_) :
-		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_), reason_effect(reason_effect_) {}
+	explicit SendTo(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
+					uint8_t reason_player_) :
+		step(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
+		reason_effect(reason_effect_) {}
 };
 struct DestroyReplace {
 	int16_t step;
@@ -588,8 +600,10 @@ struct MoveToField {
 	uint8_t location_reason;
 	bool confirm;
 	card* target;
-	explicit MoveToField(uint16_t step_, card* target_, bool enable_, uint8_t ret_, bool pzone_, uint8_t zone_, bool rule_, uint8_t location_reason_, bool confirm_) :
-		step(step_), enable(enable_), ret(ret_) , pzone(pzone_) , zone(zone_) , rule(rule_) , location_reason(location_reason_) , confirm(confirm_), target(target_) {}
+	explicit MoveToField(uint16_t step_, card* target_, bool enable_, uint8_t ret_, bool pzone_,
+						 uint8_t zone_, bool rule_, uint8_t location_reason_, bool confirm_) :
+		step(step_), enable(enable_), ret(ret_) , pzone(pzone_) , zone(zone_) , rule(rule_) ,
+		location_reason(location_reason_) , confirm(confirm_), target(target_) {}
 };
 struct ChangePos {
 	int16_t step;
@@ -597,8 +611,363 @@ struct ChangePos {
 	bool enable;
 	effect* reason_effect;
 	group* targets;
-	explicit ChangePos(uint16_t step_, group* targets_, effect* reason_effect_, uint8_t reason_player_, bool enable_) :
-		step(step_), reason_player(reason_player_), enable(enable_), reason_effect(reason_effect_), targets(targets_) {}
+	explicit ChangePos(uint16_t step_, group* targets_, effect* reason_effect_,
+					   uint8_t reason_player_, bool enable_) :
+		step(step_), reason_player(reason_player_), enable(enable_),
+		reason_effect(reason_effect_), targets(targets_) {}
+};
+struct OperationReplace {
+	int16_t step;
+	bool is_destroy;
+	effect* replace_effect;
+	group* targets;
+	card* target;
+	explicit OperationReplace(uint16_t step_, effect* replace_effect_, group* targets_,
+							  card* target_, bool is_destroy_) :
+		step(step_), is_destroy(is_destroy_), replace_effect(replace_effect_),
+		targets(targets_), target(target_) {}
+};
+struct ActivateEffect {
+	int16_t step;
+	effect* peffect;
+	explicit ActivateEffect(uint16_t step_, effect* peffect_) :
+		step(step_), peffect(peffect_) {}
+};
+struct SummonRule {
+	int16_t step;
+	uint8_t sumplayer;
+	uint8_t min_tribute;
+	bool ignore_count;
+	uint32_t zone;
+	card* target;
+	effect* proc;
+	explicit SummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, effect* proc_,
+						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
+		step(step_), sumplayer(sumplayer_), min_tribute(min_tribute_), ignore_count(ignore_count_),
+		zone(zone_), target(target_), proc(proc_) {}
+};
+struct SpSummonRule {
+	int16_t step;
+	uint8_t sumplayer;
+	uint32_t summon_type;
+	card* target;
+	explicit SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_) :
+		step(step_), sumplayer(sumplayer_), summon_type(summon_type_), target(target_) {}
+};
+struct SpSummon {
+	int16_t step;
+	uint8_t reason_player;
+	uint32_t zone;
+	effect* reason_effect;
+	group* targets;
+	explicit SpSummon(uint16_t step_, effect* reason_effect_, uint8_t reason_player_,
+					  group* targets_, uint32_t zone_) :
+		step(step_), reason_player(reason_player_), zone(zone_), reason_effect(reason_effect_),
+		targets(targets_) {}
+};
+struct FlipSummon {
+	int16_t step;
+	uint8_t sumplayer;
+	card* target;
+	explicit FlipSummon(uint16_t step_, uint8_t sumplayer_, card* target_) :
+		step(step_), sumplayer(sumplayer_), target(target_) {}
+};
+struct MonsterSet {
+	int16_t step;
+	uint8_t setplayer;
+	uint8_t min_tribute;
+	bool ignore_count;
+	uint32_t zone;
+	card* target;
+	effect* proc;
+	explicit MonsterSet(uint16_t step_, uint8_t setplayer_, card* target_, effect* proc_,
+						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
+		step(step_), setplayer(setplayer_), min_tribute(min_tribute_), ignore_count(ignore_count_),
+		zone(zone_), target(target_), proc(proc_) {}
+};
+struct SpellSet {
+	int16_t step;
+	uint8_t setplayer;
+	uint8_t toplayer;
+	card* target;
+	effect* reason_effect;
+	explicit SpellSet(uint16_t step_, uint8_t setplayer_, uint8_t toplayer_, card* target_,
+					  effect* reason_effect_) :
+		step(step_), setplayer(setplayer_), toplayer(toplayer_), target(target_),
+		reason_effect(reason_effect_) {}
+};
+struct SpsummonStep {
+	int16_t step;
+	uint32_t zone;
+	group* targets;
+	card* target;
+	explicit SpsummonStep(uint16_t step_, group* targets_, card* target_, uint32_t zone_) :
+		step(step_), zone(zone_), target(target_), targets(targets_) {}
+};
+struct SpellSetGroup {
+	int16_t step;
+	uint8_t setplayer;
+	uint8_t toplayer;
+	bool confirm;
+	group* ptarget;
+	effect* reason_effect;
+	explicit SpellSetGroup(uint16_t step_, uint8_t setplayer_, uint8_t toplayer_,
+						   group* ptarget_, bool confirm_, effect* reason_effect_) :
+		step(step_), setplayer(setplayer_), toplayer(toplayer_), confirm(confirm_),
+		ptarget(ptarget_), reason_effect(reason_effect_) {}
+};
+struct SpsummonRuleGroup {
+	int16_t step;
+	uint8_t sumplayer;
+	uint32_t summon_type;
+	explicit SpsummonRuleGroup(uint16_t step_, uint8_t sumplayer_, uint32_t summon_type_) :
+		step(step_), sumplayer(sumplayer_), summon_type(summon_type_) {}
+};
+struct Draw {
+	int16_t step;
+	uint8_t reason_player;
+	uint8_t playerid;
+	uint32_t count;
+	uint32_t reason;
+	effect* reason_effect;
+	explicit Draw(uint16_t step_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_,
+				  uint8_t playerid_, uint32_t count_) :
+		step(step_), reason_player(reason_player_), playerid(playerid_), count(count_),
+		reason(reason_), reason_effect(reason_effect_) {}
+};
+struct Damage {
+	int16_t step;
+	uint8_t reason_player;
+	uint8_t playerid;
+	bool is_step;
+	uint32_t amount;
+	uint32_t reason;
+	card* reason_card;
+	effect* reason_effect;
+	explicit Damage(uint16_t step_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_,
+					card* reason_card_, uint8_t playerid_, uint32_t amount_, bool is_step_) :
+		step(step_), reason_player(reason_player_), playerid(playerid_), is_step(is_step_), amount(amount_),
+		reason(reason_), reason_card(reason_card_), reason_effect(reason_effect_) {}
+};
+struct Recover {
+	int16_t step;
+	uint8_t reason_player;
+	uint8_t playerid;
+	bool is_step;
+	uint32_t amount;
+	uint32_t reason;
+	effect* reason_effect;
+	explicit Recover(uint16_t step_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_,
+					uint8_t playerid_, uint32_t amount_, bool is_step_) :
+		step(step_), reason_player(reason_player_), playerid(playerid_), is_step(is_step_), amount(amount_),
+		reason(reason_), reason_effect(reason_effect_) {}
+};
+struct Equip {
+	int16_t step;
+	uint8_t equip_player;
+	bool is_step;
+	bool faceup;
+	card* equip_card;
+	card* target;
+	explicit Equip(uint16_t step_, uint8_t equip_player_, card* equip_card_, card* target_,
+				   bool faceup_, bool is_step_) :
+		step(step_), equip_player(equip_player_), is_step(is_step_), faceup(faceup_),
+		equip_card(equip_card_), target(target_) {}
+};
+struct GetControl {
+	int16_t step;
+	uint8_t chose_player;
+	uint8_t playerid;
+	uint8_t reset_count;
+	uint16_t reset_phase;
+	uint32_t zone;
+	effect* reason_effect;
+	group* targets;
+	explicit GetControl(uint16_t step_, effect* reason_effect_, uint8_t chose_player_, group* targets_,
+						uint8_t playerid_,	uint16_t reset_phase_, uint8_t reset_count_, uint32_t zone_) :
+		step(step_), chose_player(chose_player_), playerid(playerid_), reset_count(reset_count_),
+		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_) {}
+};
+struct SwapControl {
+	int16_t step;
+	uint8_t reset_count;
+	uint8_t reason_player;
+	uint16_t reset_phase;
+	effect* reason_effect;
+	group* targets1;
+	group* targets2;
+	explicit SwapControl(uint16_t step_, effect* reason_effect_, uint8_t reason_player_,
+						 group* targets1_, group* targets2_, uint16_t reset_phase_, uint8_t reset_count_) :
+		step(step_), reset_count(reset_count_), reason_player(reason_player_), reset_phase(reset_phase_)
+		, reason_effect(reason_effect_), targets1(targets1_), targets2(targets2_) {}
+};
+struct ControlAdjust {
+	int16_t step;
+	explicit ControlAdjust(uint16_t step_) :
+		step(step_) {}
+};
+struct SelfDestroy {
+	int16_t step;
+	uint8_t playerid;
+	card* unique_card;
+	explicit SelfDestroy(uint16_t step_, card* unique_card_, uint8_t playerid_) :
+		step(step_), playerid(playerid_), unique_card(unique_card_) {}
+};
+struct TrapMonsterAdjust {
+	int16_t step;
+	explicit TrapMonsterAdjust(uint16_t step_) :
+		step(step_) {}
+};
+struct PayLPCost {
+	int16_t step;
+	uint8_t playerid;
+	uint32_t cost;
+	explicit PayLPCost(uint16_t step_, uint8_t playerid_, uint32_t cost_) :
+		step(step_), playerid(playerid_), cost(cost_) {}
+};
+struct RemoveCounter {
+	int16_t step;
+	uint8_t rplayer;
+	uint8_t self;
+	uint8_t oppo;
+	uint16_t countertype;
+	uint16_t count;
+	uint32_t reason;
+	card* pcard;
+	explicit RemoveCounter(uint16_t step_, uint32_t reason_, card* pcard_, uint8_t rplayer_, uint8_t self_,
+						   uint8_t oppo_, uint16_t countertype_, uint16_t count_) :
+		step(step_), rplayer(rplayer_), self(self_), oppo(oppo_), countertype(countertype_), count(count_),
+		reason(reason_), pcard(pcard_) {}
+};
+struct AttackDisable {
+	int16_t step;
+	explicit AttackDisable(uint16_t step_) :
+		step(step_) {}
+};
+struct AnnounceRace {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t count;
+	uint64_t available;
+	explicit AnnounceRace(uint16_t step_, uint8_t playerid_, uint8_t count_, uint64_t available_) :
+		step(step_), playerid(playerid_), count(count_), available(available_) {}
+};
+struct AnnounceAttribute {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t count;
+	uint32_t available;
+	explicit AnnounceAttribute(uint16_t step_, uint8_t playerid_, uint8_t count_, uint32_t available_) :
+		step(step_), playerid(playerid_), count(count_), available(available_) {}
+};
+struct AnnounceCard {
+	int16_t step;
+	uint8_t playerid;
+	explicit AnnounceCard(uint16_t step_, uint8_t playerid_) :
+		step(step_), playerid(playerid_) {}
+};
+struct AnnounceNumber {
+	int16_t step;
+	uint8_t playerid;
+	explicit AnnounceNumber(uint16_t step_, uint8_t playerid_) :
+		step(step_), playerid(playerid_) {}
+};
+struct TossCoin {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t reason_player;
+	uint8_t count;
+	effect* reason_effect;
+	explicit TossCoin(uint16_t step_, effect* reason_effect_, uint8_t reason_player_, uint8_t playerid_,
+					  uint8_t count_) :
+		step(step_), playerid(playerid_), reason_player(reason_player_), count(count_),
+		reason_effect(reason_effect_) {}
+};
+struct TossDice {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t reason_player;
+	uint8_t count1;
+	uint8_t count2;
+	effect* reason_effect;
+	explicit TossDice(uint16_t step_, effect* reason_effect_, uint8_t reason_player_, uint8_t playerid_,
+					  uint8_t count1_, uint8_t count2_) :
+		step(step_), playerid(playerid_), reason_player(reason_player_), count1(count1_), count2(count2_),
+		reason_effect(reason_effect_) {}
+};
+struct RockPaperScissors {
+	int16_t step;
+	bool repeat;
+	explicit RockPaperScissors(uint16_t step_, bool repeat_) :
+		step(step_), repeat(repeat_) {}
+};
+struct SelectFusion {
+	int16_t step;
+	uint8_t playerid;
+	uint32_t chkf;
+	group* fusion_materials;
+	group* forced_materials;
+	card* pcard;
+	explicit SelectFusion(uint16_t step_, uint8_t playerid_, group* fusion_materials_, uint32_t chkf_,
+						  group* forced_materials_, card* pcard_) :
+		step(step_), playerid(playerid_), chkf(chkf_), fusion_materials(fusion_materials_),
+		forced_materials(forced_materials_), pcard(pcard_) {}
+};
+struct DiscardHand {
+	int16_t step;
+	uint8_t playerid;
+	uint8_t min;
+	uint8_t max;
+	uint32_t reason;
+	explicit DiscardHand(uint16_t step_, uint8_t playerid_, uint8_t min_, uint8_t max_, uint32_t reason_) :
+		step(step_), playerid(playerid_), min(min_), max(max_), reason(reason_) {}
+};
+struct DiscardDeck {
+	int16_t step;
+	uint16_t count;
+	uint8_t playerid;
+	uint32_t reason;
+	explicit DiscardDeck(uint16_t step_, uint8_t playerid_, uint16_t count_, uint32_t reason_) :
+		step(step_), count(count_), playerid(playerid_), reason(reason_) {}
+};
+struct SortDeck {
+	int16_t step;
+	uint16_t count;
+	uint8_t sort_player;
+	uint8_t target_player;
+	bool bottom;
+	explicit SortDeck(uint16_t step_, uint8_t sort_player_, uint8_t target_player_, uint16_t count_,
+					  bool bottom_) :
+		step(step_), count(count_), sort_player(sort_player_), target_player(target_player_),
+		bottom(bottom_) {}
+};
+struct RemoveOverlay {
+	int16_t step;
+	uint16_t min;
+	uint16_t max;
+	uint8_t rplayer;
+	uint8_t self;
+	uint8_t oppo;
+	uint32_t reason;
+	group* pgroup;
+	explicit RemoveOverlay(uint16_t step_, uint32_t reason_, group* pgroup_, uint8_t rplayer_,
+						   uint8_t self_, uint8_t oppo_, uint16_t min_, uint16_t max_) :
+		step(step_), min(min_), max(max_), rplayer(rplayer_), self(self_), oppo(oppo_),
+		reason(reason_), pgroup(pgroup_) {}
+};
+struct XyzOverlay {
+	int16_t step;
+	bool send_materials_to_grave;
+	card* target;
+	group* materials;
+	explicit XyzOverlay(uint16_t step_, card* target_, group* materials_, bool send_materials_to_grave_) :
+		step(step_), send_materials_to_grave(send_materials_to_grave_), target(target_),
+		materials(materials_) {}
+};
+struct RefreshRelay {
+	int16_t step;
+	explicit RefreshRelay(uint16_t step_) :
+		step(step_) {}
 };
 
 using processor_unit2 = mpark::variant<Adjust, Turn, RefreshLoc, Startup,
@@ -610,7 +979,13 @@ using processor_unit2 = mpark::variant<Adjust, Turn, RefreshLoc, Startup,
 	DamageStep, ForcedBattle, AddChain, SolveChain, SolveContinuous,
 	ExecuteCost, ExecuteOperation, ExecuteTarget, Destroy, Release,
 	SendTo, DestroyReplace, ReleaseReplace, SendToReplace, MoveToField,
-	ChangePos>;
+	ChangePos, OperationReplace, ActivateEffect, SummonRule, SpSummonRule,
+	SpSummon, FlipSummon, MonsterSet, SpellSet, SpsummonStep, SpellSetGroup,
+	SpsummonRuleGroup, Draw, Damage, Recover, Equip, GetControl, SwapControl,
+	ControlAdjust, SelfDestroy, TrapMonsterAdjust, PayLPCost, RemoveCounter,
+	AttackDisable, AnnounceRace, AnnounceAttribute, AnnounceCard, AnnounceNumber,
+	TossCoin, TossDice, RockPaperScissors, SelectFusion, DiscardHand,
+	DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay, RefreshRelay>;
 }
 
 using Processors::processor_unit2;
@@ -825,7 +1200,7 @@ struct processor {
 	action_counter_t flipsummon_counter;
 	action_counter_t attack_counter;
 	action_counter_t chain_counter;
-	processor_list recover_damage_reserve;
+	processor_list2 recover_damage_reserve;
 	effect_vector dec_count_reserve;
 	action_counter_t& get_counter_map(ActivityType counter_type) {
 		switch(counter_type) {
@@ -943,7 +1318,7 @@ public:
 	void add_to_disable_check_list(card* pcard);
 	void adjust_disable_check_list();
 	void adjust_self_destroy_set();
-	int32_t trap_monster_adjust(uint16_t step);
+	int32_t trap_monster_adjust(Processors::TrapMonsterAdjust& arg);
 	void erase_grant_effect(effect* peffect);
 	int32_t adjust_grant_effect();
 	void add_unique_card(card* pcard);
@@ -960,7 +1335,7 @@ public:
 	int32_t check_lp_cost(uint8_t playerid, uint32_t cost);
 	void save_lp_cost() {}
 	void restore_lp_cost() {}
-	int32_t pay_lp_cost(uint32_t step, uint8_t playerid, uint32_t cost);
+	int32_t pay_lp_cost(Processors::PayLPCost& arg);
 
 	uint32_t get_field_counter(uint8_t playerid, uint8_t self, uint8_t oppo, uint16_t countertype);
 	int32_t effect_replace_check(uint32_t code, const tevent& e);
@@ -1048,7 +1423,7 @@ public:
 	int32_t refresh_location_info(Processors::RefreshLoc& arg);
 	int32_t adjust_step(Processors::Adjust& arg);
 	int32_t startup(Processors::Startup& arg);
-	int32_t refresh_relay(uint16_t step);
+	int32_t refresh_relay(Processors::RefreshRelay& arg);
 
 	//operations
 	int32_t negate_chain(uint8_t chaincount);
@@ -1088,42 +1463,42 @@ public:
 	void operation_replace(int32_t type, int32_t step, group* targets);
 	void select_tribute_cards(card* target, uint8_t playerid, uint8_t cancelable, int32_t min, int32_t max, uint8_t toplayer, uint32_t zone);
 
-	int32_t remove_counter(uint16_t step, uint32_t reason, card* pcard, uint8_t rplayer, uint8_t s, uint8_t o, uint16_t countertype, uint16_t count);
-	int32_t remove_overlay_card(uint16_t step, uint32_t reason, group* pgroup, uint8_t rplayer, uint8_t s, uint8_t o, uint16_t min, uint16_t max);
-	int32_t xyz_overlay(uint16_t step, card* target, group* materials, bool send_materials_to_grave);
-	int32_t get_control(uint16_t step, effect* reason_effect, uint8_t chose_player, group* targets, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone);
-	int32_t swap_control(uint16_t step, effect* reason_effect, uint8_t reason_player, group* targets1, group* targets2, uint16_t reset_phase, uint8_t reset_count);
-	int32_t control_adjust(uint16_t step);
-	int32_t self_destroy(uint16_t step, card* ucard, int32_t p);
-	int32_t equip(uint16_t step, uint8_t equip_player, card* equip_card, card* target, uint32_t up, uint32_t is_step);
-	int32_t draw(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint32_t count);
-	int32_t damage(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, bool is_step);
-	int32_t recover(uint16_t step, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint32_t amount, bool is_step);
-	int32_t summon(uint16_t step, uint8_t sumplayer, card* target, effect* proc, uint8_t ignore_count, uint8_t min_tribute, uint32_t zone);
-	int32_t flip_summon(uint16_t step, uint8_t sumplayer, card* target);
-	int32_t mset(uint16_t step, uint8_t setplayer, card* ptarget, effect* proc, uint8_t ignore_count, uint8_t min_tribute, uint32_t zone);
-	int32_t sset(uint16_t step, uint8_t setplayer, uint8_t toplayer, card* ptarget, effect* reason_effect);
-	int32_t sset_g(uint16_t step, uint8_t setplayer, uint8_t toplayer, group* ptarget, uint8_t confirm, effect* reason_effect);
-	int32_t special_summon_rule(uint16_t step, uint8_t sumplayer, card* target, uint32_t summon_type);
-	int32_t special_summon_rule_group(uint16_t step, uint8_t sumplayer, uint32_t summon_type);
-	int32_t special_summon_step(uint16_t step, group* targets, card* target, uint32_t zone);
-	int32_t special_summon(uint16_t step, effect* reason_effect, uint8_t reason_player, group* targets, uint32_t zone);
+	int32_t remove_counter(Processors::RemoveCounter& arg);
+	int32_t remove_overlay_card(Processors::RemoveOverlay& arg);
+	int32_t xyz_overlay(Processors::XyzOverlay& arg);
+	int32_t get_control(Processors::GetControl& arg);
+	int32_t swap_control(Processors::SwapControl& arg);
+	int32_t control_adjust(Processors::ControlAdjust& arg);
+	int32_t self_destroy(Processors::SelfDestroy& arg);
+	int32_t equip(Processors::Equip& arg);
+	int32_t draw(Processors::Draw& arg);
+	int32_t damage(Processors::Damage& arg);
+	int32_t recover(Processors::Recover& arg);
+	int32_t summon(Processors::SummonRule& arg);
+	int32_t flip_summon(Processors::FlipSummon& arg);
+	int32_t mset(Processors::MonsterSet& arg);
+	int32_t sset(Processors::SpellSet& arg);
+	int32_t sset_g(Processors::SpellSetGroup& arg);
+	int32_t special_summon_rule(Processors::SpSummonRule& arg);
+	int32_t special_summon_rule_group(Processors::SpsummonRuleGroup& arg);
+	int32_t special_summon_step(Processors::SpsummonStep& arg);
+	int32_t special_summon(Processors::SpSummon& arg);
 	int32_t destroy_replace(Processors::DestroyReplace& arg);
 	int32_t destroy(Processors::Destroy& arg);
 	int32_t release_replace(Processors::ReleaseReplace& arg);
 	int32_t release(Processors::Release& arg);
 	int32_t send_replace(Processors::SendToReplace& arg);
 	int32_t send_to(Processors::SendTo& arg);
-	int32_t discard_deck(uint16_t step, uint8_t playerid, uint8_t count, uint32_t reason);
+	int32_t discard_deck(Processors::DiscardDeck& arg);
 	int32_t move_to_field(Processors::MoveToField& arg);
 	int32_t change_position(Processors::ChangePos& arg);
-	int32_t operation_replace(uint16_t step, effect* replace_effect, group* targets, card* target, int32_t is_destroy);
-	int32_t activate_effect(uint16_t step, effect* peffect);
+	int32_t operation_replace(Processors::OperationReplace& arg);
+	int32_t activate_effect(Processors::ActivateEffect& arg);
 	int32_t select_release_cards(Processors::SelectRelease& arg);
 	int32_t select_tribute_cards(Processors::SelectTribute& arg);
-	int32_t toss_coin(uint16_t step, effect* reason_effect, uint8_t reason_player, uint8_t playerid, uint8_t count);
-	int32_t toss_dice(uint16_t step, effect* reason_effect, uint8_t reason_player, uint8_t playerid, uint8_t count1, uint8_t count2);
-	int32_t rock_paper_scissors(uint16_t step, uint8_t repeat);
+	int32_t toss_coin(Processors::TossCoin& arg);
+	int32_t toss_dice(Processors::TossDice& arg);
+	int32_t rock_paper_scissors(Processors::RockPaperScissors& arg);
 
 	int32_t select_battle_command(Processors::SelectBattleCmd& arg);
 	int32_t select_idle_command(Processors::SelectIdleCmd& arg);
@@ -1141,10 +1516,10 @@ public:
 	int32_t select_counter(Processors::SelectCounter& arg);
 	int32_t select_with_sum_limit(Processors::SelectSum& arg);
 	int32_t sort_card(Processors::SortCard& arg);
-	int32_t announce_race(int16_t step, uint8_t playerid, uint8_t count, uint64_t available);
-	int32_t announce_attribute(int16_t step, uint8_t playerid, uint8_t count, uint32_t available);
-	int32_t announce_card(int16_t step, uint8_t playerid);
-	int32_t announce_number(int16_t step, uint8_t playerid);
+	int32_t announce_race(Processors::AnnounceRace& arg);
+	int32_t announce_attribute(Processors::AnnounceAttribute& arg);
+	int32_t announce_card(Processors::AnnounceCard& arg);
+	int32_t announce_number(Processors::AnnounceNumber& arg);
 
 	int32_t operator()(Processors::Adjust& arg);
 	int32_t operator()(Processors::Turn& arg);
@@ -1190,6 +1565,43 @@ public:
 	int32_t operator()(Processors::SendToReplace& arg);
 	int32_t operator()(Processors::MoveToField& arg);
 	int32_t operator()(Processors::ChangePos& arg);
+	int32_t operator()(Processors::OperationReplace& arg);
+	int32_t operator()(Processors::ActivateEffect& arg);
+	int32_t operator()(Processors::SummonRule& arg);
+	int32_t operator()(Processors::SpSummonRule& arg);
+	int32_t operator()(Processors::SpSummon& arg);
+	int32_t operator()(Processors::FlipSummon& arg);
+	int32_t operator()(Processors::MonsterSet& arg);
+	int32_t operator()(Processors::SpellSet& arg);
+	int32_t operator()(Processors::SpsummonStep& arg);
+	int32_t operator()(Processors::SpellSetGroup& arg);
+	int32_t operator()(Processors::SpsummonRuleGroup& arg);
+	int32_t operator()(Processors::Draw& arg);
+	int32_t operator()(Processors::Damage& arg);
+	int32_t operator()(Processors::Recover& arg);
+	int32_t operator()(Processors::Equip& arg);
+	int32_t operator()(Processors::GetControl& arg);
+	int32_t operator()(Processors::SwapControl& arg);
+	int32_t operator()(Processors::ControlAdjust& arg);
+	int32_t operator()(Processors::SelfDestroy& arg);
+	int32_t operator()(Processors::TrapMonsterAdjust& arg);
+	int32_t operator()(Processors::PayLPCost& arg);
+	int32_t operator()(Processors::RemoveCounter& arg);
+	int32_t operator()(Processors::AttackDisable& arg);
+	int32_t operator()(Processors::AnnounceRace& arg);
+	int32_t operator()(Processors::AnnounceAttribute& arg);
+	int32_t operator()(Processors::AnnounceCard& arg);
+	int32_t operator()(Processors::AnnounceNumber& arg);
+	int32_t operator()(Processors::TossCoin& arg);
+	int32_t operator()(Processors::TossDice& arg);
+	int32_t operator()(Processors::RockPaperScissors& arg);
+	int32_t operator()(Processors::SelectFusion& arg);
+	int32_t operator()(Processors::DiscardHand& arg);
+	int32_t operator()(Processors::DiscardDeck& arg);
+	int32_t operator()(Processors::SortDeck& arg);
+	int32_t operator()(Processors::RemoveOverlay& arg);
+	int32_t operator()(Processors::XyzOverlay& arg);
+	int32_t operator()(Processors::RefreshRelay& arg);
 };
 
 //Location Use Reason

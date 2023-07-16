@@ -921,7 +921,7 @@ LUA_STATIC_FUNCTION(SortDecktop) {
 	check_param_count(L, 3);
 	auto sort_player = lua_get<uint8_t>(L, 1);
 	auto target_player = lua_get<uint8_t>(L, 2);
-	auto count = lua_get<uint32_t>(L, 3);
+	auto count = lua_get<uint16_t>(L, 3);
 	if(sort_player != 0 && sort_player != 1)
 		return 0;
 	if(target_player != 0 && target_player != 1)
@@ -936,7 +936,7 @@ LUA_STATIC_FUNCTION(SortDeckbottom) {
 	check_param_count(L, 3);
 	auto sort_player = lua_get<uint8_t>(L, 1);
 	auto target_player = lua_get<uint8_t>(L, 2);
-	auto count = lua_get<uint32_t>(L, 3);
+	auto count = lua_get<uint16_t>(L, 3);
 	if(sort_player != 0 && sort_player != 1)
 		return 0;
 	if(target_player != 0 && target_player != 1)
@@ -1184,7 +1184,7 @@ LUA_STATIC_FUNCTION(Recover) {
 	});
 }
 LUA_STATIC_FUNCTION(RDComplete) {
-	pduel->game_field->core.subunits.splice(pduel->game_field->core.subunits.end(), pduel->game_field->core.recover_damage_reserve);
+	pduel->game_field->core.subunits2.splice(pduel->game_field->core.subunits2.end(), pduel->game_field->core.recover_damage_reserve);
 	return yield();
 }
 LUA_STATIC_FUNCTION(Equip) {

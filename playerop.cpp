@@ -905,8 +905,11 @@ int32_t field::sort_card(Processors::SortCard& arg) {
 	}
 	return TRUE;
 }
-int32_t field::announce_race(int16_t step, uint8_t playerid, uint8_t count, uint64_t available) {
-	if(step == 0) {
+int32_t field::announce_race(Processors::AnnounceRace& arg) {
+	auto playerid = arg.playerid;
+	auto count = arg.count;
+	auto available = arg.available;
+	if(arg.step == 0) {
 		if(count == 0) {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_SELECTMSG);
@@ -937,8 +940,11 @@ int32_t field::announce_race(int16_t step, uint8_t playerid, uint8_t count, uint
 	}
 	return TRUE;
 }
-int32_t field::announce_attribute(int16_t step, uint8_t playerid, uint8_t count, uint32_t available) {
-	if(step == 0) {
+int32_t field::announce_attribute(Processors::AnnounceAttribute& arg) {
+	auto playerid = arg.playerid;
+	auto count = arg.count;
+	auto available = arg.available;
+	if(arg.step == 0) {
 		if(count == 0) {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_SELECTMSG);
@@ -1060,8 +1066,9 @@ static int32_t is_declarable(const card_data& cd, const std::vector<uint64_t>& o
 #undef UNARY_OP
 #undef UNARY_OP_OP
 #undef GET_OP
-int32_t field::announce_card(int16_t step, uint8_t playerid) {
-	if(step == 0) {
+int32_t field::announce_card(Processors::AnnounceCard& arg) {
+	auto playerid = arg.playerid;
+	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_ANNOUNCE_CARD);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(static_cast<uint8_t>(core.select_options.size()));
@@ -1083,8 +1090,9 @@ int32_t field::announce_card(int16_t step, uint8_t playerid) {
 	}
 	return TRUE;
 }
-int32_t field::announce_number(int16_t step, uint8_t playerid) {
-	if(step == 0) {
+int32_t field::announce_number(Processors::AnnounceNumber& arg) {
+	auto playerid = arg.playerid;
+	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_ANNOUNCE_NUMBER);
 		message->write<uint8_t>(playerid);
 		message->write<uint8_t>(static_cast<uint8_t>(core.select_options.size()));
@@ -1104,7 +1112,7 @@ int32_t field::announce_number(int16_t step, uint8_t playerid) {
 		return TRUE;
 	}
 }
-int32_t field::rock_paper_scissors(uint16_t step, uint8_t repeat) {
+int32_t field::rock_paper_scissors(Processors::RockPaperScissors& arg) {
 	auto checkvalid = [this] {
 		const auto ret = returns.at<int32_t>(0);
 		if(ret < 1 || ret>3) {
@@ -1114,7 +1122,8 @@ int32_t field::rock_paper_scissors(uint16_t step, uint8_t repeat) {
 		}
 		return true;
 	};
-	switch(step) {
+	auto repeat = arg.repeat;
+	switch(arg.step) {
 	case 0: {
 		auto message = pduel->new_message(MSG_ROCK_PAPER_SCISSORS);
 		message->write<uint8_t>(0);

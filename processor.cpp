@@ -375,107 +375,95 @@ int32_t field::operator()(Processors::ChangePos& arg) {
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
-#if 0
 int32_t field::operator()(Processors::OperationReplace& arg) {
-	if(operation_replace(arg.step, it->peffect, it->ptarget, (card*)it->ptr1, it->arg1))
+	if(operation_replace(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::ActivateEffect& arg) {
-	if(activate_effect(arg.step, it->peffect))
+	if(activate_effect(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SummonRule& arg) {
-	if(summon(arg.step, it->arg1 & 0xff, (card*)it->ptarget, it->peffect, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff))
+	if(summon(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
-int32_t field::operator()(Processors::SpsummonRule& arg) {
-	if(special_summon_rule(arg.step, it->arg1, (card*)it->ptarget, it->arg2))
+int32_t field::operator()(Processors::SpSummonRule& arg) {
+	if(special_summon_rule(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
-int32_t field::operator()(Processors::Spsummon& arg) {
-	if(special_summon(arg.step, it->peffect, it->arg1, it->ptarget, it->arg2))
+int32_t field::operator()(Processors::SpSummon& arg) {
+	if(special_summon(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::FlipSummon& arg) {
-	if(flip_summon(arg.step, it->arg1, (card*)(it->ptarget)))
+	if(flip_summon(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::MonsterSet& arg) {
-	if(mset(arg.step, it->arg1 & 0xff, (card*)it->ptarget, it->peffect, (it->arg1 >> 8) & 0xff, (it->arg1 >> 16) & 0xff, (it->arg1 >> 24) & 0xff))
+	if(mset(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SpellSet& arg) {
-	if(sset(arg.step, it->arg1, it->arg2, (card*)(it->ptarget), it->peffect))
+	if(sset(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SpsummonStep& arg) {
-	if(special_summon_step(arg.step, it->ptarget, (card*)(it->ptr1), it->arg1))
+	if(special_summon_step(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SpellSetGroup& arg) {
-	if(sset_g(arg.step, it->arg1, it->arg2, it->ptarget, it->arg3, it->peffect)) {
+	if(sset_g(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SpsummonRuleGroup& arg) {
-	if(special_summon_rule_group(arg.step, it->arg1, it->arg2))
+	if(special_summon_rule_group(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::Draw& arg) {
-	if(draw(arg.step, it->peffect, it->arg1, (it->arg2 >> 28) & 0xf, (it->arg2 >> 24) & 0xf, it->arg2 & 0xffffff))
+	if(draw(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::Damage& arg) {
-	uint32_t reason = static_cast<uint32_t>(it->arg1);
-	effect* reason_effect = nullptr;
-	card* reason_card = nullptr;
-	if(reason & REASON_BATTLE)
-		reason_card = static_cast<card*>(it->ptr1);
-	else
-		reason_effect = it->peffect;
-	uint32_t amount = static_cast<uint32_t>(it->arg3);
-	uint8_t reason_player = (it->arg2 >> 26) & 0x3;
-	uint8_t playerid = (it->arg2 >> 24) & 0x3;
-	bool is_step = (it->arg2 >> 28) & 0x1;
-	if(damage(arg.step, reason_effect, reason, reason_player, reason_card, playerid, amount, is_step)) {
+	if(damage(arg)) {
 		if(arg.step == 9) {
 			arg.step = 1;
-			core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units, it);
+			core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units2, core.units2.begin());
 		} else
 			core.units.pop_front();
 	} else
@@ -483,15 +471,10 @@ int32_t field::operator()(Processors::Damage& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::Recover& arg) {
-	uint32_t reason = static_cast<uint32_t>(it->arg1);
-	uint8_t reason_player = (it->arg2 >> 26) & 0x3;
-	uint8_t playerid = (it->arg2 >> 24) & 0x3;
-	uint32_t amount = static_cast<uint32_t>(it->arg3);
-	bool is_step = (it->arg2 >> 28) & 0x1;
-	if(recover(arg.step, it->peffect, reason, reason_player, playerid, amount, is_step)) {
+	if(recover(arg)) {
 		if(arg.step == 9) {
 			arg.step = 1;
-			core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units, it);
+			core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units2, core.units2.begin());
 		} else
 			core.units.pop_front();
 	} else
@@ -499,56 +482,56 @@ int32_t field::operator()(Processors::Recover& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::Equip& arg) {
-	if(equip(arg.step, it->arg2 & 0xffff, (card*)it->ptr1, (card*)it->ptarget, (it->arg2 >> 16) & 0xff, (it->arg2 >> 24) & 0xff))
+	if(equip(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::GetControl& arg) {
-	if(get_control(arg.step, it->peffect, (it->arg2 >> 28) & 0xf, it->ptarget, (it->arg2 >> 24) & 0xf, (it->arg2 >> 8) & 0x3ff, it->arg2 & 0xff, it->arg3)) {
+	if(get_control(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SwapControl& arg) {
-	if(swap_control(arg.step, it->peffect, it->arg1, it->ptarget, (group*)it->ptr1, it->arg2, it->arg3)) {
+	if(swap_control(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::ControlAdjust& arg) {
-	if(control_adjust(arg.step)) {
+	if(control_adjust(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SelfDestroy& arg) {
-	if(self_destroy(arg.step, (card*)it->ptr1, it->arg1)) {
+	if(self_destroy(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::TrapMonsterAdjust& arg) {
-	if(trap_monster_adjust(arg.step))
+	if(trap_monster_adjust(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::PayLPCost& arg) {
-	if(pay_lp_cost(arg.step, it->arg1, it->arg2))
+	if(pay_lp_cost(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::RemoveCounter& arg) {
-	if(remove_counter(arg.step, it->arg4, (card*)it->ptarget, (it->arg1 >> 16) & 0xff, (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2, it->arg3)) {
+	if(remove_counter(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
@@ -583,7 +566,7 @@ int32_t field::operator()(Processors::AttackDisable& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::AnnounceRace& arg) {
-	if(announce_race(arg.step, static_cast<uint8_t>(it->arg1), static_cast<uint8_t>(static_cast<uint64_t>(it->arg1) >> 16), static_cast<uint64_t>(it->arg2))) {
+	if(announce_race(arg)) {
 		core.units.pop_front();
 		return PROCESSOR_FLAG_CONTINUE;
 	} else {
@@ -591,8 +574,8 @@ int32_t field::operator()(Processors::AnnounceRace& arg) {
 	}
 	return PROCESSOR_FLAG_WAITING;
 }
-int32_t field::operator()(Processors::AnnounceAttrib& arg) {
-	if(announce_attribute(arg.step, static_cast<uint8_t>(it->arg1), static_cast<uint8_t>(static_cast<uint64_t>(it->arg1) >> 16), static_cast<uint32_t>(it->arg2))) {
+int32_t field::operator()(Processors::AnnounceAttribute& arg) {
+	if(announce_attribute(arg)) {
 		core.units.pop_front();
 		return PROCESSOR_FLAG_CONTINUE;
 	} else {
@@ -601,7 +584,7 @@ int32_t field::operator()(Processors::AnnounceAttrib& arg) {
 	return PROCESSOR_FLAG_WAITING;
 }
 int32_t field::operator()(Processors::AnnounceCard& arg) {
-	if(announce_card(arg.step, it->arg1)) {
+	if(announce_card(arg)) {
 		core.units.pop_front();
 		return PROCESSOR_FLAG_CONTINUE;
 	} else {
@@ -611,7 +594,7 @@ int32_t field::operator()(Processors::AnnounceCard& arg) {
 	return PROCESSOR_FLAG_WAITING;
 }
 int32_t field::operator()(Processors::AnnounceNumber& arg) {
-	if(announce_number(arg.step, it->arg1)) {
+	if(announce_number(arg)) {
 		core.units.pop_front();
 		return PROCESSOR_FLAG_CONTINUE;
 	} else {
@@ -619,22 +602,22 @@ int32_t field::operator()(Processors::AnnounceNumber& arg) {
 	}
 	return PROCESSOR_FLAG_WAITING;
 }
-int32_t field::operator()(Processors::TossDice& arg) {
-	if(toss_dice(arg.step, it->peffect, it->arg1 >> 16, it->arg1 & 0xff, it->arg2 & 0xff, it->arg2 >> 16)) {
+int32_t field::operator()(Processors::TossCoin& arg) {
+	if(toss_coin(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
-int32_t field::operator()(Processors::TossCoin& arg) {
-	if(toss_coin(arg.step, it->peffect, (it->arg1 >> 16), it->arg1 & 0xff, it->arg2)) {
+int32_t field::operator()(Processors::TossDice& arg) {
+	if(toss_dice(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::RockPaperScissors& arg) {
-	if(rock_paper_scissors(arg.step, it->arg1)) {
+	if(rock_paper_scissors(arg)) {
 		core.units.pop_front();
 		return PROCESSOR_FLAG_CONTINUE;
 	} else {
@@ -643,10 +626,14 @@ int32_t field::operator()(Processors::RockPaperScissors& arg) {
 	}
 }
 int32_t field::operator()(Processors::SelectFusion& arg) {
+	auto playerid = arg.playerid;
+	auto fusion_materials = arg.fusion_materials;
+	auto pcard = arg.pcard;
+	auto forced_materials = arg.forced_materials;
+	auto chkf = arg.chkf;
 	if(arg.step == 0) {
 		effect_set eset;
-		card* pcard = (card*)it->ptr2;
-		pcard->fusion_filter_valid(it->ptarget, (group*)it->ptr1, it->arg1 >> 16, &eset);
+		pcard->fusion_filter_valid(fusion_materials, forced_materials, chkf, &eset);
 		core.select_effects.clear();
 		core.select_options.clear();
 		if(eset.size() < 1) {
@@ -660,7 +647,7 @@ int32_t field::operator()(Processors::SelectFusion& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, it->arg1, 0);
+			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
 		++arg.step;
 	} else if(arg.step == 1) {
 		core.fusion_materials.clear();
@@ -669,12 +656,12 @@ int32_t field::operator()(Processors::SelectFusion& arg) {
 			return PROCESSOR_FLAG_CONTINUE;
 		}
 		auto& e = core.sub_solving_event.emplace_back();
-		e.event_cards = it->ptarget;
+		e.event_cards = fusion_materials;
 		e.reason_effect = core.select_effects[returns.at<int32_t>(0)];
-		e.reason_player = it->arg1;
-		pduel->lua->add_param<LuaParam::GROUP>(it->ptr1);
-		pduel->lua->add_param<LuaParam::INT>(it->arg1 >> 16);
-		add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.select_effects[returns.at<int32_t>(0)], 0, it->arg1 & 0xffff, 0);
+		e.reason_player = playerid;
+		pduel->lua->add_param<LuaParam::GROUP>(forced_materials);
+		pduel->lua->add_param<LuaParam::INT>(chkf);
+		add_process(PROCESSOR_EXECUTE_OPERATION, 0, core.select_effects[returns.at<int32_t>(0)], 0, playerid, 0);
 		++arg.step;
 	} else {
 		core.units.pop_front();
@@ -682,21 +669,25 @@ int32_t field::operator()(Processors::SelectFusion& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::DiscardHand& arg) {
+	auto playerid = arg.playerid;
+	auto min = arg.min;
+	auto max = arg.max;
+	auto reason = arg.reason;
 	if(arg.step == 0) {
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_SELECTMSG);
-		message->write<uint8_t>(it->arg1);
-		if(it->arg3 & REASON_DISCARD)
+		message->write<uint8_t>(playerid);
+		if(reason & REASON_DISCARD)
 			message->write<uint64_t>(501);
 		else
 			message->write<uint64_t>(504);
-		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, it->arg1, it->arg2);
+		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, min + (max << 16));
 		++arg.step;
 	} else if(arg.step == 1) {
 		if(return_cards.list.empty())
 			returns.set<int32_t>(0, 0);
 		else
-			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, core.reason_effect, it->arg3, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, core.reason_effect, reason, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		++arg.step;
 	} else {
 		core.units.pop_front();
@@ -704,7 +695,7 @@ int32_t field::operator()(Processors::DiscardHand& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::DiscardDeck& arg) {
-	if(discard_deck(arg.step, it->arg1 & 0xff, it->arg1 >> 16, it->arg2)) {
+	if(discard_deck(arg)) {
 		core.units.pop_front();
 	} else {
 		++arg.step;
@@ -712,13 +703,13 @@ int32_t field::operator()(Processors::DiscardDeck& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::SortDeck& arg) {
-	uint8_t sort_player = it->arg1 & 0xffff;
-	uint8_t target_player = it->arg1 >> 16;
-	uint32_t count = static_cast<uint32_t>(it->arg2);
-	bool bottom = it->arg3;
+	auto sort_player = arg.sort_player;
+	auto target_player = arg.target_player;
+	auto count = arg.count;
+	bool bottom = arg.bottom;
 	auto& list = player[target_player].list_main;
 	if(count > list.size())
-		count = static_cast<uint32_t>(list.size());
+		count = static_cast<uint16_t>(list.size());
 	if(arg.step == 0) {
 		if(bottom) {
 			const auto clit = list.begin();
@@ -768,8 +759,7 @@ int32_t field::operator()(Processors::SortDeck& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::RemoveOverlay& arg) {
-	if(remove_overlay_card(arg.step, it->arg3, it->ptarget, it->arg1 >> 16,
-						   (it->arg1 >> 8) & 0xff, it->arg1 & 0xff, it->arg2 & 0xffff, it->arg2 >> 16)) {
+	if(remove_overlay_card(arg)) {
 		core.units.pop_front();
 	} else {
 		++arg.step;
@@ -777,7 +767,7 @@ int32_t field::operator()(Processors::RemoveOverlay& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::XyzOverlay& arg) {
-	if(xyz_overlay(arg.step, static_cast<card*>(it->ptr1), it->ptarget, !!it->arg1)) {
+	if(xyz_overlay(arg)) {
 		core.units.pop_front();
 	} else {
 		++arg.step;
@@ -785,13 +775,12 @@ int32_t field::operator()(Processors::XyzOverlay& arg) {
 	return PROCESSOR_FLAG_CONTINUE;
 }
 int32_t field::operator()(Processors::RefreshRelay& arg) {
-	if(refresh_relay(arg.step))
+	if(refresh_relay(arg))
 		core.units.pop_front();
 	else
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
-#endif
 
 int32_t field::process2() {
 	if(core.subunits2.size())
@@ -5814,7 +5803,8 @@ int32_t field::startup(Processors::Startup& arg) {
 	return TRUE;
 }
 
-int32_t field::refresh_relay(uint16_t step) {
+int32_t field::refresh_relay(Processors::RefreshRelay& arg) {
+	auto step = arg.step;
 	switch(step) {
 	case 0:
 	case 1:
