@@ -503,8 +503,22 @@ int32_t field::operator()(Processors::ControlAdjust& arg) {
 		++arg.step;
 	return PROCESSOR_FLAG_CONTINUE;
 }
+int32_t field::operator()(Processors::SelfDestroyUnique& arg) {
+	if(self_destroy_unique(arg)) {
+		core.units.pop_front();
+	} else
+		++arg.step;
+	return PROCESSOR_FLAG_CONTINUE;
+}
 int32_t field::operator()(Processors::SelfDestroy& arg) {
 	if(self_destroy(arg)) {
+		core.units.pop_front();
+	} else
+		++arg.step;
+	return PROCESSOR_FLAG_CONTINUE;
+}
+int32_t field::operator()(Processors::SelfToGrave& arg) {
+	if(self_to_grave(arg)) {
 		core.units.pop_front();
 	} else
 		++arg.step;

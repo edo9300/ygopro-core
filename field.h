@@ -884,12 +884,22 @@ struct ControlAdjust {
 	ControlAdjust(uint16_t step_) :
 		step(step_), adjusting_player(0), destroy_set(nullptr), adjust_set(nullptr) {}
 };
-struct SelfDestroy {
+struct SelfDestroyUnique {
 	int16_t step;
 	uint8_t playerid;
 	card* unique_card;
-	SelfDestroy(uint16_t step_, card* unique_card_, uint8_t playerid_) :
+	SelfDestroyUnique(uint16_t step_, card* unique_card_, uint8_t playerid_) :
 		step(step_), playerid(playerid_), unique_card(unique_card_) {}
+};
+struct SelfDestroy {
+	int16_t step;
+	SelfDestroy(uint16_t step_) :
+		step(step_) {}
+};
+struct SelfToGrave {
+	int16_t step;
+	SelfToGrave(uint16_t step_) :
+		step(step_) {}
 };
 struct TrapMonsterAdjust {
 	int16_t step;
@@ -1066,10 +1076,11 @@ using processor_unit = mpark::variant<InvalidState, Adjust, Turn, RefreshLoc, St
 	ChangePos, OperationReplace, ActivateEffect, SummonRule, SpSummonRule,
 	SpSummon, FlipSummon, MonsterSet, SpellSet, SpsummonStep, SpellSetGroup,
 	SpsummonRuleGroup, Draw, Damage, Recover, Equip, GetControl, SwapControl,
-	ControlAdjust, SelfDestroy, TrapMonsterAdjust, PayLPCost, RemoveCounter,
-	AttackDisable, AnnounceRace, AnnounceAttribute, AnnounceCard, AnnounceNumber,
-	TossCoin, TossDice, RockPaperScissors, SelectFusion, DiscardHand,
-	DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay, RefreshRelay>;
+	ControlAdjust, SelfDestroyUnique, SelfDestroy, SelfToGrave, TrapMonsterAdjust,
+	PayLPCost, RemoveCounter, AttackDisable, AnnounceRace, AnnounceAttribute,
+	AnnounceCard, AnnounceNumber, TossCoin, TossDice, RockPaperScissors,
+	SelectFusion, DiscardHand, DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay,
+	RefreshRelay>;
 }
 
 using Processors::processor_unit;
@@ -1452,8 +1463,12 @@ public:
 	int32_t is_able_to_enter_bp();
 
 	template<typename T, typename... Args>
-	void emplace_process(Args&&... args) {
-		core.subunits.emplace_back(mpark::in_place_type<T>, std::forward<Args>(args)...);
+	constexpr inline void emplace_process(Args&&... args) {
+		emplace_process_step<T>(0, std::forward<Args>(args)...);
+	}
+	template<typename T, typename... Args>
+	constexpr inline void emplace_process_step(uint16_t step, Args&&... args) {
+		core.subunits.emplace_back(mpark::in_place_type<T>, step, std::forward<Args>(args)...);
 	}
 	void add_process(uint16_t type, int16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
 	int32_t process();
@@ -1537,7 +1552,9 @@ public:
 	int32_t get_control(Processors::GetControl& arg);
 	int32_t swap_control(Processors::SwapControl& arg);
 	int32_t control_adjust(Processors::ControlAdjust& arg);
+	int32_t self_destroy_unique(Processors::SelfDestroyUnique& arg);
 	int32_t self_destroy(Processors::SelfDestroy& arg);
+	int32_t self_to_grave(Processors::SelfToGrave& arg);
 	int32_t equip(Processors::Equip& arg);
 	int32_t draw(Processors::Draw& arg);
 	int32_t damage(Processors::Damage& arg);
@@ -1652,7 +1669,9 @@ public:
 	int32_t operator()(Processors::GetControl& arg);
 	int32_t operator()(Processors::SwapControl& arg);
 	int32_t operator()(Processors::ControlAdjust& arg);
+	int32_t operator()(Processors::SelfDestroyUnique& arg);
 	int32_t operator()(Processors::SelfDestroy& arg);
+	int32_t operator()(Processors::SelfToGrave& arg);
 	int32_t operator()(Processors::TrapMonsterAdjust& arg);
 	int32_t operator()(Processors::PayLPCost& arg);
 	int32_t operator()(Processors::RemoveCounter& arg);

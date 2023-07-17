@@ -1462,7 +1462,7 @@ int32_t field::control_adjust(Processors::ControlAdjust& arg) {
 	}
 	return TRUE;
 }
-int32_t field::self_destroy(Processors::SelfDestroy& arg) {
+int32_t field::self_destroy_unique(Processors::SelfDestroyUnique& arg) {
 	auto unique_card = arg.unique_card;
 	auto playerid = arg.playerid;
 	switch(arg.step) {
@@ -1539,7 +1539,12 @@ int32_t field::self_destroy(Processors::SelfDestroy& arg) {
 		core.unique_destroy_set.erase(unique_card);
 		return TRUE;
 	}
-	case 10: {
+	}
+	return TRUE;
+}
+int32_t field::self_destroy(Processors::SelfDestroy& arg) {
+	switch(arg.step) {
+	case 0: {
 		if(core.self_destroy_set.empty())
 			return FALSE;
 		auto it = core.self_destroy_set.begin();
@@ -1553,15 +1558,20 @@ int32_t field::self_destroy(Processors::SelfDestroy& arg) {
 			destroy(pcard, 0, REASON_EFFECT, PLAYER_SELFDES);
 		}
 		core.self_destroy_set.erase(it);
-		arg.step = 9;
+		arg.step = -1;
 		return FALSE;
 	}
-	case 11: {
+	case 1: {
 		returns.set<int32_t>(0, 0);
 		core.operated_set.clear();
 		return TRUE;
 	}
-	case 20: {
+	}
+	return TRUE;
+}
+int32_t field::self_to_grave(Processors::SelfToGrave& arg) {
+	switch(arg.step) {
+	case 0: {
 		if(core.self_tograve_set.empty())
 			return FALSE;
 		auto it = core.self_tograve_set.begin();
@@ -1575,10 +1585,10 @@ int32_t field::self_destroy(Processors::SelfDestroy& arg) {
 			send_to(pcard, 0, REASON_EFFECT, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		}
 		core.self_tograve_set.erase(it);
-		arg.step = 19;
+		arg.step = -1;
 		return FALSE;
 	}
-	case 21: {
+	case 1: {
 		returns.set<int32_t>(0, 0);
 		core.operated_set.clear();
 		return TRUE;

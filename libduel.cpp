@@ -379,7 +379,7 @@ LUA_STATIC_FUNCTION(SSet) {
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	}
-	pduel->game_field->add_process(PROCESSOR_SSET_G, 0, pduel->game_field->core.reason_effect, pgroup, playerid, toplayer, confirm);
+	pduel->game_field->emplace_process<Processors::SpellSetGroup>(playerid, toplayer, pgroup, confirm, pduel->game_field->core.reason_effect);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -782,7 +782,7 @@ LUA_STATIC_FUNCTION(Activate) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	pduel->game_field->add_process(PROCESSOR_ACTIVATE_EFFECT, 0, peffect, 0, 0, 0);
+	pduel->game_field->emplace_process<Processors::ActivateEffect>(peffect);
 	return 0;
 }
 LUA_STATIC_FUNCTION(SetChainLimit) {
@@ -928,7 +928,7 @@ LUA_STATIC_FUNCTION(SortDecktop) {
 		return 0;
 	if(count < 1 || count > 64)
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count, FALSE);
+	pduel->game_field->emplace_process<Processors::SortDeck>(sort_player, target_player, count, false);
 	return yield();
 }
 LUA_STATIC_FUNCTION(SortDeckbottom) {
@@ -943,7 +943,7 @@ LUA_STATIC_FUNCTION(SortDeckbottom) {
 		return 0;
 	if(count < 1 || count > 64)
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count, TRUE);
+	pduel->game_field->emplace_process<Processors::SortDeck>(sort_player, target_player, count, true);
 	return yield();
 }
 LUA_STATIC_FUNCTION(CheckEvent) {
@@ -1280,7 +1280,7 @@ LUA_STATIC_FUNCTION(PayLPCost) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto cost = lua_get<uint32_t>(L, 2);
-	pduel->game_field->add_process(PROCESSOR_PAY_LPCOST, 0, 0, 0, playerid, cost);
+	pduel->game_field->emplace_process<Processors::PayLPCost>(playerid, cost);
 	return yield();
 }
 LUA_STATIC_FUNCTION(DiscardDeck) {
@@ -1289,7 +1289,7 @@ LUA_STATIC_FUNCTION(DiscardDeck) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint16_t>(L, 2);
 	auto reason = lua_get<uint32_t>(L, 3);
-	pduel->game_field->add_process(PROCESSOR_DISCARD_DECK, 0, 0, 0, playerid + (count << 16), reason);
+	pduel->game_field->emplace_process<Processors::DiscardDeck>(playerid, count, reason);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -1318,7 +1318,7 @@ LUA_STATIC_FUNCTION(DiscardHand) {
 		lua_pushinteger(L, 0);
 		return 1;
 	}
-	pduel->game_field->add_process(PROCESSOR_DISCARD_HAND, 0, nullptr, nullptr, playerid, min + (max << 16), reason);
+	pduel->game_field->emplace_process<Processors::DiscardHand>(playerid, min, max, reason);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -1512,7 +1512,7 @@ LUA_STATIC_FUNCTION(CalculateDamage) {
 	auto new_attack = lua_get<bool, false>(L, 3);
 	if(attacker == attack_target)
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_DAMAGE_STEP, 0, (effect*)attacker, (group*)attack_target, 0, new_attack);
+	pduel->game_field->emplace_process<Processors::DamageStep>(attacker, attack_target, new_attack);
 	return yield();
 }
 LUA_STATIC_FUNCTION(GetBattleDamage) {
@@ -2119,7 +2119,7 @@ LUA_STATIC_FUNCTION(GetBattleMonster) {
 	return 2;
 }
 LUA_STATIC_FUNCTION(NegateAttack) {
-	pduel->game_field->add_process(PROCESSOR_ATTACK_DISABLE, 0, 0, 0, 0, 0);
+	pduel->game_field->emplace_process<Processors::AttackDisable>();
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -2337,7 +2337,7 @@ LUA_STATIC_FUNCTION(SelectMatchingCard) {
 	group* pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
-	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
+	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return push_return_cards(L, cancelable);
 }
 LUA_STATIC_FUNCTION(SelectCardsFromCodes) {
@@ -2354,7 +2354,7 @@ LUA_STATIC_FUNCTION(SelectCardsFromCodes) {
 	lua_iterate_table_or_stack(L, 6, lua_gettop(L), [L, &select_codes = pduel->game_field->core.select_cards_codes]{
 		select_codes.emplace_back(lua_get<uint32_t>(L, -1), static_cast<uint32_t>(select_codes.size() + 1));
 	});
-	pduel->game_field->add_process(PROCESSOR_SELECT_CARD_CODES, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
+	pduel->game_field->emplace_process<Processors::SelectCardCodes>(playerid, cancelable, min, max);
 	return yieldk({
 		int ret = 1;
 		const auto& ret_codes = pduel->game_field->return_card_codes;
@@ -2504,7 +2504,7 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	pduel->game_field->core.release_cards_ex.clear();
 	pduel->game_field->core.release_cards_ex_oneof.clear();
 	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_hand, findex, extraargs, pexception, pexgroup, use_oppo, REASON_EFFECT);
-	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, (group*)to_check, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
+	pduel->game_field->emplace_process<Processors::SelectRelease>(playerid, cancelable, min, max, check_field, to_check, toplayer, zone);
 	return push_return_cards(L, cancelable);
 }
 LUA_STATIC_FUNCTION(SelectReleaseGroup) {
@@ -2656,7 +2656,7 @@ LUA_STATIC_FUNCTION(SelectTarget) {
 	group* pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
-	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
+	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return yieldk({
 		if(pduel->game_field->return_cards.canceled) {
 			lua_pushnil(L);
@@ -2696,13 +2696,13 @@ LUA_STATIC_FUNCTION(SelectFusionMaterial) {
 		return 0;
 	auto pcard = lua_get<card*, true>(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 3);
-	group* cg = 0;
-	if(auto _pcard = lua_get<card*>(L, 4))
-		cg = pduel->new_group(_pcard);
+	group* forced_materials = nullptr;
+	if(auto pcard_ = lua_get<card*>(L, 4))
+		forced_materials = pduel->new_group(pcard_);
 	else
-		cg = lua_get<group*>(L, 4);
+		forced_materials = lua_get<group*>(L, 4);
 	auto chkf = lua_get<uint32_t, PLAYER_NONE>(L, 5);
-	pduel->game_field->add_process(PROCESSOR_SELECT_FUSION, 0, 0, (group*)pgroup, playerid + (chkf << 16), 0, 0, 0, cg, (card*)pcard);
+	pduel->game_field->emplace_process<Processors::SelectFusion>(playerid, pgroup, chkf, forced_materials, pcard);
 	return yieldk({
 		group* pgroup = pduel->new_group(pduel->game_field->core.fusion_materials);
 		interpreter::pushobject(L, pgroup);
@@ -3068,7 +3068,7 @@ LUA_STATIC_FUNCTION(SelectEffectYesNo) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto desc = lua_get<uint64_t, 95>(L, 3);
-	pduel->game_field->add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)pcard, playerid, desc);
+	pduel->game_field->emplace_process<Processors::SelectEffectYesNo>(playerid, desc, pcard);
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -3081,7 +3081,7 @@ LUA_STATIC_FUNCTION(SelectYesNo) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto desc = lua_get<uint64_t>(L, 2);
-	pduel->game_field->add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, playerid, desc);
+	pduel->game_field->emplace_process<Processors::SelectYesNo>(playerid, desc);
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -3097,7 +3097,7 @@ LUA_STATIC_FUNCTION(SelectOption) {
 	lua_iterate_table_or_stack(L, 2 + lua_isboolean(L, 2), lua_gettop(L), [L, &select_options = pduel->game_field->core.select_options] {
 		select_options.push_back(lua_get<uint64_t>(L, -1));
 	});
-	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
+	pduel->game_field->emplace_process<Processors::SelectOption>(playerid);
 	return yieldk({
 		auto playerid = lua_get<uint8_t>(L, 1);
 		bool sel_hint = lua_get<bool, true>(L, 2);
@@ -3117,7 +3117,7 @@ LUA_STATIC_FUNCTION(SelectPosition) {
 	auto pcard = lua_get<card*, true>(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto positions = lua_get<uint8_t>(L, 3);
-	pduel->game_field->add_process(PROCESSOR_SELECT_POSITION, 0, 0, 0, playerid + (positions << 16), pcard->data.code);
+	pduel->game_field->emplace_process<Processors::SelectPosition>(playerid, pcard->data.code, positions);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -3213,7 +3213,7 @@ LUA_STATIC_FUNCTION(SelectDisableField) {
 		count = ct1 + ct2 + ct3 + ct4;
 	if(count == 0)
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, playerid, flag, count);
+	pduel->game_field->emplace_process<Processors::SelectDisField>(playerid, flag, count);
 	return yieldk({
 		auto playerid = lua_get<uint8_t>(L, 1);
 		auto count = lua_get<uint8_t>(L, 2);
@@ -3254,7 +3254,7 @@ LUA_STATIC_FUNCTION(SelectFieldZone) {
 	flag |= filter;
 	if (flag == 0xffffffff)
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_SELECT_DISFIELD, 0, 0, 0, playerid, flag, count);
+	pduel->game_field->emplace_process<Processors::SelectDisField>(playerid, flag, count);
 	return yieldk({
 		auto playerid = lua_get<uint8_t>(L, 1);
 		auto count = lua_get<uint8_t>(L, 2);
@@ -3279,7 +3279,7 @@ LUA_STATIC_FUNCTION(AnnounceRace) {
 	if(bit::has_invalid_bits(available, RACE_ALL))
 		lua_error(L, "Passed an invalid race.");
 	auto count = std::min(lua_get<uint8_t>(L, 2), bit::popcnt(available));
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_RACE, 0, 0, 0, playerid + (count << 16), available);
+	pduel->game_field->emplace_process<Processors::AnnounceRace>(playerid, count, available);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<uint64_t>(0));
 		return 1;
@@ -3293,7 +3293,7 @@ LUA_STATIC_FUNCTION(AnnounceAttribute) {
 	if(bit::has_invalid_bits(available, ATTRIBUTE_ALL))
 		lua_error(L, "Passed an invalid attribute.");
 	auto count = std::min(lua_get<uint8_t>(L, 2), bit::popcnt(available));
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_ATTRIB, 0, 0, 0, playerid + (count << 16), available);
+	pduel->game_field->emplace_process<Processors::AnnounceAttribute>(playerid, count, available);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -3338,7 +3338,7 @@ LUA_STATIC_FUNCTION(AnnounceNumberRange) {
 	}
 	if(select_options.empty())
 		return 0;
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_NUMBER, 0, 0, 0, playerid, 0);
+	pduel->game_field->emplace_process<Processors::AnnounceNumber>(playerid);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->core.select_options[pduel->game_field->returns.at<int32_t>(0)]);
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
@@ -3406,7 +3406,7 @@ LUA_STATIC_FUNCTION(AnnounceCard) {
 		options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
 		options.push_back(OPCODE_ISTYPE);
 	}
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_CARD, 0, 0, 0, playerid, 0);
+	pduel->game_field->emplace_process<Processors::AnnounceCard>(playerid);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -3420,7 +3420,7 @@ LUA_STATIC_FUNCTION(AnnounceType) {
 	pduel->game_field->core.select_options.push_back(70);
 	pduel->game_field->core.select_options.push_back(71);
 	pduel->game_field->core.select_options.push_back(72);
-	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
+	pduel->game_field->emplace_process<Processors::SelectOption>(playerid);
 	return yieldk({
 		auto playerid = lua_get<uint8_t>(L, 1);
 		auto message = pduel->new_message(MSG_HINT);
@@ -3439,7 +3439,7 @@ LUA_STATIC_FUNCTION(AnnounceNumber) {
 	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [L, &select_options = pduel->game_field->core.select_options] {
 		select_options.push_back(lua_get<uint64_t>(L, -1));
 	});
-	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_NUMBER, 0, 0, 0, playerid, 0);
+	pduel->game_field->emplace_process<Processors::AnnounceNumber>(playerid);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->core.select_options[pduel->game_field->returns.at<int32_t>(0)]);
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
@@ -3458,7 +3458,7 @@ LUA_STATIC_FUNCTION(AnnounceCoin) {
 	pduel->game_field->core.select_options.clear();
 	pduel->game_field->core.select_options.push_back(60);
 	pduel->game_field->core.select_options.push_back(61);
-	pduel->game_field->add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
+	pduel->game_field->emplace_process<Processors::SelectOption>(playerid);
 	return yieldk({
 		if(/*bool sel_hint = */lua_get<bool, true>(L, 2)) {
 			auto playerid = lua_get<uint8_t>(L, 1);
@@ -3480,7 +3480,7 @@ LUA_STATIC_FUNCTION(TossCoin) {
 		return 0;
 	if(count > 5)
 		count = 5;
-	pduel->game_field->add_process(PROCESSOR_TOSS_COIN, 0, pduel->game_field->core.reason_effect, 0, (pduel->game_field->core.reason_player << 16) + playerid, count);
+	pduel->game_field->emplace_process<Processors::TossCoin>(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, count);
 	return yieldk({
 		const auto& coin_results = pduel->game_field->core.coin_results;
 		luaL_checkstack(L, static_cast<int>(coin_results.size()), nullptr);
@@ -3497,7 +3497,7 @@ LUA_STATIC_FUNCTION(TossDice) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto count2 = lua_get<uint8_t, 0>(L, 3);
-	pduel->game_field->add_process(PROCESSOR_TOSS_DICE, 0, pduel->game_field->core.reason_effect, 0, (pduel->game_field->core.reason_player << 16) + playerid, count1 + (count2 << 16));
+	pduel->game_field->emplace_process<Processors::TossDice>(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, count1, count2);
 	return yieldk({
 		const auto& dice_results = pduel->game_field->core.dice_results;
 		luaL_checkstack(L, static_cast<int>(dice_results.size()), nullptr);
@@ -3508,7 +3508,7 @@ LUA_STATIC_FUNCTION(TossDice) {
 }
 LUA_STATIC_FUNCTION(RockPaperScissors) {
 	uint8_t repeat = lua_get<bool, true>(L, 1);
-	pduel->game_field->add_process(PROCESSOR_ROCK_PAPER_SCISSORS, 0, 0, 0, repeat, 0);
+	pduel->game_field->emplace_process<Processors::RockPaperScissors>(repeat);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;

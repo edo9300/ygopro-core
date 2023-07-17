@@ -93,7 +93,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, OCG_NewCardInfo info) {
 
 OCGAPI void OCG_StartDuel(OCG_Duel ocg_duel) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
-	pduel->game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
+	pduel->game_field->emplace_process<Processors::Startup>();
 }
 
 OCGAPI int OCG_DuelProcess(OCG_Duel ocg_duel) {
