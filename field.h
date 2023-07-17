@@ -539,8 +539,7 @@ struct SolveChain {
 	bool skip_freechain;
 	bool skip_new;
 	int32_t backed_up_operation;
-	SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_,
-						bool skip_new_) :
+	SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
 		step(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_),
 		skip_new(skip_new_), backed_up_operation(0) {}
 };
@@ -556,8 +555,7 @@ struct ExecuteCost {
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
-	ExecuteCost(int16_t step_, effect* triggering_effect_,
-						 uint8_t triggering_player_) :
+	ExecuteCost(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
 		step(step_), triggering_player(triggering_player_), shuffle_check_was_disabled(false),
 		triggering_effect(triggering_effect_) {}
 };
@@ -566,8 +564,7 @@ struct ExecuteOperation {
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
-	ExecuteOperation(int16_t step_, effect* triggering_effect_,
-							  uint8_t triggering_player_) :
+	ExecuteOperation(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
 		step(step_), triggering_player(triggering_player_), shuffle_check_was_disabled(false),
 		triggering_effect(triggering_effect_) {}
 };
@@ -1069,7 +1066,7 @@ using processor_unit = mpark::variant<InvalidState, Adjust, Turn, RefreshLoc, St
 	SelectOption, SelectCard, SelectCardCodes, SelectUnselectCard,
 	SelectChain, SelectPlace, SelectDisField, SelectPosition,
 	SelectTributeP, SortChain, SelectCounter, SelectSum, SortCard,
-	SelectRelease, QuickEffect, IdleCommand, PhaseEvent, BattleCommand,
+	SelectRelease, QuickEffect, IdleCommand, PhaseEvent, PointEvent, BattleCommand,
 	DamageStep, ForcedBattle, AddChain, SolveChain, SolveContinuous,
 	ExecuteCost, ExecuteOperation, ExecuteTarget, Destroy, Release,
 	SendTo, DestroyReplace, ReleaseReplace, SendToReplace, MoveToField,
@@ -1470,7 +1467,6 @@ public:
 	constexpr inline void emplace_process_step(uint16_t step, Args&&... args) {
 		core.subunits.emplace_back(mpark::in_place_type<T>, step, std::forward<Args>(args)...);
 	}
-	void add_process(uint16_t type, int16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3 = 0, int64_t arg4 = 0, void* ptr1 = nullptr, void* ptr2 = nullptr);
 	int32_t process();
 	int32_t execute_cost(Processors::ExecuteCost& arg);
 	int32_t execute_operation(Processors::ExecuteOperation& arg);
