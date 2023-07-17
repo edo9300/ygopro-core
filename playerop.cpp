@@ -706,12 +706,12 @@ int32_t field::select_counter(Processors::SelectCounter& arg) {
 	auto playerid = arg.playerid;
 	auto countertype = arg.countertype;
 	auto count = arg.count;
-	auto s = arg.s;
-	auto o = arg.o;
+	auto self = arg.self;
+	auto oppo = arg.oppo;
 	if(arg.step == 0) {
 		if(count == 0)
 			return TRUE;
-		uint8_t avail = s;
+		uint8_t avail = self;
 		uint8_t fp = playerid;
 		uint32_t total = 0;
 		core.select_cards.clear();
@@ -731,7 +731,7 @@ int32_t field::select_counter(Processors::SelectCounter& arg) {
 				}
 			}
 			fp = 1 - fp;
-			avail = o;
+			avail = oppo;
 		}
 		if(count > total)
 			count = total;

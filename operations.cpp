@@ -16,10 +16,6 @@
 #include "group.h"
 #include "interpreter.h"
 
-void add_process(...) {
-
-}
-
 int32_t field::negate_chain(uint8_t chaincount) {
 	if(core.current_chain.size() == 0)
 		return FALSE;
@@ -116,15 +112,15 @@ void field::change_target_param(uint8_t chaincount, int32_t param) {
 	core.current_chain[chaincount - 1].target_param = param;
 }
 void field::remove_counter(uint32_t reason, card* pcard, uint32_t rplayer, uint8_t self, uint8_t oppo, uint32_t countertype, uint32_t count) {
-	add_process(PROCESSOR_REMOVE_COUNTER, 0, nullptr, (group*)pcard, (rplayer << 16) + (self << 8) + oppo, countertype, count, reason);
+	emplace_process<Processors::RemoveCounter>(reason, pcard, rplayer, self, oppo, countertype, count);
 }
 void field::remove_overlay_card(uint32_t reason, group* pgroup, uint32_t rplayer, uint8_t self, uint8_t oppo, uint16_t min, uint16_t max) {
-	add_process(PROCESSOR_REMOVE_OVERLAY, 0, nullptr, pgroup, (rplayer << 16) + (self << 8) + oppo, (max << 16) + min, reason);
+	emplace_process<Processors::RemoveOverlay>(reason, pgroup, rplayer, self, oppo, min, max);
 }
 void field::xyz_overlay(card* target, card_set materials, bool send_materials_to_grave) {
 	group* ng = pduel->new_group(std::move(materials));
 	ng->is_readonly = TRUE;
-	add_process(PROCESSOR_XYZ_OVERLAY, 0, nullptr, ng, send_materials_to_grave, 0, 0, 0, target);
+	emplace_process<Processors::XyzOverlay>(target, ng, send_materials_to_grave);
 }
 void field::xyz_overlay(card* target, card* material, bool send_materials_to_grave) {
 	xyz_overlay(target, card_set{ material }, send_materials_to_grave);
@@ -132,7 +128,7 @@ void field::xyz_overlay(card* target, card* material, bool send_materials_to_gra
 void field::get_control(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
-	add_process(PROCESSOR_GET_CONTROL, 0, reason_effect, ng, 0, (reason_player << 28) + (playerid << 24) + (reset_phase << 8) + reset_count, zone);
+	emplace_process<Processors::GetControl>(reason_effect, reason_player, ng, playerid, reset_phase, reset_count, zone);
 }
 void field::get_control(card* target, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
 	get_control(card_set{ target }, reason_effect, reason_player, playerid, reset_phase, reset_count, zone);
@@ -142,41 +138,40 @@ void field::swap_control(effect* reason_effect, uint32_t reason_player, card_set
 	ng1->is_readonly = TRUE;
 	group* ng2 = pduel->new_group(std::move(targets2));
 	ng2->is_readonly = TRUE;
-	add_process(PROCESSOR_SWAP_CONTROL, 0, reason_effect, ng1, reason_player, reset_phase, reset_count, 0, ng2);
+	emplace_process<Processors::SwapControl>(reason_effect, reason_player, ng1, ng2, reset_phase, reset_count);
 }
 void field::swap_control(effect* reason_effect, uint32_t reason_player, card* pcard1, card* pcard2, uint32_t reset_phase, uint32_t reset_count) {
 	swap_control(reason_effect, reason_player, card_set{ pcard1 }, card_set{ pcard2 }, reset_phase, reset_count);
 }
-void field::equip(uint32_t equip_player, card* equip_card, card* target, uint32_t up, uint32_t is_step) {
-	add_process(PROCESSOR_EQUIP, 0, nullptr, (group*)target, 0, equip_player + (up << 16) + (is_step << 24), 0, 0, equip_card);
+void field::equip(uint32_t equip_player, card* equip_card, card* target, bool faceup, bool is_step) {
+	emplace_process<Processors::Equip>(equip_player, equip_card, target, faceup, is_step);
 }
-void field::draw(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t count) {
-	add_process(PROCESSOR_DRAW, 0, reason_effect, 0, reason, (reason_player << 28) + (playerid << 24) + (count & 0xffffff));
+void field::draw(effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t count) {
+	emplace_process<Processors::Draw>(reason_effect, reason, reason_player, playerid, count);
 }
 void field::damage(effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, bool is_step) {
-	uint32_t arg2 = (is_step << 28) + (reason_player << 26) + (playerid << 24);
 	if(reason & REASON_BATTLE)
 		reason_effect = nullptr;
 	else
 		reason_card = nullptr;
-	add_process(PROCESSOR_DAMAGE, 0, reason_effect, 0, reason, arg2, amount, 0, reason_card);
+	emplace_process<Processors::Damage>(reason_effect, reason, reason_player, reason_card, playerid, amount, is_step);
 }
 void field::recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, bool is_step) {
-	add_process(PROCESSOR_RECOVER, 0, reason_effect, 0, reason, (is_step << 28) + (reason_player << 26) + (playerid << 24), amount);
+	emplace_process<Processors::Recover>(reason_effect, reason, reason_player, playerid, amount, is_step);
 }
-void field::summon(uint32_t sumplayer, card* target, effect* proc, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone) {
-	add_process(PROCESSOR_SUMMON_RULE, 0, proc, (group*)target, sumplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24), 0);
+void field::summon(uint8_t sumplayer, card* target, effect* proc, bool ignore_count, uint8_t min_tribute, uint32_t zone) {
+	emplace_process<Processors::SummonRule>(sumplayer, target, proc, ignore_count, min_tribute, zone);
 }
-void field::mset(uint32_t setplayer, card* target, effect* proc, uint32_t ignore_count, uint32_t min_tribute, uint32_t zone) {
-	add_process(PROCESSOR_MSET, 0, proc, (group*)target, setplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24), 0);
+void field::mset(uint8_t setplayer, card* target, effect* proc, bool ignore_count, uint8_t min_tribute, uint32_t zone) {
+	emplace_process<Processors::MonsterSet>(setplayer, target, proc, ignore_count, min_tribute, zone);
 }
-void field::special_summon_rule(uint32_t sumplayer, card* target, uint32_t summon_type) {
-	add_process(PROCESSOR_SPSUMMON_RULE, 0, 0, (group*)target, sumplayer, summon_type);
+void field::special_summon_rule(uint8_t sumplayer, card* target, uint32_t summon_type) {
+	emplace_process<Processors::SpSummonRule>(sumplayer, target, summon_type);
 }
-void field::special_summon_rule_group(uint32_t sumplayer, uint32_t summon_type) {
-	add_process(PROCESSOR_SPSUMMON_RULE_G, 0, 0, nullptr, sumplayer, summon_type);
+void field::special_summon_rule_group(uint8_t sumplayer, uint32_t summon_type) {
+	emplace_process<Processors::SpSummonRuleGroup>(sumplayer, summon_type);
 }
-void field::special_summon(card_set target, uint32_t sumtype, uint32_t sumplayer, uint32_t playerid, uint32_t nocheck, uint32_t nolimit, uint32_t positions, uint32_t zone) {
+void field::special_summon(card_set target, uint32_t sumtype, uint8_t sumplayer, uint8_t playerid, bool nocheck, bool nolimit, uint8_t positions, uint32_t zone) {
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	effect_set eset;
@@ -212,9 +207,9 @@ void field::special_summon(card_set target, uint32_t sumtype, uint32_t sumplayer
 	}
 	group* pgroup = pduel->new_group(std::move(target));
 	pgroup->is_readonly = TRUE;
-	add_process(PROCESSOR_SPSUMMON, 0, core.reason_effect, pgroup, core.reason_player, zone);
+	emplace_process<Processors::SpSummon>(core.reason_effect, core.reason_player, pgroup, zone);
 }
-void field::special_summon_step(card* target, uint32_t sumtype, uint32_t sumplayer, uint32_t playerid, uint32_t nocheck, uint32_t nolimit, uint32_t positions, uint32_t zone) {
+void field::special_summon_step(card* target, uint32_t sumtype, uint8_t sumplayer, uint8_t playerid, bool nocheck, bool nolimit, uint8_t positions, uint32_t zone) {
 	if((positions & POS_FACEDOWN) && is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 		positions = (positions & POS_FACEUP) | ((positions & POS_FACEDOWN) >> 1);
 	if((positions & POS_FACEUP) && check_unique_onfield(target, playerid, LOCATION_MZONE))
@@ -247,15 +242,15 @@ void field::special_summon_step(card* target, uint32_t sumtype, uint32_t sumplay
 		positions &= eff->get_value();
 	}
 	target->spsummon_param = (playerid << 24) + (nocheck << 16) + (nolimit << 8) + positions;
-	add_process(PROCESSOR_SPSUMMON_STEP, 0, core.reason_effect, nullptr, zone, 0, 0, 0, target);
+	emplace_process<Processors::SpSummonStep>(nullptr, target, zone);
 }
 void field::special_summon_complete(effect* reason_effect, uint8_t reason_player) {
 	group* ng = pduel->new_group();
 	ng->container.swap(core.special_summoning);
 	ng->is_readonly = TRUE;
-	add_process(PROCESSOR_SPSUMMON, 1, reason_effect, ng, reason_player, 0);
+	emplace_process_step<Processors::SpSummon>(1, reason_effect, reason_player, ng, 0);
 }
-void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence) {
+void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence) {
 	const auto destroy_canceled_end = core.destroy_canceled.cend();
 	for(auto cit = targets.begin(); cit != targets.end();) {
 		card* pcard = *cit;
@@ -285,12 +280,12 @@ void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, ui
 	}
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
-	add_process(PROCESSOR_DESTROY, 0, reason_effect, ng, reason, reason_player);
+	emplace_process<Processors::Destroy>(ng, reason_effect, reason, reason_player);
 }
-void field::destroy(card* target, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence) {
+void field::destroy(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence) {
 	destroy(card_set{ target }, reason_effect, reason, reason_player, playerid, destination, sequence);
 }
-void field::release(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player) {
+void field::release(card_set targets, effect* reason_effect, uint32_t reason, uint8_t reason_player) {
 	for(auto& pcard : targets) {
 		pcard->temp.reason = pcard->current.reason;
 		pcard->temp.reason_effect = pcard->current.reason_effect;
@@ -302,14 +297,14 @@ void field::release(card_set targets, effect* reason_effect, uint32_t reason, ui
 	}
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
-	add_process(PROCESSOR_RELEASE, 0, reason_effect, ng, reason, reason_player);
+	emplace_process<Processors::Release>(ng, reason_effect, reason, reason_player);
 }
-void field::release(card* target, effect* reason_effect, uint32_t reason, uint32_t reason_player) {
+void field::release(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player) {
 	release(card_set{ target }, reason_effect, reason, reason_player);
 }
 // set current.reason, sendto_param
 // send-to in scripts: here->PROCESSOR_SENDTO, step 0
-void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence, uint32_t position, uint32_t ignore) {
+void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence, uint8_t position, bool ignore) {
 	if(destination & LOCATION_ONFIELD)
 		return;
 	for(auto& pcard : targets) {
@@ -327,7 +322,7 @@ void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, ui
 			p = pcard->owner;
 		if(destination == LOCATION_GRAVE && pcard->current.location == LOCATION_REMOVED)
 			pcard->current.reason |= REASON_RETURN;
-		uint32_t pos = position;
+		auto pos = position;
 		if(destination != LOCATION_REMOVED && !ignore)
 			pos = POS_FACEUP;
 		else if(position == 0)
@@ -336,12 +331,12 @@ void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, ui
 	}
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
-	add_process(PROCESSOR_SENDTO, 0, reason_effect, ng, reason, reason_player);
+	emplace_process<Processors::SendTo>(ng, reason_effect, reason, reason_player);
 }
-void field::send_to(card* target, effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t destination, uint32_t sequence, uint32_t position, uint32_t ignore) {
+void field::send_to(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence, uint8_t position, bool ignore) {
 	send_to(card_set{ target }, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
-void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid, uint32_t destination, uint32_t positions, uint8_t enable, uint8_t ret, uint8_t zone, uint8_t rule, uint8_t reason, uint8_t confirm) {
+void field::move_to_field(card* target, uint8_t move_player, uint8_t playerid, uint16_t destination, uint8_t positions, bool enable, uint8_t ret, uint8_t zone, bool rule, uint8_t reason, bool confirm) {
 	if(!(destination & (LOCATION_MZONE | LOCATION_MMZONE | LOCATION_EMZONE | LOCATION_SZONE | LOCATION_STZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions)
 		return;
 	if(destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE) && playerid == target->current.controler)
@@ -370,9 +365,9 @@ void field::move_to_field(card* target, uint32_t move_player, uint32_t playerid,
 		zone = (0x1 << 5) | (0x1 << 6);
 	}
 	target->to_field_param = (move_player << 24) + (playerid << 16) + ((destination & 0xff) << 8) + positions;
-	add_process(PROCESSOR_MOVETOFIELD, 0, 0, (group*)target, enable | (ret << 8) | (pzone << 16) | (zone << 24), rule | (reason << 8) | (confirm << 16));
+	emplace_process<Processors::MoveToField>(target, enable, ret, pzone, zone, rule, reason, confirm);
 }
-void field::change_position(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t au, uint32_t ad, uint32_t du, uint32_t dd, uint32_t flag, uint32_t enable) {
+void field::change_position(card_set targets, effect* reason_effect, uint8_t reason_player, uint8_t au, uint8_t ad, uint8_t du, uint8_t dd, uint32_t flag, bool enable) {
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
 	for(auto& pcard : ng->container) {
@@ -386,16 +381,16 @@ void field::change_position(card_set targets, effect* reason_effect, uint32_t re
 			pcard->position_param = ad;
 		pcard->position_param |= flag;
 	}
-	add_process(PROCESSOR_CHANGEPOS, 0, reason_effect, ng, reason_player, enable);
+	emplace_process<Processors::ChangePos>(ng, reason_effect, reason_player, enable);
 }
-void field::change_position(card* target, effect* reason_effect, uint32_t reason_player, uint32_t npos, uint32_t flag, uint32_t enable) {
+void field::change_position(card* target, effect* reason_effect, uint8_t reason_player, uint8_t npos, uint32_t flag, bool enable) {
 	group* ng = pduel->new_group(target);
 	ng->is_readonly = TRUE;
 	target->position_param = npos;
 	target->position_param |= flag;
-	add_process(PROCESSOR_CHANGEPOS, 0, reason_effect, ng, reason_player, enable);
+	emplace_process<Processors::ChangePos>(ng, reason_effect, reason_player, enable);
 }
-void field::operation_replace(int32_t type, int32_t step, group* targets) {
+void field::operation_replace(uint32_t type, uint16_t step, group* targets) {
 	int32_t is_destroy = (type == EFFECT_DESTROY_REPLACE) ? TRUE : FALSE;
 	auto pr = effects.continuous_effect.equal_range(type);
 	std::vector<effect*> opp_effects;
@@ -403,15 +398,15 @@ void field::operation_replace(int32_t type, int32_t step, group* targets) {
 		effect* reffect = eit->second;
 		++eit;
 		if(reffect->get_handler_player() == infos.turn_player)
-			add_process(PROCESSOR_OPERATION_REPLACE, step, reffect, targets, is_destroy, 0);
+			emplace_process_step<Processors::OperationReplace>(step, reffect, targets, nullptr, is_destroy);
 		else
 			opp_effects.push_back(reffect);
 	}
 	for(auto& peffect : opp_effects)
-		add_process(PROCESSOR_OPERATION_REPLACE, step, peffect, targets, is_destroy, 0);
+		emplace_process_step<Processors::OperationReplace>(step, peffect, targets, nullptr, is_destroy);
 }
-void field::select_tribute_cards(card* target, uint8_t playerid, uint8_t cancelable, int32_t min, int32_t max, uint8_t toplayer, uint32_t zone) {
-	add_process(PROCESSOR_SELECT_TRIBUTE, 0, 0, (group*)target, playerid + ((uint32_t)cancelable << 16), min + (max << 16), toplayer, zone);
+void field::select_tribute_cards(card* target, uint8_t playerid, bool cancelable, uint16_t min, uint16_t max, uint8_t toplayer, uint32_t zone) {
+	emplace_process<Processors::SelectTribute>(target, playerid, cancelable, min, max, toplayer, zone);
 }
 int32_t field::draw(Processors::Draw& arg) {
 	auto reason_effect = arg.reason_effect;
@@ -735,9 +730,9 @@ int32_t field::pay_lp_cost(Processors::PayLPCost& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, playerid, 218);
+			emplace_process<Processors::SelectEffectYesNo>(playerid, 218, core.select_effects[1]->handler);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, playerid, 0);
+			emplace_process<Processors::SelectOption>(playerid);
 		return FALSE;
 	}
 	case 1: {
@@ -806,9 +801,9 @@ int32_t field::remove_counter(Processors::RemoveCounter& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 220);
+			emplace_process<Processors::SelectEffectYesNo>(rplayer, 220, core.select_effects[1]->handler);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
+			emplace_process<Processors::SelectOption>(rplayer);
 		return FALSE;
 	}
 	case 1: {
@@ -830,7 +825,7 @@ int32_t field::remove_counter(Processors::RemoveCounter& arg) {
 			arg.step = 3;
 			return FALSE;
 		}
-		add_process(PROCESSOR_SELECT_COUNTER, 0, nullptr, nullptr, rplayer, countertype, count, (self << 8) + oppo);
+		emplace_process<Processors::SelectCounter>(rplayer, countertype, count, self, oppo);
 		return FALSE;
 	}
 	case 2: {
@@ -889,9 +884,9 @@ int32_t field::remove_overlay_card(Processors::RemoveOverlay& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else if(core.select_effects[0] == 0 && core.select_effects.size() == 2)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_effects[1]->handler, rplayer, 219);
+			emplace_process<Processors::SelectEffectYesNo>(rplayer, 219, core.select_effects[1]->handler);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, rplayer, 0);
+			emplace_process<Processors::SelectOption>(rplayer);
 		return FALSE;
 	}
 	case 1: {
@@ -932,7 +927,7 @@ int32_t field::remove_overlay_card(Processors::RemoveOverlay& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(rplayer);
 		message->write<uint64_t>(519);
-		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, rplayer + (cancelable << 16), min + (max << 16));
+		emplace_process<Processors::SelectCard>(rplayer, cancelable, min, max);
 		return FALSE;
 	}
 	case 3: {
@@ -1104,7 +1099,7 @@ int32_t field::get_control(Processors::GetControl& arg) {
 			message->write<uint8_t>(playerid);
 			message->write<uint64_t>(502);
 			uint16_t ct = static_cast<uint16_t>(targets->container.size() - fcount);
-			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, ct + (ct << 16));
+			emplace_process<Processors::SelectCard>(playerid, false, ct, ct);
 		} else
 			arg.step = 1;
 		return FALSE;
@@ -1270,7 +1265,7 @@ int32_t field::swap_control(Processors::SwapControl& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(p1);
 		message->write<uint64_t>(pcard2->data.code);
-		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, p1, flag, 1);
+		emplace_process<Processors::SelectPlace>(p1, flag, 1);
 		return FALSE;
 	}
 	case 2: {
@@ -1286,7 +1281,7 @@ int32_t field::swap_control(Processors::SwapControl& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(p2);
 		message->write<uint64_t>(pcard1->data.code);
-		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, p2, flag, 1);
+		emplace_process<Processors::SelectPlace>(p2, flag, 1);
 		return FALSE;
 	}
 	case 3: {
@@ -1365,7 +1360,7 @@ int32_t field::control_adjust(Processors::ControlAdjust& arg) {
 					message->write<uint8_t>(HINT_SELECTMSG);
 					message->write<uint8_t>(infos.turn_player);
 					message->write<uint64_t>(502);
-					add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, 1, count + (count << 16));
+					emplace_process<Processors::SelectCard>(1, false, count, count);
 				}
 			} else
 				arg.step = 1;
@@ -1384,7 +1379,7 @@ int32_t field::control_adjust(Processors::ControlAdjust& arg) {
 					message->write<uint8_t>(HINT_SELECTMSG);
 					message->write<uint8_t>(infos.turn_player);
 					message->write<uint64_t>(502);
-					add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, 0, count + (count << 16));
+					emplace_process<Processors::SelectCard>(0, false, count, count);
 				}
 			} else
 				arg.step = 1;
@@ -1517,7 +1512,7 @@ int32_t field::self_destroy_unique(Processors::SelfDestroyUnique& arg) {
 				message->write<uint8_t>(HINT_SELECTMSG);
 				message->write<uint8_t>(playerid);
 				message->write<uint64_t>(534);
-				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, 0x10001);
+				emplace_process<Processors::SelectCard>(playerid, false, 1, 1);
 			}
 			return FALSE;
 		}
@@ -1633,7 +1628,7 @@ int32_t field::trap_monster_adjust(Processors::TrapMonsterAdjust& arg) {
 			message->write<uint8_t>(HINT_SELECTMSG);
 			message->write<uint8_t>(check_player);
 			message->write<uint64_t>(502);
-			add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, check_player, ct + (ct << 16));
+			emplace_process<Processors::SelectCard>(check_player, false, ct, ct);
 		} else
 			arg.step = 2;
 		return FALSE;
@@ -1830,7 +1825,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 				if(core.select_options.size() == 1)
 					returns.set<int32_t>(0, 0);
 				else
-					add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, sumplayer, 0);
+					emplace_process<Processors::SelectOption>(sumplayer);
 			}
 		}
 		if(core.summon_depth)
@@ -1906,7 +1901,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, sumplayer, 0);
+			emplace_process<Processors::SelectOption>(sumplayer);
 		return FALSE;
 	}
 	case 2: {
@@ -1957,7 +1952,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 				int32_t ct = get_tofield_count(target, sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 				int32_t fcount = get_mzone_limit(sumplayer, sumplayer, LOCATION_REASON_TOFIELD);
 				if(min == 0 && ct > 0 && fcount > 0) {
-					add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, sumplayer, 90);
+					emplace_process<Processors::SelectYesNo>(sumplayer, 90);
 					arg.max_allowed_tributes = max;
 				} else {
 					if(min < -fcount + 1) {
@@ -2001,7 +1996,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 			pduel->lua->add_param<LuaParam::INT>(releasable);
 			pduel->lua->add_param<LuaParam::EFFECT>(pextra);
 			core.sub_solving_event.push_back(nil_event);
-			add_process(PROCESSOR_EXECUTE_TARGET, 0, summon_procedure_effect, 0, sumplayer, 0);
+			emplace_process<Processors::ExecuteTarget>(summon_procedure_effect, sumplayer);
 		}
 		return FALSE;
 	}
@@ -2030,7 +2025,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 			for(const auto& peffect : eset) {
 				if(peffect->operation) {
 					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, sumplayer, 0);
+					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 				}
 			}
 			arg.spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
@@ -2140,7 +2135,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 			pduel->lua->add_param<LuaParam::INT>(releasable);
 			pduel->lua->add_param<LuaParam::EFFECT>(pextra);
 			core.sub_solving_event.push_back(nil_event);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, summon_procedure_effect, 0, sumplayer, 0);
+			emplace_process<Processors::ExecuteOperation>(summon_procedure_effect, sumplayer);
 		}
 		summon_procedure_effect->dec_count(sumplayer);
 		return FALSE;
@@ -2164,7 +2159,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 			if(pextra->operation) {
 				pduel->lua->add_param<LuaParam::CARD>(target);
 				core.sub_solving_event.push_back(nil_event);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, pextra, 0, sumplayer, 0);
+				emplace_process<Processors::ExecuteOperation>(pextra, sumplayer);
 			}
 		}
 		return FALSE;
@@ -2221,7 +2216,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 			if(pextra->operation) {
 				pduel->lua->add_param<LuaParam::CARD>(target);
 				core.sub_solving_event.push_back(nil_event);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, pextra, 0, sumplayer, 0);
+				emplace_process<Processors::ExecuteOperation>(pextra, sumplayer);
 			}
 		}
 		return FALSE;
@@ -2265,7 +2260,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 		target->set_status(STATUS_SUMMON_DISABLED, FALSE);
 		raise_event(target, EVENT_SUMMON, summon_procedure_effect, 0, sumplayer, sumplayer, 0);
 		process_instant_event();
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
+		emplace_process<Processors::PointEvent>(true, true, true);
 		return FALSE;
 	}
 	case 15: {
@@ -2286,7 +2281,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		adjust_instant();
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+		emplace_process<Processors::PointEvent>(false, false, false);
 		return TRUE;
 	}
 	case 16: {
@@ -2331,7 +2326,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 		if(core.current_chain.size() == 0) {
 			adjust_all();
 			core.hint_timing[sumplayer] |= TIMING_SUMMON;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		return TRUE;
 	}
@@ -2355,7 +2350,7 @@ int32_t field::flip_summon(Processors::FlipSummon& arg) {
 			for(const auto& peffect : eset) {
 				if(peffect->operation) {
 					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, sumplayer, 0);
+					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 				}
 			}
 			arg.flip_spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
@@ -2382,7 +2377,7 @@ int32_t field::flip_summon(Processors::FlipSummon& arg) {
 			target->set_status(STATUS_SUMMON_DISABLED, FALSE);
 			raise_event(target, EVENT_FLIP_SUMMON, 0, 0, sumplayer, sumplayer, 0);
 			process_instant_event();
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
+			emplace_process<Processors::PointEvent>(true, true, true);
 		}
 		return FALSE;
 	}
@@ -2395,7 +2390,7 @@ int32_t field::flip_summon(Processors::FlipSummon& arg) {
 		}
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+		emplace_process<Processors::PointEvent>(false, false, false);
 		return TRUE;
 	}
 	case 3: {
@@ -2428,7 +2423,7 @@ int32_t field::flip_summon(Processors::FlipSummon& arg) {
 		adjust_all();
 		if(core.current_chain.size() == 0) {
 			core.hint_timing[sumplayer] |= TIMING_FLIPSUMMON;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		return TRUE;
 	}
@@ -2473,7 +2468,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 			if(core.select_options.size() == 1)
 				returns.set<int32_t>(0, 0);
 			else
-				add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, setplayer, 0);
+				emplace_process<Processors::SelectOption>(setplayer);
 		}
 		target->material_cards.clear();
 		return FALSE;
@@ -2534,7 +2529,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, setplayer, 0);
+			emplace_process<Processors::SelectOption>(setplayer);
 		return FALSE;
 	}
 	case 2: {
@@ -2585,7 +2580,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 				int32_t ct = get_tofield_count(target, setplayer, LOCATION_MZONE, setplayer, LOCATION_REASON_TOFIELD, zone);
 				int32_t fcount = get_mzone_limit(setplayer, setplayer, LOCATION_REASON_TOFIELD);
 				if(min == 0 && ct > 0 && fcount > 0) {
-					add_process(PROCESSOR_SELECT_YESNO, 0, 0, 0, setplayer, 90);
+					emplace_process<Processors::SelectYesNo>(setplayer, 90);
 					arg.max_allowed_tributes = max;
 				} else {
 					if(min < -fcount + 1) {
@@ -2621,7 +2616,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 		for(const auto& peff : eset) {
 			if(peff->operation) {
 				core.sub_solving_event.push_back(nil_event);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, peff, 0, setplayer, 0);
+				emplace_process<Processors::ExecuteOperation>(peff, setplayer);
 			}
 		}
 		return FALSE;
@@ -2666,7 +2661,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 			pduel->lua->add_param<LuaParam::INT>(releasable);
 			pduel->lua->add_param<LuaParam::EFFECT>(pextra);
 			core.sub_solving_event.push_back(nil_event);
-			add_process(PROCESSOR_EXECUTE_TARGET, 0, summon_procedure_effect, 0, setplayer, 0);
+			emplace_process<Processors::ExecuteTarget>(summon_procedure_effect, setplayer);
 		}
 		return FALSE;
 	}
@@ -2699,7 +2694,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 			pduel->lua->add_param<LuaParam::INT>(releasable);
 			pduel->lua->add_param<LuaParam::EFFECT>(pextra);
 			core.sub_solving_event.push_back(nil_event);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, summon_procedure_effect, 0, setplayer, 0);
+			emplace_process<Processors::ExecuteOperation>(summon_procedure_effect, setplayer);
 		}
 		summon_procedure_effect->dec_count(setplayer);
 		return FALSE;
@@ -2720,7 +2715,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 			if(pextra->operation) {
 				pduel->lua->add_param<LuaParam::CARD>(target);
 				core.sub_solving_event.push_back(nil_event);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, pextra, 0, setplayer, 0);
+				emplace_process<Processors::ExecuteOperation>(pextra, setplayer);
 			}
 		}
 		return FALSE;
@@ -2752,7 +2747,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 		if(core.current_chain.size() == 0) {
 			adjust_all();
 			core.hint_timing[setplayer] |= TIMING_MSET;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, FALSE);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		return TRUE;
 	}
@@ -2781,7 +2776,7 @@ int32_t field::sset(Processors::SpellSet& arg) {
 		for(const auto& peff : eset) {
 			if(peff->operation) {
 				core.sub_solving_event.push_back(nil_event);
-				add_process(PROCESSOR_EXECUTE_OPERATION, 0, peff, 0, setplayer, 0);
+				emplace_process<Processors::ExecuteOperation>(peff, setplayer);
 			}
 		}
 		return FALSE;
@@ -2814,7 +2809,7 @@ int32_t field::sset(Processors::SpellSet& arg) {
 		if(core.current_chain.size() == 0) {
 			adjust_all();
 			core.hint_timing[setplayer] |= TIMING_SSET;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, FALSE);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 	}
 	}
@@ -2852,7 +2847,7 @@ int32_t field::sset_g(Processors::SpellSetGroup& arg) {
 			for(const auto& peff : eset) {
 				if(peff->operation) {
 					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, peff, 0, setplayer, 0);
+					emplace_process<Processors::ExecuteOperation>(peff, setplayer);
 				}
 			}
 		}
@@ -2883,7 +2878,7 @@ int32_t field::sset_g(Processors::SpellSetGroup& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(setplayer);
 		message->write<uint64_t>(target->data.code);
-		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, setplayer, flag, 1);
+		emplace_process<Processors::SelectPlace>(setplayer, flag, 1);
 		return FALSE;
 	}
 	case 2: {
@@ -2991,7 +2986,7 @@ int32_t field::sset_g(Processors::SpellSetGroup& arg) {
 		if(core.current_chain.size() == 0) {
 			adjust_all();
 			core.hint_timing[setplayer] |= TIMING_SSET;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, FALSE);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		return FALSE;
 	}
@@ -3030,7 +3025,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, sumplayer, 0);
+			emplace_process<Processors::SelectOption>(sumplayer);
 		return FALSE;
 	}
 	case 1: {
@@ -3050,7 +3045,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 				pduel->lua->add_param<LuaParam::INT>(core.forced_summon_maxc);
 			}
 			core.sub_solving_event.push_back(nil_event);
-			add_process(PROCESSOR_EXECUTE_TARGET, 0, peffect, 0, sumplayer, 0);
+			emplace_process<Processors::ExecuteTarget>(peffect, sumplayer);
 		}
 		return FALSE;
 	}
@@ -3063,7 +3058,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 			for(const auto& peffect : eset) {
 				if(peffect->operation) {
 					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, sumplayer, 0);
+					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 				}
 			}
 			arg.special_spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
@@ -3084,7 +3079,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 			core.forced_summon_minc = 0;
 			core.forced_summon_maxc = 0;
 			core.sub_solving_event.push_back(nil_event);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, proc, 0, sumplayer, 0);
+			emplace_process<Processors::ExecuteOperation>(proc, sumplayer);
 		}
 		proc->dec_count(sumplayer);
 		return FALSE;
@@ -3202,7 +3197,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 		target->set_status(STATUS_SUMMON_DISABLED, FALSE);
 		raise_event(target, EVENT_SPSUMMON, arg.summon_proc_effect, 0, sumplayer, sumplayer, 0);
 		process_instant_event();
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
+		emplace_process<Processors::PointEvent>(true, true, true);
 		return FALSE;
 	}
 	case 11: {
@@ -3225,7 +3220,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		adjust_instant();
-		add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+		emplace_process<Processors::PointEvent>(false, false, false);
 		return TRUE;
 	}
 	case 15: {
@@ -3276,7 +3271,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 		if(core.current_chain.size() == 0) {
 			adjust_all();
 			core.hint_timing[sumplayer] |= TIMING_SPSUMMON;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		return TRUE;
 	}
@@ -3288,7 +3283,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 			pduel->lua->add_param<LuaParam::CARD>(target);
 			pduel->lua->add_param<LuaParam::GROUP>(arg.cards_to_summon_g);
 			pduel->lua->add_param<LuaParam::BOOLEAN>(arg.is_mid_chain);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, proc, 0, sumplayer, 0);
+			emplace_process<Processors::ExecuteOperation>(proc, sumplayer);
 		}
 		proc->dec_count(sumplayer);
 		return FALSE;
@@ -3310,7 +3305,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 				for(const auto& peffect : eset) {
 					if(peffect->operation) {
 						core.sub_solving_event.push_back(nil_event);
-						add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, sumplayer, 0);
+						emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 					}
 				}
 				arg.special_spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
@@ -3418,7 +3413,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 			if(cset.size()) {
 				raise_event(&cset, EVENT_SPSUMMON, arg.summon_proc_effect, 0, sumplayer, sumplayer, 0);
 				process_instant_event();
-				add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, 0x101, TRUE);
+				emplace_process<Processors::PointEvent>(true, true, true);
 			}
 		} else {
 			for(auto& pcard : pgroup->container)
@@ -3455,7 +3450,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 					remove_oath_effect(peffect);
 				arg.special_spsummon_cost_effects.reset();
 			}
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+			emplace_process<Processors::PointEvent>(false, false, false);
 			return TRUE;
 		}
 		return FALSE;
@@ -3501,14 +3496,14 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 		if(core.current_chain.size() == 0) {
 			adjust_all();
 			core.hint_timing[sumplayer] |= TIMING_SPSUMMON;
-			add_process(PROCESSOR_POINT_EVENT, 0, 0, 0, FALSE, 0);
+			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		return TRUE;
 	}
 	}
 	return TRUE;
 }
-int32_t field::special_summon_rule_group(Processors::SpsummonRuleGroup& arg) {
+int32_t field::special_summon_rule_group(Processors::SpSummonRuleGroup& arg) {
 	auto sumplayer = arg.sumplayer;
 	auto summon_type = arg.summon_type;
 	switch(arg.step) {
@@ -3546,18 +3541,18 @@ int32_t field::special_summon_rule_group(Processors::SpsummonRuleGroup& arg) {
 		if(core.select_options.size() == 1)
 			returns.set<int32_t>(0, 0);
 		else
-			add_process(PROCESSOR_SELECT_OPTION, 0, 0, 0, sumplayer, 0);
+			emplace_process<Processors::SelectOption>(sumplayer);
 		return FALSE;
 	}
 	case 1: {
 		effect* peffect = core.select_effects[returns.at<int32_t>(0)];
-		add_process(PROCESSOR_SPSUMMON_RULE, 20, peffect, (group*)peffect->get_handler(), sumplayer, summon_type, TRUE);
+		emplace_process_step<Processors::SpSummonRule>(20, sumplayer, peffect->get_handler(), summon_type, true);
 		return TRUE;
 	}
 	}
 	return FALSE;
 }
-int32_t field::special_summon_step(Processors::SpsummonStep& arg) {
+int32_t field::special_summon_step(Processors::SpSummonStep& arg) {
 	auto targets = arg.targets;
 	auto target = arg.target;
 	auto zone = arg.zone;
@@ -3607,7 +3602,7 @@ int32_t field::special_summon_step(Processors::SpsummonStep& arg) {
 			for(const auto& peffect : eset) {
 				if(peffect->operation) {
 					core.sub_solving_event.push_back(nil_event);
-					add_process(PROCESSOR_EXECUTE_OPERATION, 0, peffect, 0, target->summon.player, 0);
+					emplace_process<Processors::ExecuteOperation>(peffect, target->summon.player);
 				}
 			}
 			arg.spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
@@ -3697,14 +3692,14 @@ int32_t field::special_summon(Processors::SpSummon& arg) {
 				std::sort(cvs.begin(), cvs.end(), card::card_operation_sort);
 			core.hint_timing[infos.turn_player] |= TIMING_SPSUMMON;
 			for(auto& pcard : cvs)
-				add_process(PROCESSOR_SPSUMMON_STEP, 0, nullptr, targets, zone, 0, 0, 0, pcard);
+				emplace_process<Processors::SpSummonStep>(targets, pcard, zone);
 		}
 		if(!cvo.empty()) {
 			if(cvo.size() > 1)
 				std::sort(cvo.begin(), cvo.end(), card::card_operation_sort);
 			core.hint_timing[1 - infos.turn_player] |= TIMING_SPSUMMON;
 			for(auto& pcard : cvo)
-				add_process(PROCESSOR_SPSUMMON_STEP, 0, nullptr, targets, zone, 0, 0, 0, pcard);
+				emplace_process<Processors::SpSummonStep>(targets, pcard, zone);
 		}
 		return FALSE;
 	}
@@ -3811,10 +3806,10 @@ int32_t field::destroy_replace(Processors::DestroyReplace& arg) {
 	target->filter_single_continuous_effect(EFFECT_DESTROY_REPLACE, &eset);
 	if(!battle) {
 		for(const auto& peff : eset)
-			add_process(PROCESSOR_OPERATION_REPLACE, 0, peff, targets, 1, 0, 0, 0, target);
+			emplace_process<Processors::OperationReplace>(peff, targets, target, true);
 	} else {
 		for(const auto& peff : eset)
-			add_process(PROCESSOR_OPERATION_REPLACE, 10, peff, targets, 1, 0, 0, 0, target);
+			emplace_process_step<Processors::OperationReplace>(10, peff, targets, target, true);
 	}
 	return TRUE;
 }
@@ -3959,7 +3954,7 @@ int32_t field::destroy(Processors::Destroy& arg) {
 	}
 	case 1: {
 		for (auto& pcard : targets->container) {
-			add_process(PROCESSOR_DESTROY_REPLACE, 0, nullptr, targets, 0, 0, 0, 0, pcard);
+			emplace_process<Processors::DestroyReplace>(targets, pcard, false);
 		}
 		return FALSE;
 	}
@@ -4012,7 +4007,7 @@ int32_t field::destroy(Processors::Destroy& arg) {
 			pcard->sendto_param.location = dest;
 		}
 		operation_replace(EFFECT_SEND_REPLACE, 5, sendtargets);
-		add_process(PROCESSOR_SENDTO, 1, reason_effect, sendtargets, reason | REASON_DESTROY, reason_player);
+		emplace_process_step<Processors::SendTo>(1, sendtargets, reason_effect, reason | REASON_DESTROY, reason_player);
 		return FALSE;
 	}
 	case 5: {
@@ -4141,7 +4136,7 @@ int32_t field::destroy(Processors::Destroy& arg) {
 	}
 	case 11: {
 		for (auto& pcard : targets->container) {
-			add_process(PROCESSOR_DESTROY_REPLACE, 0, nullptr, targets, 0, TRUE, 0, 0, pcard);
+			emplace_process<Processors::DestroyReplace>(targets, pcard, true);
 		}
 		return FALSE;
 	}
@@ -4171,7 +4166,7 @@ int32_t field::release_replace(Processors::ReleaseReplace& arg) {
 		effect_set eset;
 		target->filter_single_continuous_effect(EFFECT_RELEASE_REPLACE, &eset);
 		for(const auto& peff : eset)
-			add_process(PROCESSOR_OPERATION_REPLACE, 0, peff, targets, 0, 0, 0, 0, target);
+			emplace_process<Processors::OperationReplace>(peff, targets, target, false);
 	}
 	return TRUE;
 }
@@ -4203,7 +4198,7 @@ int32_t field::release(Processors::Release& arg) {
 	}
 	case 1: {
 		for (auto& pcard : targets->container) {
-			add_process(PROCESSOR_RELEASE_REPLACE, 0, nullptr, targets, 0, 0, 0, 0, pcard);
+			emplace_process<Processors::ReleaseReplace>(targets, pcard);
 		}
 		return FALSE;
 	}
@@ -4240,7 +4235,7 @@ int32_t field::release(Processors::Release& arg) {
 		group* sendtargets = pduel->new_group(targets->container);
 		sendtargets->is_readonly = TRUE;
 		operation_replace(EFFECT_SEND_REPLACE, 5, sendtargets);
-		add_process(PROCESSOR_SENDTO, 1, reason_effect, sendtargets, reason | REASON_RELEASE, reason_player);
+		emplace_process_step<Processors::SendTo>(1, sendtargets, reason_effect, reason | REASON_RELEASE, reason_player);
 		return FALSE;
 	}
 	case 4: {
@@ -4275,7 +4270,7 @@ int32_t field::send_replace(Processors::SendToReplace& arg) {
 		effect_set eset;
 		target->filter_single_continuous_effect(EFFECT_SEND_REPLACE, &eset);
 		for(const auto& peff : eset)
-			add_process(PROCESSOR_OPERATION_REPLACE, 0, peff, targets, 0, 0, 0, 0, target);
+			emplace_process<Processors::OperationReplace>(peff, targets, target, false);
 	}
 	return TRUE;
 }
@@ -4312,7 +4307,7 @@ int32_t field::send_to(Processors::SendTo& arg) {
 	}
 	case 1: {
 		for(auto& pcard : targets->container) {
-			add_process(PROCESSOR_SENDTO_REPLACE, 0, nullptr, targets, 0, 0, 0, 0, pcard);
+			emplace_process<Processors::SendToReplace>(targets, pcard);
 		}
 		return FALSE;
 	}
@@ -4503,7 +4498,7 @@ int32_t field::send_to(Processors::SendTo& arg) {
 			return FALSE;
 		}
 		if(param->predirect && get_useable_count(pcard, pcard->current.controler, LOCATION_SZONE, pcard->current.controler, LOCATION_REASON_TOFIELD) > 0)
-			add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)pcard, pcard->current.controler, 97);
+			emplace_process<Processors::SelectEffectYesNo>(pcard->current.controler, 97, pcard);
 		else
 			returns.set<int32_t>(0, 0);
 		return FALSE;
@@ -4572,7 +4567,7 @@ int32_t field::send_to(Processors::SendTo& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(pcard->current.controler);
 		message->write<uint64_t>(pcard->data.code);
-		add_process(PROCESSOR_SELECT_PLACE, 0, 0, 0, pcard->current.controler, flag, 1);
+		emplace_process<Processors::SelectPlace>(pcard->current.controler, flag, 1);
 		return FALSE;
 	}
 	case 8: {
@@ -4609,7 +4604,7 @@ int32_t field::send_to(Processors::SendTo& arg) {
 			e.reason_effect = reason_effect;
 			e.reason_player = pcard->current.controler;
 			core.sub_solving_event.push_back(e);
-			add_process(PROCESSOR_EXECUTE_OPERATION, 0, param->predirect, 0, pcard->current.controler, 0);
+			emplace_process<Processors::ExecuteOperation>(param->predirect, pcard->current.controler);
 		}
 		++param->cvit;
 		arg.step = 4;
@@ -4910,10 +4905,10 @@ int32_t field::move_to_field(Processors::MoveToField& arg) {
 	auto rule = arg.rule;
 	auto reason = arg.location_reason;
 	auto confirm = arg.confirm;
-	uint32_t move_player = (target->to_field_param >> 24) & 0xff;
-	uint32_t playerid = (target->to_field_param >> 16) & 0xff;
-	uint32_t location = (target->to_field_param >> 8) & 0xff;
-	uint32_t positions = (target->to_field_param) & 0xff;
+	uint8_t move_player = (target->to_field_param >> 24) & 0xff;
+	uint8_t playerid = (target->to_field_param >> 16) & 0xff;
+	uint8_t location = (target->to_field_param >> 8) & 0xff;
+	uint8_t positions = (target->to_field_param) & 0xff;
 	switch(arg.step) {
 	case 0: {
 		returns.set<int32_t>(0, FALSE);
@@ -4943,7 +4938,7 @@ int32_t field::move_to_field(Processors::MoveToField& arg) {
 			message->write<uint8_t>(HINT_SELECTMSG);
 			message->write<uint8_t>(move_player);
 			message->write<uint64_t>(target->data.code);
-			add_process(PROCESSOR_SELECT_PLACE, 0, 0, (group*)target, move_player, flag, 1);
+			emplace_process<Processors::SelectPlace>(move_player, flag, 1);
 		} else {
 			uint32_t flag;
 			uint32_t lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
@@ -4995,7 +4990,7 @@ int32_t field::move_to_field(Processors::MoveToField& arg) {
 			message->write<uint8_t>(HINT_SELECTMSG);
 			message->write<uint8_t>(move_player);
 			message->write<uint64_t>(target->data.code);
-			add_process(PROCESSOR_SELECT_PLACE, 0, 0, (group*)target, move_player, flag, 1);
+			emplace_process<Processors::SelectPlace>(move_player, flag, 1);
 		}
 		return FALSE;
 	}
@@ -5039,7 +5034,7 @@ int32_t field::move_to_field(Processors::MoveToField& arg) {
 			returns.set<int32_t>(0, POS_FACEUP_ATTACK);
 			return FALSE;
 		}
-		add_process(PROCESSOR_SELECT_POSITION, 0, 0, 0, (positions << 16) + move_player, target->data.code);
+		emplace_process<Processors::SelectPosition>(move_player, target->data.code, positions);
 		return FALSE;
 	}
 	case 2: {
@@ -5248,7 +5243,7 @@ int32_t field::change_position(Processors::ChangePos& arg) {
 				message->write<uint8_t>(HINT_SELECTMSG);
 				message->write<uint8_t>(playerid);
 				message->write<uint64_t>(502);
-				add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid, ct + (ct << 16));
+				emplace_process<Processors::SelectCard>(playerid, false, ct, ct);
 			}
 		} else
 			arg.step = 2;
@@ -5410,7 +5405,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		newchain.flag = 0;
 		core.solving_event.push_front(e);
 		core.sub_solving_event.push_back(std::move(e));
-		add_process(PROCESSOR_EXECUTE_TARGET, 0, replace_effect, 0, replace_effect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteTarget>(replace_effect, replace_effect->get_handler_player());
 		return FALSE;
 	}
 	case 1: {
@@ -5432,7 +5427,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		if(!replace_effect->operation)
 			return FALSE;
 		core.sub_solving_event.push_back(*core.solving_event.begin());
-		add_process(PROCESSOR_EXECUTE_OPERATION, 0, replace_effect, 0, replace_effect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteOperation>(replace_effect, replace_effect->get_handler_player());
 		return FALSE;
 	}
 	case 3: {
@@ -5473,7 +5468,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		newchain.flag = 0;
 		core.solving_event.push_front(e);
 		core.sub_solving_event.push_back(std::move(e));
-		add_process(PROCESSOR_EXECUTE_TARGET, 0, replace_effect, 0, replace_effect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteTarget>(replace_effect, replace_effect->get_handler_player());
 		return FALSE;
 	}
 	case 6: {
@@ -5498,7 +5493,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		if(!replace_effect->operation)
 			return FALSE;
 		core.sub_solving_event.push_back(*core.solving_event.begin());
-		add_process(PROCESSOR_EXECUTE_OPERATION, 0, replace_effect, 0, replace_effect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteOperation>(replace_effect, replace_effect->get_handler_player());
 		return FALSE;
 	}
 	case 8: {
@@ -5539,7 +5534,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		newchain.disable_reason = 0;
 		newchain.flag = 0;
 		core.sub_solving_event.push_back(std::move(e));
-		add_process(PROCESSOR_EXECUTE_TARGET, 0, replace_effect, 0, replace_effect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteTarget>(replace_effect, replace_effect->get_handler_player());
 		return FALSE;
 	}
 	case 11: {
@@ -5582,7 +5577,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		newchain.disable_reason = 0;
 		newchain.flag = 0;
 		core.sub_solving_event.push_back(std::move(e));
-		add_process(PROCESSOR_EXECUTE_TARGET, 0, replace_effect, 0, replace_effect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteTarget>(replace_effect, replace_effect->get_handler_player());
 		return FALSE;
 	}
 	case 13: {
@@ -5612,7 +5607,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 		if(!reffect->operation)
 			return FALSE;
 		core.sub_solving_event.push_back(core.continuous_chain.back().evt);
-		add_process(PROCESSOR_EXECUTE_OPERATION, 0, reffect, 0, reffect->get_handler_player(), 0);
+		emplace_process<Processors::ExecuteOperation>(reffect, reffect->get_handler_player());
 		return FALSE;
 	}
 	case 16: {
@@ -5654,7 +5649,7 @@ int32_t field::activate_effect(Processors::ActivateEffect& arg) {
 		phandler->set_status(STATUS_CHAINING, TRUE);
 		peffect->dec_count(playerid);
 		emplace_process<Processors::AddChain>();
-		add_process(PROCESSOR_QUICK_EFFECT, 0, 0, 0, FALSE, 1 - playerid);
+		emplace_process<Processors::QuickEffect>(false, 1 - playerid);
 		infos.priorities[0] = 0;
 		infos.priorities[1] = 0;
 		return FALSE;
@@ -5665,7 +5660,7 @@ int32_t field::activate_effect(Processors::ActivateEffect& arg) {
 		core.chain_limit.clear();
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
-		add_process(PROCESSOR_SOLVE_CHAIN, 0, 0, 0, FALSE, 0);
+		emplace_process<Processors::SolveChain>(false, false, false);
 		return TRUE;
 	}
 	}
@@ -5718,7 +5713,7 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(playerid);
 		message->write<uint64_t>(500);
-		add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
+		emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 		return FALSE;
 	}
 	case 1: {
@@ -5792,7 +5787,7 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(playerid);
 		message->write<uint64_t>(500);
-		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, ((finishable || core.operated_set.empty()) << 16) + playerid, (max << 16) + min, finishable);
+		emplace_process<Processors::SelectUnselectCard>(playerid, cancelable, min, max, finishable);
 		return FALSE;
 	}
 	case 3: {
@@ -5850,14 +5845,14 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 				core.select_cards.clear();
 				for(auto& pcard : core.release_cards)
 					core.select_cards.push_back(pcard);
-				add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
+				emplace_process<Processors::SelectTributeP>(playerid, cancelable, min, max);
 				return TRUE;
 			}
 			if(core.release_cards_ex.size() >= (uint32_t)max) {
 				core.select_cards.clear();
 				for(auto& pcard : core.release_cards_ex)
 					core.select_cards.push_back(pcard);
-				add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
+				emplace_process<Processors::SelectTributeP>(playerid, cancelable, min, max);
 				return TRUE;
 			}
 		}
@@ -5884,7 +5879,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 				for(auto& pcard : core.release_cards)
 					core.select_cards.push_back(pcard);
 			}
-			add_process(PROCESSOR_SELECT_TRIBUTE_P, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
+			emplace_process<Processors::SelectTributeP>(playerid, cancelable, min, max);
 			return TRUE;
 		}
 		bool force = !must_choose_one->empty();
@@ -5913,7 +5908,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 			for(auto& pcard : core.release_cards_ex_oneof)
 				core.select_cards.push_back(pcard);
 		}
-		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, ((uint32_t)cancelable << 16) + playerid, (max << 16) + min);
+		emplace_process<Processors::SelectUnselectCard>(playerid, cancelable, min, max, false);
 		arg.step = 2;
 		arg.must_choose_one = std::move(must_choose_one);
 		return FALSE;
@@ -5923,7 +5918,8 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		uint32_t rmax = 0;
 		for(auto& pcard : core.operated_set)
 			rmax += pcard->release_param;
-		int32_t message_count = (max << 16) + min;
+		auto oldmin = min;
+		auto oldmax = max;
 		min -= rmax;
 		max -= rmin;
 		min = min > 0 ? min : 0;
@@ -5974,7 +5970,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 		message->write<uint8_t>(HINT_SELECTMSG);
 		message->write<uint8_t>(playerid);
 		message->write<uint64_t>(500);
-		add_process(PROCESSOR_SELECT_UNSELECT_CARD, 0, 0, 0, (canc << 16) + playerid, message_count, finishable);
+		emplace_process<Processors::SelectUnselectCard>(playerid, canc, oldmin, oldmax, finishable);
 		return FALSE;
 	}
 	case 3: {
