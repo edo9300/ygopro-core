@@ -248,7 +248,7 @@ void field::special_summon_complete(effect* reason_effect, uint8_t reason_player
 	group* ng = pduel->new_group();
 	ng->container.swap(core.special_summoning);
 	ng->is_readonly = TRUE;
-	emplace_process_step<Processors::SpSummon>(1, reason_effect, reason_player, ng, 0);
+	emplace_process<Processors::SpSummon>(Step{ 1 }, reason_effect, reason_player, ng, 0);
 }
 void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence) {
 	const auto destroy_canceled_end = core.destroy_canceled.cend();
@@ -398,12 +398,12 @@ void field::operation_replace(uint32_t type, uint16_t step, group* targets) {
 		effect* reffect = eit->second;
 		++eit;
 		if(reffect->get_handler_player() == infos.turn_player)
-			emplace_process_step<Processors::OperationReplace>(step, reffect, targets, nullptr, is_destroy);
+			emplace_process<Processors::OperationReplace>(Step{ step }, reffect, targets, nullptr, is_destroy);
 		else
 			opp_effects.push_back(reffect);
 	}
 	for(auto& peffect : opp_effects)
-		emplace_process_step<Processors::OperationReplace>(step, peffect, targets, nullptr, is_destroy);
+		emplace_process<Processors::OperationReplace>(Step{ step }, peffect, targets, nullptr, is_destroy);
 }
 void field::select_tribute_cards(card* target, uint8_t playerid, bool cancelable, uint16_t min, uint16_t max, uint8_t toplayer, uint32_t zone) {
 	emplace_process<Processors::SelectTribute>(target, playerid, cancelable, min, max, toplayer, zone);
@@ -3546,7 +3546,7 @@ int32_t field::special_summon_rule_group(Processors::SpSummonRuleGroup& arg) {
 	}
 	case 1: {
 		effect* peffect = core.select_effects[returns.at<int32_t>(0)];
-		emplace_process_step<Processors::SpSummonRule>(20, sumplayer, peffect->get_handler(), summon_type, true);
+		emplace_process<Processors::SpSummonRule>(Step{ 20 }, sumplayer, peffect->get_handler(), summon_type, true);
 		return TRUE;
 	}
 	}
@@ -3809,7 +3809,7 @@ int32_t field::destroy_replace(Processors::DestroyReplace& arg) {
 			emplace_process<Processors::OperationReplace>(peff, targets, target, true);
 	} else {
 		for(const auto& peff : eset)
-			emplace_process_step<Processors::OperationReplace>(10, peff, targets, target, true);
+			emplace_process<Processors::OperationReplace>(Step{ 10 }, peff, targets, target, true);
 	}
 	return TRUE;
 }
@@ -4007,7 +4007,7 @@ int32_t field::destroy(Processors::Destroy& arg) {
 			pcard->sendto_param.location = dest;
 		}
 		operation_replace(EFFECT_SEND_REPLACE, 5, sendtargets);
-		emplace_process_step<Processors::SendTo>(1, sendtargets, reason_effect, reason | REASON_DESTROY, reason_player);
+		emplace_process<Processors::SendTo>(Step{ 1 }, sendtargets, reason_effect, reason | REASON_DESTROY, reason_player);
 		return FALSE;
 	}
 	case 5: {
@@ -4235,7 +4235,7 @@ int32_t field::release(Processors::Release& arg) {
 		group* sendtargets = pduel->new_group(targets->container);
 		sendtargets->is_readonly = TRUE;
 		operation_replace(EFFECT_SEND_REPLACE, 5, sendtargets);
-		emplace_process_step<Processors::SendTo>(1, sendtargets, reason_effect, reason | REASON_RELEASE, reason_player);
+		emplace_process<Processors::SendTo>(Step{ 1 }, sendtargets, reason_effect, reason | REASON_RELEASE, reason_player);
 		return FALSE;
 	}
 	case 4: {

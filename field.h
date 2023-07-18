@@ -1372,14 +1372,16 @@ public:
 	int32_t check_spself_from_hand_trigger(const chain& ch) const;
 	int32_t is_able_to_enter_bp();
 
+	struct Step { uint16_t step; };
+	template<typename T, typename... Args>
+	constexpr inline void emplace_process(Step step, Args&&... args) {
+		core.subunits.emplace_back(mpark::in_place_type<T>, step.step, std::forward<Args>(args)...);
+	}
 	template<typename T, typename... Args>
 	constexpr inline void emplace_process(Args&&... args) {
-		emplace_process_step<T>(0, std::forward<Args>(args)...);
+		emplace_process<T>(Step{ 0 }, std::forward<Args>(args)...);
 	}
-	template<typename T, typename... Args>
-	constexpr inline void emplace_process_step(uint16_t step, Args&&... args) {
-		core.subunits.emplace_back(mpark::in_place_type<T>, step, std::forward<Args>(args)...);
-	}
+
 	int32_t process();
 	int32_t execute_cost(Processors::ExecuteCost& arg);
 	int32_t execute_operation(Processors::ExecuteOperation& arg);

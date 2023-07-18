@@ -1899,7 +1899,7 @@ int32_t field::process_quick_effect(Processors::QuickEffect& arg) {
 		} else {
 			infos.priorities[priority] = 1;
 			if(!infos.priorities[0] || !infos.priorities[1])
-				emplace_process_step<Processors::QuickEffect>(1, skip_freechain, 1 - priority);
+				emplace_process<Processors::QuickEffect>(Step{ 1 }, skip_freechain, 1 - priority);
 			else {
 				core.hint_timing[0] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
 				core.hint_timing[1] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
@@ -2894,7 +2894,7 @@ int32_t field::process_battle_command(Processors::BattleCommand& arg) {
 		message->write<uint64_t>(24);
 		core.hint_timing[0] = TIMING_BATTLE_PHASE;
 		core.hint_timing[1] = TIMING_BATTLE_PHASE;
-		emplace_process_step<Processors::PointEvent>(30, false, false, false);
+		emplace_process<Processors::PointEvent>(Step{ 30 }, false, false, false);
 		return FALSE;
 	}
 	case 10: {
@@ -3277,7 +3277,7 @@ int32_t field::process_battle_command(Processors::BattleCommand& arg) {
 			group* ng = pduel->new_group();
 			ng->container.swap(des);
 			ng->is_readonly = TRUE;
-			emplace_process_step<Processors::Destroy>(10, ng, nullptr, REASON_BATTLE, PLAYER_NONE);
+			emplace_process<Processors::Destroy>(Step{ 10 }, ng, nullptr, REASON_BATTLE, PLAYER_NONE);
 			arg.cards_destroyed_by_battle = ng;
 		}
 		return FALSE;
@@ -3286,7 +3286,7 @@ int32_t field::process_battle_command(Processors::BattleCommand& arg) {
 		if(core.battle_destroy_rep.size())
 			destroy(core.battle_destroy_rep, 0, REASON_EFFECT | REASON_REPLACE, PLAYER_NONE);
 		if(core.desrep_chain.size())
-			emplace_process_step<Processors::OperationReplace>(15, nullptr, nullptr, nullptr, false);
+			emplace_process<Processors::OperationReplace>(Step{ 15 }, nullptr, nullptr, nullptr, false);
 		adjust_all();
 		return FALSE;
 	}
@@ -3361,7 +3361,7 @@ int32_t field::process_battle_command(Processors::BattleCommand& arg) {
 				if((*rm)->current.location != LOCATION_MZONE || ((*rm)->fieldid_r != core.pre_field[0] && (*rm)->fieldid_r != core.pre_field[1]))
 					des->container.erase(rm);
 			}
-			emplace_process_step<Processors::Destroy>(3, des, nullptr, REASON_BATTLE, PLAYER_NONE);
+			emplace_process<Processors::Destroy>(Step{ 3 }, des, nullptr, REASON_BATTLE, PLAYER_NONE);
 		}
 		adjust_all();
 		return FALSE;
@@ -3546,7 +3546,7 @@ int32_t field::process_forced_battle(Processors::ForcedBattle& arg) {
 		core.delayed_quick_tmp.clear();
 		auto message = pduel->new_message(MSG_NEW_PHASE);
 		message->write<uint16_t>(PHASE_BATTLE_START);
-		emplace_process_step<Processors::BattleCommand>(1);
+		emplace_process<Processors::BattleCommand>(Step{ 1 });
 		return FALSE;
 	}
 	case 1: {
@@ -3622,14 +3622,14 @@ int32_t field::process_damage_step(Processors::DamageStep& arg) {
 	}
 	case 1: {
 		infos.phase = PHASE_DAMAGE_CAL;
-		emplace_process_step<Processors::BattleCommand>(26);
+		emplace_process<Processors::BattleCommand>(Step{ 26 });
 		arg.step = 2;
 		core.reserved = arg;
 		return TRUE;
 	}
 	case 2: {
 		core.effect_damage_step = 2;
-		emplace_process_step<Processors::BattleCommand>(32, arg.cards_destroyed_by_battle);
+		emplace_process<Processors::BattleCommand>(Step{ 32 }, arg.cards_destroyed_by_battle);
 		return FALSE;
 	}
 	case 3: {
