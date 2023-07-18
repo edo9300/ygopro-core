@@ -1899,7 +1899,7 @@ int32_t field::process_quick_effect(Processors::QuickEffect& arg) {
 		} else {
 			infos.priorities[priority] = 1;
 			if(!infos.priorities[0] || !infos.priorities[1])
-				emplace_process<Processors::QuickEffect>(skip_freechain, 1 - priority);
+				emplace_process_step<Processors::QuickEffect>(1, skip_freechain, 1 - priority);
 			else {
 				core.hint_timing[0] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;
 				core.hint_timing[1] &= TIMING_DAMAGE_STEP | TIMING_DAMAGE_CAL;

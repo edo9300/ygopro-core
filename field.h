@@ -1428,11 +1428,11 @@ public:
 	void remove_overlay_card(uint32_t reason, group* pgroup, uint32_t rplayer, uint8_t self, uint8_t oppo, uint16_t min, uint16_t max);
 	void xyz_overlay(card* target, card_set materials, bool send_materials_to_grave);
 	void xyz_overlay(card* target, card* material, bool send_materials_to_grave);
-	void get_control(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone);
-	void get_control(card* target, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone);
+	void get_control(card_set targets, effect* reason_effect, uint8_t chose_player, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone);
+	void get_control(card* target, effect* reason_effect, uint8_t chose_player, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone);
 	void swap_control(effect* reason_effect, uint32_t reason_player, card_set targets1, card_set targets2, uint32_t reset_phase, uint32_t reset_count);
 	void swap_control(effect* reason_effect, uint32_t reason_player, card* pcard1, card* pcard2, uint32_t reset_phase, uint32_t reset_count);
-	void equip(uint32_t equip_player, card* equip_card, card* target, bool faceup, bool is_step);
+	void equip(uint8_t equip_player, card* equip_card, card* target, bool faceup, bool is_step);
 	void draw(effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t count);
 	void damage(effect* reason_effect, uint32_t reason, uint8_t reason_player, card* reason_card, uint8_t playerid, uint32_t amount, bool is_step = false);
 	void recover(effect* reason_effect, uint32_t reason, uint32_t reason_player, uint32_t playerid, uint32_t amount, bool is_step = false);

@@ -125,13 +125,13 @@ void field::xyz_overlay(card* target, card_set materials, bool send_materials_to
 void field::xyz_overlay(card* target, card* material, bool send_materials_to_grave) {
 	xyz_overlay(target, card_set{ material }, send_materials_to_grave);
 }
-void field::get_control(card_set targets, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
+void field::get_control(card_set targets, effect* reason_effect, uint8_t chose_player, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone) {
 	group* ng = pduel->new_group(std::move(targets));
 	ng->is_readonly = TRUE;
-	emplace_process<Processors::GetControl>(reason_effect, reason_player, ng, playerid, reset_phase, reset_count, zone);
+	emplace_process<Processors::GetControl>(reason_effect, chose_player, ng, playerid, reset_phase, reset_count, zone);
 }
-void field::get_control(card* target, effect* reason_effect, uint32_t reason_player, uint32_t playerid, uint32_t reset_phase, uint32_t reset_count, uint32_t zone) {
-	get_control(card_set{ target }, reason_effect, reason_player, playerid, reset_phase, reset_count, zone);
+void field::get_control(card* target, effect* reason_effect, uint8_t chose_player, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone) {
+	get_control(card_set{ target }, reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
 }
 void field::swap_control(effect* reason_effect, uint32_t reason_player, card_set targets1, card_set targets2, uint32_t reset_phase, uint32_t reset_count) {
 	group* ng1 = pduel->new_group(std::move(targets1));
@@ -143,7 +143,7 @@ void field::swap_control(effect* reason_effect, uint32_t reason_player, card_set
 void field::swap_control(effect* reason_effect, uint32_t reason_player, card* pcard1, card* pcard2, uint32_t reset_phase, uint32_t reset_count) {
 	swap_control(reason_effect, reason_player, card_set{ pcard1 }, card_set{ pcard2 }, reset_phase, reset_count);
 }
-void field::equip(uint32_t equip_player, card* equip_card, card* target, bool faceup, bool is_step) {
+void field::equip(uint8_t equip_player, card* equip_card, card* target, bool faceup, bool is_step) {
 	emplace_process<Processors::Equip>(equip_player, equip_card, target, faceup, is_step);
 }
 void field::draw(effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t count) {
