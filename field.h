@@ -1486,15 +1486,18 @@ public:
 	int32_t send_replace(Processors::SendToReplace& arg);
 	int32_t send_to(Processors::SendTo& arg);
 	int32_t discard_deck(Processors::DiscardDeck& arg);
+	int32_t sort_deck(Processors::SortDeck& arg);
+	int32_t discard_hand(Processors::DiscardHand& arg);
 	int32_t move_to_field(Processors::MoveToField& arg);
 	int32_t change_position(Processors::ChangePos& arg);
 	int32_t operation_replace(Processors::OperationReplace& arg);
 	int32_t activate_effect(Processors::ActivateEffect& arg);
 	int32_t select_release_cards(Processors::SelectRelease& arg);
 	int32_t select_tribute_cards(Processors::SelectTribute& arg);
+	int32_t select_fusion(Processors::SelectFusion& arg);
 	int32_t toss_coin(Processors::TossCoin& arg);
 	int32_t toss_dice(Processors::TossDice& arg);
-	int32_t rock_paper_scissors(Processors::RockPaperScissors& arg);
+	int32_t attack_disable(Processors::AttackDisable& arg);
 
 	int32_t select_battle_command(Processors::SelectBattleCmd& arg);
 	int32_t select_idle_command(Processors::SelectIdleCmd& arg);
@@ -1516,6 +1519,7 @@ public:
 	int32_t announce_attribute(Processors::AnnounceAttribute& arg);
 	int32_t announce_card(Processors::AnnounceCard& arg);
 	int32_t announce_number(Processors::AnnounceNumber& arg);
+	int32_t rock_paper_scissors(Processors::RockPaperScissors& arg);
 
 	OCG_DuelStatus operator()(Processors::InvalidState& arg);
 	OCG_DuelStatus operator()(Processors::Adjust& arg);

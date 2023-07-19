@@ -20,35 +20,6 @@ OCG_DuelStatus field::operator()(Processors::InvalidState& arg) {
 	(void)arg;
 	unreachable();
 }
-OCG_DuelStatus field::operator()(Processors::Adjust& arg) {
-	if(adjust_step(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Turn& arg) {
-	if(process_turn(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::RefreshLoc& arg) {
-	if(refresh_location_info(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-
-}
-OCG_DuelStatus field::operator()(Processors::Startup& arg) {
-	if(startup(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
 OCG_DuelStatus field::operator()(Processors::SelectBattleCmd& arg) {
 	if(select_battle_command(arg)) {
 		core.units.pop_front();
@@ -124,7 +95,7 @@ OCG_DuelStatus field::operator()(Processors::SelectUnselectCard& arg) {
 OCG_DuelStatus field::operator()(Processors::SelectChain& arg) {
 	if(select_chain(arg)) {
 		core.units.pop_front();
-			return OCG_DUEL_STATUS_CONTINUE;
+		return OCG_DUEL_STATUS_CONTINUE;
 	} else {
 		arg.step = 1;
 		return OCG_DUEL_STATUS_AWAITING;
@@ -166,14 +137,6 @@ OCG_DuelStatus field::operator()(Processors::SelectTributeP& arg) {
 		return OCG_DUEL_STATUS_AWAITING;
 	}
 }
-OCG_DuelStatus field::operator()(Processors::SortChain& arg) {
-	if(sort_chain(arg)) {
-		core.units.pop_front();
-	} else {
-		++arg.step;
-	}
-	return OCG_DUEL_STATUS_CONTINUE;
-}
 OCG_DuelStatus field::operator()(Processors::SelectCounter& arg) {
 	if(select_counter(arg)) {
 		core.units.pop_front();
@@ -200,6 +163,87 @@ OCG_DuelStatus field::operator()(Processors::SortCard& arg) {
 		arg.step = 1;
 		return OCG_DUEL_STATUS_AWAITING;
 	}
+}
+OCG_DuelStatus field::operator()(Processors::AnnounceRace& arg) {
+	if(announce_race(arg)) {
+		core.units.pop_front();
+		return OCG_DUEL_STATUS_CONTINUE;
+	} else {
+		arg.step = 1;
+		return OCG_DUEL_STATUS_AWAITING;
+	}
+}
+OCG_DuelStatus field::operator()(Processors::AnnounceAttribute& arg) {
+	if(announce_attribute(arg)) {
+		core.units.pop_front();
+		return OCG_DUEL_STATUS_CONTINUE;
+	} else {
+		arg.step = 1;
+		return OCG_DUEL_STATUS_AWAITING;
+	}
+}
+OCG_DuelStatus field::operator()(Processors::AnnounceCard& arg) {
+	if(announce_card(arg)) {
+		core.units.pop_front();
+		return OCG_DUEL_STATUS_CONTINUE;
+	} else {
+		arg.step = 1;
+		return OCG_DUEL_STATUS_AWAITING;
+	}
+}
+OCG_DuelStatus field::operator()(Processors::AnnounceNumber& arg) {
+	if(announce_number(arg)) {
+		core.units.pop_front();
+		return OCG_DUEL_STATUS_CONTINUE;
+	} else {
+		arg.step = 1;
+		return OCG_DUEL_STATUS_AWAITING;
+	}
+}
+OCG_DuelStatus field::operator()(Processors::RockPaperScissors& arg) {
+	if(rock_paper_scissors(arg)) {
+		core.units.pop_front();
+		return OCG_DUEL_STATUS_CONTINUE;
+	} else {
+		++arg.step;
+		return OCG_DUEL_STATUS_AWAITING;
+	}
+}
+OCG_DuelStatus field::operator()(Processors::Adjust& arg) {
+	if(adjust_step(arg))
+		core.units.pop_front();
+	else
+		++arg.step;
+	return OCG_DUEL_STATUS_CONTINUE;
+}
+OCG_DuelStatus field::operator()(Processors::Turn& arg) {
+	if(process_turn(arg))
+		core.units.pop_front();
+	else
+		++arg.step;
+	return OCG_DUEL_STATUS_CONTINUE;
+}
+OCG_DuelStatus field::operator()(Processors::RefreshLoc& arg) {
+	if(refresh_location_info(arg))
+		core.units.pop_front();
+	else
+		++arg.step;
+	return OCG_DUEL_STATUS_CONTINUE;
+
+}
+OCG_DuelStatus field::operator()(Processors::Startup& arg) {
+	if(startup(arg))
+		core.units.pop_front();
+	else
+		++arg.step;
+	return OCG_DUEL_STATUS_CONTINUE;
+}
+OCG_DuelStatus field::operator()(Processors::SortChain& arg) {
+	if(sort_chain(arg))
+		core.units.pop_front();
+	else
+		++arg.step;
+	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SelectRelease& arg) {
 	if(select_release_cards(arg))
@@ -429,9 +473,9 @@ OCG_DuelStatus field::operator()(Processors::SpSummonStep& arg) {
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SpellSetGroup& arg) {
-	if(sset_g(arg)) {
+	if(sset_g(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
@@ -450,24 +494,16 @@ OCG_DuelStatus field::operator()(Processors::Draw& arg) {
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::Damage& arg) {
-	if(damage(arg)) {
-		if(arg.step == 9) {
-			arg.step = 1;
-			core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units, core.units.begin());
-		} else
-			core.units.pop_front();
-	} else
+	if(damage(arg))
+		core.units.pop_front();
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::Recover& arg) {
-	if(recover(arg)) {
-		if(arg.step == 9) {
-			arg.step = 1;
-			core.recover_damage_reserve.splice(core.recover_damage_reserve.end(), core.units, core.units.begin());
-		} else
-			core.units.pop_front();
-	} else
+	if(recover(arg))
+		core.units.pop_front();
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
@@ -479,44 +515,44 @@ OCG_DuelStatus field::operator()(Processors::Equip& arg) {
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::GetControl& arg) {
-	if(get_control(arg)) {
+	if(get_control(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SwapControl& arg) {
-	if(swap_control(arg)) {
+	if(swap_control(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::ControlAdjust& arg) {
-	if(control_adjust(arg)) {
+	if(control_adjust(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SelfDestroyUnique& arg) {
-	if(self_destroy_unique(arg)) {
+	if(self_destroy_unique(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SelfDestroy& arg) {
-	if(self_destroy(arg)) {
+	if(self_destroy(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SelfToGrave& arg) {
-	if(self_to_grave(arg)) {
+	if(self_to_grave(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
@@ -535,247 +571,73 @@ OCG_DuelStatus field::operator()(Processors::PayLPCost& arg) {
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::RemoveCounter& arg) {
-	if(remove_counter(arg)) {
+	if(remove_counter(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::AttackDisable& arg) {
-	if(arg.step == 0) {
-		card* attacker = core.attacker;
-		if(!attacker
-		   || core.effect_damage_step != 0
-		   || (attacker->fieldid_r != core.pre_field[0])
-		   || (attacker->current.location != LOCATION_MZONE)
-		   || !attacker->is_capable_attack()
-		   || !attacker->is_affect_by_effect(core.reason_effect)
-		   || attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)) {
-			returns.set<int32_t>(0, 0);
-			core.units.pop_front();
-		} else {
-			effect* peffect = pduel->new_effect();
-			peffect->code = EFFECT_ATTACK_DISABLED;
-			peffect->type = EFFECT_TYPE_SINGLE;
-			attacker->add_effect(peffect);
-			attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
-			raise_event(attacker, EVENT_ATTACK_DISABLED, core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
-			process_instant_event();
-			++arg.step;
-		}
-	} else {
-		returns.set<int32_t>(0, 1);
+	if(attack_disable(arg))
 		core.units.pop_front();
-	}
+	else
+		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
-OCG_DuelStatus field::operator()(Processors::AnnounceRace& arg) {
-	if(announce_race(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		++arg.step;
-	}
-	return OCG_DUEL_STATUS_AWAITING;
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceAttribute& arg) {
-	if(announce_attribute(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		++arg.step;
-	}
-	return OCG_DUEL_STATUS_AWAITING;
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceCard& arg) {
-	if(announce_card(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		if(arg.step == 0)
-			++arg.step;
-	}
-	return OCG_DUEL_STATUS_AWAITING;
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceNumber& arg) {
-	if(announce_number(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		++arg.step;
-	}
-	return OCG_DUEL_STATUS_AWAITING;
-}
 OCG_DuelStatus field::operator()(Processors::TossCoin& arg) {
-	if(toss_coin(arg)) {
+	if(toss_coin(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::TossDice& arg) {
-	if(toss_dice(arg)) {
+	if(toss_dice(arg))
 		core.units.pop_front();
-	} else
+	else
 		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
-OCG_DuelStatus field::operator()(Processors::RockPaperScissors& arg) {
-	if(rock_paper_scissors(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		++arg.step;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
 OCG_DuelStatus field::operator()(Processors::SelectFusion& arg) {
-	auto playerid = arg.playerid;
-	auto fusion_materials = arg.fusion_materials;
-	auto pcard = arg.pcard;
-	auto forced_materials = arg.forced_materials;
-	auto chkf = arg.chkf;
-	if(arg.step == 0) {
-		effect_set eset;
-		pcard->fusion_filter_valid(fusion_materials, forced_materials, chkf, &eset);
-		core.select_effects.clear();
-		core.select_options.clear();
-		if(eset.size() < 1) {
-			core.units.pop_front();
-			return OCG_DUEL_STATUS_CONTINUE;
-		}
-		for(const auto& peff : eset) {
-			core.select_effects.push_back(peff);
-			core.select_options.push_back(peff->description);
-		}
-		if(core.select_options.size() == 1)
-			returns.set<int32_t>(0, 0);
-		else
-			emplace_process<Processors::SelectOption>(playerid);
-		++arg.step;
-	} else if(arg.step == 1) {
-		core.fusion_materials.clear();
-		if(!core.select_effects[returns.at<int32_t>(0)]) {
-			core.units.pop_front();
-			return OCG_DUEL_STATUS_CONTINUE;
-		}
-		auto& e = core.sub_solving_event.emplace_back();
-		e.event_cards = fusion_materials;
-		e.reason_effect = core.select_effects[returns.at<int32_t>(0)];
-		e.reason_player = playerid;
-		pduel->lua->add_param<LuaParam::GROUP>(forced_materials);
-		pduel->lua->add_param<LuaParam::INT>(chkf);
-		emplace_process<Processors::ExecuteOperation>(core.select_effects[returns.at<int32_t>(0)], playerid);
-		++arg.step;
-	} else {
+	if(select_fusion(arg))
 		core.units.pop_front();
-	}
+	else
+		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::DiscardHand& arg) {
-	auto playerid = arg.playerid;
-	auto min = arg.min;
-	auto max = arg.max;
-	auto reason = arg.reason;
-	if(arg.step == 0) {
-		auto message = pduel->new_message(MSG_HINT);
-		message->write<uint8_t>(HINT_SELECTMSG);
-		message->write<uint8_t>(playerid);
-		if(reason & REASON_DISCARD)
-			message->write<uint64_t>(501);
-		else
-			message->write<uint64_t>(504);
-		emplace_process<Processors::SelectCard>(playerid, false, min, max);
-		++arg.step;
-	} else if(arg.step == 1) {
-		if(return_cards.list.empty())
-			returns.set<int32_t>(0, 0);
-		else
-			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, core.reason_effect, reason, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
-		++arg.step;
-	} else {
+	if(discard_hand(arg))
 		core.units.pop_front();
-	}
+	else
+		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::DiscardDeck& arg) {
-	if(discard_deck(arg)) {
+	if(discard_deck(arg))
 		core.units.pop_front();
-	} else {
+	else
 		++arg.step;
-	}
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::SortDeck& arg) {
-	auto sort_player = arg.sort_player;
-	auto target_player = arg.target_player;
-	auto count = arg.count;
-	bool bottom = arg.bottom;
-	auto& list = player[target_player].list_main;
-	if(count > list.size())
-		count = static_cast<uint16_t>(list.size());
-	if(arg.step == 0) {
-		if(bottom) {
-			const auto clit = list.begin();
-			core.select_cards.assign(clit, clit + count);
-		} else {
-			const auto clit = list.rbegin();
-			core.select_cards.assign(clit, clit + count);
-		}
-		emplace_process<Processors::SortCard>(sort_player, false);
-		++arg.step;
-	} else {
-		if(returns.at<int8_t>(0) != -1 && count > 0) {
-			card* tc[64];
-			for(uint32_t i = 0; i < count; ++i)
-				tc[returns.at<uint8_t>(i)] = core.select_cards[i];
-			for(uint32_t i = 0; i < count; ++i) {
-				card* pcard = nullptr;
-				if(bottom)
-					pcard = tc[i];
-				else
-					pcard = tc[count - i - 1];
-				auto message = pduel->new_message(MSG_MOVE);
-				message->write<uint32_t>(0);
-				message->write(pcard->get_info_location());
-				list.erase(list.begin() + pcard->current.sequence);
-				if(bottom)
-					list.insert(list.begin(), pcard);
-				else
-					list.push_back(pcard);
-				reset_sequence(target_player, LOCATION_DECK);
-				message->write(pcard->get_info_location());
-				message->write<uint32_t>(pcard->current.reason);
-			}
-			if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-				card* ptop = list.back();
-				if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
-					auto message = pduel->new_message(MSG_DECK_TOP);
-					message->write<uint8_t>(target_player);
-					message->write<uint32_t>(0);
-					message->write<uint32_t>(ptop->data.code);
-					message->write<uint32_t>(ptop->current.position);
-				}
-			}
-		}
+	if(sort_deck(arg))
 		core.units.pop_front();
-	}
+	else
+		++arg.step;
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::RemoveOverlay& arg) {
-	if(remove_overlay_card(arg)) {
+	if(remove_overlay_card(arg))
 		core.units.pop_front();
-	} else {
+	else
 		++arg.step;
-	}
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::XyzOverlay& arg) {
-	if(xyz_overlay(arg)) {
+	if(xyz_overlay(arg))
 		core.units.pop_front();
-	} else {
+	else
 		++arg.step;
-	}
 	return OCG_DUEL_STATUS_CONTINUE;
 }
 OCG_DuelStatus field::operator()(Processors::RefreshRelay& arg) {
@@ -792,6 +654,7 @@ OCG_DuelStatus field::process() {
 		return OCG_DUEL_STATUS_END;
 	return mpark::visit(*this, core.units.front());
 }
+
 int32_t field::execute_cost(Processors::ExecuteCost& arg) {
 	auto step = arg.step;
 	auto triggering_effect = arg.triggering_effect;
@@ -5775,6 +5638,166 @@ int32_t field::startup(Processors::Startup& arg) {
 		}
 		emplace_process<Processors::Turn>(0);
 		return TRUE;
+	}
+	}
+	return TRUE;
+}
+
+int32_t field::sort_deck(Processors::SortDeck& arg) {
+	auto sort_player = arg.sort_player;
+	auto target_player = arg.target_player;
+	auto count = arg.count;
+	bool bottom = arg.bottom;
+	auto& list = player[target_player].list_main;
+	if(count > list.size())
+		count = static_cast<uint16_t>(list.size());
+	switch(arg.step) {
+	case 0: {
+		if(bottom) {
+			const auto clit = list.begin();
+			core.select_cards.assign(clit, clit + count);
+		} else {
+			const auto clit = list.rbegin();
+			core.select_cards.assign(clit, clit + count);
+		}
+		emplace_process<Processors::SortCard>(sort_player, false);
+		return FALSE;
+	}
+	case 1: {
+		if(returns.at<int8_t>(0) == 1 || count == 0)
+			return TRUE;
+		card* tc[64];
+		for(uint32_t i = 0; i < count; ++i)
+			tc[returns.at<uint8_t>(i)] = core.select_cards[i];
+		for(uint32_t i = 0; i < count; ++i) {
+			card* pcard = nullptr;
+			if(bottom)
+				pcard = tc[i];
+			else
+				pcard = tc[count - i - 1];
+			auto message = pduel->new_message(MSG_MOVE);
+			message->write<uint32_t>(0);
+			message->write(pcard->get_info_location());
+			list.erase(list.begin() + pcard->current.sequence);
+			if(bottom)
+				list.insert(list.begin(), pcard);
+			else
+				list.push_back(pcard);
+			reset_sequence(target_player, LOCATION_DECK);
+			message->write(pcard->get_info_location());
+			message->write<uint32_t>(pcard->current.reason);
+		}
+		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
+			card* ptop = list.back();
+			if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
+				auto message = pduel->new_message(MSG_DECK_TOP);
+				message->write<uint8_t>(target_player);
+				message->write<uint32_t>(0);
+				message->write<uint32_t>(ptop->data.code);
+				message->write<uint32_t>(ptop->current.position);
+			}
+		}
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
+
+int32_t field::discard_hand(Processors::DiscardHand& arg) {
+	auto playerid = arg.playerid;
+	auto min = arg.min;
+	auto max = arg.max;
+	auto reason = arg.reason;
+	switch(arg.step) {
+	case 0: {
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8_t>(HINT_SELECTMSG);
+		message->write<uint8_t>(playerid);
+		if(reason & REASON_DISCARD)
+			message->write<uint64_t>(501);
+		else
+			message->write<uint64_t>(504);
+		emplace_process<Processors::SelectCard>(playerid, false, min, max);
+		return FALSE;
+	}
+	case 1: {
+		if(return_cards.list.empty())
+			returns.set<int32_t>(0, 0);
+		else
+			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, core.reason_effect, reason, core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
+
+int32_t field::attack_disable(Processors::AttackDisable& arg) {
+	switch(arg.step) {
+	case 0: {
+		auto* attacker = core.attacker;
+		if(!attacker
+		   || core.effect_damage_step != 0
+		   || (attacker->fieldid_r != core.pre_field[0])
+		   || (attacker->current.location != LOCATION_MZONE)
+		   || !attacker->is_capable_attack()
+		   || !attacker->is_affect_by_effect(core.reason_effect)
+		   || attacker->is_affected_by_effect(EFFECT_UNSTOPPABLE_ATTACK)) {
+			returns.set<int32_t>(0, 0);
+			return TRUE;
+		}
+		auto* peffect = pduel->new_effect();
+		peffect->code = EFFECT_ATTACK_DISABLED;
+		peffect->type = EFFECT_TYPE_SINGLE;
+		attacker->add_effect(peffect);
+		attacker->set_status(STATUS_ATTACK_CANCELED, TRUE);
+		raise_event(attacker, EVENT_ATTACK_DISABLED, core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
+		process_instant_event();
+		return FALSE;
+	}
+	case 1: {
+		returns.set<int32_t>(0, 1);
+		return TRUE;
+	}
+	}
+	return TRUE;
+}
+
+int32_t field::select_fusion(Processors::SelectFusion& arg) {
+	auto playerid = arg.playerid;
+	auto fusion_materials = arg.fusion_materials;
+	auto pcard = arg.pcard;
+	auto forced_materials = arg.forced_materials;
+	auto chkf = arg.chkf;
+	switch(arg.step) {
+	case 0:	{
+		effect_set eset;
+		pcard->fusion_filter_valid(fusion_materials, forced_materials, chkf, &eset);
+		core.select_effects.clear();
+		core.select_options.clear();
+		if(eset.empty())
+			return TRUE;
+		for(const auto& peff : eset) {
+			core.select_effects.push_back(peff);
+			core.select_options.push_back(peff->description);
+		}
+		if(core.select_options.size() == 1)
+			returns.set<int32_t>(0, 0);
+		else
+			emplace_process<Processors::SelectOption>(playerid);
+		return FALSE;
+	}
+	case 1:	{
+		core.fusion_materials.clear();
+		if(!core.select_effects[returns.at<int32_t>(0)])
+			return TRUE;
+		auto& e = core.sub_solving_event.emplace_back();
+		e.event_cards = fusion_materials;
+		e.reason_effect = core.select_effects[returns.at<int32_t>(0)];
+		e.reason_player = playerid;
+		pduel->lua->add_param<LuaParam::GROUP>(forced_materials);
+		pduel->lua->add_param<LuaParam::INT>(chkf);
+		emplace_process<Processors::ExecuteOperation>(core.select_effects[returns.at<int32_t>(0)], playerid);
+		return FALSE;
 	}
 	}
 	return TRUE;
