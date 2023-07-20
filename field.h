@@ -207,16 +207,19 @@ struct Startup {
 	Startup(int16_t step_) : step(step_) {}
 };
 struct SelectBattleCmd {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	SelectBattleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {}
 };
 struct SelectIdleCmd {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	SelectIdleCmd(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {}
 };
 struct SelectEffectYesNo {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	card* pcard;
@@ -225,6 +228,7 @@ struct SelectEffectYesNo {
 		step(step_), playerid(playerid_), pcard(pcard_), description(description_) {}
 };
 struct SelectYesNo {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	uint64_t description;
@@ -232,11 +236,13 @@ struct SelectYesNo {
 		step(step_), playerid(playerid_), description(description_) {}
 };
 struct SelectOption {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	SelectOption(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {}
 };
 struct SelectCard {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	bool cancelable;
@@ -247,6 +253,7 @@ struct SelectCard {
 		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
 struct SelectCardCodes {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	bool cancelable;
@@ -257,6 +264,7 @@ struct SelectCardCodes {
 		step(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
 struct SelectUnselectCard {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	bool cancelable;
@@ -269,6 +277,7 @@ struct SelectUnselectCard {
 		finishable(finishable_) {}
 };
 struct SelectChain {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	uint8_t spe_count;
@@ -277,6 +286,7 @@ struct SelectChain {
 		step(step_), playerid(playerid_), spe_count(spe_count_), forced(forced_) {}
 };
 struct SelectPlace {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	uint8_t count;
@@ -292,6 +302,7 @@ struct SelectDisField : SelectPlace {
 	};
 };
 struct SelectPosition {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	uint8_t positions;
@@ -300,6 +311,7 @@ struct SelectPosition {
 		step(step_), playerid(playerid_), positions(positions_), code(code_) {}
 };
 struct SelectTributeP {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	bool cancelable;
@@ -314,6 +326,7 @@ struct SortChain {
 	SortChain(int16_t step_, uint8_t playerid_) : step(step_), playerid(playerid_) {}
 };
 struct SelectCounter {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint16_t countertype;
 	uint16_t count;
@@ -326,6 +339,7 @@ struct SelectCounter {
 		oppo(oppo_) {}
 };
 struct SelectSum {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	int32_t acc;
@@ -335,6 +349,7 @@ struct SelectSum {
 		step(step_), playerid(playerid_), acc(acc_), min(min_), max(max_) {}
 };
 struct SortCard {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	bool is_chain;
@@ -845,6 +860,7 @@ struct AttackDisable {
 		step(step_) {}
 };
 struct AnnounceRace {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	uint8_t count;
@@ -853,6 +869,7 @@ struct AnnounceRace {
 		step(step_), playerid(playerid_), count(count_), available(available_) {}
 };
 struct AnnounceAttribute {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	uint8_t count;
@@ -861,12 +878,14 @@ struct AnnounceAttribute {
 		step(step_), playerid(playerid_), count(count_), available(available_) {}
 };
 struct AnnounceCard {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	AnnounceCard(uint16_t step_, uint8_t playerid_) :
 		step(step_), playerid(playerid_) {}
 };
 struct AnnounceNumber {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	uint8_t playerid;
 	AnnounceNumber(uint16_t step_, uint8_t playerid_) :
@@ -896,6 +915,7 @@ struct TossDice {
 		reason_effect(reason_effect_) {}
 };
 struct RockPaperScissors {
+	static constexpr auto needs_answer = true;
 	int16_t step;
 	bool repeat;
 	uint8_t hand0;
@@ -991,6 +1011,12 @@ using processor_unit = mpark::variant<InvalidState, Adjust, Turn, RefreshLoc, St
 	AnnounceCard, AnnounceNumber, TossCoin, TossDice, RockPaperScissors,
 	SelectFusion, DiscardHand, DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay,
 	RefreshRelay>;
+
+template <typename T, typename = int>
+struct NeedsAnswer : std::false_type {};
+
+template <typename T>
+struct NeedsAnswer <T, decltype((void)T::needs_answer, 0)> : std::true_type {};
 }
 
 using Processors::processor_unit;
@@ -1211,6 +1237,7 @@ struct processor {
 		}
 	}
 };
+
 class field {
 public:
 	duel* pduel;
@@ -1308,7 +1335,7 @@ public:
 	void add_to_disable_check_list(card* pcard);
 	void adjust_disable_check_list();
 	void adjust_self_destroy_set();
-	int32_t trap_monster_adjust(Processors::TrapMonsterAdjust& arg);
+	bool process(Processors::TrapMonsterAdjust& arg);
 	void erase_grant_effect(effect* peffect);
 	int32_t adjust_grant_effect();
 	void add_unique_card(card* pcard);
@@ -1325,7 +1352,7 @@ public:
 	int32_t check_lp_cost(uint8_t playerid, uint32_t cost);
 	void save_lp_cost() {}
 	void restore_lp_cost() {}
-	int32_t pay_lp_cost(Processors::PayLPCost& arg);
+	bool process(Processors::PayLPCost& arg);
 
 	uint32_t get_field_counter(uint8_t playerid, uint8_t self, uint8_t oppo, uint16_t countertype);
 	int32_t effect_replace_check(uint32_t code, const tevent& e);
@@ -1382,42 +1409,43 @@ public:
 		emplace_process<T>(Step{ 0 }, std::forward<Args>(args)...);
 	}
 
-	OCG_DuelStatus process();
-	int32_t execute_cost(Processors::ExecuteCost& arg);
-	int32_t execute_operation(Processors::ExecuteOperation& arg);
-	int32_t execute_target(Processors::ExecuteTarget& arg);
 	void raise_event(card* event_card, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value);
 	void raise_event(card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value);
 	void raise_single_event(card* trigger_card, card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value);
 	int32_t check_event(uint32_t code, tevent* pe = 0);
 	int32_t check_event_c(effect* peffect, uint8_t playerid, int32_t neglect_con, int32_t neglect_cost, int32_t copy_info, tevent* pe = 0);
 	int32_t check_hint_timing(effect* peffect);
-	int32_t process_phase_event(Processors::PhaseEvent& arg);
-	int32_t process_point_event(Processors::PointEvent& arg);
-	int32_t process_quick_effect(Processors::QuickEffect& arg);
 	int32_t process_instant_event();
 	int32_t process_single_event();
 	int32_t process_single_event(effect* peffect, const tevent& e, chain_list& tp, chain_list& ntp);
-	int32_t process_idle_command(Processors::IdleCommand& arg);
-	int32_t process_battle_command(Processors::BattleCommand& arg);
-	int32_t process_forced_battle(Processors::ForcedBattle& arg);
-	int32_t process_damage_step(Processors::DamageStep& arg);
 	void calculate_battle_damage(effect** pdamchange, card** preason_card, std::array<bool, 2>* battle_destroyed);
-	int32_t process_turn(Processors::Turn& arg);
-
-	int32_t add_chain(Processors::AddChain& arg);
-	int32_t sort_chain(Processors::SortChain& arg);
-	void solve_continuous(uint8_t playerid, effect* peffect, const tevent& e);
-	int32_t solve_continuous(Processors::SolveContinuous& arg);
-	int32_t solve_chain(Processors::SolveChain& arg);
 	int32_t break_effect(bool clear_sent = true);
 	void adjust_instant();
 	void adjust_all();
 	void refresh_location_info_instant();
-	int32_t refresh_location_info(Processors::RefreshLoc& arg);
-	int32_t adjust_step(Processors::Adjust& arg);
-	int32_t startup(Processors::Startup& arg);
-	int32_t refresh_relay(Processors::RefreshRelay& arg);
+	void solve_continuous(uint8_t playerid, effect* peffect, const tevent& e);
+
+	OCG_DuelStatus process();
+	bool process(Processors::ExecuteCost& arg);
+	bool process(Processors::ExecuteOperation& arg);
+	bool process(Processors::ExecuteTarget& arg);
+	bool process(Processors::PhaseEvent& arg);
+	bool process(Processors::PointEvent& arg);
+	bool process(Processors::QuickEffect& arg);
+	bool process(Processors::IdleCommand& arg);
+	bool process(Processors::BattleCommand& arg);
+	bool process(Processors::ForcedBattle& arg);
+	bool process(Processors::DamageStep& arg);
+	bool process(Processors::Turn& arg);
+
+	bool process(Processors::AddChain& arg);
+	bool process(Processors::SortChain& arg);
+	bool process(Processors::SolveContinuous& arg);
+	bool process(Processors::SolveChain& arg);
+	bool process(Processors::RefreshLoc& arg);
+	bool process(Processors::Adjust& arg);
+	bool process(Processors::Startup& arg);
+	bool process(Processors::RefreshRelay& arg);
 
 	//operations
 	int32_t negate_chain(uint8_t chaincount);
@@ -1457,154 +1485,87 @@ public:
 	void operation_replace(uint32_t type, uint16_t step, group* targets);
 	void select_tribute_cards(card* target, uint8_t playerid, bool cancelable, uint16_t min, uint16_t max, uint8_t toplayer, uint32_t zone);
 
-	int32_t remove_counter(Processors::RemoveCounter& arg);
-	int32_t remove_overlay_card(Processors::RemoveOverlay& arg);
-	int32_t xyz_overlay(Processors::XyzOverlay& arg);
-	int32_t get_control(Processors::GetControl& arg);
-	int32_t swap_control(Processors::SwapControl& arg);
-	int32_t control_adjust(Processors::ControlAdjust& arg);
-	int32_t self_destroy_unique(Processors::SelfDestroyUnique& arg);
-	int32_t self_destroy(Processors::SelfDestroy& arg);
-	int32_t self_to_grave(Processors::SelfToGrave& arg);
-	int32_t equip(Processors::Equip& arg);
-	int32_t draw(Processors::Draw& arg);
-	int32_t damage(Processors::Damage& arg);
-	int32_t recover(Processors::Recover& arg);
-	int32_t summon(Processors::SummonRule& arg);
-	int32_t flip_summon(Processors::FlipSummon& arg);
-	int32_t mset(Processors::MonsterSet& arg);
-	int32_t sset(Processors::SpellSet& arg);
-	int32_t sset_g(Processors::SpellSetGroup& arg);
-	int32_t special_summon_rule(Processors::SpSummonRule& arg);
-	int32_t special_summon_rule_group(Processors::SpSummonRuleGroup& arg);
-	int32_t special_summon_step(Processors::SpSummonStep& arg);
-	int32_t special_summon(Processors::SpSummon& arg);
-	int32_t destroy_replace(Processors::DestroyReplace& arg);
-	int32_t destroy(Processors::Destroy& arg);
-	int32_t release_replace(Processors::ReleaseReplace& arg);
-	int32_t release(Processors::Release& arg);
-	int32_t send_replace(Processors::SendToReplace& arg);
-	int32_t send_to(Processors::SendTo& arg);
-	int32_t discard_deck(Processors::DiscardDeck& arg);
-	int32_t sort_deck(Processors::SortDeck& arg);
-	int32_t discard_hand(Processors::DiscardHand& arg);
-	int32_t move_to_field(Processors::MoveToField& arg);
-	int32_t change_position(Processors::ChangePos& arg);
-	int32_t operation_replace(Processors::OperationReplace& arg);
-	int32_t activate_effect(Processors::ActivateEffect& arg);
-	int32_t select_release_cards(Processors::SelectRelease& arg);
-	int32_t select_tribute_cards(Processors::SelectTribute& arg);
-	int32_t select_fusion(Processors::SelectFusion& arg);
-	int32_t toss_coin(Processors::TossCoin& arg);
-	int32_t toss_dice(Processors::TossDice& arg);
-	int32_t attack_disable(Processors::AttackDisable& arg);
-
-	int32_t select_battle_command(Processors::SelectBattleCmd& arg);
-	int32_t select_idle_command(Processors::SelectIdleCmd& arg);
-	int32_t select_effect_yes_no(Processors::SelectEffectYesNo& arg);
-	int32_t select_yes_no(Processors::SelectYesNo& arg);
-	int32_t select_option(Processors::SelectOption& arg);
 	bool parse_response_cards(bool cancelable);
-	int32_t select_card(Processors::SelectCard& arg);
-	int32_t select_card_codes(Processors::SelectCardCodes& arg);
-	int32_t select_unselect_card(Processors::SelectUnselectCard& arg);
-	int32_t select_chain(Processors::SelectChain& arg);
-	int32_t select_place(Processors::SelectPlace& arg);
-	int32_t select_position(Processors::SelectPosition& arg);
-	int32_t select_tribute(Processors::SelectTributeP& arg);
-	int32_t select_counter(Processors::SelectCounter& arg);
-	int32_t select_with_sum_limit(Processors::SelectSum& arg);
-	int32_t sort_card(Processors::SortCard& arg);
-	int32_t announce_race(Processors::AnnounceRace& arg);
-	int32_t announce_attribute(Processors::AnnounceAttribute& arg);
-	int32_t announce_card(Processors::AnnounceCard& arg);
-	int32_t announce_number(Processors::AnnounceNumber& arg);
-	int32_t rock_paper_scissors(Processors::RockPaperScissors& arg);
 
-	OCG_DuelStatus operator()(Processors::InvalidState& arg);
-	OCG_DuelStatus operator()(Processors::Adjust& arg);
-	OCG_DuelStatus operator()(Processors::Turn& arg);
-	OCG_DuelStatus operator()(Processors::RefreshLoc& arg);
-	OCG_DuelStatus operator()(Processors::Startup& arg);
-	OCG_DuelStatus operator()(Processors::SelectBattleCmd& arg);
-	OCG_DuelStatus operator()(Processors::SelectIdleCmd& arg);
-	OCG_DuelStatus operator()(Processors::SelectEffectYesNo& arg);
-	OCG_DuelStatus operator()(Processors::SelectYesNo& arg);
-	OCG_DuelStatus operator()(Processors::SelectOption& arg);
-	OCG_DuelStatus operator()(Processors::SelectCard& arg);
-	OCG_DuelStatus operator()(Processors::SelectCardCodes& arg);
-	OCG_DuelStatus operator()(Processors::SelectUnselectCard& arg);
-	OCG_DuelStatus operator()(Processors::SelectChain& arg);
-	OCG_DuelStatus operator()(Processors::SelectPlace& arg);
-	OCG_DuelStatus operator()(Processors::SelectDisField& arg);
-	OCG_DuelStatus operator()(Processors::SelectPosition& arg);
-	OCG_DuelStatus operator()(Processors::SelectTributeP& arg);
-	OCG_DuelStatus operator()(Processors::SortChain& arg);
-	OCG_DuelStatus operator()(Processors::SelectCounter& arg);
-	OCG_DuelStatus operator()(Processors::SelectSum& arg);
-	OCG_DuelStatus operator()(Processors::SortCard& arg);
-	OCG_DuelStatus operator()(Processors::SelectRelease& arg);
-	OCG_DuelStatus operator()(Processors::SelectTribute& arg);
-	OCG_DuelStatus operator()(Processors::PointEvent& arg);
-	OCG_DuelStatus operator()(Processors::SolveContinuous& arg);
-	OCG_DuelStatus operator()(Processors::ExecuteCost& arg);
-	OCG_DuelStatus operator()(Processors::ExecuteOperation& arg);
-	OCG_DuelStatus operator()(Processors::ExecuteTarget& arg);
-	OCG_DuelStatus operator()(Processors::QuickEffect& arg);
-	OCG_DuelStatus operator()(Processors::IdleCommand& arg);
-	OCG_DuelStatus operator()(Processors::PhaseEvent& arg);
-	OCG_DuelStatus operator()(Processors::BattleCommand& arg);
-	OCG_DuelStatus operator()(Processors::DamageStep& arg);
-	OCG_DuelStatus operator()(Processors::ForcedBattle& arg);
-	OCG_DuelStatus operator()(Processors::AddChain& arg);
-	OCG_DuelStatus operator()(Processors::SolveChain& arg);
-	OCG_DuelStatus operator()(Processors::Destroy& arg);
-	OCG_DuelStatus operator()(Processors::Release& arg);
-	OCG_DuelStatus operator()(Processors::SendTo& arg);
-	OCG_DuelStatus operator()(Processors::DestroyReplace& arg);
-	OCG_DuelStatus operator()(Processors::ReleaseReplace& arg);
-	OCG_DuelStatus operator()(Processors::SendToReplace& arg);
-	OCG_DuelStatus operator()(Processors::MoveToField& arg);
-	OCG_DuelStatus operator()(Processors::ChangePos& arg);
-	OCG_DuelStatus operator()(Processors::OperationReplace& arg);
-	OCG_DuelStatus operator()(Processors::ActivateEffect& arg);
-	OCG_DuelStatus operator()(Processors::SummonRule& arg);
-	OCG_DuelStatus operator()(Processors::SpSummonRule& arg);
-	OCG_DuelStatus operator()(Processors::SpSummon& arg);
-	OCG_DuelStatus operator()(Processors::FlipSummon& arg);
-	OCG_DuelStatus operator()(Processors::MonsterSet& arg);
-	OCG_DuelStatus operator()(Processors::SpellSet& arg);
-	OCG_DuelStatus operator()(Processors::SpSummonStep& arg);
-	OCG_DuelStatus operator()(Processors::SpellSetGroup& arg);
-	OCG_DuelStatus operator()(Processors::SpSummonRuleGroup& arg);
-	OCG_DuelStatus operator()(Processors::Draw& arg);
-	OCG_DuelStatus operator()(Processors::Damage& arg);
-	OCG_DuelStatus operator()(Processors::Recover& arg);
-	OCG_DuelStatus operator()(Processors::Equip& arg);
-	OCG_DuelStatus operator()(Processors::GetControl& arg);
-	OCG_DuelStatus operator()(Processors::SwapControl& arg);
-	OCG_DuelStatus operator()(Processors::ControlAdjust& arg);
-	OCG_DuelStatus operator()(Processors::SelfDestroyUnique& arg);
-	OCG_DuelStatus operator()(Processors::SelfDestroy& arg);
-	OCG_DuelStatus operator()(Processors::SelfToGrave& arg);
-	OCG_DuelStatus operator()(Processors::TrapMonsterAdjust& arg);
-	OCG_DuelStatus operator()(Processors::PayLPCost& arg);
-	OCG_DuelStatus operator()(Processors::RemoveCounter& arg);
-	OCG_DuelStatus operator()(Processors::AttackDisable& arg);
-	OCG_DuelStatus operator()(Processors::AnnounceRace& arg);
-	OCG_DuelStatus operator()(Processors::AnnounceAttribute& arg);
-	OCG_DuelStatus operator()(Processors::AnnounceCard& arg);
-	OCG_DuelStatus operator()(Processors::AnnounceNumber& arg);
-	OCG_DuelStatus operator()(Processors::TossCoin& arg);
-	OCG_DuelStatus operator()(Processors::TossDice& arg);
-	OCG_DuelStatus operator()(Processors::RockPaperScissors& arg);
-	OCG_DuelStatus operator()(Processors::SelectFusion& arg);
-	OCG_DuelStatus operator()(Processors::DiscardHand& arg);
-	OCG_DuelStatus operator()(Processors::DiscardDeck& arg);
-	OCG_DuelStatus operator()(Processors::SortDeck& arg);
-	OCG_DuelStatus operator()(Processors::RemoveOverlay& arg);
-	OCG_DuelStatus operator()(Processors::XyzOverlay& arg);
-	OCG_DuelStatus operator()(Processors::RefreshRelay& arg);
+	bool process(Processors::RemoveCounter& arg);
+	bool process(Processors::RemoveOverlay& arg);
+	bool process(Processors::XyzOverlay& arg);
+	bool process(Processors::GetControl& arg);
+	bool process(Processors::SwapControl& arg);
+	bool process(Processors::ControlAdjust& arg);
+	bool process(Processors::SelfDestroyUnique& arg);
+	bool process(Processors::SelfDestroy& arg);
+	bool process(Processors::SelfToGrave& arg);
+	bool process(Processors::Equip& arg);
+	bool process(Processors::Draw& arg);
+	bool process(Processors::Damage& arg);
+	bool process(Processors::Recover& arg);
+	bool process(Processors::SummonRule& arg);
+	bool process(Processors::FlipSummon& arg);
+	bool process(Processors::MonsterSet& arg);
+	bool process(Processors::SpellSet& arg);
+	bool process(Processors::SpellSetGroup& arg);
+	bool process(Processors::SpSummonRule& arg);
+	bool process(Processors::SpSummonRuleGroup& arg);
+	bool process(Processors::SpSummonStep& arg);
+	bool process(Processors::SpSummon& arg);
+	bool process(Processors::DestroyReplace& arg);
+	bool process(Processors::Destroy& arg);
+	bool process(Processors::ReleaseReplace& arg);
+	bool process(Processors::Release& arg);
+	bool process(Processors::SendToReplace& arg);
+	bool process(Processors::SendTo& arg);
+	bool process(Processors::DiscardDeck& arg);
+	bool process(Processors::SortDeck& arg);
+	bool process(Processors::DiscardHand& arg);
+	bool process(Processors::MoveToField& arg);
+	bool process(Processors::ChangePos& arg);
+	bool process(Processors::OperationReplace& arg);
+	bool process(Processors::ActivateEffect& arg);
+	bool process(Processors::SelectRelease& arg);
+	bool process(Processors::SelectTribute& arg);
+	bool process(Processors::SelectFusion& arg);
+	bool process(Processors::TossCoin& arg);
+	bool process(Processors::TossDice& arg);
+	bool process(Processors::AttackDisable& arg);
+
+	bool process(Processors::SelectBattleCmd& arg);
+	bool process(Processors::SelectIdleCmd& arg);
+	bool process(Processors::SelectEffectYesNo& arg);
+	bool process(Processors::SelectYesNo& arg);
+	bool process(Processors::SelectOption& arg);
+	bool process(Processors::SelectCard& arg);
+	bool process(Processors::SelectCardCodes& arg);
+	bool process(Processors::SelectUnselectCard& arg);
+	bool process(Processors::SelectChain& arg);
+	bool process(Processors::SelectPlace& arg);
+	bool process(Processors::SelectPosition& arg);
+	bool process(Processors::SelectTributeP& arg);
+	bool process(Processors::SelectCounter& arg);
+	bool process(Processors::SelectSum& arg);
+	bool process(Processors::SortCard& arg);
+	bool process(Processors::AnnounceRace& arg);
+	bool process(Processors::AnnounceAttribute& arg);
+	bool process(Processors::AnnounceCard& arg);
+	bool process(Processors::AnnounceNumber& arg);
+	bool process(Processors::RockPaperScissors& arg);
+
+
+	template<typename T, OCG_DuelStatus status = Processors::NeedsAnswer<T>::value ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE>
+	OCG_DuelStatus operator()(T& arg) {
+		if(process(arg)) {
+			core.units.pop_front();
+			return OCG_DUEL_STATUS_CONTINUE;
+		} else {
+			++arg.step;
+			return status;
+		}
+	}
+
+	OCG_DuelStatus operator()(Processors::InvalidState& arg) {
+		(void)arg;
+		unreachable();
+	}
 };
 
 //Location Use Reason

@@ -408,7 +408,7 @@ void field::operation_replace(uint32_t type, uint16_t step, group* targets) {
 void field::select_tribute_cards(card* target, uint8_t playerid, bool cancelable, uint16_t min, uint16_t max, uint8_t toplayer, uint32_t zone) {
 	emplace_process<Processors::SelectTribute>(target, playerid, cancelable, min, max, toplayer, zone);
 }
-int32_t field::draw(Processors::Draw& arg) {
+bool field::process(Processors::Draw& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto reason = arg.reason;
 	auto reason_player = arg.reason_player;
@@ -524,7 +524,7 @@ int32_t field::draw(Processors::Draw& arg) {
 	}
 	return TRUE;
 }
-int32_t field::damage(Processors::Damage& arg) {
+bool field::process(Processors::Damage& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto reason = arg.reason;
 	auto reason_player = arg.reason_player;
@@ -628,7 +628,7 @@ int32_t field::damage(Processors::Damage& arg) {
 	}
 	return TRUE;
 }
-int32_t field::recover(Processors::Recover& arg) {
+bool field::process(Processors::Recover& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto reason = arg.reason;
 	auto reason_player = arg.reason_player;
@@ -688,7 +688,7 @@ int32_t field::recover(Processors::Recover& arg) {
 	}
 	return TRUE;
 }
-int32_t field::pay_lp_cost(Processors::PayLPCost& arg) {
+bool field::process(Processors::PayLPCost& arg) {
 	auto playerid = arg.playerid;
 	auto cost = arg.cost;
 	switch(arg.step) {
@@ -765,7 +765,7 @@ int32_t field::pay_lp_cost(Processors::PayLPCost& arg) {
 // s,o: binary value indicating the available side
 // from pcard: Card.RemoveCounter() -> here -> card::remove_counter() -> the script should raise EVENT_REMOVE_COUNTER if necessary
 // from the field: Duel.RemoveCounter() -> here -> field::select_counter() -> the system raises EVENT_REMOVE_COUNTER automatically
-int32_t field::remove_counter(Processors::RemoveCounter& arg) {
+bool field::process(Processors::RemoveCounter& arg) {
 	auto reason = arg.reason;
 	auto pcard = arg.pcard;
 	auto rplayer = arg.rplayer;
@@ -848,7 +848,7 @@ int32_t field::remove_counter(Processors::RemoveCounter& arg) {
 	}
 	return TRUE;
 }
-int32_t field::remove_overlay_card(Processors::RemoveOverlay& arg) {
+bool field::process(Processors::RemoveOverlay& arg) {
 	auto reason = arg.reason;
 	auto pgroup = arg.pgroup;
 	auto rplayer = arg.rplayer;
@@ -943,7 +943,7 @@ int32_t field::remove_overlay_card(Processors::RemoveOverlay& arg) {
 	}
 	return TRUE;
 }
-int32_t field::xyz_overlay(Processors::XyzOverlay& arg) {
+bool field::process(Processors::XyzOverlay& arg) {
 	auto target = arg.target;
 	auto materials = arg.materials;
 	auto send_materials_to_grave = arg.send_materials_to_grave;
@@ -1054,7 +1054,7 @@ int32_t field::xyz_overlay(Processors::XyzOverlay& arg) {
 	}
 	return TRUE;
 }
-int32_t field::get_control(Processors::GetControl& arg) {
+bool field::process(Processors::GetControl& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto chose_player = arg.chose_player;
 	auto targets = arg.targets;
@@ -1175,7 +1175,7 @@ int32_t field::get_control(Processors::GetControl& arg) {
 	}
 	return TRUE;
 }
-int32_t field::swap_control(Processors::SwapControl& arg) {
+bool field::process(Processors::SwapControl& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto reason_player = arg.reason_player;
 	auto targets1 = arg.targets1;
@@ -1336,7 +1336,7 @@ int32_t field::swap_control(Processors::SwapControl& arg) {
 	}
 	return TRUE;
 }
-int32_t field::control_adjust(Processors::ControlAdjust& arg) {
+bool field::process(Processors::ControlAdjust& arg) {
 	switch(arg.step) {
 	case 0: {
 		auto& destroy_set = arg.destroy_set;
@@ -1463,7 +1463,7 @@ int32_t field::control_adjust(Processors::ControlAdjust& arg) {
 	}
 	return TRUE;
 }
-int32_t field::self_destroy_unique(Processors::SelfDestroyUnique& arg) {
+bool field::process(Processors::SelfDestroyUnique& arg) {
 	auto unique_card = arg.unique_card;
 	auto playerid = arg.playerid;
 	switch(arg.step) {
@@ -1543,7 +1543,7 @@ int32_t field::self_destroy_unique(Processors::SelfDestroyUnique& arg) {
 	}
 	return TRUE;
 }
-int32_t field::self_destroy(Processors::SelfDestroy& arg) {
+bool field::process(Processors::SelfDestroy& arg) {
 	switch(arg.step) {
 	case 0: {
 		if(core.self_destroy_set.empty())
@@ -1570,7 +1570,7 @@ int32_t field::self_destroy(Processors::SelfDestroy& arg) {
 	}
 	return TRUE;
 }
-int32_t field::self_to_grave(Processors::SelfToGrave& arg) {
+bool field::process(Processors::SelfToGrave& arg) {
 	switch(arg.step) {
 	case 0: {
 		if(core.self_tograve_set.empty())
@@ -1597,7 +1597,7 @@ int32_t field::self_to_grave(Processors::SelfToGrave& arg) {
 	}
 	return TRUE;
 }
-int32_t field::trap_monster_adjust(Processors::TrapMonsterAdjust& arg) {
+bool field::process(Processors::TrapMonsterAdjust& arg) {
 	auto& to_grave_set = arg.to_grave_set;
 	auto& oppo_selection = arg.oppo_selection;
 	switch(arg.step) {
@@ -1674,7 +1674,7 @@ int32_t field::trap_monster_adjust(Processors::TrapMonsterAdjust& arg) {
 	}
 	return TRUE;
 }
-int32_t field::equip(Processors::Equip& arg) {
+bool field::process(Processors::Equip& arg) {
 	auto equip_player = arg.equip_player;
 	auto equip_card = arg.equip_card;
 	auto target = arg.target;
@@ -1776,7 +1776,7 @@ int32_t field::equip(Processors::Equip& arg) {
 	}
 	return TRUE;
 }
-int32_t field::summon(Processors::SummonRule& arg) {
+bool field::process(Processors::SummonRule& arg) {
 	auto sumplayer = arg.sumplayer;
 	auto target = arg.target;
 	auto summon_procedure_effect = arg.summon_procedure_effect;
@@ -2335,7 +2335,7 @@ int32_t field::summon(Processors::SummonRule& arg) {
 	}
 	return TRUE;
 }
-int32_t field::flip_summon(Processors::FlipSummon& arg) {
+bool field::process(Processors::FlipSummon& arg) {
 	auto sumplayer = arg.sumplayer;
 	auto target = arg.target;
 	switch(arg.step) {
@@ -2432,7 +2432,7 @@ int32_t field::flip_summon(Processors::FlipSummon& arg) {
 	}
 	return TRUE;
 }
-int32_t field::mset(Processors::MonsterSet& arg) {
+bool field::process(Processors::MonsterSet& arg) {
 	auto setplayer = arg.setplayer;
 	auto target = arg.target;
 	auto summon_procedure_effect = arg.summon_procedure_effect;
@@ -2756,7 +2756,7 @@ int32_t field::mset(Processors::MonsterSet& arg) {
 	}
 	return TRUE;
 }
-int32_t field::sset(Processors::SpellSet& arg) {
+bool field::process(Processors::SpellSet& arg) {
 	auto setplayer = arg.setplayer;
 	auto toplayer = arg.toplayer;
 	auto target = arg.target;
@@ -2817,7 +2817,7 @@ int32_t field::sset(Processors::SpellSet& arg) {
 	}
 	return TRUE;
 }
-int32_t field::sset_g(Processors::SpellSetGroup& arg) {
+bool field::process(Processors::SpellSetGroup& arg) {
 	auto setplayer = arg.setplayer;
 	auto toplayer = arg.toplayer;
 	auto ptarget = arg.ptarget;
@@ -2999,7 +2999,7 @@ int32_t field::sset_g(Processors::SpellSetGroup& arg) {
 	}
 	return TRUE;
 }
-int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
+bool field::process(Processors::SpSummonRule& arg) {
 	auto sumplayer = arg.sumplayer;
 	auto target = arg.target;
 	auto summon_type = arg.summon_type;
@@ -3505,7 +3505,7 @@ int32_t field::special_summon_rule(Processors::SpSummonRule& arg) {
 	}
 	return TRUE;
 }
-int32_t field::special_summon_rule_group(Processors::SpSummonRuleGroup& arg) {
+bool field::process(Processors::SpSummonRuleGroup& arg) {
 	auto sumplayer = arg.sumplayer;
 	auto summon_type = arg.summon_type;
 	switch(arg.step) {
@@ -3554,7 +3554,7 @@ int32_t field::special_summon_rule_group(Processors::SpSummonRuleGroup& arg) {
 	}
 	return FALSE;
 }
-int32_t field::special_summon_step(Processors::SpSummonStep& arg) {
+bool field::process(Processors::SpSummonStep& arg) {
 	auto targets = arg.targets;
 	auto target = arg.target;
 	auto zone = arg.zone;
@@ -3675,7 +3675,7 @@ int32_t field::special_summon_step(Processors::SpSummonStep& arg) {
 	}
 	return TRUE;
 }
-int32_t field::special_summon(Processors::SpSummon& arg) {
+bool field::process(Processors::SpSummon& arg) {
 	auto  reason_effect = arg.reason_effect;
 	auto reason_player = arg.reason_player;
 	auto targets = arg.targets;
@@ -3789,7 +3789,7 @@ int32_t field::special_summon(Processors::SpSummon& arg) {
 	}
 	return TRUE;
 }
-int32_t field::destroy_replace(Processors::DestroyReplace& arg) {
+bool field::process(Processors::DestroyReplace& arg) {
 	auto targets = arg.targets;
 	auto target = arg.target;
 	auto battle = arg.battle;
@@ -3815,7 +3815,7 @@ int32_t field::destroy_replace(Processors::DestroyReplace& arg) {
 	}
 	return TRUE;
 }
-int32_t field::destroy(Processors::Destroy& arg) {
+bool field::process(Processors::Destroy& arg) {
 	auto targets = arg.targets;
 	auto reason_effect = arg.reason_effect;
 	auto reason = arg.reason;
@@ -4151,7 +4151,7 @@ int32_t field::destroy(Processors::Destroy& arg) {
 	}
 	return TRUE;
 }
-int32_t field::release_replace(Processors::ReleaseReplace& arg) {
+bool field::process(Processors::ReleaseReplace& arg) {
 	auto targets = arg.targets;
 	auto target = arg.target;
 	if(!(target->current.location & (LOCATION_ONFIELD | LOCATION_HAND))) {
@@ -4172,7 +4172,7 @@ int32_t field::release_replace(Processors::ReleaseReplace& arg) {
 	}
 	return TRUE;
 }
-int32_t field::release(Processors::Release& arg) {
+bool field::process(Processors::Release& arg) {
 	auto targets = arg.targets;
 	auto reason_effect = arg.reason_effect;
 	auto reason = arg.reason;
@@ -4253,7 +4253,7 @@ int32_t field::release(Processors::Release& arg) {
 	}
 	return TRUE;
 }
-int32_t field::send_replace(Processors::SendToReplace& arg) {
+bool field::process(Processors::SendToReplace& arg) {
 	auto targets = arg.targets;
 	auto target = arg.target;
 	uint8_t playerid = target->sendto_param.playerid;
@@ -4276,7 +4276,7 @@ int32_t field::send_replace(Processors::SendToReplace& arg) {
 	}
 	return TRUE;
 }
-int32_t field::send_to(Processors::SendTo& arg) {
+bool field::process(Processors::SendTo& arg) {
 	auto targets = arg.targets;
 	auto reason_effect = arg.reason_effect;
 	auto reason = arg.reason;
@@ -4766,7 +4766,7 @@ int32_t field::send_to(Processors::SendTo& arg) {
 	}
 	return TRUE;
 }
-int32_t field::discard_deck(Processors::DiscardDeck& arg) {
+bool field::process(Processors::DiscardDeck& arg) {
 	auto playerid = arg.playerid;
 	auto count = arg.count;
 	auto reason = arg.reason;
@@ -4898,7 +4898,7 @@ int32_t field::discard_deck(Processors::DiscardDeck& arg) {
 // move a card from anywhere to field, including sp_summon, Duel.MoveToField(), Duel.ReturnToField()
 // ret: 0 = default, 1 = return after temporarily banished, 2 = trap_monster return to LOCATION_SZONE
 // call move_card() in step 2
-int32_t field::move_to_field(Processors::MoveToField& arg) {
+bool field::process(Processors::MoveToField& arg) {
 	auto target = arg.target;
 	auto enable = arg.enable;
 	auto ret = arg.ret;
@@ -5171,7 +5171,7 @@ int32_t field::move_to_field(Processors::MoveToField& arg) {
 	}
 	return TRUE;
 }
-int32_t field::change_position(Processors::ChangePos& arg) {
+bool field::process(Processors::ChangePos& arg) {
 	auto targets = arg.targets;
 	auto reason_effect = arg.reason_effect;
 	auto reason_player = arg.reason_player;
@@ -5373,7 +5373,7 @@ int32_t field::change_position(Processors::ChangePos& arg) {
 	}
 	return TRUE;
 }
-int32_t field::operation_replace(Processors::OperationReplace& arg) {
+bool field::process(Processors::OperationReplace& arg) {
 	auto replace_effect = arg.replace_effect;
 	auto targets = arg.targets;
 	auto target = arg.target;
@@ -5626,7 +5626,7 @@ int32_t field::operation_replace(Processors::OperationReplace& arg) {
 	}
 	return TRUE;
 }
-int32_t field::activate_effect(Processors::ActivateEffect& arg) {
+bool field::process(Processors::ActivateEffect& arg) {
 	auto peffect = arg.peffect;
 	switch(arg.step) {
 	case 0: {
@@ -5668,7 +5668,7 @@ int32_t field::activate_effect(Processors::ActivateEffect& arg) {
 	}
 	return TRUE;
 }
-int32_t field::select_release_cards(Processors::SelectRelease& arg) {
+bool field::process(Processors::SelectRelease& arg) {
 	auto playerid = arg.playerid;
 	auto cancelable = arg.cancelable;
 	auto min = arg.min;
@@ -5825,7 +5825,7 @@ int32_t field::select_release_cards(Processors::SelectRelease& arg) {
 	}
 	return TRUE;
 }
-int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
+bool field::process(Processors::SelectTribute& arg) {
 	auto target = arg.target;
 	auto playerid = arg.playerid;
 	auto cancelable = arg.cancelable;
@@ -6012,7 +6012,7 @@ int32_t field::select_tribute_cards(Processors::SelectTribute& arg) {
 	}
 	return TRUE;
 }
-int32_t field::toss_coin(Processors::TossCoin& arg) {
+bool field::process(Processors::TossCoin& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto reason_player = arg.reason_player;
 	auto playerid = arg.playerid;
@@ -6087,7 +6087,7 @@ int32_t field::toss_coin(Processors::TossCoin& arg) {
 	}
 	return TRUE;
 }
-int32_t field::toss_dice(Processors::TossDice& arg) {
+bool field::process(Processors::TossDice& arg) {
 	auto reason_effect = arg.reason_effect;
 	auto reason_player = arg.reason_player;
 	auto playerid = arg.playerid;

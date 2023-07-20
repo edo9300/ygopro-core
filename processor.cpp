@@ -16,638 +16,6 @@
 #include "group.h"
 #include "interpreter.h"
 
-OCG_DuelStatus field::operator()(Processors::InvalidState& arg) {
-	(void)arg;
-	unreachable();
-}
-OCG_DuelStatus field::operator()(Processors::SelectBattleCmd& arg) {
-	if(select_battle_command(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectIdleCmd& arg) {
-	if(select_idle_command(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectEffectYesNo& arg) {
-	if(select_effect_yes_no(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectYesNo& arg) {
-	if(select_yes_no(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectOption& arg) {
-	if(select_option(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectCard& arg) {
-	if(select_card(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectCardCodes& arg) {
-	if(select_card_codes(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectUnselectCard& arg) {
-	if(select_unselect_card(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectChain& arg) {
-	if(select_chain(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectPlace& arg) {
-	if(select_place(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectDisField& arg) {
-	if(select_place(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectPosition& arg) {
-	if(select_position(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectTributeP& arg) {
-	if(select_tribute(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectCounter& arg) {
-	if(select_counter(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SelectSum& arg) {
-	if(select_with_sum_limit(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::SortCard& arg) {
-	if(sort_card(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceRace& arg) {
-	if(announce_race(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceAttribute& arg) {
-	if(announce_attribute(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceCard& arg) {
-	if(announce_card(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::AnnounceNumber& arg) {
-	if(announce_number(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		arg.step = 1;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::RockPaperScissors& arg) {
-	if(rock_paper_scissors(arg)) {
-		core.units.pop_front();
-		return OCG_DUEL_STATUS_CONTINUE;
-	} else {
-		++arg.step;
-		return OCG_DUEL_STATUS_AWAITING;
-	}
-}
-OCG_DuelStatus field::operator()(Processors::Adjust& arg) {
-	if(adjust_step(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Turn& arg) {
-	if(process_turn(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::RefreshLoc& arg) {
-	if(refresh_location_info(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-
-}
-OCG_DuelStatus field::operator()(Processors::Startup& arg) {
-	if(startup(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SortChain& arg) {
-	if(sort_chain(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SelectRelease& arg) {
-	if(select_release_cards(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SelectTribute& arg) {
-	if(select_tribute_cards(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::PointEvent& arg) {
-	if(process_point_event(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::QuickEffect& arg) {
-	if(process_quick_effect(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::IdleCommand& arg) {
-	if(process_idle_command(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::PhaseEvent& arg) {
-	if(process_phase_event(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::BattleCommand& arg) {
-	if(process_battle_command(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::DamageStep& arg) {
-	if(process_damage_step(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ForcedBattle& arg) {
-	if(process_forced_battle(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::AddChain& arg) {
-	if(add_chain(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SolveChain& arg) {
-	if(solve_chain(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SolveContinuous& arg) {
-	if(solve_continuous(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ExecuteCost& arg) {
-	if(execute_cost(arg)) {
-		core.units.pop_front();
-		core.solving_event.pop_front();
-	} else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ExecuteOperation& arg) {
-	if(execute_operation(arg)) {
-		core.units.pop_front();
-		core.solving_event.pop_front();
-	} else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ExecuteTarget& arg) {
-	if(execute_target(arg)) {
-		core.units.pop_front();
-		core.solving_event.pop_front();
-	} else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Destroy& arg) {
-	if(destroy(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Release& arg) {
-	if(release(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SendTo& arg) {
-	if(send_to(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::DestroyReplace& arg) {
-	if(destroy_replace(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ReleaseReplace& arg) {
-	if(release_replace(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SendToReplace& arg) {
-	if(send_replace(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::MoveToField& arg) {
-	if(move_to_field(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ChangePos& arg) {
-	if(change_position(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::OperationReplace& arg) {
-	if(operation_replace(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ActivateEffect& arg) {
-	if(activate_effect(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SummonRule& arg) {
-	if(summon(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SpSummonRule& arg) {
-	if(special_summon_rule(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SpSummon& arg) {
-	if(special_summon(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::FlipSummon& arg) {
-	if(flip_summon(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::MonsterSet& arg) {
-	if(mset(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SpellSet& arg) {
-	if(sset(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SpSummonStep& arg) {
-	if(special_summon_step(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SpellSetGroup& arg) {
-	if(sset_g(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SpSummonRuleGroup& arg) {
-	if(special_summon_rule_group(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Draw& arg) {
-	if(draw(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Damage& arg) {
-	if(damage(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Recover& arg) {
-	if(recover(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::Equip& arg) {
-	if(equip(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::GetControl& arg) {
-	if(get_control(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SwapControl& arg) {
-	if(swap_control(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::ControlAdjust& arg) {
-	if(control_adjust(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SelfDestroyUnique& arg) {
-	if(self_destroy_unique(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SelfDestroy& arg) {
-	if(self_destroy(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SelfToGrave& arg) {
-	if(self_to_grave(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::TrapMonsterAdjust& arg) {
-	if(trap_monster_adjust(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::PayLPCost& arg) {
-	if(pay_lp_cost(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::RemoveCounter& arg) {
-	if(remove_counter(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::AttackDisable& arg) {
-	if(attack_disable(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::TossCoin& arg) {
-	if(toss_coin(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::TossDice& arg) {
-	if(toss_dice(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SelectFusion& arg) {
-	if(select_fusion(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::DiscardHand& arg) {
-	if(discard_hand(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::DiscardDeck& arg) {
-	if(discard_deck(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::SortDeck& arg) {
-	if(sort_deck(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::RemoveOverlay& arg) {
-	if(remove_overlay_card(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::XyzOverlay& arg) {
-	if(xyz_overlay(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-OCG_DuelStatus field::operator()(Processors::RefreshRelay& arg) {
-	if(refresh_relay(arg))
-		core.units.pop_front();
-	else
-		++arg.step;
-	return OCG_DUEL_STATUS_CONTINUE;
-}
-
 OCG_DuelStatus field::process() {
 	core.units.splice(core.units.begin(), core.subunits);
 	if(core.units.empty())
@@ -655,13 +23,14 @@ OCG_DuelStatus field::process() {
 	return mpark::visit(*this, core.units.front());
 }
 
-int32_t field::execute_cost(Processors::ExecuteCost& arg) {
+bool field::process(Processors::ExecuteCost& arg) {
 	auto step = arg.step;
 	auto triggering_effect = arg.triggering_effect;
 	auto triggering_player = arg.triggering_player;
 	if(!triggering_effect->cost) {
 		core.solving_event.splice(core.solving_event.begin(), core.sub_solving_event);
 		pduel->lua->params.clear();
+		core.solving_event.pop_front();
 		return TRUE;
 	}
 	if (step == 0) {
@@ -707,17 +76,19 @@ int32_t field::execute_cost(Processors::ExecuteCost& arg) {
 				shuffle(1, LOCATION_DECK);
 		}
 		core.shuffle_check_disabled = arg.shuffle_check_was_disabled;
+		core.solving_event.pop_front();
 		return TRUE;
 	}
 	return FALSE;
 }
-int32_t field::execute_operation(Processors::ExecuteOperation& arg) {
+bool field::process(Processors::ExecuteOperation& arg) {
 	auto step = arg.step;
 	auto triggering_effect = arg.triggering_effect;
 	auto triggering_player = arg.triggering_player;
 	if(!triggering_effect->operation) {
 		core.solving_event.splice(core.solving_event.begin(), core.sub_solving_event);
 		pduel->lua->params.clear();
+		core.solving_event.pop_front();
 		return TRUE;
 	}
 	if (step == 0) {
@@ -766,17 +137,19 @@ int32_t field::execute_operation(Processors::ExecuteOperation& arg) {
 			//cost[1].amount = 0;
 		}
 		core.shuffle_check_disabled = arg.shuffle_check_was_disabled;
+		core.solving_event.pop_front();
 		return TRUE;
 	}
 	return FALSE;
 }
-int32_t field::execute_target(Processors::ExecuteTarget& arg) {
+bool field::process(Processors::ExecuteTarget& arg) {
 	auto step = arg.step;
 	auto triggering_effect = arg.triggering_effect;
 	auto triggering_player = arg.triggering_player;
 	if(!triggering_effect->target) {
 		core.solving_event.splice(core.solving_event.begin(), core.sub_solving_event);
 		pduel->lua->params.clear();
+		core.solving_event.pop_front();
 		return TRUE;
 	}
 	if (step == 0) {
@@ -822,6 +195,7 @@ int32_t field::execute_target(Processors::ExecuteTarget& arg) {
 				shuffle(1, LOCATION_DECK);
 		}
 		core.shuffle_check_disabled = arg.shuffle_check_was_disabled;
+		core.solving_event.pop_front();
 		return TRUE;
 	}
 	return FALSE;
@@ -930,7 +304,7 @@ int32_t field::check_hint_timing(effect* peffect) {
 		return (peffect->hint_timing[0] & core.hint_timing[1]) || (peffect->hint_timing[1] & core.hint_timing[0]);
 }
 // core.spe_effect[p]: # of optional trigger effects, activate/quick effect with hints
-int32_t field::process_phase_event(Processors::PhaseEvent& arg) {
+bool field::process(Processors::PhaseEvent& arg) {
 	auto phase = arg.phase;
 	switch(arg.step) {
 	case 0: {
@@ -1220,7 +594,7 @@ int32_t field::process_phase_event(Processors::PhaseEvent& arg) {
 	return TRUE;
 }
 // core.ignition_priority_chains: used in step 8 (obsolete ignition effect ruling)
-int32_t field::process_point_event(Processors::PointEvent& arg) {
+bool field::process(Processors::PointEvent& arg) {
 	auto skip_trigger = arg.skip_trigger;
 	auto skip_freechain = arg.skip_freechain;
 	auto skip_new = arg.skip_new;
@@ -1552,7 +926,7 @@ int32_t field::process_point_event(Processors::PointEvent& arg) {
 	}
 	return TRUE;
 }
-int32_t field::process_quick_effect(Processors::QuickEffect& arg) {
+bool field::process(Processors::QuickEffect& arg) {
 	auto skip_freechain = arg.skip_freechain;
 	auto priority = arg.priority_player;
 	switch(arg.step) {
@@ -2058,7 +1432,7 @@ int32_t field::process_single_event(effect* peffect, const tevent& e, chain_list
 	}*/
 	return TRUE;
 }
-int32_t field::process_idle_command(Processors::IdleCommand& arg) {
+bool field::process(Processors::IdleCommand& arg) {
 	switch(arg.step) {
 	case 0: {
 		bool must_attack = false;
@@ -2397,7 +1771,7 @@ int32_t field::process_idle_command(Processors::IdleCommand& arg) {
 	}*/
 	return TRUE;
 }
-int32_t field::process_battle_command(Processors::BattleCommand& arg) {
+bool field::process(Processors::BattleCommand& arg) {
 	switch(arg.step) {
 	case 0: {
 		effect* peffect = 0;
@@ -3354,7 +2728,7 @@ int32_t field::process_battle_command(Processors::BattleCommand& arg) {
 	}
 	return TRUE;
 }
-int32_t field::process_forced_battle(Processors::ForcedBattle& arg) {
+bool field::process(Processors::ForcedBattle& arg) {
 	switch(arg.step) {
 	case 0: {
 		if (is_player_affected_by_effect(infos.turn_player, EFFECT_CANNOT_BP))
@@ -3441,7 +2815,7 @@ int32_t field::process_forced_battle(Processors::ForcedBattle& arg) {
 	}
 	return TRUE;
 }
-int32_t field::process_damage_step(Processors::DamageStep& arg) {
+bool field::process(Processors::DamageStep& arg) {
 	auto new_attack = arg.new_attack;
 	switch(arg.step) {
 	case 0: {
@@ -3833,7 +3207,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, st
 		*battle_destroyed = bd;
 	}
 }
-int32_t field::process_turn(Processors::Turn& arg) {
+bool field::process(Processors::Turn& arg) {
 	const auto& turn_player = arg.turn_player;
 	switch(arg.step) {
 	case 0: {
@@ -4208,7 +3582,7 @@ int32_t field::process_turn(Processors::Turn& arg) {
 	}
 	return TRUE;
 }
-int32_t field::add_chain(Processors::AddChain& arg) {
+bool field::process(Processors::AddChain& arg) {
 	switch (arg.step) {
 	case 0: {
 		if (!core.new_chains.size())
@@ -4557,7 +3931,7 @@ int32_t field::add_chain(Processors::AddChain& arg) {
 	}
 	return TRUE;
 }
-int32_t field::sort_chain(Processors::SortChain& arg) {
+bool field::process(Processors::SortChain& arg) {
 	auto is_turn_player = arg.playerid == infos.turn_player;
 	auto& chains = is_turn_player ? core.tpchain : core.ntpchain;
 	switch(arg.step) {
@@ -4596,7 +3970,7 @@ void field::solve_continuous(uint8_t playerid, effect* peffect, const tevent& e)
 	newchain.flag = 0;
 	emplace_process<Processors::SolveContinuous>();
 }
-int32_t field::solve_continuous(Processors::SolveContinuous& arg) {
+bool field::process(Processors::SolveContinuous& arg) {
 	switch(arg.step) {
 	case 0: {
 		core.solving_continuous.splice(core.solving_continuous.begin(), core.sub_solving_continuous);
@@ -4678,7 +4052,7 @@ int32_t field::solve_continuous(Processors::SolveContinuous& arg) {
 	}
 	return TRUE;
 }
-int32_t field::solve_chain(Processors::SolveChain& arg) {
+bool field::process(Processors::SolveChain& arg) {
 	auto step = arg.step;
 	if(core.current_chain.size() == 0 && step == 0)
 		return TRUE;
@@ -5074,7 +4448,7 @@ void field::refresh_location_info_instant() {
 		message->write<uint32_t>(dis2);
 	}
 }
-int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
+bool field::process(Processors::RefreshLoc& arg) {
 	switch(arg.step) {
 	case 0: {
 		effect_set eset;
@@ -5243,7 +4617,7 @@ int32_t field::refresh_location_info(Processors::RefreshLoc& arg) {
 	}
 	return TRUE;
 }
-int32_t field::adjust_step(Processors::Adjust& arg) {
+bool field::process(Processors::Adjust& arg) {
 	switch(arg.step) {
 	case 0: {
 		core.re_adjust = false;
@@ -5603,7 +4977,7 @@ int32_t field::adjust_step(Processors::Adjust& arg) {
 	return TRUE;
 }
 
-int32_t field::startup(Processors::Startup& arg) {
+bool field::process(Processors::Startup& arg) {
 	switch(arg.step) {
 	case 0: {
 		core.shuffle_hand_check[0] = false;
@@ -5643,7 +5017,7 @@ int32_t field::startup(Processors::Startup& arg) {
 	return TRUE;
 }
 
-int32_t field::sort_deck(Processors::SortDeck& arg) {
+bool field::process(Processors::SortDeck& arg) {
 	auto sort_player = arg.sort_player;
 	auto target_player = arg.target_player;
 	auto count = arg.count;
@@ -5703,7 +5077,7 @@ int32_t field::sort_deck(Processors::SortDeck& arg) {
 	return TRUE;
 }
 
-int32_t field::discard_hand(Processors::DiscardHand& arg) {
+bool field::process(Processors::DiscardHand& arg) {
 	auto playerid = arg.playerid;
 	auto min = arg.min;
 	auto max = arg.max;
@@ -5731,7 +5105,7 @@ int32_t field::discard_hand(Processors::DiscardHand& arg) {
 	return TRUE;
 }
 
-int32_t field::attack_disable(Processors::AttackDisable& arg) {
+bool field::process(Processors::AttackDisable& arg) {
 	switch(arg.step) {
 	case 0: {
 		auto* attacker = core.attacker;
@@ -5762,7 +5136,7 @@ int32_t field::attack_disable(Processors::AttackDisable& arg) {
 	return TRUE;
 }
 
-int32_t field::select_fusion(Processors::SelectFusion& arg) {
+bool field::process(Processors::SelectFusion& arg) {
 	auto playerid = arg.playerid;
 	auto fusion_materials = arg.fusion_materials;
 	auto pcard = arg.pcard;
@@ -5803,7 +5177,7 @@ int32_t field::select_fusion(Processors::SelectFusion& arg) {
 	return TRUE;
 }
 
-int32_t field::refresh_relay(Processors::RefreshRelay& arg) {
+bool field::process(Processors::RefreshRelay& arg) {
 	auto step = arg.step;
 	switch(step) {
 	case 0:
