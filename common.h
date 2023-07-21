@@ -42,6 +42,10 @@
 #define LOCATION_DECKBOT	0x10001		//Return to deck bottom
 #define LOCATION_DECKSHF	0x20001		//Return to deck and shuffle
 
+//
+#define COIN_HEADS  1
+#define COIN_TAILS  0
+
 //Positions
 #define POS_FACEUP_ATTACK    0x1
 #define POS_FACEDOWN_ATTACK  0x2

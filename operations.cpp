@@ -5984,7 +5984,12 @@ int32_t field::toss_coin(uint16_t step, effect* reason_effect, uint8_t reason_pl
 		return FALSE;
 	}
 	case 1: {
-		raise_event((card*)0, EVENT_TOSS_COIN, reason_effect, 0, reason_player, playerid, count);
+		uint8_t heads = 0, tails = 0;
+		for(auto result : core.coin_results) {
+			heads += (result == COIN_HEADS);
+			tails += (result == COIN_TAILS);
+		}
+		raise_event((card*)0, EVENT_TOSS_COIN, reason_effect, 0, reason_player, playerid, (tails << 16) | (heads << 8) | count);
 		process_instant_event();
 		return TRUE;
 	}
