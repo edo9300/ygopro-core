@@ -356,7 +356,6 @@ public:
 	int32_t is_control_can_be_changed(int32_t ignore_mzone, uint32_t zone);
 	int32_t is_capable_be_battle_target(card* pcard);
 	int32_t is_capable_be_effect_target(effect* peffect, uint8_t playerid);
-	int32_t is_capable_overlay(uint8_t playerid);
 	int32_t is_can_be_fusion_material(card* fcard, uint64_t summon_type, uint8_t playerid);
 	int32_t is_can_be_synchro_material(card* scard, uint8_t playerid, card* tuner = 0);
 	int32_t is_can_be_ritual_material(card* scard, uint8_t playerid);
