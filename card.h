@@ -334,8 +334,8 @@ public:
 	int32_t is_destructable_by_battle(card* pcard);
 	effect* check_indestructable_by_effect(effect* peffect, uint8_t playerid);
 	int32_t is_destructable_by_effect(effect* peffect, uint8_t playerid);
-	int32_t is_removeable(uint8_t playerid, int32_t pos = 0x5/*POS_FACEUP*/, uint32_t reason = 0x40/*REASON_EFFECT*/);
-	int32_t is_removeable_as_cost(uint8_t playerid, int32_t pos = 0x5/*POS_FACEUP*/);
+	int32_t is_removeable(uint8_t playerid, uint8_t pos = POS_FACEUP, uint32_t reason = REASON_EFFECT);
+	int32_t is_removeable_as_cost(uint8_t playerid, uint8_t pos = POS_FACEUP);
 	int32_t is_releasable_by_summon(uint8_t playerid, card* pcard);
 	int32_t is_releasable_by_nonsummon(uint8_t playerid);
 	int32_t is_releasable_by_effect(uint8_t playerid, effect* peffect);
