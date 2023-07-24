@@ -4,8 +4,6 @@
 #include "field.h"
 #include "effect.h"
 
-#define DUEL (static_cast<class duel*>(duel))
-
 OCGAPI void OCG_GetVersion(int* major, int* minor) {
 	if(major)
 		*major = OCG_VERSION_MAJOR;
@@ -13,15 +11,15 @@ OCGAPI void OCG_GetVersion(int* major, int* minor) {
 		*minor = OCG_VERSION_MINOR;
 }
 
-OCGAPI int OCG_CreateDuel(OCG_Duel* return_duel_ptr, OCG_DuelOptions options) {
-	if(return_duel_ptr == nullptr)
+OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, OCG_DuelOptions options) {
+	if(out_ocg_duel == nullptr)
 		return OCG_DUEL_CREATION_NO_OUTPUT;
 	if(options.cardReader == nullptr) {
-		*return_duel_ptr = nullptr;
+		*out_ocg_duel = nullptr;
 		return OCG_DUEL_CREATION_NULL_DATA_READER;
 	}
 	if(options.scriptReader == nullptr) {
-		*return_duel_ptr = nullptr;
+		*out_ocg_duel = nullptr;
 		return OCG_DUEL_CREATION_NULL_SCRIPT_READER;
 	}
 	if(options.logHandler == nullptr) {
@@ -35,20 +33,21 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* return_duel_ptr, OCG_DuelOptions options) {
 	auto* duelPtr = new (std::nothrow) duel(options);
 	if(duelPtr == nullptr)
 		return OCG_DUEL_CREATION_NOT_CREATED;
-	*return_duel_ptr = static_cast<OCG_Duel>(duelPtr);
+	*out_ocg_duel = static_cast<OCG_Duel>(duelPtr);
 	return OCG_DUEL_CREATION_SUCCESS;
 }
 
-OCGAPI void OCG_DestroyDuel(OCG_Duel duel) {
-	if(duel != nullptr)
-		delete DUEL;
+OCGAPI void OCG_DestroyDuel(OCG_Duel ocg_duel) {
+	if(ocg_duel)
+		delete static_cast<duel*>(ocg_duel);
 }
 
-OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
-	auto& game_field = *DUEL->game_field;
+OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, OCG_NewCardInfo info) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	auto& game_field = *(pduel->game_field);
 	if(info.duelist == 0) {
 		if(game_field.is_location_useable(info.con, info.loc, info.seq)) {
-			card* pcard = DUEL->new_card(info.code);
+			card* pcard = pduel->new_card(info.code);
 			pcard->owner = info.team;
 			game_field.add_card(info.con, pcard, (uint8_t)info.loc, (uint8_t)info.seq);
 			pcard->current.position = info.pos;
@@ -64,7 +63,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 	} else {
 		if(info.team > 1 || !(info.loc & (LOCATION_DECK | LOCATION_EXTRA)))
 			return;
-		card* pcard = DUEL->new_card(info.code);
+		card* pcard = pduel->new_card(info.code);
 		auto& player = game_field.player[info.team];
 		if(info.duelist > player.extra_lists_main.size()) {
 			player.extra_lists_main.resize(info.duelist);
@@ -73,7 +72,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 			player.extra_extra_p_count.resize(info.duelist);
 		}
 		--info.duelist;
-		pcard->current.location = (uint8_t)info.loc;
+		pcard->current.location = static_cast<uint8_t>(info.loc);
 		pcard->owner = info.team;
 		pcard->current.controler = info.team;
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
@@ -83,39 +82,45 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel duel, OCG_NewCardInfo info) {
 	}
 }
 
-OCGAPI void OCG_StartDuel(OCG_Duel duel) {
-	DUEL->game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
+OCGAPI void OCG_StartDuel(OCG_Duel ocg_duel) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
 }
 
-OCGAPI int OCG_DuelProcess(OCG_Duel duel) {
-	DUEL->buff.clear();
-	int flag = 0;
+OCGAPI int OCG_DuelProcess(OCG_Duel ocg_duel) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->buff.clear();
+	auto flag = 0;
 	do {
-		flag = DUEL->game_field->process();
-		DUEL->generate_buffer();
-	} while(DUEL->buff.size() == 0 && flag == PROCESSOR_FLAG_CONTINUE);
+		flag = pduel->game_field->process();
+		pduel->generate_buffer();
+	} while(pduel->buff.size() == 0 && flag == PROCESSOR_FLAG_CONTINUE);
 	return flag;
 }
 
-OCGAPI void* OCG_DuelGetMessage(OCG_Duel duel, uint32_t* length) {
-	DUEL->generate_buffer();
+OCGAPI void* OCG_DuelGetMessage(OCG_Duel ocg_duel, uint32_t* length) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->generate_buffer();
 	if(length)
-		*length = static_cast<uint32_t>(DUEL->buff.size());
-	return DUEL->buff.data();
+		*length = static_cast<uint32_t>(pduel->buff.size());
+	return pduel->buff.data();
 }
 
-OCGAPI void OCG_DuelSetResponse(OCG_Duel duel, const void* buffer, uint32_t length) {
-	DUEL->set_response(buffer, length);
+OCGAPI void OCG_DuelSetResponse(OCG_Duel ocg_duel, const void* buffer, uint32_t length) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->set_response(buffer, length);
 }
 
-OCGAPI int OCG_LoadScript(OCG_Duel duel, const char* buffer, uint32_t length, const char* name) {
-	return DUEL->lua->load_script(buffer, length, name);
+OCGAPI int OCG_LoadScript(OCG_Duel ocg_duel, const char* buffer, uint32_t length, const char* name) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	return pduel->lua->load_script(buffer, length, name);
 }
 
-OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel duel, uint8_t team, uint32_t loc) {
+OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel ocg_duel, uint8_t team, uint32_t loc) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
 	if(team > 1)
 		return 0;
-	auto& player = DUEL->game_field->player[team];
+	auto& player = pduel->game_field->player[team];
 	if(loc == LOCATION_HAND)
 		return static_cast<uint32_t>(player.list_hand.size());
 	if(loc == LOCATION_GRAVE)
@@ -149,16 +154,17 @@ __forceinline void insert_value(std::vector<uint8_t>& vec, T2 val) {
 	insert_value_int<T>(vec, static_cast<T>(val));
 }
 
-OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {
-	DUEL->query_buffer.clear();
+OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, OCG_QueryInfo info) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	pduel->query_buffer.clear();
 	card* pcard = nullptr;
 	if(info.loc & LOCATION_OVERLAY) {
-		auto olcard = DUEL->game_field->get_field_card(info.con, (info.loc & LOCATION_OVERLAY), info.seq);
+		auto olcard = pduel->game_field->get_field_card(info.con, (info.loc & LOCATION_OVERLAY), info.seq);
 		if(olcard && olcard->xyz_materials.size() > info.overlay_seq) {
 			pcard = olcard->xyz_materials[info.overlay_seq];
 		}
 	} else {
-		pcard = DUEL->game_field->get_field_card(info.con, info.loc, info.seq);
+		pcard = pduel->game_field->get_field_card(info.con, info.loc, info.seq);
 	}
 	if(pcard == nullptr) {
 		if(length)
@@ -168,12 +174,13 @@ OCGAPI void* OCG_DuelQuery(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) 
 		pcard->get_infos(info.flags);
 	}
 	if(length)
-		*length = static_cast<uint32_t>(DUEL->query_buffer.size());
-	return DUEL->query_buffer.data();
+		*length = static_cast<uint32_t>(pduel->query_buffer.size());
+	return pduel->query_buffer.data();
 }
 
-OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInfo info) {
-	auto& buffer = DUEL->query_buffer;
+OCGAPI void* OCG_DuelQueryLocation(OCG_Duel ocg_duel, uint32_t* length, OCG_QueryInfo info) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	auto& buffer = pduel->query_buffer;
 	auto populate = [&flags = info.flags, &buffer](const card_vector& list) {
 		for(auto& pcard : list) {
 			if(pcard == nullptr) {
@@ -188,7 +195,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 		if(info.loc & LOCATION_OVERLAY) {
 			insert_value<int16_t>(buffer, 0);
 		} else {
-			auto& player = DUEL->game_field->player[info.con];
+			auto& player = pduel->game_field->player[info.con];
 			if(info.loc == LOCATION_MZONE)
 				populate(player.list_mzone);
 			else if(info.loc == LOCATION_SZONE)
@@ -213,13 +220,14 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel duel, uint32_t* length, OCG_QueryInf
 	return buffer.data();
 }
 
-OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
-	auto& query = DUEL->query_buffer;
+OCGAPI void* OCG_DuelQueryField(OCG_Duel ocg_duel, uint32_t* length) {
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	auto& query = pduel->query_buffer;
 	query.clear();
 	//insert_value<int8_t>(query, MSG_RELOAD_FIELD);
-	insert_value<uint32_t>(query, DUEL->game_field->core.duel_options);
+	insert_value<uint32_t>(query, pduel->game_field->core.duel_options);
 	for(int playerid = 0; playerid < 2; ++playerid) {
-		auto& player = DUEL->game_field->player[playerid];
+		auto& player = pduel->game_field->player[playerid];
 		insert_value<uint32_t>(query, player.lp);
 		for(auto& pcard : player.list_mzone) {
 			if(pcard) {
@@ -246,8 +254,8 @@ OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
 		insert_value<uint32_t>(query, player.list_extra.size());
 		insert_value<uint32_t>(query, player.extra_p_count);
 	}
-	insert_value<uint32_t>(query, DUEL->game_field->core.current_chain.size());
-	for(const auto& ch : DUEL->game_field->core.current_chain) {
+	insert_value<uint32_t>(query, pduel->game_field->core.current_chain.size());
+	for(const auto& ch : pduel->game_field->core.current_chain) {
 		effect* peffect = ch.triggering_effect;
 		insert_value<uint32_t>(query, peffect->get_handler()->data.code);
 		loc_info info = peffect->get_handler()->get_info_location();
@@ -256,7 +264,7 @@ OCGAPI void* OCG_DuelQueryField(OCG_Duel duel, uint32_t* length) {
 		insert_value<uint32_t>(query, info.sequence);
 		insert_value<uint32_t>(query, info.position);
 		insert_value<uint8_t>(query, ch.triggering_controler);
-		insert_value<uint8_t>(query, (uint8_t)ch.triggering_location);
+		insert_value<uint8_t>(query, static_cast<uint8_t>(ch.triggering_location));
 		insert_value<uint32_t>(query, ch.triggering_sequence);
 		insert_value<uint64_t>(query, peffect->description);
 	}

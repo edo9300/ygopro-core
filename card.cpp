@@ -105,7 +105,7 @@ insert_value<type>(pduel->query_buffer, value);\
 }
 #define CHECK_AND_INSERT(query, value)CHECK_AND_INSERT_T(query, value, uint32_t)
 
-void card::get_infos(int32_t query_flag) {
+void card::get_infos(uint32_t query_flag) {
 	CHECK_AND_INSERT(QUERY_CODE, data.code);
 	CHECK_AND_INSERT(QUERY_POSITION, get_info_location().position);
 	CHECK_AND_INSERT(QUERY_ALIAS, get_code());
