@@ -9,7 +9,7 @@
 #define DUEL_H_
 
 #include "common.h"
-#include "ocgapi.h"
+#include "ocgapi_types.h"
 #include "group.h"
 #include "interpreter.h"
 #include "RNG/Xoshiro256.hpp"

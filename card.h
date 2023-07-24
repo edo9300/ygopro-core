@@ -12,7 +12,6 @@
 #include "common.h"
 #include "lua_obj.h"
 #include "effectset.h"
-#include "ocgapi.h"
 #include "duel.h"
 #include <set>
 #include <map>
