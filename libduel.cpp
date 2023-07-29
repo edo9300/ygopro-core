@@ -4272,8 +4272,15 @@ LUA_FUNCTION(LoadScript) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	const auto* string = lua_tolstring(L, 1, nullptr);
-	if(!string)
-		lua_error(L, "Parameter 1 should be \"String\".");
+	if(!string || *string == '\0')
+		lua_error(L, "Parameter 1 should be a non empty \"String\".");
+	{
+		auto start = string;
+		do {
+			if(*start == '/' || *start == '\\')
+				lua_error(L, "Passed script name containing a path separator");
+		} while(*start++);
+	}
 	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
 		auto hash = [](const char* str)->uint32_t {
 			uint32_t hash = 5381, c;
