@@ -25,7 +25,7 @@ int32_t field::negate_chain(uint8_t chaincount) {
 		pchain.flag |= CHAIN_DISABLE_ACTIVATE;
 		pchain.disable_reason = core.reason_effect;
 		pchain.disable_player = core.reason_player;
-		if((pchain.triggering_effect->type & EFFECT_TYPE_ACTIVATE) && (effect_handler->current.location == LOCATION_SZONE)) {
+		if((pchain.triggering_effect->type & EFFECT_TYPE_ACTIVATE) && (effect_handler->is_has_relation(pchain)) && (effect_handler->current.location == LOCATION_SZONE)) {
 			effect_handler->set_status(STATUS_LEAVE_CONFIRMED, TRUE);
 			effect_handler->set_status(STATUS_ACTIVATE_DISABLED, TRUE);
 		}
