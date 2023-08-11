@@ -5352,9 +5352,9 @@ int32_t field::operation_replace(uint16_t step, effect* replace_effect, group* t
 		return FALSE;
 	}
 	case 3: {
-		if(core.continuous_chain.rbegin()->target_cards)
-			pduel->delete_group(core.continuous_chain.rbegin()->target_cards);
-		for(auto& oit : core.continuous_chain.rbegin()->opinfos) {
+		if(core.continuous_chain.back().target_cards)
+			pduel->delete_group(core.continuous_chain.back().target_cards);
+		for(auto& oit : core.continuous_chain.back().opinfos) {
 			if(oit.second.op_cards)
 				pduel->delete_group(oit.second.op_cards);
 		}
@@ -5419,9 +5419,9 @@ int32_t field::operation_replace(uint16_t step, effect* replace_effect, group* t
 		return FALSE;
 	}
 	case 8: {
-		if(core.continuous_chain.rbegin()->target_cards)
-			pduel->delete_group(core.continuous_chain.rbegin()->target_cards);
-		for(auto& oit : core.continuous_chain.rbegin()->opinfos) {
+		if(core.continuous_chain.back().target_cards)
+			pduel->delete_group(core.continuous_chain.back().target_cards);
+		for(auto& oit : core.continuous_chain.back().opinfos) {
 			if(oit.second.op_cards)
 				pduel->delete_group(oit.second.op_cards);
 		}
@@ -5536,9 +5536,9 @@ int32_t field::operation_replace(uint16_t step, effect* replace_effect, group* t
 		return FALSE;
 	}
 	case 16: {
-		if(core.continuous_chain.rbegin()->target_cards)
-			pduel->delete_group(core.continuous_chain.rbegin()->target_cards);
-		for(auto& oit : core.continuous_chain.rbegin()->opinfos) {
+		if(core.continuous_chain.back().target_cards)
+			pduel->delete_group(core.continuous_chain.back().target_cards);
+		for(auto& oit : core.continuous_chain.back().opinfos) {
 			if(oit.second.op_cards)
 				pduel->delete_group(oit.second.op_cards);
 		}
