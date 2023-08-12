@@ -35,7 +35,7 @@ struct Detail::LuaFunction<__COUNTER__> { \
 static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
 
 #define GET_LUA_FUNCTIONS_ARRAY() \
-	Detail::make_lua_functions_array(std::make_index_sequence<__COUNTER__>());
+	Detail::make_lua_functions_array(std::make_index_sequence<__COUNTER__>())
 
 
 #define LUA_FUNCTION_EXISTING(name,...) \
@@ -54,6 +54,6 @@ struct Detail::LuaFunction<__COUNTER__> { \
 #define LUA_FUNCTION(name) static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
-#define GET_LUA_FUNCTIONS_ARRAY() std::array<luaL_Reg,1>{{{nullptr,nullptr}}};
+#define GET_LUA_FUNCTIONS_ARRAY() std::array<luaL_Reg,1>{{{nullptr,nullptr}}}
 #endif // __INTELLISENSE__
 #endif // FUNCTION_ARRAY_HELPER_H

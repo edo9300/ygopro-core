@@ -132,7 +132,7 @@ LUA_FUNCTION(SetCountLimit) {
 				hopt_index = 0;
 				lua_pop(L, 1); //manually pop the key from the stack as there won't be a next iteration
 			} else if(lua_next(L, 3) != 0) {
-				hopt_index = lua_get<uint32_t>(L, -1);
+				hopt_index = lua_get<uint8_t>(L, -1);
 				lua_pop(L, 1);
 				lua_pop(L, 1); //manually pop the key from the stack as there won't be a next iteration
 			}
@@ -192,7 +192,7 @@ LUA_FUNCTION(SetProperty) {
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto v1 = lua_get<uint32_t>(L, 2);
 	auto v2 = lua_get<uint32_t, 0>(L, 3);
-	peffect->flag[0] = (peffect->flag[0] & 0x4f) | (v1 & ~0x4f);
+	peffect->flag[0] = (peffect->flag[0] & 0x4fu) | (v1 & ~0x4fu);
 	peffect->flag[1] = v2;
 	return 0;
 }
@@ -444,7 +444,7 @@ LUA_FUNCTION(GetValue) {
 	if(peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
 		interpreter::pushobject(L, peffect->value);
 	else
-		lua_pushinteger(L, (int32_t)peffect->value);
+		lua_pushinteger(L, peffect->value);
 	return 1;
 }
 LUA_FUNCTION(GetOperation) {
