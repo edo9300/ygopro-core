@@ -462,7 +462,7 @@ LUA_FUNCTION(GetActiveType) {
 LUA_FUNCTION(IsActiveType) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	lua_pushboolean(L, peffect->get_active_type() & lua_get<uint32_t>(L, 2));
+	lua_pushboolean(L, (peffect->get_active_type() & lua_get<uint32_t>(L, 2)) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsHasProperty) {
@@ -476,13 +476,13 @@ LUA_FUNCTION(IsHasProperty) {
 LUA_FUNCTION(IsHasCategory) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	lua_pushboolean(L, peffect->category & lua_get<uint32_t>(L, 2));
+	lua_pushboolean(L, (peffect->category & lua_get<uint32_t>(L, 2)) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsHasType) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	lua_pushboolean(L, peffect->type & lua_get<uint16_t>(L, 2));
+	lua_pushboolean(L, (peffect->type & lua_get<uint16_t>(L, 2)) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsActivatable) {
@@ -498,7 +498,7 @@ LUA_FUNCTION(IsActivatable) {
 LUA_FUNCTION(IsActivated) {
 	check_param_count(L, 1);
 	auto peffect = lua_get<effect*, true>(L, 1);
-	lua_pushboolean(L, (peffect->type & 0x7f0));
+	lua_pushboolean(L, (peffect->type & 0x7f0) != 0);
 	return 1;
 }
 LUA_FUNCTION(GetActivateLocation) {
