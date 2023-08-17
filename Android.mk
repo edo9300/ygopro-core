@@ -5,7 +5,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := ocgcore
 LOCAL_MODULE_FILENAME := libocgcore
-LOCAL_SRC_FILES :=  card.cpp \
+LOCAL_SRC_FILES := card.cpp \
 				duel.cpp \
 				effect.cpp \
 				field.cpp \
@@ -22,8 +22,8 @@ LOCAL_SRC_FILES :=  card.cpp \
 				processor.cpp \
 				scriptlib.cpp
                    
-LOCAL_CFLAGS    :=  -pedantic -Wno-unused-parameter -Wextra -fno-rtti -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS
-LOCAL_CPPFLAGS := -fexceptions
+LOCAL_CFLAGS    :=  -pedantic -Wno-unused-parameter -Wextra -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS
+LOCAL_CPPFLAGS := -fexceptions -fno-rtti
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lua/include
 LOCAL_STATIC_LIBRARIES += liblua5.3
 
