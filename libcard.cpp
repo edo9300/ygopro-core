@@ -1745,7 +1745,7 @@ LUA_FUNCTION(IsProcedureSummonable) {
 	return spsummonable_rule(L, cardtype, sumtype, 2);
 }
 LUA_FUNCTION(IsSummonable) {
-	check_param_count(L, 3);
+	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto ign = lua_get<bool>(L, 2);
@@ -1758,7 +1758,7 @@ LUA_FUNCTION(IsSummonable) {
 	return 1;
 }
 LUA_FUNCTION(IsMSetable) {
-	check_param_count(L, 3);
+	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
 	bool ign = lua_get<bool>(L, 2);
