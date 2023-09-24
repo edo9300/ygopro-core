@@ -1,6 +1,6 @@
 project('ocgcore', 'cpp',
 	license : 'AGPL-3.0-or-later',
-	default_options : ['cpp_std=c++14'],
+	default_options : ['cpp_std=c++17'],
 	version : '9.1'
 )
 
