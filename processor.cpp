@@ -20,7 +20,7 @@ OCG_DuelStatus field::process() {
 	core.units.splice(core.units.begin(), core.subunits);
 	if(core.units.empty())
 		return OCG_DUEL_STATUS_END;
-	return mpark::visit(*this, core.units.front());
+	return std::visit(*this, core.units.front());
 }
 
 bool field::process(Processors::ExecuteCost& arg) {
@@ -2568,7 +2568,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		process_single_event();
 		process_instant_event();
 		if(core.effect_damage_step) {
-			auto* damage_step = mpark::get_if<Processors::DamageStep>(&core.reserved);
+			auto* damage_step = std::get_if<Processors::DamageStep>(&core.reserved);
 			if(damage_step)
 				damage_step->cards_destroyed_by_battle = arg.cards_destroyed_by_battle;
 			return TRUE;
