@@ -22,8 +22,8 @@ LOCAL_SRC_FILES :=  card.cpp \
 				processor.cpp \
 				scriptlib.cpp
                    
-LOCAL_CFLAGS    := -frtti -DLUA_COMPAT_5_2 -Wno-format-security -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS
-LOCAL_CPPFLAGS := -fexceptions -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS
+LOCAL_CFLAGS    :=  -pedantic -Wno-unused-parameter -Wextra -fno-rtti -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS
+LOCAL_CPPFLAGS := -fexceptions
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lua/include
 LOCAL_STATIC_LIBRARIES += liblua5.3
 
