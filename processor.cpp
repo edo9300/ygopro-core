@@ -16,13 +16,6 @@
 #include "group.h"
 #include "interpreter.h"
 
-OCG_DuelStatus field::process() {
-	core.units.splice(core.units.begin(), core.subunits);
-	if(core.units.empty())
-		return OCG_DUEL_STATUS_END;
-	return std::visit(*this, core.units.front());
-}
-
 bool field::process(Processors::ExecuteCost& arg) {
 	auto step = arg.step;
 	auto triggering_effect = arg.triggering_effect;

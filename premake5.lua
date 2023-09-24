@@ -6,6 +6,10 @@ local ocgcore_config=function()
 
 	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
+	if os.istarget("macosx") then
+		filter { "files:processor_visit.cpp" }
+			buildoptions { "-fno-exceptions" }
+	end
 end
 
 if not subproject then
