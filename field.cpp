@@ -2726,7 +2726,7 @@ int32_t field::is_player_can_spsummon(uint8_t playerid) {
 	}
 	return is_player_can_spsummon_count(playerid, 1);
 }
-int32_t field::is_player_can_spsummon(effect* peffect, uint32_t sumtype, uint8_t sumpos, uint8_t playerid, uint8_t toplayer, card* pcard) {
+int32_t field::is_player_can_spsummon(effect* peffect, uint32_t sumtype, uint8_t sumpos, uint8_t playerid, uint8_t toplayer, card* pcard, effect* proc_effect) {
 	if(pcard->is_affected_by_effect(EFFECT_CANNOT_SPECIAL_SUMMON))
 		return FALSE;
 	if(pcard->is_status(STATUS_FORBIDDEN))
@@ -2758,7 +2758,8 @@ int32_t field::is_player_can_spsummon(effect* peffect, uint32_t sumtype, uint8_t
 		pduel->lua->add_param<PARAM_TYPE_INT>(sumpos);
 		pduel->lua->add_param<PARAM_TYPE_INT>(toplayer);
 		pduel->lua->add_param<PARAM_TYPE_EFFECT>(peffect);
-		if(pduel->lua->check_condition(eff->target, 7))
+		pduel->lua->add_param<PARAM_TYPE_EFFECT>(proc_effect);
+		if(pduel->lua->check_condition(eff->target, 8))
 			return FALSE;
 	}
 	eset.clear();

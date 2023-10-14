@@ -2851,7 +2851,7 @@ void card::filter_spsummon_procedure(uint8_t playerid, effect_set* peset, uint32
 				continue;
 			if(summon_type != 0 && summon_type != sumtype)
 				continue;
-			if(!pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this))
+			if(!pduel->game_field->is_player_can_spsummon(sumeffect, sumtype, topos, playerid, toplayer, this, peffect))
 				continue;
 			peset->push_back(peffect);
 		}
