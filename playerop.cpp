@@ -227,9 +227,6 @@ namespace {
 template<typename ReturnType>
 bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<ReturnType>& return_cards, const std::vector<ReturnType>& select_cards, bool cancelable) {
 	auto type = returns.at<int32_t>(0);
-	//allowed values are from -1 to 3
-	if(static_cast<uint32_t>(type + 1) > 4)
-		return false;
 	if(type == -1) {
 		if(cancelable) {
 			return_cards.canceled = true;
