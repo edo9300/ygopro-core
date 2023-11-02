@@ -2994,7 +2994,7 @@ void card::get_card_effect(uint32_t code, effect_set* eset) {
 	for (auto rg = single_effect.begin(); rg != single_effect.end();) {
 		peffect = rg->second;
 		++rg;
-		if ((code == 0 || peffect->code == code) && peffect->is_available() && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
+		if ((code == 0 || peffect->code == code) && (!peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE) || is_affect_by_effect(peffect)))
 			eset->push_back(peffect);
 	}
 	for (auto rg = field_effect.begin(); rg != field_effect.end(); ++rg) {
