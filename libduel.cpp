@@ -3980,7 +3980,8 @@ LUA_FUNCTION(IsPlayerCanRelease) {
 	else {
 		check_param_count(L, 2);
 		auto pcard = lua_get<card*, true>(L, 2);
-		lua_pushboolean(L, pduel->game_field->is_player_can_release(playerid, pcard));
+		const auto reason = lua_get<uint32_t, REASON_COST>(L, 3);
+		lua_pushboolean(L, pduel->game_field->is_player_can_release(playerid, pcard, reason));
 	}
 	return 1;
 }

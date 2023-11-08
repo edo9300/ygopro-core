@@ -2806,7 +2806,7 @@ int32_t field::is_player_can_spsummon_monster(uint8_t playerid, uint8_t toplayer
 	temp_card->data = {};
 	return result;
 }
-int32_t field::is_player_can_release(uint8_t playerid, card* pcard) {
+int32_t field::is_player_can_release(uint8_t playerid, card* pcard, uint32_t reason) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_RELEASE, &eset);
 	for(const auto& peff : eset) {
@@ -2815,7 +2815,8 @@ int32_t field::is_player_can_release(uint8_t playerid, card* pcard) {
 		pduel->lua->add_param<PARAM_TYPE_EFFECT>(peff);
 		pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
 		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
-		if (pduel->lua->check_condition(peff->target, 3))
+		pduel->lua->add_param<PARAM_TYPE_INT>(reason);
+		if (pduel->lua->check_condition(peff->target, 4))
 			return FALSE;
 	}
 	return TRUE;
