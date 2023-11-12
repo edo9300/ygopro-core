@@ -4113,7 +4113,7 @@ int32_t field::release(uint16_t step, group* targets, effect* reason_effect, uin
 			if(pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)
 				|| ((reason & REASON_SUMMON) && !pcard->is_releasable_by_summon(reason_player, pcard->current.reason_card))
 				|| (!(pcard->current.reason & (REASON_RULE | REASON_SUMMON | REASON_COST))
-					&& (!pcard->is_affect_by_effect(pcard->current.reason_effect) || !pcard->is_releasable_by_nonsummon(reason_player)))) {
+					&& (!pcard->is_affect_by_effect(pcard->current.reason_effect) || !pcard->is_releasable_by_nonsummon(reason_player, reason)))) {
 				pcard->current.reason = pcard->temp.reason;
 				pcard->current.reason_effect = pcard->temp.reason_effect;
 				pcard->current.reason_player = pcard->temp.reason_player;
