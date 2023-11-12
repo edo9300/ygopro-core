@@ -1772,7 +1772,7 @@ int32_t field::get_release_list(uint8_t playerid, card_set* release_list, card_s
 					if(!peffect || (peffect->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peffect->count_limit == 0))
 						continue;
 					pduel->lua->add_param<PARAM_TYPE_EFFECT>(core.reason_effect);
-					pduel->lua->add_param<PARAM_TYPE_INT>(REASON_COST);
+					pduel->lua->add_param<PARAM_TYPE_INT>(reason);
 					pduel->lua->add_param<PARAM_TYPE_INT>(core.reason_player);
 					if(!peffect->check_value_condition(3))
 						continue;
