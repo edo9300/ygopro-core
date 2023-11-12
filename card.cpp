@@ -3646,7 +3646,7 @@ int32_t card::is_releasable_by_summon(uint8_t playerid, card* pcard) {
 		return FALSE;
 	if(current.location & (LOCATION_GRAVE | LOCATION_REMOVED))
 		return FALSE;
-	if(!pduel->game_field->is_player_can_release(playerid, this))
+	if(!pduel->game_field->is_player_can_release(playerid, this, REASON_SUMMON))
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_UNRELEASABLE_SUM, pcard))
 		return FALSE;

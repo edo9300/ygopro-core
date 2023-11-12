@@ -537,7 +537,7 @@ public:
 	int32_t is_player_can_flipsummon(uint8_t playerid, card* pcard);
 	int32_t is_player_can_spsummon_monster(uint8_t playerid, uint8_t toplayer, uint8_t sumpos, uint32_t sumtype, card_data* pdata);
 	int32_t is_player_can_spsummon_count(uint8_t playerid, uint32_t count);
-	int32_t is_player_can_release(uint8_t playerid, card* pcard, uint32_t reason = 0);
+	int32_t is_player_can_release(uint8_t playerid, card* pcard, uint32_t reason);
 	int32_t is_player_can_place_counter(uint8_t playerid, card* pcard, uint16_t countertype, uint16_t count);
 	int32_t is_player_can_remove_counter(uint8_t playerid, card* pcard, uint8_t self, uint8_t oppo, uint16_t countertype, uint16_t count, uint32_t reason);
 	int32_t is_player_can_remove_overlay_card(uint8_t playerid, group* pcard, uint8_t self, uint8_t oppo, uint16_t count, uint32_t reason);
