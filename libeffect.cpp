@@ -257,8 +257,19 @@ LUA_FUNCTION(SetValue) {
 		self->flag[0] &= ~EFFECT_FLAG_FUNC_VALUE;
 		if(lua_isboolean(L, 2))
 			self->value = lua_get<bool>(L, 2);
-		else
-			self->value = lua_get<int32_t>(L, 2);
+		else {
+			auto value = lua_get<lua_Integer>(L, 2);
+			if(value > INT32_MAX || value < INT32_MIN) {
+				lua_pushvalue(L, 2);
+				lua_pushcclosure(L, [](lua_State* L) -> int32_t {
+					lua_pushvalue(L, lua_upvalueindex(1));
+					return 1;
+				}, 1);
+				self->value = interpreter::get_function_handle(L, -1);
+				self->flag[0] |= EFFECT_FLAG_FUNC_VALUE;
+			} else
+				self->value = static_cast<int32_t>(value);
+		}
 	}
 	return 0;
 }
