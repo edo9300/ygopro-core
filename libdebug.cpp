@@ -17,7 +17,7 @@ namespace {
 
 using namespace scriptlib;
 
-LUA_FUNCTION(Message) {
+LUA_STATIC_FUNCTION(Message) {
 	int top = lua_gettop(L);
 	if(top == 0)
 		return 0;
@@ -31,7 +31,7 @@ LUA_FUNCTION(Message) {
 	}
 	return 0;
 }
-LUA_FUNCTION(AddCard) {
+LUA_STATIC_FUNCTION(AddCard) {
 	check_param_count(L, 6);
 	auto code = lua_get<uint32_t>(L, 1);
 	auto owner = lua_get<uint8_t>(L, 2);
@@ -94,7 +94,7 @@ LUA_FUNCTION(AddCard) {
 	}
 	return 0;
 }
-LUA_FUNCTION(SetPlayerInfo) {
+LUA_STATIC_FUNCTION(SetPlayerInfo) {
 	check_param_count(L, 4);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -110,7 +110,7 @@ LUA_FUNCTION(SetPlayerInfo) {
 	player.draw_count = drawcount;
 	return 0;
 }
-LUA_FUNCTION(PreSummon) {
+LUA_STATIC_FUNCTION(PreSummon) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto summon_type = lua_get<uint32_t>(L, 2);
@@ -123,7 +123,7 @@ LUA_FUNCTION(PreSummon) {
 	pcard->summon.pzone = summon_pzone;
 	return 0;
 }
-LUA_FUNCTION(PreEquip) {
+LUA_STATIC_FUNCTION(PreEquip) {
 	check_param_count(L, 2);
 	auto equip_card = lua_get<card*, true>(L, 1);
 	auto target = lua_get<card*, true>(L, 2);
@@ -139,14 +139,14 @@ LUA_FUNCTION(PreEquip) {
 	}
 	return 1;
 }
-LUA_FUNCTION(PreSetTarget) {
+LUA_STATIC_FUNCTION(PreSetTarget) {
 	check_param_count(L, 2);
 	auto t_card = lua_get<card*, true>(L, 1);
 	auto target = lua_get<card*, true>(L, 2);
 	t_card->add_card_target(target);
 	return 0;
 }
-LUA_FUNCTION(PreAddCounter) {
+LUA_STATIC_FUNCTION(PreAddCounter) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto countertype = lua_get<uint16_t>(L, 2);
@@ -164,7 +164,7 @@ LUA_FUNCTION(PreAddCounter) {
 		cmit->second[1] += count;
 	return 0;
 }
-LUA_FUNCTION(ReloadFieldBegin) {
+LUA_STATIC_FUNCTION(ReloadFieldBegin) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto flag = lua_get<uint64_t>(L, 1);
@@ -185,7 +185,7 @@ LUA_FUNCTION(ReloadFieldBegin) {
 	pduel->game_field->core.duel_options = flag;
 	return 0;
 }
-LUA_FUNCTION(ReloadFieldEnd) {
+LUA_STATIC_FUNCTION(ReloadFieldEnd) {
 	const auto pduel = lua_get<duel*>(L);
 	auto& field = pduel->game_field;
 	auto& core = field->core;
@@ -217,12 +217,12 @@ int32_t write_string_message(lua_State* L) {
 LUA_FUNCTION_EXISTING(SetAIName, write_string_message<MSG_AI_NAME, 100>);
 LUA_FUNCTION_EXISTING(ShowHint, write_string_message<MSG_SHOW_HINT, 1024>);
 
-LUA_FUNCTION(PrintStacktrace) {
+LUA_STATIC_FUNCTION(PrintStacktrace) {
 	interpreter::print_stacktrace(L);
 	return 0;
 }
 
-LUA_FUNCTION(CardToStringWrapper) {
+LUA_STATIC_FUNCTION(CardToStringWrapper) {
 	const auto pcard = lua_get<card*>(L, 1);
 	if(pcard) {
 		luaL_checkstack(L, 4, nullptr);

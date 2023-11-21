@@ -13,6 +13,9 @@
 #include <type_traits>
 #include <array>
 #include <lauxlib.h>
+
+#include "common.h"
+
 namespace {
 namespace Detail {
 template<std::size_t N>
@@ -26,13 +29,24 @@ constexpr auto make_lua_functions_array(std::index_sequence<I...> seq) {
 } // namespace Detail
 } // namespace
 
-#define LUA_FUNCTION(name) \
+#define LUA_STATIC_FUNCTION(name) \
 static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State*); \
 template<> \
 struct Detail::LuaFunction<__COUNTER__> { \
 	static constexpr luaL_Reg elem{#name, MAKE_LUA_NAME(LUA_MODULE,name)}; \
 }; \
 static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
+
+#define LUA_FUNCTION(name) \
+static __forceinline int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State*, LUA_CLASS*); \
+template<> \
+struct Detail::LuaFunction<__COUNTER__> { \
+	static int32_t call(lua_State* L) { \
+		return MAKE_LUA_NAME(LUA_MODULE,name)(L, lua_get<LUA_CLASS*, true>(L, 1)); \
+	} \
+	static constexpr luaL_Reg elem{#name, call}; \
+}; \
+static __forceinline int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L, LUA_CLASS* self)
 
 #define GET_LUA_FUNCTIONS_ARRAY() \
 	Detail::make_lua_functions_array(std::make_index_sequence<__COUNTER__>())
@@ -51,7 +65,8 @@ struct Detail::LuaFunction<__COUNTER__> { \
     static constexpr luaL_Reg elem{#name,Detail::LuaFunction<__COUNTER__-1>::elem.func}; \
 }
 #else
-#define LUA_FUNCTION(name) static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
+#define LUA_FUNCTION(name) static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L, LUA_CLASS* self)
+#define LUA_STATIC_FUNCTION(name) static int32_t MAKE_LUA_NAME(LUA_MODULE,name)(lua_State* L)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define GET_LUA_FUNCTIONS_ARRAY() std::array<luaL_Reg,1>{{{nullptr,nullptr}}}

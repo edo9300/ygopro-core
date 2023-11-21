@@ -22,14 +22,14 @@ namespace {
 
 using namespace scriptlib;
 
-LUA_FUNCTION(EnableGlobalFlag) {
+LUA_STATIC_FUNCTION(EnableGlobalFlag) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.global_flag |= lua_get<uint32_t>(L, 1);
 	return 0;
 }
 
-LUA_FUNCTION(GetLP) {
+LUA_STATIC_FUNCTION(GetLP) {
 	check_param_count(L, 1);
 	auto p = lua_get<int8_t>(L, 1);
 	if(p != 0 && p != 1)
@@ -38,7 +38,7 @@ LUA_FUNCTION(GetLP) {
 	lua_pushinteger(L, pduel->game_field->player[p].lp);
 	return 1;
 }
-LUA_FUNCTION(SetLP) {
+LUA_STATIC_FUNCTION(SetLP) {
 	check_param_count(L, 2);
 	auto p = lua_get<int8_t>(L, 1);
 	auto lp = lua_get<int32_t>(L, 2);
@@ -52,12 +52,12 @@ LUA_FUNCTION(SetLP) {
 	message->write<uint32_t>(lp);
 	return 0;
 }
-LUA_FUNCTION(GetTurnPlayer) {
+LUA_STATIC_FUNCTION(GetTurnPlayer) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushinteger(L, pduel->game_field->infos.turn_player);
 	return 1;
 }
-LUA_FUNCTION(GetTurnCount) {
+LUA_STATIC_FUNCTION(GetTurnCount) {
 	const auto pduel = lua_get<duel*>(L);
 	if(lua_gettop(L) > 0) {
 		auto playerid = lua_get<uint8_t>(L, 1);
@@ -68,7 +68,7 @@ LUA_FUNCTION(GetTurnCount) {
 		lua_pushinteger(L, pduel->game_field->infos.turn_id);
 	return 1;
 }
-LUA_FUNCTION(GetDrawCount) {
+LUA_STATIC_FUNCTION(GetDrawCount) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -77,7 +77,7 @@ LUA_FUNCTION(GetDrawCount) {
 	lua_pushinteger(L, pduel->game_field->get_draw_count(playerid));
 	return 1;
 }
-LUA_FUNCTION(RegisterEffect) {
+LUA_STATIC_FUNCTION(RegisterEffect) {
 	check_param_count(L, 2);
 	auto peffect = lua_get<effect*, true>(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 2);
@@ -87,7 +87,7 @@ LUA_FUNCTION(RegisterEffect) {
 	pduel->game_field->add_effect(peffect, playerid);
 	return 0;
 }
-LUA_FUNCTION(RegisterFlagEffect) {
+LUA_STATIC_FUNCTION(RegisterFlagEffect) {
 	check_param_count(L, 5);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -118,7 +118,7 @@ LUA_FUNCTION(RegisterFlagEffect) {
 	interpreter::pushobject(L, peffect);
 	return 1;
 }
-LUA_FUNCTION(GetFlagEffect) {
+LUA_STATIC_FUNCTION(GetFlagEffect) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -130,7 +130,7 @@ LUA_FUNCTION(GetFlagEffect) {
 	lua_pushinteger(L, eset.size());
 	return 1;
 }
-LUA_FUNCTION(ResetFlagEffect) {
+LUA_STATIC_FUNCTION(ResetFlagEffect) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -146,7 +146,7 @@ LUA_FUNCTION(ResetFlagEffect) {
 	}
 	return 0;
 }
-LUA_FUNCTION(SetFlagEffectLabel) {
+LUA_STATIC_FUNCTION(SetFlagEffectLabel) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -165,7 +165,7 @@ LUA_FUNCTION(SetFlagEffectLabel) {
 	}
 	return 1;
 }
-LUA_FUNCTION(GetFlagEffectLabel) {
+LUA_STATIC_FUNCTION(GetFlagEffectLabel) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -183,7 +183,7 @@ LUA_FUNCTION(GetFlagEffectLabel) {
 		lua_pushinteger(L, eff->label.size() ? eff->label[0] : 0);
 	return static_cast<int32_t>(eset.size());
 }
-LUA_FUNCTION(Destroy) {
+LUA_STATIC_FUNCTION(Destroy) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	card* pcard = nullptr;
@@ -202,7 +202,7 @@ LUA_FUNCTION(Destroy) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Remove) {
+LUA_STATIC_FUNCTION(Remove) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	card* pcard = nullptr;
@@ -222,7 +222,7 @@ LUA_FUNCTION(Remove) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SendtoGrave) {
+LUA_STATIC_FUNCTION(SendtoGrave) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	card* pcard = nullptr;
@@ -241,7 +241,7 @@ LUA_FUNCTION(SendtoGrave) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Summon) {
+LUA_STATIC_FUNCTION(Summon) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	const auto pduel = lua_get<duel*>(L);
@@ -264,7 +264,7 @@ LUA_FUNCTION(Summon) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(SpecialSummonRule) {
+LUA_STATIC_FUNCTION(SpecialSummonRule) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -325,16 +325,16 @@ inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(SynchroSummon) {
+LUA_STATIC_FUNCTION(SynchroSummon) {
 	return spsummon_rule(L, SUMMON_TYPE_SYNCHRO, 0);
 }
-LUA_FUNCTION(XyzSummon) {
+LUA_STATIC_FUNCTION(XyzSummon) {
 	return spsummon_rule(L, SUMMON_TYPE_XYZ, 0);
 }
-LUA_FUNCTION(LinkSummon) {
+LUA_STATIC_FUNCTION(LinkSummon) {
 	return spsummon_rule(L, SUMMON_TYPE_LINK, 0);
 }
-LUA_FUNCTION(ProcedureSummon) {
+LUA_STATIC_FUNCTION(ProcedureSummon) {
 	check_param_count(L, 3);
 	auto sumtype = lua_get<uint32_t>(L, 3);
 	return spsummon_rule(L, sumtype, 1);
@@ -353,15 +353,15 @@ inline int32_t spsummon_rule_group(lua_State* L, uint32_t summon_type, uint32_t 
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(PendulumSummon) {
+LUA_STATIC_FUNCTION(PendulumSummon) {
 	return spsummon_rule_group(L, SUMMON_TYPE_PENDULUM, 0);
 }
-LUA_FUNCTION(ProcedureSummonGroup) {
+LUA_STATIC_FUNCTION(ProcedureSummonGroup) {
 	check_param_count(L, 2);
 	auto sumtype = lua_get<uint32_t>(L, 2);
 	return spsummon_rule_group(L, sumtype, 1);
 }
-LUA_FUNCTION(MSet) {
+LUA_STATIC_FUNCTION(MSet) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	const auto pduel = lua_get<duel*>(L);
@@ -384,7 +384,7 @@ LUA_FUNCTION(MSet) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(SSet) {
+LUA_STATIC_FUNCTION(SSet) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -401,7 +401,7 @@ LUA_FUNCTION(SSet) {
 	if(pcard) {
 		pgroup = pduel->new_group(pcard);
 	} else if(pgroup->container.empty()) {
-		lua_pushinteger(L, 0);
+		lua_pushinteger(L, lua_get<duel*>(L)->game_field->returns.at<int32_t>(0));
 		return 1;
 	}
 	pduel->game_field->add_process(PROCESSOR_SSET_G, 0, pduel->game_field->core.reason_effect, pgroup, playerid, toplayer, confirm);
@@ -410,7 +410,7 @@ LUA_FUNCTION(SSet) {
 		return 1;
 	});
 }
-LUA_FUNCTION(CreateToken) {
+LUA_STATIC_FUNCTION(CreateToken) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -427,7 +427,7 @@ LUA_FUNCTION(CreateToken) {
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_FUNCTION(SpecialSummon) {
+LUA_STATIC_FUNCTION(SpecialSummon) {
 	check_action_permission(L);
 	check_param_count(L, 7);
 	card* pcard = nullptr;
@@ -452,7 +452,7 @@ LUA_FUNCTION(SpecialSummon) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SpecialSummonStep) {
+LUA_STATIC_FUNCTION(SpecialSummonStep) {
 	check_action_permission(L);
 	check_param_count(L, 7);
 	const auto pduel = lua_get<duel*>(L);
@@ -472,7 +472,7 @@ LUA_FUNCTION(SpecialSummonStep) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SpecialSummonComplete) {
+LUA_STATIC_FUNCTION(SpecialSummonComplete) {
 	check_action_permission(L);
 	const auto pduel = lua_get<duel*>(L);
 	auto& core = pduel->game_field->core;
@@ -487,7 +487,7 @@ LUA_FUNCTION(SpecialSummonComplete) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SendtoHand) {
+LUA_STATIC_FUNCTION(SendtoHand) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	card* pcard = nullptr;
@@ -508,7 +508,7 @@ LUA_FUNCTION(SendtoHand) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SendtoDeck) {
+LUA_STATIC_FUNCTION(SendtoDeck) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	card* pcard = nullptr;
@@ -531,7 +531,7 @@ LUA_FUNCTION(SendtoDeck) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SendtoExtraP) {
+LUA_STATIC_FUNCTION(SendtoExtraP) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	card* pcard = nullptr;
@@ -552,7 +552,7 @@ LUA_FUNCTION(SendtoExtraP) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Sendto) {
+LUA_STATIC_FUNCTION(Sendto) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	card* pcard = nullptr;
@@ -576,7 +576,7 @@ LUA_FUNCTION(Sendto) {
 		return 1;
 	});
 }
-LUA_FUNCTION(RemoveCards) {
+LUA_STATIC_FUNCTION(RemoveCards) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	card* pcard = nullptr;
@@ -612,13 +612,13 @@ LUA_FUNCTION(RemoveCards) {
 	}
 	return 0;
 }
-LUA_FUNCTION(GetOperatedGroup) {
+LUA_STATIC_FUNCTION(GetOperatedGroup) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group(pduel->game_field->core.operated_set);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(IsCanAddCounter) {
+LUA_STATIC_FUNCTION(IsCanAddCounter) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -637,7 +637,7 @@ LUA_FUNCTION(IsCanAddCounter) {
 	}
 	return 1;
 }
-LUA_FUNCTION(RemoveCounter) {
+LUA_STATIC_FUNCTION(RemoveCounter) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	auto rplayer = lua_get<uint8_t>(L, 1);
@@ -655,7 +655,7 @@ LUA_FUNCTION(RemoveCounter) {
 		return 1;
 	});
 }
-LUA_FUNCTION(IsCanRemoveCounter) {
+LUA_STATIC_FUNCTION(IsCanRemoveCounter) {
 	check_param_count(L, 6);
 	auto rplayer = lua_get<uint8_t>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
@@ -669,7 +669,7 @@ LUA_FUNCTION(IsCanRemoveCounter) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_counter(rplayer, 0, self, oppo, countertype, count, reason));
 	return 1;
 }
-LUA_FUNCTION(GetCounter) {
+LUA_STATIC_FUNCTION(GetCounter) {
 	check_param_count(L, 4);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -681,7 +681,7 @@ LUA_FUNCTION(GetCounter) {
 	lua_pushinteger(L, pduel->game_field->get_field_counter(playerid, self, oppo, countertype));
 	return 1;
 }
-LUA_FUNCTION(ChangePosition) {
+LUA_STATIC_FUNCTION(ChangePosition) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	card* pcard = nullptr;
@@ -703,7 +703,7 @@ LUA_FUNCTION(ChangePosition) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Release) {
+LUA_STATIC_FUNCTION(Release) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	card* pcard = nullptr;
@@ -721,7 +721,7 @@ LUA_FUNCTION(Release) {
 		return 1;
 	});
 }
-LUA_FUNCTION(MoveToField) {
+LUA_STATIC_FUNCTION(MoveToField) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	const auto pduel = lua_get<duel*>(L);
@@ -742,7 +742,7 @@ LUA_FUNCTION(MoveToField) {
 		return 1;
 	});
 }
-LUA_FUNCTION(ReturnToField) {
+LUA_STATIC_FUNCTION(ReturnToField) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -760,7 +760,7 @@ LUA_FUNCTION(ReturnToField) {
 		return 1;
 	});
 }
-LUA_FUNCTION(MoveSequence) {
+LUA_STATIC_FUNCTION(MoveSequence) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -825,7 +825,7 @@ LUA_FUNCTION(MoveSequence) {
 	lua_pushboolean(L, res);
 	return 1;
 }
-LUA_FUNCTION(SwapSequence) {
+LUA_STATIC_FUNCTION(SwapSequence) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -847,7 +847,7 @@ LUA_FUNCTION(SwapSequence) {
 	}
 	return 0;
 }
-LUA_FUNCTION(Activate) {
+LUA_STATIC_FUNCTION(Activate) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -855,21 +855,21 @@ LUA_FUNCTION(Activate) {
 	pduel->game_field->add_process(PROCESSOR_ACTIVATE_EFFECT, 0, peffect, 0, 0, 0);
 	return 0;
 }
-LUA_FUNCTION(SetChainLimit) {
+LUA_STATIC_FUNCTION(SetChainLimit) {
 	check_param_count(L, 1);
 	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 1));
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.chain_limit.emplace_back(f, pduel->game_field->core.reason_player);
 	return 0;
 }
-LUA_FUNCTION(SetChainLimitTillChainEnd) {
+LUA_STATIC_FUNCTION(SetChainLimitTillChainEnd) {
 	check_param_count(L, 1);
 	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 1));
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.chain_limit_p.emplace_back(f, pduel->game_field->core.reason_player);
 	return 0;
 }
-LUA_FUNCTION(GetChainMaterial) {
+LUA_STATIC_FUNCTION(GetChainMaterial) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -882,7 +882,7 @@ LUA_FUNCTION(GetChainMaterial) {
 	interpreter::pushobject(L, eset[0]);
 	return 1;
 }
-LUA_FUNCTION(ConfirmDecktop) {
+LUA_STATIC_FUNCTION(ConfirmDecktop) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -915,7 +915,7 @@ LUA_FUNCTION(ConfirmDecktop) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ConfirmExtratop) {
+LUA_STATIC_FUNCTION(ConfirmExtratop) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -938,7 +938,7 @@ LUA_FUNCTION(ConfirmExtratop) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ConfirmCards) {
+LUA_STATIC_FUNCTION(ConfirmCards) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -968,7 +968,7 @@ LUA_FUNCTION(ConfirmCards) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(SortDecktop) {
+LUA_STATIC_FUNCTION(SortDecktop) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto sort_player = lua_get<uint8_t>(L, 1);
@@ -984,7 +984,7 @@ LUA_FUNCTION(SortDecktop) {
 	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count, FALSE);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(SortDeckbottom) {
+LUA_STATIC_FUNCTION(SortDeckbottom) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto sort_player = lua_get<uint8_t>(L, 1);
@@ -1000,7 +1000,7 @@ LUA_FUNCTION(SortDeckbottom) {
 	pduel->game_field->add_process(PROCESSOR_SORT_DECK, 0, 0, 0, sort_player + (target_player << 16), count, TRUE);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(CheckEvent) {
+LUA_STATIC_FUNCTION(CheckEvent) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto ev = lua_get<uint32_t>(L, 1);
@@ -1024,7 +1024,7 @@ LUA_FUNCTION(CheckEvent) {
 		}
 	}
 }
-LUA_FUNCTION(RaiseEvent) {
+LUA_STATIC_FUNCTION(RaiseEvent) {
 	check_action_permission(L);
 	check_param_count(L, 7);
 	card* pcard = nullptr;
@@ -1046,7 +1046,7 @@ LUA_FUNCTION(RaiseEvent) {
 	pduel->game_field->process_instant_event();
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(RaiseSingleEvent) {
+LUA_STATIC_FUNCTION(RaiseSingleEvent) {
 	check_action_permission(L);
 	check_param_count(L, 7);
 	const auto pduel = lua_get<duel*>(L);
@@ -1061,14 +1061,14 @@ LUA_FUNCTION(RaiseSingleEvent) {
 	pduel->game_field->process_single_event();
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(CheckTiming) {
+LUA_STATIC_FUNCTION(CheckTiming) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto tm = lua_get<uint32_t>(L, 1);
 	lua_pushboolean(L, (pduel->game_field->core.hint_timing[0]&tm) || (pduel->game_field->core.hint_timing[1]&tm));
 	return 1;
 }
-LUA_FUNCTION(GetEnvironment) {
+LUA_STATIC_FUNCTION(GetEnvironment) {
 	const auto pduel = lua_get<duel*>(L);
 	uint32_t code = 0;
 	uint8_t p = 2;
@@ -1093,7 +1093,7 @@ LUA_FUNCTION(GetEnvironment) {
 	lua_pushinteger(L, p);
 	return 2;
 }
-LUA_FUNCTION(IsEnvironment) {
+LUA_STATIC_FUNCTION(IsEnvironment) {
 	check_param_count(L, 1);
 	auto code = lua_get<uint32_t>(L, 1);
 	auto playerid = lua_get<uint8_t, PLAYER_ALL>(L, 2);
@@ -1159,7 +1159,7 @@ LUA_FUNCTION(IsEnvironment) {
 	lua_pushboolean(L, FALSE);
 	return 1;
 }
-LUA_FUNCTION(Win) {
+LUA_STATIC_FUNCTION(Win) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto reason = lua_get<uint32_t>(L, 2);
@@ -1191,7 +1191,7 @@ LUA_FUNCTION(Win) {
 	}
 	return 0;
 }
-LUA_FUNCTION(Draw) {
+LUA_STATIC_FUNCTION(Draw) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1206,7 +1206,7 @@ LUA_FUNCTION(Draw) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Damage) {
+LUA_STATIC_FUNCTION(Damage) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1228,7 +1228,7 @@ LUA_FUNCTION(Damage) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Recover) {
+LUA_STATIC_FUNCTION(Recover) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1250,12 +1250,12 @@ LUA_FUNCTION(Recover) {
 		return 1;
 	});
 }
-LUA_FUNCTION(RDComplete) {
+LUA_STATIC_FUNCTION(RDComplete) {
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.subunits.splice(pduel->game_field->core.subunits.end(), pduel->game_field->core.recover_damage_reserve);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(Equip) {
+LUA_STATIC_FUNCTION(Equip) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	const auto pduel = lua_get<duel*>(L);
@@ -1272,7 +1272,7 @@ LUA_FUNCTION(Equip) {
 		return 1;
 	});
 }
-LUA_FUNCTION(EquipComplete) {
+LUA_STATIC_FUNCTION(EquipComplete) {
 	const auto pduel = lua_get<duel*>(L);
 	const auto& field = pduel->game_field;
 	auto& core = field->core;
@@ -1297,7 +1297,7 @@ LUA_FUNCTION(EquipComplete) {
 	field->process_instant_event();
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(GetControl) {
+LUA_STATIC_FUNCTION(GetControl) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	card* pcard = nullptr;
@@ -1320,7 +1320,7 @@ LUA_FUNCTION(GetControl) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SwapControl) {
+LUA_STATIC_FUNCTION(SwapControl) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	card* pcard1 = nullptr;
@@ -1354,7 +1354,7 @@ LUA_FUNCTION(SwapControl) {
 		return 1;
 	});
 }
-LUA_FUNCTION(CheckLPCost) {
+LUA_STATIC_FUNCTION(CheckLPCost) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1364,7 +1364,7 @@ LUA_FUNCTION(CheckLPCost) {
 	lua_pushboolean(L, pduel->game_field->check_lp_cost(playerid, cost));
 	return 1;
 }
-LUA_FUNCTION(PayLPCost) {
+LUA_STATIC_FUNCTION(PayLPCost) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1375,7 +1375,7 @@ LUA_FUNCTION(PayLPCost) {
 	pduel->game_field->add_process(PROCESSOR_PAY_LPCOST, 0, 0, 0, playerid, cost);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(DiscardDeck) {
+LUA_STATIC_FUNCTION(DiscardDeck) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1388,7 +1388,7 @@ LUA_FUNCTION(DiscardDeck) {
 		return 1;
 	});
 }
-LUA_FUNCTION(DiscardHand) {
+LUA_STATIC_FUNCTION(DiscardHand) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	const auto findex = lua_get<function>(L, 2);
@@ -1418,19 +1418,19 @@ LUA_FUNCTION(DiscardHand) {
 		return 1;
 	});
 }
-LUA_FUNCTION(DisableShuffleCheck) {
+LUA_STATIC_FUNCTION(DisableShuffleCheck) {
 	const auto pduel = lua_get<duel*>(L);
 	bool disable = lua_get<bool, true>(L, 1);
 	pduel->game_field->core.shuffle_check_disabled = disable;
 	return 0;
 }
-LUA_FUNCTION(DisableSelfDestroyCheck) {
+LUA_STATIC_FUNCTION(DisableSelfDestroyCheck) {
 	const auto pduel = lua_get<duel*>(L);
 	bool disable = lua_get<bool, true>(L, 1);
 	pduel->game_field->core.selfdes_disabled = disable;
 	return 0;
 }
-LUA_FUNCTION(ShuffleDeck) {
+LUA_STATIC_FUNCTION(ShuffleDeck) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1439,7 +1439,7 @@ LUA_FUNCTION(ShuffleDeck) {
 	pduel->game_field->shuffle(playerid, LOCATION_DECK);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ShuffleExtra) {
+LUA_STATIC_FUNCTION(ShuffleExtra) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if (playerid != 0 && playerid != 1)
@@ -1448,7 +1448,7 @@ LUA_FUNCTION(ShuffleExtra) {
 	pduel->game_field->shuffle(playerid, LOCATION_EXTRA);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ShuffleHand) {
+LUA_STATIC_FUNCTION(ShuffleHand) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1457,7 +1457,7 @@ LUA_FUNCTION(ShuffleHand) {
 	pduel->game_field->shuffle(playerid, LOCATION_HAND);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ShuffleSetCard) {
+LUA_STATIC_FUNCTION(ShuffleSetCard) {
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	if(pgroup->container.size() <= 0)
@@ -1523,7 +1523,7 @@ LUA_FUNCTION(ShuffleSetCard) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ChangeAttacker) {
+LUA_STATIC_FUNCTION(ChangeAttacker) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto new_attacker = lua_get<card*, true>(L, 1);
@@ -1547,7 +1547,7 @@ LUA_FUNCTION(ChangeAttacker) {
 	}
 	return 0;
 }
-LUA_FUNCTION(ChangeAttackTarget) {
+LUA_STATIC_FUNCTION(ChangeAttackTarget) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto target = lua_get<card*>(L, 1);
@@ -1591,13 +1591,13 @@ LUA_FUNCTION(ChangeAttackTarget) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
-LUA_FUNCTION(AttackCostPaid) {
+LUA_STATIC_FUNCTION(AttackCostPaid) {
 	const auto pduel = lua_get<duel*>(L);
 	auto paid = lua_get<uint8_t, 1>(L, 1);
 	pduel->game_field->core.attack_cost_paid = paid;
 	return 0;
 }
-LUA_FUNCTION(ForceAttack) {
+LUA_STATIC_FUNCTION(ForceAttack) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -1608,7 +1608,7 @@ LUA_FUNCTION(ForceAttack) {
 	pduel->game_field->core.forced_attack_target = attack_target;
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(CalculateDamage) {
+LUA_STATIC_FUNCTION(CalculateDamage) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -1620,7 +1620,7 @@ LUA_FUNCTION(CalculateDamage) {
 	pduel->game_field->add_process(PROCESSOR_DAMAGE_STEP, 0, (effect*)attacker, (group*)attack_target, 0, new_attack);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(GetBattleDamage) {
+LUA_STATIC_FUNCTION(GetBattleDamage) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1629,7 +1629,7 @@ LUA_FUNCTION(GetBattleDamage) {
 	lua_pushinteger(L, pduel->game_field->core.battle_damage[playerid]);
 	return 1;
 }
-LUA_FUNCTION(ChangeBattleDamage) {
+LUA_STATIC_FUNCTION(ChangeBattleDamage) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -1642,7 +1642,7 @@ LUA_FUNCTION(ChangeBattleDamage) {
 	pduel->game_field->core.battle_damage[playerid] = dam;
 	return 0;
 }
-LUA_FUNCTION(ChangeTargetCard) {
+LUA_STATIC_FUNCTION(ChangeTargetCard) {
 	check_param_count(L, 2);
 	auto count = lua_get<uint8_t>(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 2);
@@ -1650,7 +1650,7 @@ LUA_FUNCTION(ChangeTargetCard) {
 	pduel->game_field->change_target(count, pgroup);
 	return 0;
 }
-LUA_FUNCTION(ChangeTargetPlayer) {
+LUA_STATIC_FUNCTION(ChangeTargetPlayer) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 2);
 	if(playerid != 0 && playerid != 1)
@@ -1660,7 +1660,7 @@ LUA_FUNCTION(ChangeTargetPlayer) {
 	pduel->game_field->change_target_player(count, playerid);
 	return 0;
 }
-LUA_FUNCTION(ChangeTargetParam) {
+LUA_STATIC_FUNCTION(ChangeTargetParam) {
 	check_param_count(L, 2);
 	auto count = lua_get<uint8_t>(L, 1);
 	auto param = lua_get<int32_t>(L, 2);
@@ -1668,7 +1668,7 @@ LUA_FUNCTION(ChangeTargetParam) {
 	pduel->game_field->change_target_param(count, param);
 	return 0;
 }
-LUA_FUNCTION(BreakEffect) {
+LUA_STATIC_FUNCTION(BreakEffect) {
 	check_action_permission(L);
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->break_effect();
@@ -1676,26 +1676,26 @@ LUA_FUNCTION(BreakEffect) {
 	pduel->game_field->process_instant_event();
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(ChangeChainOperation) {
+LUA_STATIC_FUNCTION(ChangeChainOperation) {
 	check_param_count(L, 2);
 	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 2));
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->change_chain_effect(lua_get<uint8_t>(L, 1), f);
 	return 0;
 }
-LUA_FUNCTION(NegateActivation) {
+LUA_STATIC_FUNCTION(NegateActivation) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->negate_chain(lua_get<uint8_t>(L, 1)));
 	return 1;
 }
-LUA_FUNCTION(NegateEffect) {
+LUA_STATIC_FUNCTION(NegateEffect) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->disable_chain(lua_get<uint8_t>(L, 1)));
 	return 1;
 }
-LUA_FUNCTION(NegateRelatedChain) {
+LUA_STATIC_FUNCTION(NegateRelatedChain) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
@@ -1717,7 +1717,7 @@ LUA_FUNCTION(NegateRelatedChain) {
 	}
 	return 0;
 }
-LUA_FUNCTION(NegateSummon) {
+LUA_STATIC_FUNCTION(NegateSummon) {
 	check_param_count(L, 1);
 	card* pcard = nullptr;
 	group* pgroup = nullptr;
@@ -1755,7 +1755,7 @@ LUA_FUNCTION(NegateSummon) {
 	pduel->game_field->process_instant_event();
 	return 0;
 }
-LUA_FUNCTION(IncreaseSummonedCount) {
+LUA_STATIC_FUNCTION(IncreaseSummonedCount) {
 	card* pcard = 0;
 	effect* pextra = 0;
 	if(lua_gettop(L) > 0)
@@ -1768,7 +1768,7 @@ LUA_FUNCTION(IncreaseSummonedCount) {
 		++pduel->game_field->core.summon_count[playerid];
 	return 0;
 }
-LUA_FUNCTION(CheckSummonedCount) {
+LUA_STATIC_FUNCTION(CheckSummonedCount) {
 	card* pcard = 0;
 	if(lua_gettop(L) > 0)
 		pcard = lua_get<card*, true>(L, 1);
@@ -1781,7 +1781,7 @@ LUA_FUNCTION(CheckSummonedCount) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
-LUA_FUNCTION(GetLocationCount) {
+LUA_STATIC_FUNCTION(GetLocationCount) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto location = lua_get<uint8_t>(L, 2);
@@ -1796,7 +1796,7 @@ LUA_FUNCTION(GetLocationCount) {
 	lua_pushinteger(L, list);
 	return 2;
 }
-LUA_FUNCTION(GetMZoneCount) {
+LUA_STATIC_FUNCTION(GetMZoneCount) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1840,7 +1840,7 @@ LUA_FUNCTION(GetMZoneCount) {
 	}
 	return 2;
 }
-LUA_FUNCTION(GetLocationCountFromEx) {
+LUA_STATIC_FUNCTION(GetLocationCountFromEx) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1903,7 +1903,7 @@ LUA_FUNCTION(GetLocationCountFromEx) {
 	}
 	return 2;
 }
-LUA_FUNCTION(GetUsableMZoneCount) {
+LUA_STATIC_FUNCTION(GetUsableMZoneCount) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1922,7 +1922,7 @@ LUA_FUNCTION(GetUsableMZoneCount) {
 	lua_pushinteger(L, count);
 	return 1;
 }
-LUA_FUNCTION(GetLinkedGroup) {
+LUA_STATIC_FUNCTION(GetLinkedGroup) {
 	check_param_count(L, 3);
 	auto rplayer = lua_get<uint8_t>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
@@ -1940,7 +1940,7 @@ LUA_FUNCTION(GetLinkedGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(GetLinkedGroupCount) {
+LUA_STATIC_FUNCTION(GetLinkedGroupCount) {
 	check_param_count(L, 3);
 	auto rplayer = lua_get<uint8_t>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
@@ -1957,7 +1957,7 @@ LUA_FUNCTION(GetLinkedGroupCount) {
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
-LUA_FUNCTION(GetLinkedZone) {
+LUA_STATIC_FUNCTION(GetLinkedZone) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1966,7 +1966,7 @@ LUA_FUNCTION(GetLinkedZone) {
 	lua_pushinteger(L, pduel->game_field->get_linked_zone(playerid));
 	return 1;
 }
-LUA_FUNCTION(GetFreeLinkedZone) {
+LUA_STATIC_FUNCTION(GetFreeLinkedZone) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -1975,7 +1975,7 @@ LUA_FUNCTION(GetFreeLinkedZone) {
 	lua_pushinteger(L, pduel->game_field->get_linked_zone(playerid, true));
 	return 1;
 }
-LUA_FUNCTION(GetFieldCard) {
+LUA_STATIC_FUNCTION(GetFieldCard) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto location = lua_get<uint16_t>(L, 2);
@@ -1989,7 +1989,7 @@ LUA_FUNCTION(GetFieldCard) {
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_FUNCTION(CheckLocation) {
+LUA_STATIC_FUNCTION(CheckLocation) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto location = lua_get<uint16_t>(L, 2);
@@ -2000,14 +2000,14 @@ LUA_FUNCTION(CheckLocation) {
 	lua_pushboolean(L, pduel->game_field->is_location_useable(playerid, location, sequence));
 	return 1;
 }
-LUA_FUNCTION(GetCurrentChain) {
+LUA_STATIC_FUNCTION(GetCurrentChain) {
 	const auto pduel = lua_get<duel*>(L);
 	const auto real = lua_get<bool, false>(L, 1);
 	const auto& core = pduel->game_field->core;
 	lua_pushinteger(L, real ? core.real_chain_count : core.current_chain.size());
 	return 1;
 }
-LUA_FUNCTION(GetChainInfo) {
+LUA_STATIC_FUNCTION(GetChainInfo) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	chain* ch = pduel->game_field->get_chain(lua_get<uint8_t>(L, 1));
@@ -2117,7 +2117,7 @@ LUA_FUNCTION(GetChainInfo) {
 	});
 	return args;
 }
-LUA_FUNCTION(GetChainEvent) {
+LUA_STATIC_FUNCTION(GetChainEvent) {
 	check_param_count(L, 1);
 	auto count = lua_get<uint8_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -2132,7 +2132,7 @@ LUA_FUNCTION(GetChainEvent) {
 	lua_pushinteger(L, ch->evt.reason_player);
 	return 6;
 }
-LUA_FUNCTION(GetFirstTarget) {
+LUA_STATIC_FUNCTION(GetFirstTarget) {
 	const auto pduel = lua_get<duel*>(L);
 	chain* ch = pduel->game_field->get_chain(0);
 	if(!ch || !ch->target_cards || ch->target_cards->container.size() == 0)
@@ -2143,12 +2143,12 @@ LUA_FUNCTION(GetFirstTarget) {
 		interpreter::pushobject(L, pcard);
 	return static_cast<int32_t>(cset.size());
 }
-LUA_FUNCTION(GetCurrentPhase) {
+LUA_STATIC_FUNCTION(GetCurrentPhase) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushinteger(L, pduel->game_field->infos.phase);
 	return 1;
 }
-LUA_FUNCTION(SkipPhase) {
+LUA_STATIC_FUNCTION(SkipPhase) {
 	check_param_count(L, 4);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -2189,29 +2189,29 @@ LUA_FUNCTION(SkipPhase) {
 	pduel->game_field->add_effect(peffect, playerid);
 	return 0;
 }
-LUA_FUNCTION(IsAttackCostPaid) {
+LUA_STATIC_FUNCTION(IsAttackCostPaid) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushinteger(L, pduel->game_field->core.attack_cost_paid);
 	return 1;
 }
-LUA_FUNCTION(IsDamageCalculated) {
+LUA_STATIC_FUNCTION(IsDamageCalculated) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->core.damage_calculated);
 	return 1;
 }
-LUA_FUNCTION(GetAttacker) {
+LUA_STATIC_FUNCTION(GetAttacker) {
 	const auto pduel = lua_get<duel*>(L);
 	card* pcard = pduel->game_field->core.attacker;
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_FUNCTION(GetAttackTarget) {
+LUA_STATIC_FUNCTION(GetAttackTarget) {
 	const auto pduel = lua_get<duel*>(L);
 	card* pcard = pduel->game_field->core.attack_target;
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_FUNCTION(GetBattleMonster) {
+LUA_STATIC_FUNCTION(GetBattleMonster) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -2228,7 +2228,7 @@ LUA_FUNCTION(GetBattleMonster) {
 	}
 	return 2;
 }
-LUA_FUNCTION(NegateAttack) {
+LUA_STATIC_FUNCTION(NegateAttack) {
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->add_process(PROCESSOR_ATTACK_DISABLE, 0, 0, 0, 0, 0);
 	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t/* status*/, lua_KContext/* ctx*/) {
@@ -2236,7 +2236,7 @@ LUA_FUNCTION(NegateAttack) {
 		return 1;
 	});
 }
-LUA_FUNCTION(ChainAttack) {
+LUA_STATIC_FUNCTION(ChainAttack) {
 	const auto pduel = lua_get<duel*>(L);
 	pduel->game_field->core.chain_attack = TRUE;
 	pduel->game_field->core.chain_attacker_id = pduel->game_field->core.attacker->fieldid;
@@ -2244,7 +2244,7 @@ LUA_FUNCTION(ChainAttack) {
 		pduel->game_field->core.chain_attack_target = lua_get<card*, true>(L, 1);
 	return 0;
 }
-LUA_FUNCTION(Readjust) {
+LUA_STATIC_FUNCTION(Readjust) {
 	const auto pduel = lua_get<duel*>(L);
 	card* adjcard = pduel->game_field->core.reason_effect->get_handler();
 	auto& readj_map = pduel->game_field->core.readjust_map[adjcard];
@@ -2256,7 +2256,7 @@ LUA_FUNCTION(Readjust) {
 	pduel->game_field->core.re_adjust = TRUE;
 	return 0;
 }
-LUA_FUNCTION(AdjustInstantly) {
+LUA_STATIC_FUNCTION(AdjustInstantly) {
 	const auto pduel = lua_get<duel*>(L);
 	if(lua_gettop(L) > 0) {
 		auto pcard = lua_get<card*, true>(L, 1);
@@ -2270,7 +2270,7 @@ LUA_FUNCTION(AdjustInstantly) {
  * \param playerid, location1, location2
  * \return Group
  */
-LUA_FUNCTION(GetFieldGroup) {
+LUA_STATIC_FUNCTION(GetFieldGroup) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto location1 = lua_get<uint16_t>(L, 2);
@@ -2286,7 +2286,7 @@ LUA_FUNCTION(GetFieldGroup) {
  * \param playerid, location1, location2
  * \return Integer
  */
-LUA_FUNCTION(GetFieldGroupCount) {
+LUA_STATIC_FUNCTION(GetFieldGroupCount) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto location1 = lua_get<uint16_t>(L, 2);
@@ -2301,7 +2301,7 @@ LUA_FUNCTION(GetFieldGroupCount) {
  * \param playerid, count
  * \return Group
  */
-LUA_FUNCTION(GetDecktopGroup) {
+LUA_STATIC_FUNCTION(GetDecktopGroup) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -2312,7 +2312,7 @@ LUA_FUNCTION(GetDecktopGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(GetDeckbottomGroup) {
+LUA_STATIC_FUNCTION(GetDeckbottomGroup) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -2327,7 +2327,7 @@ LUA_FUNCTION(GetDeckbottomGroup) {
  * \param playerid, count
  * \return Group
  */
-LUA_FUNCTION(GetExtraTopGroup) {
+LUA_STATIC_FUNCTION(GetExtraTopGroup) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint32_t>(L, 2);
@@ -2344,7 +2344,7 @@ LUA_FUNCTION(GetExtraTopGroup) {
 * \param filter_func, self, location1, location2, exception card, (extraargs...)
 * \return Group
 */
-LUA_FUNCTION(GetMatchingGroup) {
+LUA_STATIC_FUNCTION(GetMatchingGroup) {
 	check_param_count(L, 5);
 	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
@@ -2366,7 +2366,7 @@ LUA_FUNCTION(GetMatchingGroup) {
 * \param filter_func, self, location1, location2, exception card, (extraargs...)
 * \return Integer
 */
-LUA_FUNCTION(GetMatchingGroupCount) {
+LUA_STATIC_FUNCTION(GetMatchingGroupCount) {
 	check_param_count(L, 5);
 	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
@@ -2388,7 +2388,7 @@ LUA_FUNCTION(GetMatchingGroupCount) {
 * \param filter_func, self, location1, location2, exception card, (extraargs...)
 * \return Card | nil
 */
-LUA_FUNCTION(GetFirstMatchingCard) {
+LUA_STATIC_FUNCTION(GetFirstMatchingCard) {
 	check_param_count(L, 5);
 	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
@@ -2412,7 +2412,7 @@ LUA_FUNCTION(GetFirstMatchingCard) {
 * \param filter_func, self, location1, location2, count, exception card, (extraargs...)
 * \return boolean
 */
-LUA_FUNCTION(IsExistingMatchingCard) {
+LUA_STATIC_FUNCTION(IsExistingMatchingCard) {
 	check_param_count(L, 6);
 	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
@@ -2433,7 +2433,7 @@ LUA_FUNCTION(IsExistingMatchingCard) {
 * \param playerid, filter_func, self, location1, location2, min, max, exception card, (extraargs...)
 * \return Group
 */
-LUA_FUNCTION(SelectMatchingCard) {
+LUA_STATIC_FUNCTION(SelectMatchingCard) {
 	check_action_permission(L);
 	check_param_count(L, 8);
 	const auto findex = lua_get<function>(L, 2);
@@ -2464,7 +2464,7 @@ LUA_FUNCTION(SelectMatchingCard) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
-LUA_FUNCTION(SelectCardsFromCodes) {
+LUA_STATIC_FUNCTION(SelectCardsFromCodes) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	const auto pduel = lua_get<duel*>(L);
@@ -2511,14 +2511,14 @@ LUA_FUNCTION(SelectCardsFromCodes) {
 * \param playerid
 * \return Group
 */
-LUA_FUNCTION(GetReleaseGroup) {
+LUA_STATIC_FUNCTION(GetReleaseGroup) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	bool hand = lua_get<bool, false>(L, 2);
 	bool oppo = lua_get<bool, false>(L, 3);
-	const auto reason = lua_get<uint32_t, REASON_COST>(L,4);
+	const auto reason = lua_get<uint32_t, REASON_COST>(L, 4);
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group();
 	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, hand, 0, 0, 0, 0, oppo, reason);
@@ -2530,7 +2530,7 @@ LUA_FUNCTION(GetReleaseGroup) {
 * \param playerid
 * \return Integer
 */
-LUA_FUNCTION(GetReleaseGroupCount) {
+LUA_STATIC_FUNCTION(GetReleaseGroupCount) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -2584,10 +2584,10 @@ static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	return 1;
 
 }
-LUA_FUNCTION(CheckReleaseGroup) {
+LUA_STATIC_FUNCTION(CheckReleaseGroup) {
 	return check_release_group(L, FALSE);
 }
-LUA_FUNCTION(CheckReleaseGroupEx) {
+LUA_STATIC_FUNCTION(CheckReleaseGroupEx) {
 	return check_release_group(L, TRUE);
 }
 static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
@@ -2635,10 +2635,10 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	pduel->game_field->add_process(PROCESSOR_SELECT_RELEASE, 0, 0, (group*)to_check, playerid + (cancelable << 16), (max << 16) + min, check_field + (toplayer << 8) + (zone << 16));
 	return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 }
-LUA_FUNCTION(SelectReleaseGroup) {
+LUA_STATIC_FUNCTION(SelectReleaseGroup) {
 	return select_release_group(L, false);
 }
-LUA_FUNCTION(SelectReleaseGroupEx) {
+LUA_STATIC_FUNCTION(SelectReleaseGroupEx) {
 	return select_release_group(L, true);
 }
 /**
@@ -2646,7 +2646,7 @@ LUA_FUNCTION(SelectReleaseGroupEx) {
 * \param targetcard
 * \return Group
 */
-LUA_FUNCTION(GetTributeGroup) {
+LUA_STATIC_FUNCTION(GetTributeGroup) {
 	check_param_count(L, 1);
 	auto target = lua_get<card*, true>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -2660,7 +2660,7 @@ LUA_FUNCTION(GetTributeGroup) {
 * \param targetcard
 * \return Integer
 */
-LUA_FUNCTION(GetTributeCount) {
+LUA_STATIC_FUNCTION(GetTributeCount) {
 	check_param_count(L, 1);
 	auto target = lua_get<card*, true>(L, 1);
 	group* mg = 0;
@@ -2671,7 +2671,7 @@ LUA_FUNCTION(GetTributeCount) {
 	lua_pushinteger(L, pduel->game_field->get_summon_release_list(target, nullptr, nullptr, nullptr, mg, ex));
 	return 1;
 }
-LUA_FUNCTION(CheckTribute) {
+LUA_STATIC_FUNCTION(CheckTribute) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto target = lua_get<card*, true>(L, 1);
@@ -2685,7 +2685,7 @@ LUA_FUNCTION(CheckTribute) {
 	lua_pushboolean(L, pduel->game_field->check_tribute(target, min, max, mg, toplayer, zone));
 	return 1;
 }
-LUA_FUNCTION(SelectTribute) {
+LUA_STATIC_FUNCTION(SelectTribute) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	auto target = lua_get<card*, true>(L, 2);
@@ -2718,7 +2718,7 @@ LUA_FUNCTION(SelectTribute) {
 * \param filter_func, self, location1, location2, exception card, (extraargs...)
 * \return Group
 */
-LUA_FUNCTION(GetTargetCount) {
+LUA_STATIC_FUNCTION(GetTargetCount) {
 	check_param_count(L, 5);
 	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
@@ -2740,7 +2740,7 @@ LUA_FUNCTION(GetTargetCount) {
 * \param filter_func, self, location1, location2, count, exception card, (extraargs...)
 * \return boolean
 */
-LUA_FUNCTION(IsExistingTarget) {
+LUA_STATIC_FUNCTION(IsExistingTarget) {
 	check_param_count(L, 6);
 	const auto findex = lua_get<function>(L, 1);
 	card* pexception = 0;
@@ -2761,7 +2761,7 @@ LUA_FUNCTION(IsExistingTarget) {
 * \param playerid, filter_func, self, location1, location2, min, max, exception card, (extraargs...)
 * \return Group
 */
-LUA_FUNCTION(SelectTarget) {
+LUA_STATIC_FUNCTION(SelectTarget) {
 	check_action_permission(L);
 	check_param_count(L, 8);
 	const auto findex = lua_get<function>(L, 2);
@@ -2824,7 +2824,7 @@ LUA_FUNCTION(SelectTarget) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SelectFusionMaterial) {
+LUA_STATIC_FUNCTION(SelectFusionMaterial) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -2847,14 +2847,14 @@ LUA_FUNCTION(SelectFusionMaterial) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SetFusionMaterial) {
+LUA_STATIC_FUNCTION(SetFusionMaterial) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	auto pgroup = lua_get<group*, true>(L, 1);
 	pduel->game_field->core.fusion_materials = pgroup->container;
 	return 0;
 }
-LUA_FUNCTION(GetRitualMaterial) {
+LUA_STATIC_FUNCTION(GetRitualMaterial) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -2866,7 +2866,7 @@ LUA_FUNCTION(GetRitualMaterial) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(ReleaseRitualMaterial) {
+LUA_STATIC_FUNCTION(ReleaseRitualMaterial) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -2874,7 +2874,7 @@ LUA_FUNCTION(ReleaseRitualMaterial) {
 	pduel->game_field->ritual_release(pgroup->container);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(GetFusionMaterial) {
+LUA_STATIC_FUNCTION(GetFusionMaterial) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -2885,12 +2885,12 @@ LUA_FUNCTION(GetFusionMaterial) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(IsSummonCancelable) {
+LUA_STATIC_FUNCTION(IsSummonCancelable) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->core.summon_cancelable);
 	return 1;
 }
-LUA_FUNCTION(SetSelectedCard) {
+LUA_STATIC_FUNCTION(SetSelectedCard) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	card* pcard = nullptr;
@@ -2902,14 +2902,14 @@ LUA_FUNCTION(SetSelectedCard) {
 		pduel->game_field->core.must_select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	return 0;
 }
-LUA_FUNCTION(GrabSelectedCard) {
+LUA_STATIC_FUNCTION(GrabSelectedCard) {
 	const auto pduel = lua_get<duel*>(L);
 	group* pgroup = pduel->new_group(pduel->game_field->core.must_select_cards);
 	pduel->game_field->core.must_select_cards.clear();
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(SetTargetCard) {
+LUA_STATIC_FUNCTION(SetTargetCard) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	card* pcard = nullptr;
@@ -2953,14 +2953,14 @@ LUA_FUNCTION(SetTargetCard) {
 	}
 	return 0;
 }
-LUA_FUNCTION(ClearTargetCard) {
+LUA_STATIC_FUNCTION(ClearTargetCard) {
 	const auto pduel = lua_get<duel*>(L);
 	chain* ch = pduel->game_field->get_chain(0);
 	if(ch && ch->target_cards)
 		ch->target_cards->container.clear();
 	return 0;
 }
-LUA_FUNCTION(SetTargetPlayer) {
+LUA_STATIC_FUNCTION(SetTargetPlayer) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -2970,7 +2970,7 @@ LUA_FUNCTION(SetTargetPlayer) {
 		ch->target_player = playerid;
 	return 0;
 }
-LUA_FUNCTION(SetTargetParam) {
+LUA_STATIC_FUNCTION(SetTargetParam) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto param = lua_get<uint32_t>(L, 1);
@@ -2985,7 +2985,7 @@ LUA_FUNCTION(SetTargetParam) {
 * \param target_group, target_count, target_player, targ
 * \return N/A
 */
-LUA_FUNCTION(SetOperationInfo) {
+LUA_STATIC_FUNCTION(SetOperationInfo) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	const auto pduel = lua_get<duel*>(L);
@@ -3013,7 +3013,7 @@ LUA_FUNCTION(SetOperationInfo) {
 	ch->opinfos[cate] = std::move(opt);
 	return 0;
 }
-LUA_FUNCTION(GetOperationInfo) {
+LUA_STATIC_FUNCTION(GetOperationInfo) {
 	check_param_count(L, 2);
 	auto ct = lua_get<uint32_t>(L, 1);
 	auto cate = lua_get<uint32_t>(L, 2);
@@ -3038,7 +3038,7 @@ LUA_FUNCTION(GetOperationInfo) {
 		return 1;
 	}
 }
-LUA_FUNCTION(SetPossibleOperationInfo) {
+LUA_STATIC_FUNCTION(SetPossibleOperationInfo) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	const auto pduel = lua_get<duel*>(L);
@@ -3062,7 +3062,7 @@ LUA_FUNCTION(SetPossibleOperationInfo) {
 	ch->possibleopinfos[cate] = std::move(opt);
 	return 0;
 }
-LUA_FUNCTION(GetPossibleOperationInfo) {
+LUA_STATIC_FUNCTION(GetPossibleOperationInfo) {
 	check_param_count(L, 2);
 	auto ct = lua_get<uint32_t>(L, 1);
 	auto cate = lua_get<uint32_t>(L, 2);
@@ -3087,7 +3087,7 @@ LUA_FUNCTION(GetPossibleOperationInfo) {
 		return 1;
 	}
 }
-LUA_FUNCTION(GetOperationCount) {
+LUA_STATIC_FUNCTION(GetOperationCount) {
 	check_param_count(L, 1);
 	auto ct = lua_get<uint32_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -3097,7 +3097,7 @@ LUA_FUNCTION(GetOperationCount) {
 	lua_pushinteger(L, ch->opinfos.size());
 	return 1;
 }
-LUA_FUNCTION(ClearOperationInfo) {
+LUA_STATIC_FUNCTION(ClearOperationInfo) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto ct = lua_get<uint32_t>(L, 1);
@@ -3117,7 +3117,7 @@ LUA_FUNCTION(ClearOperationInfo) {
 	ch->possibleopinfos.clear();
 	return 0;
 }
-LUA_FUNCTION(Overlay) {
+LUA_STATIC_FUNCTION(Overlay) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -3139,7 +3139,7 @@ LUA_FUNCTION(Overlay) {
 	}
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(GetOverlayGroup) {
+LUA_STATIC_FUNCTION(GetOverlayGroup) {
 	check_param_count(L, 3);
 	auto rplayer = lua_get<uint8_t>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
@@ -3153,7 +3153,7 @@ LUA_FUNCTION(GetOverlayGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(GetOverlayCount) {
+LUA_STATIC_FUNCTION(GetOverlayCount) {
 	check_param_count(L, 3);
 	auto rplayer = lua_get<uint8_t>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
@@ -3165,7 +3165,7 @@ LUA_FUNCTION(GetOverlayCount) {
 	lua_pushinteger(L, pduel->game_field->get_overlay_count(rplayer, self, oppo, pgroup));
 	return 1;
 }
-LUA_FUNCTION(CheckRemoveOverlayCard) {
+LUA_STATIC_FUNCTION(CheckRemoveOverlayCard) {
 	check_param_count(L, 5);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -3179,7 +3179,7 @@ LUA_FUNCTION(CheckRemoveOverlayCard) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pgroup, self, oppo, count, reason));
 	return 1;
 }
-LUA_FUNCTION(RemoveOverlayCard) {
+LUA_STATIC_FUNCTION(RemoveOverlayCard) {
 	check_action_permission(L);
 	check_param_count(L, 6);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3198,7 +3198,7 @@ LUA_FUNCTION(RemoveOverlayCard) {
 		return 1;
 	});
 }
-LUA_FUNCTION(Hint) {
+LUA_STATIC_FUNCTION(Hint) {
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 2);
 	if(playerid != 0 && playerid != 1)
@@ -3214,7 +3214,7 @@ LUA_FUNCTION(Hint) {
 	message->write<uint64_t>(desc);
 	return 0;
 }
-LUA_FUNCTION(HintSelection) {
+LUA_STATIC_FUNCTION(HintSelection) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	card* pcard = nullptr;
@@ -3232,7 +3232,7 @@ LUA_FUNCTION(HintSelection) {
 	}
 	return 0;
 }
-LUA_FUNCTION(SelectEffectYesNo) {
+LUA_STATIC_FUNCTION(SelectEffectYesNo) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 2);
@@ -3247,7 +3247,7 @@ LUA_FUNCTION(SelectEffectYesNo) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SelectYesNo) {
+LUA_STATIC_FUNCTION(SelectYesNo) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3261,7 +3261,7 @@ LUA_FUNCTION(SelectYesNo) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SelectOption) {
+LUA_STATIC_FUNCTION(SelectOption) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3287,7 +3287,7 @@ LUA_FUNCTION(SelectOption) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SelectPosition) {
+LUA_STATIC_FUNCTION(SelectPosition) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto pcard = lua_get<card*, true>(L, 2);
@@ -3300,7 +3300,7 @@ LUA_FUNCTION(SelectPosition) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SelectDisableField) {
+LUA_STATIC_FUNCTION(SelectDisableField) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3409,7 +3409,7 @@ LUA_FUNCTION(SelectDisableField) {
 		return 1;
 	});
 }
-LUA_FUNCTION(SelectFieldZone) {
+LUA_STATIC_FUNCTION(SelectFieldZone) {
 	check_action_permission(L);
 	check_param_count(L, 4);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3452,7 +3452,7 @@ LUA_FUNCTION(SelectFieldZone) {
 		return 1;
 	});
 }
-LUA_FUNCTION(AnnounceRace) {
+LUA_STATIC_FUNCTION(AnnounceRace) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3467,7 +3467,7 @@ LUA_FUNCTION(AnnounceRace) {
 		return 1;
 	});
 }
-LUA_FUNCTION(AnnounceAttribute) {
+LUA_STATIC_FUNCTION(AnnounceAttribute) {
 	check_action_permission(L);
 	check_param_count(L, 3);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3482,7 +3482,7 @@ LUA_FUNCTION(AnnounceAttribute) {
 		return 1;
 	});
 }
-LUA_FUNCTION(AnnounceNumberRange) {
+LUA_STATIC_FUNCTION(AnnounceNumberRange) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3531,7 +3531,7 @@ LUA_FUNCTION(AnnounceNumberRange) {
 	});
 }
 LUA_FUNCTION_ALIAS(AnnounceLevel);
-LUA_FUNCTION(AnnounceCard) {
+LUA_STATIC_FUNCTION(AnnounceCard) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3601,7 +3601,7 @@ LUA_FUNCTION(AnnounceCard) {
 		return 1;
 	});
 }
-LUA_FUNCTION(AnnounceType) {
+LUA_STATIC_FUNCTION(AnnounceType) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -3622,7 +3622,7 @@ LUA_FUNCTION(AnnounceType) {
 		return 1;
 	});
 }
-LUA_FUNCTION(AnnounceNumber) {
+LUA_STATIC_FUNCTION(AnnounceNumber) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3639,7 +3639,7 @@ LUA_FUNCTION(AnnounceNumber) {
 		return 2;
 	});
 }
-LUA_FUNCTION(AnnounceCoin) {
+LUA_STATIC_FUNCTION(AnnounceCoin) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -3666,7 +3666,7 @@ LUA_FUNCTION(AnnounceCoin) {
 		return 1;
 	});
 }
-LUA_FUNCTION(TossCoin) {
+LUA_STATIC_FUNCTION(TossCoin) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3686,7 +3686,7 @@ LUA_FUNCTION(TossCoin) {
 		return static_cast<int32_t>(coin_results.size());
 	});
 }
-LUA_FUNCTION(TossDice) {
+LUA_STATIC_FUNCTION(TossDice) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3705,7 +3705,7 @@ LUA_FUNCTION(TossDice) {
 		return static_cast<int32_t>(dice_results.size());
 	});
 }
-LUA_FUNCTION(RockPaperScissors) {
+LUA_STATIC_FUNCTION(RockPaperScissors) {
 	const auto pduel = lua_get<duel*>(L);
 	uint8_t repeat = lua_get<bool, true>(L, 1);
 	pduel->game_field->add_process(PROCESSOR_ROCK_PAPER_SCISSORS, 0, 0, 0, repeat, 0);
@@ -3714,21 +3714,21 @@ LUA_FUNCTION(RockPaperScissors) {
 		return 1;
 	});
 }
-LUA_FUNCTION(GetCoinResult) {
+LUA_STATIC_FUNCTION(GetCoinResult) {
 	const auto& coin_results = lua_get<duel*>(L)->game_field->core.coin_results;
 	luaL_checkstack(L, static_cast<int>(coin_results.size()), nullptr);
 	for(const auto& coin : coin_results)
 		lua_pushinteger(L, static_cast<int>(coin));
 	return static_cast<int32_t>(coin_results.size());
 }
-LUA_FUNCTION(GetDiceResult) {
+LUA_STATIC_FUNCTION(GetDiceResult) {
 	const auto& dice_results = lua_get<duel*>(L)->game_field->core.dice_results;
 	luaL_checkstack(L, static_cast<int>(dice_results.size()), nullptr);
 	for(const auto& dice : dice_results)
 		lua_pushinteger(L, dice);
 	return static_cast<int32_t>(dice_results.size());
 }
-LUA_FUNCTION(SetCoinResult) {
+LUA_STATIC_FUNCTION(SetCoinResult) {
 	auto& coin_results = lua_get<duel*>(L)->game_field->core.coin_results;
 	if(lua_gettop(L) != (int)coin_results.size())
 		lua_error(L, "The number of coin results passed didn't match the expected amount of %d. (Passed %d)", coin_results.size(), lua_gettop(L));
@@ -3736,7 +3736,7 @@ LUA_FUNCTION(SetCoinResult) {
 		coin_results[i] = static_cast<bool>(lua_get<uint8_t>(L, static_cast<int>(i + 1)));
 	return 0;
 }
-LUA_FUNCTION(SetDiceResult) {
+LUA_STATIC_FUNCTION(SetDiceResult) {
 	auto& dice_results = lua_get<duel*>(L)->game_field->core.dice_results;
 	if(lua_gettop(L) != (int)dice_results.size())
 		lua_error(L, "The number of dice results passed didn't match the expected amount of %d. (Passed %d)", dice_results.size(), lua_gettop(L));
@@ -3744,19 +3744,19 @@ LUA_FUNCTION(SetDiceResult) {
 		dice_results[i] = lua_get<uint8_t>(L, static_cast<int>(i + 1));
 	return 0;
 }
-LUA_FUNCTION(IsDuelType) {
+LUA_STATIC_FUNCTION(IsDuelType) {
 	check_param_count(L, 1);
 	auto duel_type = lua_get<uint64_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->is_flag(duel_type));
 	return 1;
 }
-LUA_FUNCTION(GetDuelType) {
+LUA_STATIC_FUNCTION(GetDuelType) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushinteger(L, pduel->game_field->core.duel_options);
 	return 1;
 }
-LUA_FUNCTION(IsPlayerAffectedByEffect) {
+LUA_STATIC_FUNCTION(IsPlayerAffectedByEffect) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3769,7 +3769,7 @@ LUA_FUNCTION(IsPlayerAffectedByEffect) {
 	interpreter::pushobject(L, peffect);
 	return 1;
 }
-LUA_FUNCTION(GetPlayerEffect) {
+LUA_STATIC_FUNCTION(GetPlayerEffect) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3789,7 +3789,7 @@ LUA_FUNCTION(GetPlayerEffect) {
 		interpreter::pushobject(L, peff);
 	return static_cast<int32_t>(eset.size());
 }
-LUA_FUNCTION(IsPlayerCanDraw) {
+LUA_STATIC_FUNCTION(IsPlayerCanDraw) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3805,7 +3805,7 @@ LUA_FUNCTION(IsPlayerCanDraw) {
 		                && (pduel->game_field->player[playerid].list_main.size() >= count));
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanDiscardDeck) {
+LUA_STATIC_FUNCTION(IsPlayerCanDiscardDeck) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint32_t>(L, 2);
@@ -3817,7 +3817,7 @@ LUA_FUNCTION(IsPlayerCanDiscardDeck) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_discard_deck(playerid, count));
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanDiscardDeckAsCost) {
+LUA_STATIC_FUNCTION(IsPlayerCanDiscardDeckAsCost) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint32_t>(L, 2);
@@ -3829,7 +3829,7 @@ LUA_FUNCTION(IsPlayerCanDiscardDeckAsCost) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_discard_deck_as_cost(playerid, count));
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSummon) {
+LUA_STATIC_FUNCTION(IsPlayerCanSummon) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3847,7 +3847,7 @@ LUA_FUNCTION(IsPlayerCanSummon) {
 	}
 	return 1;
 }
-LUA_FUNCTION(CanPlayerSetMonster) {
+LUA_STATIC_FUNCTION(CanPlayerSetMonster) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3865,7 +3865,7 @@ LUA_FUNCTION(CanPlayerSetMonster) {
 	}
 	return 1;
 }
-LUA_FUNCTION(CanPlayerSetSpellTrap) {
+LUA_STATIC_FUNCTION(CanPlayerSetSpellTrap) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3882,7 +3882,7 @@ LUA_FUNCTION(CanPlayerSetSpellTrap) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSpecialSummon) {
+LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummon) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3902,7 +3902,7 @@ LUA_FUNCTION(IsPlayerCanSpecialSummon) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanFlipSummon) {
+LUA_STATIC_FUNCTION(IsPlayerCanFlipSummon) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3919,7 +3919,7 @@ LUA_FUNCTION(IsPlayerCanFlipSummon) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSpecialSummonMonster) {
+LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster) {
 	check_param_count(L, 9);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3957,7 +3957,7 @@ LUA_FUNCTION(IsPlayerCanSpecialSummonMonster) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_monster(playerid, toplayer, pos, sumtype, &dat));
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSpecialSummonCount) {
+LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonCount) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint32_t>(L, 2);
@@ -3969,7 +3969,7 @@ LUA_FUNCTION(IsPlayerCanSpecialSummonCount) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_count(playerid, count));
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanRelease) {
+LUA_STATIC_FUNCTION(IsPlayerCanRelease) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -3987,7 +3987,7 @@ LUA_FUNCTION(IsPlayerCanRelease) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanRemove) {
+LUA_STATIC_FUNCTION(IsPlayerCanRemove) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4005,7 +4005,7 @@ LUA_FUNCTION(IsPlayerCanRemove) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSendtoHand) {
+LUA_STATIC_FUNCTION(IsPlayerCanSendtoHand) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4022,7 +4022,7 @@ LUA_FUNCTION(IsPlayerCanSendtoHand) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSendtoGrave) {
+LUA_STATIC_FUNCTION(IsPlayerCanSendtoGrave) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4039,7 +4039,7 @@ LUA_FUNCTION(IsPlayerCanSendtoGrave) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanSendtoDeck) {
+LUA_STATIC_FUNCTION(IsPlayerCanSendtoDeck) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4056,7 +4056,7 @@ LUA_FUNCTION(IsPlayerCanSendtoDeck) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanAdditionalSummon) {
+LUA_STATIC_FUNCTION(IsPlayerCanAdditionalSummon) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
@@ -4105,20 +4105,20 @@ inline int32_t is_player_can_procedure_summon_group(lua_State* L, uint32_t summo
 	lua_pushboolean(L, FALSE);
 	return 1;
 }
-LUA_FUNCTION(IsPlayerCanPendulumSummon) {
+LUA_STATIC_FUNCTION(IsPlayerCanPendulumSummon) {
 	return is_player_can_procedure_summon_group(L, SUMMON_TYPE_PENDULUM, 0);
 }
-LUA_FUNCTION(IsPlayerCanProcedureSummonGroup) {
+LUA_STATIC_FUNCTION(IsPlayerCanProcedureSummonGroup) {
 	check_param_count(L, 2);
 	auto sumtype = lua_get<uint32_t>(L, 2);
 	return is_player_can_procedure_summon_group(L, sumtype, 1);
 }
-LUA_FUNCTION(IsChainNegatable) {
+LUA_STATIC_FUNCTION(IsChainNegatable) {
 	check_param_count(L, 1);
 	lua_pushboolean(L, 1);
 	return 1;
 }
-LUA_FUNCTION(IsChainDisablable) {
+LUA_STATIC_FUNCTION(IsChainDisablable) {
 	check_param_count(L, 1);
 	auto chaincount = lua_get<uint8_t>(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -4129,11 +4129,11 @@ LUA_FUNCTION(IsChainDisablable) {
 	lua_pushboolean(L, 1);
 	return 1;
 }
-LUA_FUNCTION(IsChainSolving) {
+LUA_STATIC_FUNCTION(IsChainSolving) {
 	lua_pushboolean(L, lua_get<duel*>(L)->game_field->core.chain_solving);
 	return 1;
 }
-LUA_FUNCTION(CheckChainTarget) {
+LUA_STATIC_FUNCTION(CheckChainTarget) {
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	auto chaincount = lua_get<uint8_t>(L, 1);
@@ -4141,7 +4141,7 @@ LUA_FUNCTION(CheckChainTarget) {
 	lua_pushboolean(L, pduel->game_field->check_chain_target(chaincount, pcard));
 	return 1;
 }
-LUA_FUNCTION(CheckChainUniqueness) {
+LUA_STATIC_FUNCTION(CheckChainUniqueness) {
 	const auto pduel = lua_get<duel*>(L);
 	if(pduel->game_field->core.current_chain.size() == 0) {
 		lua_pushboolean(L, 1);
@@ -4153,7 +4153,7 @@ LUA_FUNCTION(CheckChainUniqueness) {
 	lua_pushboolean(L, er.size() == pduel->game_field->core.current_chain.size());
 	return 1;
 }
-LUA_FUNCTION(GetActivityCount) {
+LUA_STATIC_FUNCTION(GetActivityCount) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -4191,12 +4191,12 @@ LUA_FUNCTION(GetActivityCount) {
 	});
 	return retct;
 }
-LUA_FUNCTION(CheckPhaseActivity) {
+LUA_STATIC_FUNCTION(CheckPhaseActivity) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->core.phase_action);
 	return 1;
 }
-LUA_FUNCTION(AddCustomActivityCounter) {
+LUA_STATIC_FUNCTION(AddCustomActivityCounter) {
 	check_param_count(L, 3);
 	const auto findex = lua_get<function, true>(L, 3);
 	auto counter_id = lua_get<uint32_t>(L, 1);
@@ -4211,7 +4211,7 @@ LUA_FUNCTION(AddCustomActivityCounter) {
 	counter_map.emplace(counter_id, processor::action_value_t{ counter_filter, { 0, 0 } });
 	return 0;
 }
-LUA_FUNCTION(GetCustomActivityCount) {
+LUA_STATIC_FUNCTION(GetCustomActivityCount) {
 	check_param_count(L, 3);
 	auto counter_id = lua_get<uint32_t>(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 2);
@@ -4228,7 +4228,7 @@ LUA_FUNCTION(GetCustomActivityCount) {
 	return 1;
 }
 
-LUA_FUNCTION(GetBattledCount) {
+LUA_STATIC_FUNCTION(GetBattledCount) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -4237,12 +4237,12 @@ LUA_FUNCTION(GetBattledCount) {
 	lua_pushinteger(L, pduel->game_field->core.battled_count[playerid]);
 	return 1;
 }
-LUA_FUNCTION(IsAbleToEnterBP) {
+LUA_STATIC_FUNCTION(IsAbleToEnterBP) {
 	const auto pduel = lua_get<duel*>(L);
 	lua_pushboolean(L, pduel->game_field->is_able_to_enter_bp());
 	return 1;
 }
-LUA_FUNCTION(GetRandomNumber) {
+LUA_STATIC_FUNCTION(GetRandomNumber) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	int32_t min = 0;
@@ -4255,11 +4255,11 @@ LUA_FUNCTION(GetRandomNumber) {
 	lua_pushinteger(L, pduel->get_next_integer(min, max));
 	return 1;
 }
-LUA_FUNCTION(AssumeReset) {
+LUA_STATIC_FUNCTION(AssumeReset) {
 	lua_get<duel*>(L)->restore_assumes();
 	return 0;
 }
-LUA_FUNCTION(GetCardFromCardID) {
+LUA_STATIC_FUNCTION(GetCardFromCardID) {
 	check_param_count(L, 1);
 	auto id = lua_get<uint32_t>(L, 1);
 	auto pduel = lua_get<duel*>(L);
@@ -4271,7 +4271,7 @@ LUA_FUNCTION(GetCardFromCardID) {
 	}
 	return 0;
 }
-LUA_FUNCTION(LoadScript) {
+LUA_STATIC_FUNCTION(LoadScript) {
 	using SLS = duel::SCRIPT_LOAD_STATUS;
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
@@ -4311,7 +4311,7 @@ LUA_FUNCTION(LoadScript) {
 	lua_setglobal(L, "edopro_exports");
 	return 2;
 }
-LUA_FUNCTION(TagSwap) {
+LUA_STATIC_FUNCTION(TagSwap) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -4321,7 +4321,7 @@ LUA_FUNCTION(TagSwap) {
 	pduel->game_field->tag_swap(playerid);
 	return lua_yield(L, 0);
 }
-LUA_FUNCTION(GetPlayersCount) {
+LUA_STATIC_FUNCTION(GetPlayersCount) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -4330,7 +4330,7 @@ LUA_FUNCTION(GetPlayersCount) {
 	lua_pushinteger(L, pduel->game_field->get_player_count(playerid));
 	return 1;
 }
-LUA_FUNCTION(SwapDeckAndGrave) {
+LUA_STATIC_FUNCTION(SwapDeckAndGrave) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -4340,7 +4340,7 @@ LUA_FUNCTION(SwapDeckAndGrave) {
 	pduel->game_field->swap_deck_and_grave(playerid);
 	return 0;
 }
-LUA_FUNCTION(MajesticCopy) {
+LUA_STATIC_FUNCTION(MajesticCopy) {
 	check_param_count(L, 2);
 	auto pcard = lua_get<card*, true>(L, 1);
 	auto ccard = lua_get<card*, true>(L, 2);
@@ -4384,7 +4384,7 @@ LUA_FUNCTION(MajesticCopy) {
 	}
 	return 0;
 }
-LUA_FUNCTION(GetStartingHand) {
+LUA_STATIC_FUNCTION(GetStartingHand) {
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
@@ -4394,7 +4394,7 @@ LUA_FUNCTION(GetStartingHand) {
 	return 1;
 }
 #define INFO_FUNC_FROM_CODE(lua_name,attr) \
-LUA_FUNCTION(GetCard ##lua_name ##FromCode) { \
+LUA_STATIC_FUNCTION(GetCard ##lua_name ##FromCode) { \
 	check_param_count(L, 1); \
 	auto code = lua_get<uint32_t>(L, 1); \
 	const auto& data = lua_get<duel*>(L)->read_card(code); \
@@ -4415,7 +4415,7 @@ INFO_FUNC_FROM_CODE(Lscale, lscale)
 INFO_FUNC_FROM_CODE(LinkMarker, link_marker)
 #undef INFO_FUNC_FROM_CODE
 
-LUA_FUNCTION(GetCardSetcodeFromCode) {
+LUA_STATIC_FUNCTION(GetCardSetcodeFromCode) {
 	check_param_count(L, 1);
 	auto code = lua_get<uint32_t>(L, 1);
 	const auto& data = lua_get<duel*>(L)->read_card(code);
