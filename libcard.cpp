@@ -2126,70 +2126,44 @@ LUA_FUNCTION(AddMonsterAttribute) {
 	auto atk = lua_get<int32_t, 0>(L, 6);
 	auto def = lua_get<int32_t, 0>(L, 7);
 	self->set_status(STATUS_NO_LEVEL, FALSE);
+	constexpr auto resets = RESET_TURN_SET | RESET_TOGRAVE | RESET_REMOVE | RESET_TEMP_REMOVE | RESET_TOHAND | RESET_TODECK | RESET_OVERLAY;
 	// pre-monster
-	effect* peffect = pduel->new_effect();
-	peffect->owner = self;
-	peffect->type = EFFECT_TYPE_SINGLE;
-	peffect->code = EFFECT_PRE_MONSTER;
-	peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
-	peffect->reset_flag = RESET_CHAIN + RESET_EVENT + 0x47e0000;
-	peffect->value = type;
-	self->add_effect(peffect);
-	//attribute
-	if(attribute) {
-		peffect = pduel->new_effect();
+	{
+		effect* peffect = pduel->new_effect();
 		peffect->owner = self;
 		peffect->type = EFFECT_TYPE_SINGLE;
-		peffect->code = EFFECT_ADD_ATTRIBUTE;
+		peffect->code = EFFECT_PRE_MONSTER;
 		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
-		peffect->reset_flag = RESET_EVENT + 0x47e0000;
-		peffect->value = attribute;
+		peffect->reset_flag = RESET_CHAIN | RESET_EVENT | resets;
+		peffect->value = type;
 		self->add_effect(peffect);
 	}
-	//race
-	if(race) {
-		peffect = pduel->new_effect();
+
+	auto register_property_effect = [&](auto value, auto effect_code) {
+		auto peffect = pduel->new_effect();
 		peffect->owner = self;
 		peffect->type = EFFECT_TYPE_SINGLE;
-		peffect->code = EFFECT_ADD_RACE;
+		peffect->code = effect_code;
 		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
-		peffect->reset_flag = RESET_EVENT + 0x47e0000;
-		peffect->value = race;
+		peffect->reset_flag = RESET_EVENT | resets;
+		peffect->value = value;
 		self->add_effect(peffect);
-	}
-	//level
-	if(level) {
-		peffect = pduel->new_effect();
-		peffect->owner = self;
-		peffect->type = EFFECT_TYPE_SINGLE;
-		peffect->code = EFFECT_CHANGE_LEVEL;
-		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
-		peffect->reset_flag = RESET_EVENT + 0x47e0000;
-		peffect->value = level;
-		self->add_effect(peffect);
-	}
-	//atk
-	if(atk) {
-		peffect = pduel->new_effect();
-		peffect->owner = self;
-		peffect->type = EFFECT_TYPE_SINGLE;
-		peffect->code = EFFECT_SET_BASE_ATTACK;
-		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
-		peffect->reset_flag = RESET_EVENT + 0x47e0000;
-		peffect->value = atk;
-		self->add_effect(peffect);
-	}
-	//def
-	if(def) {
-		peffect = pduel->new_effect();
-		peffect->owner = self;
-		peffect->type = EFFECT_TYPE_SINGLE;
-		peffect->code = EFFECT_SET_BASE_DEFENSE;
-		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
-		peffect->reset_flag = RESET_EVENT + 0x47e0000;
-		peffect->value = def;
-		self->add_effect(peffect);
-	}
+	};
+
+	if(attribute)
+		register_property_effect(attribute, EFFECT_ADD_ATTRIBUTE);
+
+	if(race)
+		register_property_effect(race, EFFECT_ADD_RACE);
+
+	if(level)
+		register_property_effect(level, EFFECT_CHANGE_LEVEL);
+
+	if(atk)
+		register_property_effect(atk, EFFECT_SET_BASE_ATTACK);
+
+	if(def)
+		register_property_effect(def, EFFECT_SET_BASE_DEFENSE);
 	return 0;
 }
 LUA_FUNCTION(AddMonsterAttributeComplete) {
