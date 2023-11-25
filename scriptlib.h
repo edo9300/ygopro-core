@@ -21,6 +21,9 @@ namespace scriptlib {
 	bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
 	void check_action_permission(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
+	inline int32_t push_return_cards(lua_State* L, bool cancelable) {
+		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
+	}
 	int32_t is_deleted_object(lua_State* L);
 
 	template<typename... Args>
@@ -287,5 +290,16 @@ namespace scriptlib {
 		return 1;
 	}
 }
+
+#define yieldk(...) lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int {\
+	(void)status; \
+	(void)ctx; \
+	auto pduel = lua_get<duel*>(L); \
+	(void)pduel; \
+	do __VA_ARGS__ while(0); \
+	unreachable(); \
+})
+
+#define yield() lua_yield(L, 0)
 
 #endif /* SCRIPTLIB_H_ */

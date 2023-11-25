@@ -22,7 +22,6 @@ LUA_STATIC_FUNCTION(Message) {
 	if(top == 0)
 		return 0;
 	luaL_checkstack(L, 1, nullptr);
-	const auto pduel = lua_get<duel*>(L);
 	for(int i = 1; i <= top; ++i) {
 		const auto* str = luaL_tolstring(L, i, nullptr);
 		if(str)
@@ -44,7 +43,6 @@ LUA_STATIC_FUNCTION(AddCard) {
 		return 0;
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	const auto pduel = lua_get<duel*>(L);
 	auto& field = pduel->game_field;
 	if(field->is_location_useable(playerid, location, sequence)) {
 		card* pcard = pduel->new_card(code);
@@ -96,7 +94,6 @@ LUA_STATIC_FUNCTION(AddCard) {
 }
 LUA_STATIC_FUNCTION(SetPlayerInfo) {
 	check_param_count(L, 4);
-	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto lp = lua_get<uint32_t>(L, 2);
 	auto startcount = lua_get<uint32_t>(L, 3);
@@ -166,7 +163,6 @@ LUA_STATIC_FUNCTION(PreAddCounter) {
 }
 LUA_STATIC_FUNCTION(ReloadFieldBegin) {
 	check_param_count(L, 1);
-	const auto pduel = lua_get<duel*>(L);
 	auto flag = lua_get<uint64_t>(L, 1);
 	auto rule = lua_get<uint8_t, 3>(L, 2);
 	bool build = lua_get<bool, false>(L, 3);
@@ -186,7 +182,6 @@ LUA_STATIC_FUNCTION(ReloadFieldBegin) {
 	return 0;
 }
 LUA_STATIC_FUNCTION(ReloadFieldEnd) {
-	const auto pduel = lua_get<duel*>(L);
 	auto& field = pduel->game_field;
 	auto& core = field->core;
 	core.shuffle_hand_check[0] = FALSE;
@@ -195,7 +190,7 @@ LUA_STATIC_FUNCTION(ReloadFieldEnd) {
 	core.shuffle_deck_check[1] = FALSE;
 	field->reload_field_info();
 	if(lua_isyieldable(L))
-		return lua_yield(L, 0);
+		return yield();
 	return 0;
 }
 template<int message_code, size_t max_len>
@@ -206,8 +201,7 @@ int32_t write_string_message(lua_State* L) {
 	const char* pstr = lua_tolstring(L, 1, &len);
 	if(len > max_len)
 		len = max_len;
-	const auto pduel = lua_get<duel*>(L);
-	auto message = pduel->new_message(message_code);
+	auto message = lua_get<duel*>(L)->new_message(message_code);
 	message->write<uint16_t>(static_cast<uint16_t>(len));
 	message->write(pstr, len);
 	message->write<uint8_t>(0);

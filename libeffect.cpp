@@ -22,7 +22,6 @@ using namespace scriptlib;
 
 LUA_STATIC_FUNCTION(CreateEffect) {
 	check_param_count(L, 1);
-	const auto pduel = lua_get<duel*>(L);
 	auto pcard = lua_get<card*, true>(L, 1);
 	effect* peffect = pduel->new_effect();
 	peffect->effect_owner = pduel->game_field->core.reason_player;
@@ -31,7 +30,6 @@ LUA_STATIC_FUNCTION(CreateEffect) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(GlobalEffect) {
-	const auto pduel = lua_get<duel*>(L);
 	effect* peffect = pduel->new_effect();
 	peffect->effect_owner = 0;
 	peffect->owner = pduel->game_field->temp_card;
@@ -45,7 +43,6 @@ LUA_FUNCTION(Clone) {
 }
 LUA_FUNCTION(Reset) {
 	check_param_count(L, 1);
-	const auto pduel = lua_get<duel*>(L);
 	if(self->owner == nullptr)
 		return 0;
 	if(self->is_flag(EFFECT_FLAG_FIELD_ONLY))
@@ -451,7 +448,6 @@ LUA_FUNCTION(IsHasType) {
 }
 LUA_FUNCTION(IsActivatable) {
 	check_param_count(L, 2);
-	const auto pduel = lua_get<duel*>(L);
 	auto playerid = lua_get<uint8_t>(L, 2);
 	bool neglect_loc = lua_get<bool, false>(L, 3);
 	bool neglect_target = lua_get<bool, false>(L, 4);
