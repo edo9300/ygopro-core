@@ -62,10 +62,10 @@ struct Detail::LuaFunction<__COUNTER__> { \
 }
 
 #define LUA_FUNCTION_ALIAS(name) LUA_DECLARE_ALIAS_INT(name, __COUNTER__)
-#define LUA_DECLARE_ALIAS_INT(name, __COUNTER__) \
+#define LUA_DECLARE_ALIAS_INT(name, COUNTER) \
 template<> \
-struct Detail::LuaFunction<__COUNTER__> { \
-    static constexpr luaL_Reg elem{#name,Detail::LuaFunction<__COUNTER__-1>::elem.func}; \
+struct Detail::LuaFunction<COUNTER> { \
+    static constexpr luaL_Reg elem{#name,Detail::LuaFunction<COUNTER-1>::elem.func}; \
 }
 #else
 #define LUA_FUNCTION(name) static int32_t MAKE_LUA_NAME(LUA_MODULE,name)([[maybe_unused]] lua_State* L, [[maybe_unused]] LUA_CLASS* self, [[maybe_unused]] duel* pduel)
