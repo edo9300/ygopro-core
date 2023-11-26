@@ -42,13 +42,15 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 	open_lib(LUA_MATHLIBNAME, luaopen_math);
 	if(options.enableUnsafeLibraries != 0)
 		open_lib(LUA_IOLIBNAME, luaopen_io);
-	else {
-		// Remove "dangerous" functions
-		auto nil_out = [&](const char* name) {
-			lua_pushnil(lua_state);
-			lua_setglobal(lua_state, name);
-		};
-		nil_out("collectgarbage");
+
+	auto nil_out = [&](const char* name) {
+		lua_pushnil(lua_state);
+		lua_setglobal(lua_state, name);
+	};
+
+	// Remove "dangerous" functions
+	nil_out("collectgarbage");
+	if(options.enableUnsafeLibraries == 0) {
 		nil_out("dofile");
 		nil_out("loadfile");
 	}
