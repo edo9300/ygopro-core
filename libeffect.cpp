@@ -494,7 +494,7 @@ LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
 
 void scriptlib::push_effect_lib(lua_State* L) {
 	static constexpr auto effectlib = GET_LUA_FUNCTIONS_ARRAY();
-	static_assert(effectlib.back().name == nullptr, "");
+	static_assert(effectlib.back().name == nullptr);
 	lua_createtable(L, 0, static_cast<int>(effectlib.size() - 1));
 	luaL_setfuncs(L, effectlib.data(), 0);
 	lua_pushstring(L, "__index");

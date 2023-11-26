@@ -4203,7 +4203,7 @@ LUA_STATIC_FUNCTION(GetCardSetcodeFromCode) {
 
 void scriptlib::push_duel_lib(lua_State* L) {
 	static constexpr auto duellib = GET_LUA_FUNCTIONS_ARRAY();
-	static_assert(duellib.back().name == nullptr, "");
+	static_assert(duellib.back().name == nullptr);
 	lua_createtable(L, 0, static_cast<int>(duellib.size() - 1));
 	luaL_setfuncs(L, duellib.data(), 0);
 	lua_setglobal(L, "Duel");

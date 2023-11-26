@@ -2371,7 +2371,7 @@ LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
 
 void scriptlib::push_card_lib(lua_State* L) {
 	static constexpr auto cardlib = GET_LUA_FUNCTIONS_ARRAY();
-	static_assert(cardlib.back().name == nullptr, "");
+	static_assert(cardlib.back().name == nullptr);
 	lua_createtable(L, 0, static_cast<int>(cardlib.size() - 1));
 	luaL_setfuncs(L, cardlib.data(), 0);
 	lua_pushstring(L, "__index");

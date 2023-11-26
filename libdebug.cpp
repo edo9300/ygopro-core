@@ -239,7 +239,7 @@ LUA_STATIC_FUNCTION(CardToStringWrapper) {
 
 void scriptlib::push_debug_lib(lua_State* L) {
 	static constexpr auto debuglib = GET_LUA_FUNCTIONS_ARRAY();
-	static_assert(debuglib.back().name == nullptr, "");
+	static_assert(debuglib.back().name == nullptr);
 	lua_createtable(L, 0, static_cast<int>(debuglib.size() - 1));
 	luaL_setfuncs(L, debuglib.data(), 0);
 	lua_setglobal(L, "Debug");
