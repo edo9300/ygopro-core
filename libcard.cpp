@@ -965,17 +965,13 @@ LUA_FUNCTION(GetTurnCounter) {
 }
 LUA_FUNCTION(SetMaterial) {
 	check_param_count(L, 2);
-	if(!lua_isnoneornil(L, 2)) {
-		card* matcard{ nullptr };
-		group* pgroup{ nullptr };
-		get_card_or_group(L, 2, matcard, pgroup);
-		if(matcard) {
-			card_set mats{ matcard };
-			self->set_material(&mats);
-		} else
-			self->set_material(&pgroup->container);
-	} else
-		self->set_material(nullptr);
+	if(auto [pcard, pgroup] = get_card_or_group<true>(L, 2); pcard) {
+		self->set_material({ pcard });
+	} else if(pgroup) {
+		self->set_material(pgroup->container);
+	} else {
+		self->set_material({});
+	}
 	return 0;
 }
 LUA_FUNCTION(GetMaterial) {

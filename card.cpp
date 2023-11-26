@@ -2411,11 +2411,8 @@ int32_t card::get_counter(uint16_t countertype) {
 		return 0;
 	return cmit->second[0] + cmit->second[1];
 }
-void card::set_material(card_set* materials) {
-	if(!materials) {
-		material_cards.clear();
-	} else
-		material_cards = *materials;
+void card::set_material(card_set materials) {
+	material_cards = std::move(materials);
 	for(auto& pcard : material_cards)
 		pcard->current.reason_card = this;
 	effect_set eset;

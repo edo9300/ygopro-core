@@ -75,13 +75,10 @@ LUA_FUNCTION(AddCard) {
 	check_param_count(L, 2);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	card* pcard = nullptr;
-	group* sgroup = nullptr;
-	get_card_or_group(L, 2, pcard, sgroup);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 2); pcard)
 		self->container.insert(pcard);
 	else
-		self->container.insert(sgroup->container.begin(), sgroup->container.end());
+		self->container.insert(pgroup->container.begin(), pgroup->container.end());
 	interpreter::pushobject(L, self);
 	return 1;
 }
@@ -90,15 +87,12 @@ LUA_FUNCTION(RemoveCard) {
 	check_param_count(L, 2);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	card* pcard = nullptr;
-	group* sgroup = nullptr;
-	get_card_or_group(L, 2, pcard, sgroup);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 2); pcard)
 		self->container.erase(pcard);
 	else {
-		if(self == sgroup)
+		if(self == pgroup)
 			lua_error(L, "Attempting to remove a group from itself");
-		for(auto& _pcard : sgroup->container)
+		for(auto& _pcard : pgroup->container)
 			self->container.erase(_pcard);
 	}
 	interpreter::pushobject(L, self);
@@ -690,12 +684,10 @@ LUA_STATIC_FUNCTION(__add) {
 }
 LUA_FUNCTION(__sub) {
 	check_param_count(L, 2);
-	group* pgroup2 = nullptr;
-	card* pcard = nullptr;
-	get_card_or_group(L, 2, pcard, pgroup2);
+	auto [pcard, pgroup] = get_card_or_group(L, 2);
 	group* newgroup = pduel->new_group(self);
-	if(pgroup2) {
-		for(auto& _pcard : pgroup2->container)
+	if(pgroup) {
+		for(auto& _pcard : pgroup->container)
 			newgroup->container.erase(_pcard);
 	} else
 		newgroup->container.erase(pcard);

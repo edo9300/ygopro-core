@@ -158,16 +158,19 @@ namespace scriptlib {
 		return static_cast<T>(std::round(lua_tonumber(L, idx)));
 	}
 
-	inline void get_card_or_group(lua_State* L, int idx, card*& pcard, group*& pgroup) {
+	template<bool nil_allowed = false>
+	inline std::pair<card*, group*> get_card_or_group(lua_State* L, int idx) {
+		if constexpr(nil_allowed) {
+			if(lua_isnoneornil(L, idx))
+				return { nullptr,nullptr };
+		}
 		auto obj = lua_get<lua_obj*>(L, idx);
 		if(obj) {
 			switch(obj->lua_type) {
 			case PARAM_TYPE_CARD:
-				pcard = (card*)(obj);
-				return;
+				return { reinterpret_cast<card*>(obj), nullptr };
 			case PARAM_TYPE_GROUP:
-				pgroup = (group*)(obj);
-				return;
+				return{ nullptr, reinterpret_cast<group*>(obj) };
 			default: break;
 			}
 		}

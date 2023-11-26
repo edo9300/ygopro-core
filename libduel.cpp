@@ -174,13 +174,10 @@ LUA_STATIC_FUNCTION(GetFlagEffectLabel) {
 LUA_STATIC_FUNCTION(Destroy) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto reason = lua_get<uint32_t>(L, 2);
 	auto dest = lua_get<uint16_t, LOCATION_GRAVE>(L, 3);
 	const auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->destroy(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, PLAYER_NONE, dest, 0);
 	else
 		pduel->game_field->destroy(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, PLAYER_NONE, dest, 0);
@@ -192,14 +189,11 @@ LUA_STATIC_FUNCTION(Destroy) {
 LUA_STATIC_FUNCTION(Remove) {
 	check_action_permission(L);
 	check_param_count(L, 3);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto pos = lua_get<uint8_t, 0>(L, 2);
 	auto reason = lua_get<uint32_t>(L, 3);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
 	const auto reasonplayer = lua_get<uint8_t>(L, 5, pduel->game_field->core.reason_player);
-	if (pcard)
+	if (auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_REMOVED, 0, pos);
 	else
 		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_REMOVED, 0, pos);
@@ -211,13 +205,10 @@ LUA_STATIC_FUNCTION(Remove) {
 LUA_STATIC_FUNCTION(SendtoGrave) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto reason = lua_get<uint32_t>(L, 2);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 3);
 	const auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
-	if (pcard)
+	if (auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
 	else
 		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_GRAVE, 0, POS_FACEUP);
@@ -375,9 +366,7 @@ LUA_STATIC_FUNCTION(SSet) {
 	if(toplayer != 0 && toplayer != 1)
 		toplayer = playerid;
 	bool confirm = lua_get<bool, true>(L, 4);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 2, pcard, pgroup);
+	auto [pcard, pgroup] = get_card_or_group(L, 2);
 	if(pcard) {
 		pgroup = pduel->new_group(pcard);
 	} else if(pgroup->container.empty()) {
@@ -409,9 +398,6 @@ LUA_STATIC_FUNCTION(CreateToken) {
 LUA_STATIC_FUNCTION(SpecialSummon) {
 	check_action_permission(L);
 	check_param_count(L, 7);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto sumtype = lua_get<uint32_t>(L, 2);
 	auto sumplayer = lua_get<uint8_t>(L, 3);
 	if(sumplayer >= PLAYER_NONE)
@@ -421,7 +407,7 @@ LUA_STATIC_FUNCTION(SpecialSummon) {
 	auto nolimit = lua_get<bool>(L, 6);
 	auto positions = lua_get<uint8_t>(L, 7);
 	auto zone = lua_get<uint32_t, 0xff>(L, 8);
-	if(pcard) {
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard) {
 		pduel->game_field->special_summon(card_set{ pcard }, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
 	} else
 		pduel->game_field->special_summon(pgroup->container, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone);
@@ -466,15 +452,12 @@ LUA_STATIC_FUNCTION(SpecialSummonComplete) {
 LUA_STATIC_FUNCTION(SendtoHand) {
 	check_action_permission(L);
 	check_param_count(L, 3);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 2);
 	if(playerid > PLAYER_NONE)
 		return 0;
 	auto reason = lua_get<uint32_t>(L, 3);
 	const auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_HAND, 0, POS_FACEUP);
 	else
 		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_HAND, 0, POS_FACEUP);
@@ -486,9 +469,6 @@ LUA_STATIC_FUNCTION(SendtoHand) {
 LUA_STATIC_FUNCTION(SendtoDeck) {
 	check_action_permission(L);
 	check_param_count(L, 4);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 2);
 	if(playerid > PLAYER_NONE)
 		return 0;
@@ -496,7 +476,7 @@ LUA_STATIC_FUNCTION(SendtoDeck) {
 	auto reason = lua_get<uint32_t>(L, 4);
 	const auto reasonplayer = lua_get<uint8_t>(L, 5, pduel->game_field->core.reason_player);
 	uint16_t location = (sequence == -2) ? 0 : LOCATION_DECK;
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, POS_FACEUP);
 	else
 		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, POS_FACEUP);
@@ -508,15 +488,12 @@ LUA_STATIC_FUNCTION(SendtoDeck) {
 LUA_STATIC_FUNCTION(SendtoExtraP) {
 	check_action_permission(L);
 	check_param_count(L, 3);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 2);
 	if(playerid > PLAYER_NONE)
 		return 0;
 	auto reason = lua_get<uint32_t>(L, 3);
 	const auto reasonplayer = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
 	else
 		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, LOCATION_EXTRA, 0, POS_FACEUP);
@@ -528,9 +505,6 @@ LUA_STATIC_FUNCTION(SendtoExtraP) {
 LUA_STATIC_FUNCTION(Sendto) {
 	check_action_permission(L);
 	check_param_count(L, 3);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto location = lua_get<uint16_t>(L, 2);
 	auto reason = lua_get<uint32_t>(L, 3);
 	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 4);
@@ -539,7 +513,7 @@ LUA_STATIC_FUNCTION(Sendto) {
 		return 0;
 	auto sequence = lua_get<uint32_t, 0>(L, 6);
 	const auto reasonplayer = lua_get<uint8_t>(L, 7, pduel->game_field->core.reason_player);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, pos, TRUE);
 	else
 		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, pos, TRUE);
@@ -551,10 +525,7 @@ LUA_STATIC_FUNCTION(Sendto) {
 LUA_STATIC_FUNCTION(RemoveCards) {
 	check_action_permission(L);
 	check_param_count(L, 1);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
-	if(pcard) {
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard) {
 		auto message = pduel->new_message(MSG_REMOVE_CARDS);
 		message->write<uint32_t>(1);
 		message->write(pcard->get_info_location());
@@ -650,16 +621,13 @@ LUA_STATIC_FUNCTION(GetCounter) {
 LUA_STATIC_FUNCTION(ChangePosition) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto au = lua_get<uint8_t>(L, 2);
 	auto ad = lua_get<uint8_t>(L, 3, au);
 	auto du = lua_get<uint8_t>(L, 4, au);
 	auto dd = lua_get<uint8_t>(L, 5, au);
 	uint32_t flag = 0;
 	if(lua_get<bool, false>(L, 6)) flag |= NO_FLIP_EFFECT;
-	if(pcard) {
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard) {
 		pduel->game_field->change_position(card_set{ pcard }, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
 	} else
 		pduel->game_field->change_position(pgroup->container, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
@@ -671,12 +639,9 @@ LUA_STATIC_FUNCTION(ChangePosition) {
 LUA_STATIC_FUNCTION(Release) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto reason = lua_get<uint32_t>(L, 2);
 	const auto reasonplayer = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->release(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer);
 	else
 		pduel->game_field->release(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer);
@@ -897,9 +862,7 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 2, pcard, pgroup);
+	auto [pcard, pgroup] = get_card_or_group(L, 2);
 	if(pgroup && pgroup->container.empty())
 		return 0;
 	auto message = pduel->new_message(MSG_CONFIRM_CARDS);
@@ -977,9 +940,6 @@ LUA_STATIC_FUNCTION(CheckEvent) {
 LUA_STATIC_FUNCTION(RaiseEvent) {
 	check_action_permission(L);
 	check_param_count(L, 7);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto code = lua_get<uint32_t>(L, 2);
 	effect* peffect = 0;
 	if(!lua_isnoneornil(L, 3))
@@ -988,7 +948,7 @@ LUA_STATIC_FUNCTION(RaiseEvent) {
 	auto rp = lua_get<uint8_t>(L, 5);
 	auto ep = lua_get<uint8_t>(L, 6);
 	auto ev = lua_get<uint32_t>(L, 7);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->raise_event(pcard, code, peffect, r, rp, ep, ev);
 	else
 		pduel->game_field->raise_event(&pgroup->container, code, peffect, r, rp, ep, ev);
@@ -1238,9 +1198,6 @@ LUA_STATIC_FUNCTION(EquipComplete) {
 LUA_STATIC_FUNCTION(GetControl) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	auto playerid = lua_get<uint8_t>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
@@ -1248,7 +1205,7 @@ LUA_STATIC_FUNCTION(GetControl) {
 	auto reset_count = lua_get<uint8_t, 0>(L, 4);
 	auto zone = lua_get<uint32_t, 0xff>(L, 5);
 	auto chose_player = lua_get<uint8_t>(L, 6, pduel->game_field->core.reason_player);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->get_control(pcard, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
 	else
 		pduel->game_field->get_control(pgroup->container, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
@@ -1630,10 +1587,8 @@ LUA_STATIC_FUNCTION(NegateRelatedChain) {
 }
 LUA_STATIC_FUNCTION(NegateSummon) {
 	check_param_count(L, 1);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	uint8_t sumplayer = PLAYER_NONE;
+	auto [pcard, pgroup] = get_card_or_group(L, 1);
 	if(pcard) {
 		sumplayer = pcard->summon.player;
 		pcard->set_status(STATUS_SUMMONING, FALSE);
@@ -1709,14 +1664,11 @@ LUA_STATIC_FUNCTION(GetMZoneCount) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	bool swapped = false;
-	card* mcard = nullptr;
-	group* mgroup = nullptr;
 	const uint32_t default_loc = 0x1111 * pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD);
 	uint32_t used_location[2] = { default_loc, default_loc };
 	card_vector list_mzone[2];
-	if(!lua_isnoneornil(L, 2)) {
-		get_card_or_group(L, 2, mcard, mgroup);
-		for(int32_t p = 0; p < 2; ++p) {
+	if(auto [mcard, mgroup] = get_card_or_group<true>(L, 2); mcard || mgroup) {
+		for(size_t p = 0; p < 2; ++p) {
 			uint32_t digit = 1;
 			for(auto& pcard : pduel->game_field->player[p].list_mzone) {
 				if(pcard && pcard != mcard && !(mgroup && mgroup->has_card(pcard))) {
@@ -1753,14 +1705,11 @@ LUA_STATIC_FUNCTION(GetLocationCountFromEx) {
 		return 0;
 	auto uplayer = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
 	bool swapped = false;
-	card* mcard = nullptr;
-	group* mgroup = nullptr;
 	const uint32_t default_loc = 0x1111 * pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD);
 	uint32_t used_location[2] = { default_loc, default_loc };
 	card_vector list_mzone[2];
-	if(!lua_isnoneornil(L, 3)) {
-		get_card_or_group(L, 3, mcard, mgroup);
-		for(int32_t p = 0; p < 2; ++p) {
+	if(auto [mcard, mgroup] = get_card_or_group<true>(L, 3); mcard || mgroup) {
+		for(size_t p = 0; p < 2; ++p) {
 			uint32_t digit = 1;
 			for(auto& pcard : pduel->game_field->player[p].list_mzone) {
 				if(pcard && pcard != mcard && !(mgroup && mgroup->has_card(pcard))) {
@@ -2746,10 +2695,7 @@ LUA_STATIC_FUNCTION(IsSummonCancelable) {
 }
 LUA_STATIC_FUNCTION(SetSelectedCard) {
 	check_param_count(L, 1);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
-	if(pcard)
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard)
 		pduel->game_field->core.must_select_cards = { pcard };
 	else
 		pduel->game_field->core.must_select_cards.assign(pgroup->container.begin(), pgroup->container.end());
@@ -2764,9 +2710,7 @@ LUA_STATIC_FUNCTION(GrabSelectedCard) {
 LUA_STATIC_FUNCTION(SetTargetCard) {
 	check_action_permission(L);
 	check_param_count(L, 1);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
+	auto [pcard, pgroup] = get_card_or_group(L, 1);
 	chain* ch = pduel->game_field->get_chain(0);
 	if(!ch)
 		return 0;
@@ -2965,9 +2909,7 @@ LUA_STATIC_FUNCTION(Overlay) {
 	auto target = lua_get<card*, true>(L, 1);
 	if(target->overlay_target != nullptr)
 		lua_error(L, "Attempt to overlay materials to a card that is an overlay material.");
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 2, pcard, pgroup);
+	auto [pcard, pgroup] = get_card_or_group(L, 2);
 	bool send_materials_to_grave = lua_get<bool, false>(L, 3);
 	if(pcard) {
 		if(pcard == target)
@@ -3052,12 +2994,9 @@ LUA_STATIC_FUNCTION(Hint) {
 }
 LUA_STATIC_FUNCTION(HintSelection) {
 	check_param_count(L, 1);
-	card* pcard = nullptr;
-	group* pgroup = nullptr;
-	get_card_or_group(L, 1, pcard, pgroup);
 	bool selection = lua_get<bool, false>(L, 2);
 	auto message = pduel->new_message(selection ? MSG_CARD_SELECTED : MSG_BECOME_TARGET);
-	if(pcard) {
+	if(auto [pcard, pgroup] = get_card_or_group(L, 1); pcard) {
 		message->write<uint32_t>(1);
 		message->write(pcard->get_info_location());
 	} else {

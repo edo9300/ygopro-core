@@ -287,7 +287,7 @@ public:
 	int32_t remove_counter(uint16_t countertype, uint16_t count);
 	int32_t is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t singly, uint32_t loc);
 	int32_t get_counter(uint16_t countertype);
-	void set_material(card_set* materials);
+	void set_material(card_set materials);
 	void add_card_target(card* pcard);
 	void cancel_card_target(card* pcard);
 	void clear_card_target();

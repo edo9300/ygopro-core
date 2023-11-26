@@ -2042,7 +2042,7 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		if(tributes) {
 			for(auto& pcard : *tributes)
 				pcard->current.reason_card = target;
-			target->set_material(tributes);
+			target->set_material(*tributes);
 			release(std::move(*tributes), 0, REASON_SUMMON | REASON_MATERIAL, sumplayer);
 			target->summon.type |= SUMMON_TYPE_ADVANCE;
 			delete tributes;
@@ -2579,7 +2579,7 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 		if(tributes) {
 			for(auto& pcard : *tributes)
 				pcard->current.reason_card = target;
-			target->set_material(tributes);
+			target->set_material(*tributes);
 			release(std::move(*tributes), 0, REASON_SUMMON | REASON_MATERIAL, setplayer);
 			target->summon.type |= SUMMON_TYPE_ADVANCE;
 			delete tributes;
