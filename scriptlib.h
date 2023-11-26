@@ -42,14 +42,6 @@ namespace scriptlib {
 			lua_error(L, "%d Parameters are needed.", count);
 	}
 
-//Visual Studio raises a warning on const conditional expressions.
-//In these templated functions those warnings will be wrongly raised
-//so they can be safely disabled
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4127)
-#endif
-
 	template<typename T, typename type>
 	using EnableIfTemplate = std::enable_if_t<std::is_same<T, type>::value, int>;
 
@@ -73,8 +65,10 @@ namespace scriptlib {
 
 	template<typename T, bool forced = false, EnableIfTemplate<T, function> = 0>
 	inline int32_t lua_get(lua_State* L, int idx) {
-		if(lua_isnoneornil(L, idx) && !forced)
-			return 0;
+		if constexpr(!forced) {
+			if(lua_isnoneornil(L, idx))
+				return 0;
+		}
 		check_param(L, PARAM_TYPE_FUNCTION, idx);
 		return idx;
 	}
@@ -94,8 +88,10 @@ namespace scriptlib {
 
 	template<typename T, bool check = false, EnableIfTemplate<T, card*> = 0>
 	inline card* lua_get(lua_State* L, int idx) {
-		if(!check && lua_isnone(L, idx))
-			return nullptr;
+		if constexpr(!check) {
+			if(lua_isnone(L, idx))
+				return nullptr;
+		}
 		card* ret = nullptr;
 		check_param(L, PARAM_TYPE_CARD, idx, !check, &ret);
 		return ret;
@@ -103,8 +99,10 @@ namespace scriptlib {
 
 	template<typename T, bool check = false, EnableIfTemplate<T, group*> = 0>
 	inline group* lua_get(lua_State* L, int idx) {
-		if(!check && lua_isnone(L, idx))
-			return nullptr;
+		if constexpr(!check) {
+			if(lua_isnone(L, idx))
+				return nullptr;
+		}
 		group* ret = nullptr;
 		check_param(L, PARAM_TYPE_GROUP, idx, !check, &ret);
 		return ret;
@@ -112,8 +110,10 @@ namespace scriptlib {
 
 	template<typename T, bool check = false, EnableIfTemplate<T, effect*> = 0>
 	inline effect* lua_get(lua_State* L, int idx) {
-		if(!check && lua_isnone(L, idx))
-			return nullptr;
+		if constexpr(!check) {
+			if(lua_isnone(L, idx))
+				return nullptr;
+		}
 		effect* ret = nullptr;
 		check_param(L, PARAM_TYPE_EFFECT, idx, !check, &ret);
 		return ret;
@@ -157,10 +157,6 @@ namespace scriptlib {
 			return static_cast<T>(lua_tointeger(L, idx));
 		return static_cast<T>(std::round(lua_tonumber(L, idx)));
 	}
-
-	#ifdef _MSC_VER
-	#pragma warning(pop)
-	#endif
 
 	inline void get_card_or_group(lua_State* L, int idx, card*& pcard, group*& pgroup) {
 		auto obj = lua_get<lua_obj*>(L, idx);
