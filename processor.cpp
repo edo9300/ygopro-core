@@ -15,8 +15,7 @@
 #include "interpreter.h"
 
 void field::add_process(uint16_t type, uint16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3, int64_t arg4, void* ptr1, void* ptr2) {
-	core.subunits.emplace_back();
-	processor_unit& new_unit = core.subunits.back();
+	auto& new_unit = core.subunits.emplace_back();
 	new_unit.type = type;
 	new_unit.step = step;
 	new_unit.peffect = peffect;
@@ -665,8 +664,7 @@ int32_t field::process() {
 				core.units.pop_front();
 				return PROCESSOR_FLAG_CONTINUE;
 			}
-			core.sub_solving_event.emplace_back();
-			auto& e = core.sub_solving_event.back();
+			auto& e = core.sub_solving_event.emplace_back();
 			e.event_cards = it->ptarget;
 			e.reason_effect = core.select_effects[returns.at<int32_t>(0)];
 			e.reason_player = it->arg1;
@@ -955,7 +953,7 @@ int32_t field::execute_target(uint16_t step, effect* triggering_effect, uint8_t 
 	return FALSE;
 }
 void field::raise_event(card* event_card, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
-	tevent new_event;
+	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = 0;
 	if (event_card) {
 		group* pgroup = pduel->new_group(event_card);
@@ -970,11 +968,9 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 	new_event.event_player = event_player;
 	new_event.event_value = event_value;
 	new_event.global_id = infos.event_id;
-	core.queue_event.push_back(new_event);
 }
 void field::raise_event(card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
-	core.queue_event.emplace_back();
-	tevent& new_event = core.queue_event.back();
+	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = 0;
 	if (event_cards) {
 		group* pgroup = pduel->new_group(*event_cards);
@@ -991,8 +987,7 @@ void field::raise_event(card_set* event_cards, uint32_t event_code, effect* reas
 	new_event.global_id = infos.event_id;
 }
 void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
-	core.single_event.emplace_back();
-	tevent& new_event = core.single_event.back();
+	auto& new_event = core.single_event.emplace_back();
 	new_event.trigger_card = trigger_card;
 	if (event_cards) {
 		group* pgroup = pduel->new_group(*event_cards);
@@ -1088,8 +1083,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 			if(!peffect->is_activateable(check_player, nil_event))
 				continue;
 			peffect->id = infos.field_id++;
-			core.select_chains.emplace_back();
-			core.select_chains.back().triggering_effect = peffect;
+			core.select_chains.emplace_back().triggering_effect = peffect;
 			++tf_count;
 		}
 		pr = effects.continuous_effect.equal_range(phase_event);
@@ -1100,8 +1094,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 			if(peffect->get_handler_player() != check_player || !peffect->is_activateable(check_player, nil_event))
 				continue;
 			peffect->id = infos.field_id++;
-			core.select_chains.emplace_back();
-			core.select_chains.back().triggering_effect = peffect;
+			core.select_chains.emplace_back().triggering_effect = peffect;
 			++cn_count;
 		}
 		//all effects taking control non-permanently are only until End Phase, not until Turn end
@@ -1121,8 +1114,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 			card* phandler = peffect->get_handler();
 			if(peffect->get_value(phandler) != phandler->current.controler)
 				continue;
-			core.select_chains.emplace_back();
-			core.select_chains.back().triggering_effect = peffect;
+			core.select_chains.emplace_back().triggering_effect = peffect;
 			++cn_count;
 		}
 		core.spe_effect[check_player] = 0;
@@ -1135,8 +1127,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 				if(!peffect->is_activateable(check_player, nil_event))
 					continue;
 				peffect->id = infos.field_id++;
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 				++to_count;
 				++core.spe_effect[check_player];
 			}
@@ -1158,8 +1149,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 				if(!peffect->is_chainable(check_player) || !peffect->is_activateable(check_player, nil_event))
 					continue;
 				peffect->id = infos.field_id++;
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 				if(check_hint_timing(peffect) || check_cteffect_hint(peffect, check_player))
 					++core.spe_effect[check_player];
 				++fc_count;
@@ -1172,8 +1162,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 				if(!peffect->is_chainable(check_player) || !peffect->is_activateable(check_player, nil_event))
 					continue;
 				peffect->id = infos.field_id++;
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 				if(check_hint_timing(peffect))
 					++core.spe_effect[check_player];
 				++fc_count;
@@ -1185,8 +1174,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 				if(peffect->get_handler_player() != check_player || !peffect->is_activateable(check_player, nil_event))
 					continue;
 				peffect->id = infos.field_id++;
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 				++fc_count;
 			}
 		}
@@ -1257,8 +1245,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 			int32_t check_player = infos.turn_player;
 			if(is_opponent)
 				check_player = 1 - infos.turn_player;
-			core.new_chains.emplace_back(std::move(selected_chain));
-			chain& newchain = core.new_chains.back();
+			auto& newchain = core.new_chains.emplace_back(std::move(selected_chain));
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
 			newchain.evt = nil_event;
@@ -1630,8 +1617,7 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 			effect* peffect = eit->second;
 			++eit;
 			if(peffect->get_handler_player() == check_player && peffect->is_activateable(check_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 				++core.spe_effect[check_player];
 			}
 		}
@@ -1661,8 +1647,7 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 			effect* peffect = eit->second;
 			++eit;
 			if(peffect->get_handler_player() == check_player && peffect->is_activateable(check_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 				++core.spe_effect[check_player];
 			}
 		}
@@ -1759,8 +1744,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 					peffect->set_activate_location();
 					if(!peffect->is_flag(EFFECT_FLAG_DELAY) && peffect->is_chainable(priority) && peffect->is_activateable(priority, *evit)) {
 						card* phandler = peffect->get_handler();
-						core.select_chains.emplace_back();
-						chain& newchain = core.select_chains.back();
+						auto& newchain = core.select_chains.emplace_back();
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = *evit;
@@ -1776,8 +1760,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 					peffect->set_activate_location();
 					if(!peffect->is_flag(EFFECT_FLAG_DELAY) && peffect->is_chainable(priority) && peffect->is_activateable(priority, *evit)) {
 						card* phandler = peffect->get_handler();
-						core.select_chains.emplace_back();
-						chain& newchain = core.select_chains.back();
+						auto& newchain = core.select_chains.emplace_back();
 						newchain.flag = 0;
 						newchain.chain_id = infos.field_id++;
 						newchain.evt = *evit;
@@ -1814,8 +1797,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 				peffect->set_activate_location();
 				if(peffect->is_flag(EFFECT_FLAG_DELAY) && peffect->is_chainable(priority) && peffect->is_activateable(priority, ev)) {
 					card* phandler = peffect->get_handler();
-					core.select_chains.emplace_back();
-					chain& newchain = core.select_chains.back();
+					auto& newchain = core.select_chains.emplace_back();
 					newchain.flag = 0;
 					newchain.chain_id = infos.field_id++;
 					newchain.evt = ev;
@@ -1833,8 +1815,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 			peffect->set_activate_location();
 			if(peffect->is_chainable(priority) && peffect->is_activateable(priority, evt, TRUE, FALSE, FALSE)) {
 				card* phandler = peffect->get_handler();
-				core.select_chains.emplace_back();
-				chain& newchain = core.select_chains.back();
+				auto& newchain = core.select_chains.emplace_back();
 				newchain.flag = 0;
 				newchain.chain_id = infos.field_id++;
 				newchain.evt = evt;
@@ -1853,8 +1834,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 				peffect->set_activate_location();
 				if(peffect->is_chainable(priority) && peffect->is_activateable(priority, nil_event)) {
 					card* phandler = peffect->get_handler();
-					core.select_chains.emplace_back();
-					chain& newchain = core.select_chains.back();
+					auto& newchain = core.select_chains.emplace_back();
 					newchain.flag = 0;
 					newchain.chain_id = infos.field_id++;
 					newchain.evt = nil_event;
@@ -1872,8 +1852,7 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 				peffect->set_activate_location();
 				if(peffect->is_chainable(priority) && peffect->is_activateable(priority, nil_event)) {
 					card* phandler = peffect->get_handler();
-					core.select_chains.emplace_back();
-					chain& newchain = core.select_chains.back();
+					auto& newchain = core.select_chains.emplace_back();
 					newchain.flag = 0;
 					newchain.chain_id = infos.field_id++;
 					newchain.evt = nil_event;
@@ -1956,8 +1935,7 @@ int32_t field::process_instant_event() {
 						return tp;
 					return ntp;
 				}();
-				chain_set.emplace_back();
-				chain& newchain = chain_set.back();
+				auto& newchain = chain_set.emplace_back();
 				newchain.chain_id = 0;
 				newchain.chain_count = 0;
 				newchain.triggering_effect = peffect;
@@ -1985,8 +1963,7 @@ int32_t field::process_instant_event() {
 			if((was_just_sent = check_simul(peffect, phandler)) == true && (peffect->range & LOCATION_HAND) == 0)
 				continue;
 			peffect->set_activate_location();
-			core.new_fchain.emplace_back();
-			chain& newchain = core.new_fchain.back();
+			auto& newchain = core.new_fchain.emplace_back();
 			newchain.was_just_sent = was_just_sent;
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
@@ -2012,8 +1989,7 @@ int32_t field::process_instant_event() {
 			if((peffect->range & LOCATION_HAND) == 0 && !act)
 				continue;
 			peffect->set_activate_location();
-			core.new_ochain.emplace_back();
-			chain& newchain = core.new_ochain.back();
+			auto& newchain = core.new_ochain.emplace_back();
 			newchain.was_just_sent = was_just_sent;
 			newchain.flag = 0;
 			newchain.chain_id = infos.field_id++;
@@ -2142,8 +2118,7 @@ int32_t field::process_single_event(effect* peffect, const tevent& e, chain_list
 					return tp;
 				return ntp;
 			}();
-			chain_set.emplace_back();
-			chain& newchain = chain_set.back();
+			auto& newchain = chain_set.emplace_back();
 			newchain.chain_id = 0;
 			newchain.chain_count = 0;
 			newchain.triggering_effect = peffect;
@@ -2171,8 +2146,7 @@ int32_t field::process_single_event(effect* peffect, const tevent& e, chain_list
 				return core.new_ochain;
 			return core.new_fchain;
 		}();
-		chain_set.emplace_back();
-		chain& newchain = chain_set.back();
+		auto& newchain = chain_set.emplace_back();
 		newchain.flag = 0;
 		newchain.chain_id = infos.field_id++;
 		newchain.event_id = e.global_id;
@@ -2263,8 +2237,7 @@ int32_t field::process_idle_command(uint16_t step) {
 			effect* peffect = eit->second;
 			peffect->set_activate_location();
 			if(peffect->is_activateable(infos.turn_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		pr = effects.quick_o_effect.equal_range(EVENT_FREE_CHAIN);
@@ -2272,24 +2245,21 @@ int32_t field::process_idle_command(uint16_t step) {
 			effect* peffect = eit->second;
 			peffect->set_activate_location();
 			if(peffect->is_activateable(infos.turn_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
 		for(auto eit = pr.first; eit != pr.second; eit++) {
 			effect* peffect = eit->second;
 			if(peffect->get_handler_player() == infos.turn_player && peffect->is_activateable(infos.turn_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		for(auto& eit : effects.ignition_effect) {
 			effect* peffect = eit.second;
 			peffect->set_activate_location();
 			if(peffect->is_activateable(infos.turn_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		core.summonable_cards.clear();
@@ -2585,8 +2555,7 @@ int32_t field::process_battle_command(uint16_t step) {
 			peffect = eit->second;
 			peffect->set_activate_location();
 			if(peffect->is_activateable(infos.turn_player, nil_event) && peffect->get_speed() > 1) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		pr = effects.quick_o_effect.equal_range(EVENT_FREE_CHAIN);
@@ -2594,16 +2563,14 @@ int32_t field::process_battle_command(uint16_t step) {
 			peffect = eit->second;
 			peffect->set_activate_location();
 			if(peffect->is_activateable(infos.turn_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		pr = effects.continuous_effect.equal_range(EVENT_FREE_CHAIN);
 		for(auto eit = pr.first; eit != pr.second; eit++) {
 			peffect = eit->second;
 			if(peffect->get_handler_player() == infos.turn_player && peffect->is_activateable(infos.turn_player, nil_event)) {
-				core.select_chains.emplace_back();
-				core.select_chains.back().triggering_effect = peffect;
+				core.select_chains.emplace_back().triggering_effect = peffect;
 			}
 		}
 		core.attackable_cards.clear();
@@ -2694,8 +2661,7 @@ int32_t field::process_battle_command(uint16_t step) {
 			core.attacker->filter_effect(EFFECT_ATTACK_COST, &eset);
 			for(const auto& peff : eset) {
 				if(peff->operation) {
-					core.tpchain.emplace_back();
-					core.tpchain.back().triggering_effect = peff;
+					core.tpchain.emplace_back().triggering_effect = peff;
 					core.attack_cancelable = FALSE;
 				}
 			}
@@ -4759,8 +4725,7 @@ int32_t field::sort_chain(uint16_t step, uint8_t tp) {
 	return TRUE;
 }
 void field::solve_continuous(uint8_t playerid, effect* peffect, const tevent& e) {
-	core.sub_solving_continuous.emplace_back();
-	chain& newchain = core.sub_solving_continuous.back();
+	auto& newchain = core.sub_solving_continuous.emplace_back();
 	newchain.chain_id = 0;
 	newchain.chain_count = 0;
 	newchain.triggering_effect = peffect;
