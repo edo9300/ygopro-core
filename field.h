@@ -244,12 +244,12 @@ struct processor {
 	event_list single_event;
 	event_list solving_event;
 	event_list sub_solving_event;
-	chain_array select_chains;
+	chain_list select_chains;
 	chain_array current_chain;
 	int32_t real_chain_count;
 	chain_list tpchain;
 	chain_list ntpchain;
-	chain_array ignition_priority_chains;
+	chain_list ignition_priority_chains;
 	chain_list continuous_chain;
 	chain_list solving_continuous;
 	chain_list sub_solving_continuous;

@@ -20,7 +20,7 @@ int32_t field::select_battle_command(uint16_t step, uint8_t playerid) {
 		message->write<uint8_t>(playerid);
 		//Activatable
 		message->write<uint32_t>(core.select_chains.size());
-		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
+		core.select_chains.sort(chain::chain_operation_sort);
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;
 			card* pcard = peffect->get_handler();
@@ -110,7 +110,7 @@ int32_t field::select_idle_command(uint16_t step, uint8_t playerid) {
 		}
 		//idle activate
 		message->write<uint32_t>(core.select_chains.size());
-		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
+		core.select_chains.sort(chain::chain_operation_sort);
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;
 			card* pcard = peffect->get_handler();
@@ -454,7 +454,7 @@ int32_t field::select_chain(uint16_t step, uint8_t playerid, uint8_t spe_count, 
 		message->write<uint8_t>(forced);
 		message->write<uint32_t>(core.hint_timing[playerid]);
 		message->write<uint32_t>(core.hint_timing[1 - playerid]);
-		std::sort(core.select_chains.begin(), core.select_chains.end(), chain::chain_operation_sort);
+		core.select_chains.sort(chain::chain_operation_sort);
 		message->write<uint32_t>(core.select_chains.size());
 		for(const auto& ch : core.select_chains) {
 			effect* peffect = ch.triggering_effect;

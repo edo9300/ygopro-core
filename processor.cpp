@@ -1201,7 +1201,7 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 			else
 				message->write<uint64_t>(26);
 			if(tf_count == 0 && to_count == 1 && fc_count == 0 && cn_count == 0) {
-				add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains[0].triggering_effect->get_handler(), check_player, 0);
+				add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains.front().triggering_effect->get_handler(), check_player, 0);
 				return FALSE;
 			} else {
 				add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, check_player, core.spe_effect[check_player] | (tf_count + cn_count ? 0x10000 : 0));
@@ -1231,8 +1231,8 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 		}
 		priority_passed = 0;
 		core.units.begin()->arg2 = is_opponent | priority_passed;
-		chain& selected_chain = core.select_chains[returns.at<int32_t>(0)];
-		effect* peffect = selected_chain.triggering_effect;
+		auto selected_chain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+		effect* peffect = selected_chain->triggering_effect;
 		card* phandler = peffect->get_handler();
 		if(!(peffect->type & EFFECT_TYPE_ACTIONS)) {
 			if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY))
@@ -1245,12 +1245,12 @@ int32_t field::process_phase_event(int16_t step, int32_t phase) {
 			int32_t check_player = infos.turn_player;
 			if(is_opponent)
 				check_player = 1 - infos.turn_player;
-			auto& newchain = core.new_chains.emplace_back(std::move(selected_chain));
-			newchain.flag = 0;
-			newchain.chain_id = infos.field_id++;
-			newchain.evt = nil_event;
-			newchain.set_triggering_state(phandler);
-			newchain.triggering_player = check_player;
+			core.new_chains.splice(core.new_chains.end(), core.select_chains, selected_chain);
+			selected_chain->flag = 0;
+			selected_chain->chain_id = infos.field_id++;
+			selected_chain->evt = nil_event;
+			selected_chain->set_triggering_state(phandler);
+			selected_chain->triggering_player = check_player;
 			phandler->set_status(STATUS_CHAINING, TRUE);
 			peffect->dec_count(check_player);
 			core.select_chains.clear();
@@ -1395,7 +1395,7 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 			returns.set<int32_t>(0, -1);
 		} else {
 			if(is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER)) { //tcg segoc
-				std::sort(core.select_chains.begin(), core.select_chains.end(), [](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
+				core.select_chains.sort([](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
 				auto pred = [id = core.select_chains.front().event_id](const chain& ch) {
 					return ch.event_id == id;
 				};
@@ -1420,13 +1420,13 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 			}
 			return FALSE;
 		}
-		chain& newchain = core.select_chains[returns.at<int32_t>(0)];
-		effect* peffect = newchain.triggering_effect;
-		uint8_t tp = newchain.triggering_player;
+		auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+		effect* peffect = newchain->triggering_effect;
+		uint8_t tp = newchain->triggering_player;
 		peffect->get_handler()->set_status(STATUS_CHAINING, TRUE);
 		peffect->dec_count(tp);
-		auto chain_id = newchain.chain_id;
-		core.new_chains.push_back(std::move(newchain));
+		auto chain_id = newchain->chain_id;
+		core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 		add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
 		core.new_fchain_s.remove_if([chain_id](const chain& ch) { return ch.chain_id == chain_id; });
 		core.units.begin()->step = 1;
@@ -1474,7 +1474,7 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 				core.new_ochain_h.clear();
 			//tcg segoc
 			if(is_flag(DUEL_TCG_SEGOC_FIRSTTRIGGER)) {
-				std::sort(core.select_chains.begin(), core.select_chains.end(), [](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
+				core.select_chains.sort([](const chain& c1, const chain& c2) {return c1.event_id < c2.event_id; });
 				auto pred = [id = core.select_chains.front().event_id](const chain& ch) {
 					return ch.event_id == id;
 				};
@@ -1482,7 +1482,7 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 				core.select_chains.erase(endit, core.select_chains.end());
 			}
 			if(core.select_chains.size() == 1 && !core.current_chain.size()) {
-				add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains[0].triggering_effect->get_handler(), core.current_player, 221);
+				add_process(PROCESSOR_SELECT_EFFECTYN, 0, 0, (group*)core.select_chains.front().triggering_effect->get_handler(), core.current_player, 221);
 				return FALSE;
 			} else {
 				add_process(PROCESSOR_SELECT_CHAIN, 0, 0, 0, core.current_player, 0x7f);
@@ -1513,18 +1513,18 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 			return FALSE;
 		} else if(ret == -1) {
 			//TCG SEGOC
-			auto discardedid = core.select_chains[0].event_id;
+			auto discardedid = core.select_chains.front().event_id;
 			core.new_ochain_s.remove_if([&](const chain& ch) { return ch.event_id == discardedid && ch.triggering_player == core.current_player; });
 			core.units.begin()->step = 3;
 			return FALSE;
 		}
-		chain& newchain = core.select_chains[returns.at<int32_t>(0)];
-		effect* peffect = newchain.triggering_effect;
-		uint8_t tp = newchain.triggering_player;
+		auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+		effect* peffect = newchain->triggering_effect;
+		uint8_t tp = newchain->triggering_player;
 		peffect->get_handler()->set_status(STATUS_CHAINING, TRUE);
 		peffect->dec_count(tp);
-		auto chain_id = newchain.chain_id;
-		core.new_chains.push_back(std::move(newchain));
+		auto chain_id = newchain->chain_id;
+		core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 		add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
 		core.new_ochain_s.remove_if([chain_id](const chain& ch) { return ch.chain_id == chain_id; });
 		core.new_ochain_h.remove_if([chain_id](const chain& ch) { return ch.chain_id == chain_id; });
@@ -1630,8 +1630,8 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 	case 31: {
 		if(returns.at<int32_t>(0) == -1)
 			return FALSE;
-		const chain& newchain = core.select_chains[returns.at<int32_t>(0)];
-		effect* peffect = newchain.triggering_effect;
+		auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+		effect* peffect = newchain->triggering_effect;
 		core.select_chains.clear();
 		solve_continuous(peffect->get_handler_player(), peffect, nil_event);
 		core.units.begin()->step = 29;
@@ -1662,8 +1662,8 @@ int32_t field::process_point_event(int16_t step, int32_t skip_trigger, int32_t s
 			core.units.begin()->step = -1;
 			return FALSE;
 		}
-		const chain& newchain = core.select_chains[returns.at<int32_t>(0)];
-		effect* peffect = newchain.triggering_effect;
+		auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+		effect* peffect = newchain->triggering_effect;
 		core.select_chains.clear();
 		solve_continuous(peffect->get_handler_player(), peffect, nil_event);
 		core.units.begin()->step = 31;
@@ -1722,12 +1722,12 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 			}
 			return FALSE;
 		}
-		chain& newchain = core.select_chains[returns.at<int32_t>(0)];
-		effect* peffect = newchain.triggering_effect;
-		uint8_t tp = newchain.triggering_player;
+		auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+		effect* peffect = newchain->triggering_effect;
+		uint8_t tp = newchain->triggering_player;
 		peffect->get_handler()->set_status(STATUS_CHAINING, TRUE);
 		peffect->dec_count(tp);
-		core.new_chains.push_back(std::move(newchain));
+		core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 		core.quick_f_chain.erase(peffect);
 		core.units.begin()->step = -1;
 		return FALSE;
@@ -1871,10 +1871,10 @@ int32_t field::process_quick_effect(int16_t step, int32_t skip_freechain, uint8_
 	}
 	case 3: {
 		if(core.select_chains.size() && returns.at<int32_t>(0) != -1) {
-			chain& newchain = core.select_chains[returns.at<int32_t>(0)];
-			effect* peffect = newchain.triggering_effect;
-			core.delayed_quick.erase(std::make_pair(peffect, newchain.evt));
-			core.new_chains.push_back(std::move(newchain));
+			auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
+			effect* peffect = newchain->triggering_effect;
+			core.delayed_quick.erase(std::make_pair(peffect, newchain->evt));
+			core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 			peffect->get_handler()->set_status(STATUS_CHAINING, TRUE);
 			peffect->dec_count(priority);
 			add_process(PROCESSOR_ADD_CHAIN, 0, 0, 0, 0, 0);
@@ -2322,8 +2322,8 @@ int32_t field::process_idle_command(uint16_t step) {
 		uint32_t ctype = returns.at<int32_t>(0) & 0xffff;
 		uint32_t sel = returns.at<int32_t>(0) >> 16;
 		if(ctype == 5) {
-			chain& newchain = core.select_chains[sel];
-			effect* peffect = newchain.triggering_effect;
+			auto newchain = std::next(core.select_chains.begin(), sel);
+			effect* peffect = newchain->triggering_effect;
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
 				core.select_chains.clear();
 				solve_continuous(peffect->get_handler_player(), peffect, nil_event);
@@ -2331,18 +2331,18 @@ int32_t field::process_idle_command(uint16_t step) {
 				return FALSE;
 			}
 			card* phandler = peffect->get_handler();
-			newchain.flag = 0;
-			newchain.chain_id = infos.field_id++;
-			newchain.evt.event_code = peffect->code;
-			newchain.evt.event_player = PLAYER_NONE;
-			newchain.evt.event_value = 0;
-			newchain.evt.event_cards = 0;
-			newchain.evt.reason = 0;
-			newchain.evt.reason_effect = 0;
-			newchain.evt.reason_player = PLAYER_NONE;
-			newchain.set_triggering_state(phandler);
-			newchain.triggering_player = infos.turn_player;
-			core.new_chains.push_back(std::move(newchain));
+			newchain->flag = 0;
+			newchain->chain_id = infos.field_id++;
+			newchain->evt.event_code = peffect->code;
+			newchain->evt.event_player = PLAYER_NONE;
+			newchain->evt.event_value = 0;
+			newchain->evt.event_cards = 0;
+			newchain->evt.reason = 0;
+			newchain->evt.reason_effect = 0;
+			newchain->evt.reason_player = PLAYER_NONE;
+			newchain->set_triggering_state(phandler);
+			newchain->triggering_player = infos.turn_player;
+			core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 			phandler->set_status(STATUS_CHAINING, TRUE);
 			peffect->dec_count(infos.turn_player);
 			core.select_chains.clear();
@@ -2613,8 +2613,8 @@ int32_t field::process_battle_command(uint16_t step) {
 		int32_t ctype = returns.at<int32_t>(0) & 0xffff;
 		int32_t sel = returns.at<int32_t>(0) >> 16;
 		if(ctype == 0) {
-			chain& newchain = core.select_chains[sel];
-			effect* peffect = newchain.triggering_effect;
+			auto newchain = std::next(core.select_chains.begin(), sel);
+			effect* peffect = newchain->triggering_effect;
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
 				core.select_chains.clear();
 				solve_continuous(peffect->get_handler_player(), peffect, nil_event);
@@ -2622,18 +2622,18 @@ int32_t field::process_battle_command(uint16_t step) {
 				return FALSE;
 			}
 			card* phandler = peffect->get_handler();
-			newchain.flag = 0;
-			newchain.chain_id = infos.field_id++;
-			newchain.evt.event_code = peffect->code;
-			newchain.evt.event_player = PLAYER_NONE;
-			newchain.evt.event_value = 0;
-			newchain.evt.event_cards = 0;
-			newchain.evt.reason = 0;
-			newchain.evt.reason_effect = 0;
-			newchain.evt.reason_player = PLAYER_NONE;
-			newchain.set_triggering_state(phandler);
-			newchain.triggering_player = infos.turn_player;
-			core.new_chains.push_back(std::move(newchain));
+			newchain->flag = 0;
+			newchain->chain_id = infos.field_id++;
+			newchain->evt.event_code = peffect->code;
+			newchain->evt.event_player = PLAYER_NONE;
+			newchain->evt.event_value = 0;
+			newchain->evt.event_cards = 0;
+			newchain->evt.reason = 0;
+			newchain->evt.reason_effect = 0;
+			newchain->evt.reason_player = PLAYER_NONE;
+			newchain->set_triggering_state(phandler);
+			newchain->triggering_player = infos.turn_player;
+			core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 			phandler->set_status(STATUS_CHAINING, TRUE);
 			peffect->dec_count(infos.turn_player);
 			core.select_chains.clear();
@@ -4493,16 +4493,16 @@ int32_t field::add_chain(uint16_t step) {
 	}
 	case 5: {
 		auto& clit = core.current_chain.back();
-		chain& ch = core.select_chains[returns.at<int32_t>(0)];
+		auto ch = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
 		int32_t playerid = clit.triggering_player;
-		effect* peffect = ch.triggering_effect;
+		effect* peffect = ch->triggering_effect;
 		card* phandler = peffect->get_handler();
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_OPSELECTED);
 		message->write<uint8_t>(playerid);
 		message->write<uint64_t>(returns.at<int32_t>(0) >= (int32_t)core.select_options.size() ? core.select_options[returns.at<int32_t>(0)] : 65);
 		clit.triggering_effect = peffect;
-		clit.evt = ch.evt;
+		clit.evt = ch->evt;
 		phandler->create_relation(clit);
 		peffect->dec_count(playerid);
 		if(!(peffect->type & EFFECT_TYPE_ACTIVATE)) {
