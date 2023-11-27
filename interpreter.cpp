@@ -470,14 +470,12 @@ bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vecto
 }
 #if LUA_VERSION_NUM <= 503
 namespace {
-int lua_resumec(lua_State* L, lua_State* from, int nargs, int* nresults) {
+int lua_resume(lua_State* L, lua_State* from, int nargs, int* nresults) {
 	auto ret = lua_resume(L, from, nargs);
 	*nresults = lua_gettop(L);
 	return ret;
 }
 }
-#else
-#define lua_resumec(state, from, nargs, res) lua_resume(state, from, nargs, res)
 #endif
 int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step) {
 	auto ret_error = [&](const char* message) {
@@ -523,7 +521,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 	int result, nresults;
 	{
 		auto prev_state = std::exchange(current_state, rthread);
-		result = lua_resumec(current_state, prev_state, param_count, &nresults);
+		result = lua_resume(current_state, prev_state, param_count, &nresults);
 		current_state = prev_state;
 	}
 	if(result == LUA_YIELD)
