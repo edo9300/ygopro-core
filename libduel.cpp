@@ -56,7 +56,7 @@ LUA_STATIC_FUNCTION(GetTurnPlayer) {
 LUA_STATIC_FUNCTION(IsTurnPlayer) {
 	check_param_count(L, 1);
 	const auto playerid = lua_get<uint8_t>(L, 1);
-	lua_pushboolean(L, static_cast<int>(pduel->game_field->infos.turn_player == playerid));
+	lua_pushboolean(L, pduel->game_field->infos.turn_player == playerid);
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetTurnCount) {
