@@ -1990,6 +1990,22 @@ LUA_STATIC_FUNCTION(GetCurrentPhase) {
 	lua_pushinteger(L, pduel->game_field->infos.phase);
 	return 1;
 }
+LUA_STATIC_FUNCTION(IsMainPhase) {
+	const auto phase = pduel->game_field->infos.phase;
+	lua_pushboolean(L, static_cast<int>(phase == PHASE_MAIN1 || phase == PHASE_MAIN2));
+	return 1;
+}
+LUA_STATIC_FUNCTION(IsBattlePhase) {
+	const auto phase = pduel->game_field->infos.phase;
+	lua_pushboolean(L, static_cast<int>(phase >= PHASE_BATTLE_START) && (phase <= PHASE_BATTLE));
+	return 1;
+}
+LUA_STATIC_FUNCTION(IsPhase) {
+	check_param_count(L, 1);
+	const auto phase = pduel->game_field->infos.phase;
+	lua_pushboolean(L, static_cast<int>(pduel->game_field->infos.phase == phase));
+	return 1;
+}
 LUA_STATIC_FUNCTION(SkipPhase) {
 	check_param_count(L, 4);
 	auto playerid = lua_get<uint8_t>(L, 1);
