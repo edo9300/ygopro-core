@@ -53,6 +53,12 @@ LUA_STATIC_FUNCTION(GetTurnPlayer) {
 	lua_pushinteger(L, pduel->game_field->infos.turn_player);
 	return 1;
 }
+LUA_STATIC_FUNCTION(IsTurnPlayer) {
+	check_param_count(L, 1);
+	const auto playerid = lua_get<uint8_t>(L, 1);
+	lua_pushboolean(L, static_cast<int>(pduel->game_field->infos.turn_player == playerid));
+	return 1;
+}
 LUA_STATIC_FUNCTION(GetTurnCount) {
 	if(lua_gettop(L) > 0) {
 		auto playerid = lua_get<uint8_t>(L, 1);
@@ -2002,7 +2008,7 @@ LUA_STATIC_FUNCTION(IsBattlePhase) {
 }
 LUA_STATIC_FUNCTION(IsPhase) {
 	check_param_count(L, 1);
-	const auto phase = pduel->game_field->infos.phase;
+	const auto phase = lua_get<uint16_t>(L, 1);
 	lua_pushboolean(L, static_cast<int>(pduel->game_field->infos.phase == phase));
 	return 1;
 }
