@@ -103,21 +103,17 @@ LUA_FUNCTION(GetNext) {
 	check_param_count(L, 1);
 	if(self->is_iterator_dirty)
 		lua_error(L, "Called Group.GetNext without first calling Group.GetFirst");
-	if(self->it == self->container.end())
+	if(self->it == self->container.end() || (++self->it) == self->container.end())
 		lua_pushnil(L);
-	else {
-		if((++self->it) == self->container.end())
-			lua_pushnil(L);
-		else
-			interpreter::pushobject(L, *self->it);
-	}
+	else
+		interpreter::pushobject(L, *self->it);
 	return 1;
 }
 LUA_FUNCTION(GetFirst) {
 	check_param_count(L, 1);
 	self->is_iterator_dirty = false;
-	if(self->container.size())
-		interpreter::pushobject(L, *(self->it = self->container.begin()));
+	if(self->it = self->container.begin(); self->it != self->container.end())
+		interpreter::pushobject(L, *self->it);
 	else
 		lua_pushnil(L);
 	return 1;
