@@ -3909,7 +3909,7 @@ int32_t card::is_capable_be_effect_target(effect* peffect, uint8_t playerid) {
 		return FALSE;
 	if(current.location & (LOCATION_DECK | LOCATION_EXTRA | LOCATION_HAND))
 		return FALSE;
-	if ((data.type & TYPE_TOKEN) && !(current.location  & LOCATION_ONFIELD) )
+	if((data.type & TYPE_TOKEN) && !(current.location & LOCATION_ONFIELD))
 		return FALSE;
 	effect_set eset;
 	filter_effect(EFFECT_CANNOT_BE_EFFECT_TARGET, &eset);
