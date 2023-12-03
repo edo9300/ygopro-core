@@ -613,14 +613,37 @@ LUA_FUNCTION(Remove) {
 	const auto findex = lua_get<function, true>(L, 2);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	card* pexception = 0;
-	if(!lua_isnoneornil(L, 3))
-		pexception = lua_get<card*, true>(L, 3);
 	uint32_t extraargs = lua_gettop(L) - 3;
-	for(auto cit = self->container.begin(); cit != self->container.end();) {
-		auto rm = cit++;
-		if((*rm) != pexception && pduel->lua->check_matching(*rm, findex, extraargs)) {
-			self->container.erase(rm);
+	auto& cset = self->container;
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
+		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
+			auto rm = cit++;
+			auto* pcard = *rm;
+			if(pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs))
+				cset.erase(rm);
+		}
+	} else if(pexgroup) {
+		auto should_keep = [pexbegin = pexgroup->container.cbegin(), pexend = pexgroup->container.cend()](card* pcard) mutable {
+			if(pexbegin == pexend)
+				return false;
+			if(*pexbegin == pcard) {
+				++pexbegin;
+				return true;
+			}
+			return false;
+		};
+		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
+			auto rm = cit++;
+			auto* pcard = *rm;
+			if(!should_keep(pcard) && pduel->lua->check_matching(pcard, findex, extraargs))
+				cset.erase(rm);
+		}
+	} else {
+		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
+			auto rm = cit++;
+			auto* pcard = *rm;
+			if(pduel->lua->check_matching(pcard, findex, extraargs))
+				cset.erase(rm);
 		}
 	}
 	interpreter::pushobject(L, self);
