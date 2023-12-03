@@ -873,12 +873,32 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 		return 0;
 	auto message = pduel->new_message(MSG_CONFIRM_CARDS);
 	message->write<uint8_t>(playerid);
+
+	//To raise the proper events:
+	// EVENT_CONFIRM event when a card is revealed (used by "Vanquish Soul Jiaolong")
+	// EVENT_TOHAND_CONFIRM event when a card in the hand is revealed (used by "Puppet King" and "Puppet Queen")
+	auto& field = *pduel->game_field;
+	auto reason = (field.core.chain_solving) ? REASON_EFFECT : REASON_COST;
+	auto trigeff = field.core.reason_effect;
+	uint8_t revealingplayer = 1 - playerid;
+	bool was_during_to_hand = field.check_event(EVENT_TO_HAND);
+	card_set handgroup;
+	auto raise_confirm_event = [&](card* pcard) {
+		field.raise_single_event(pcard, 0, EVENT_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
+		if(was_during_to_hand && (pcard->current.location == LOCATION_HAND)) {
+			field.raise_single_event(pcard, 0, EVENT_TOHAND_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
+			handgroup.insert(pcard);
+		}
+	};
+
 	if(pcard) {
 		message->write<uint32_t>(1);
 		message->write<uint32_t>(pcard->data.code);
 		message->write<uint8_t>(pcard->current.controler);
 		message->write<uint8_t>(pcard->current.location);
 		message->write<uint32_t>(pcard->current.sequence);
+		raise_confirm_event(pcard);
+		field.raise_event(pcard, EVENT_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
 	} else {
 		message->write<uint32_t>(pgroup->container.size());
 		for(auto& _pcard : pgroup->container) {
@@ -886,8 +906,14 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 			message->write<uint8_t>(_pcard->current.controler);
 			message->write<uint8_t>(_pcard->current.location);
 			message->write<uint32_t>(_pcard->current.sequence);
+			raise_confirm_event(_pcard);
 		}
+		field.raise_event(&pgroup->container, EVENT_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
 	}
+	if(handgroup.size())
+		field.raise_event(&handgroup, EVENT_TOHAND_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
+	field.process_single_event();
+	field.process_instant_event();
 	return yield();
 }
 LUA_STATIC_FUNCTION(SortDecktop) {
