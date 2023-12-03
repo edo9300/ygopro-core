@@ -883,7 +883,7 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 	uint8_t revealingplayer = 1 - playerid;
 	bool was_during_to_hand = field.check_event(EVENT_TO_HAND);
 	card_set handgroup;
-	auto raise_tohand_event = [&](card* pcard) {
+	auto raise_confirm_event = [&](card* pcard) {
 		field.raise_single_event(pcard, 0, EVENT_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
 		if(was_during_to_hand && (pcard->current.location == LOCATION_HAND)) {
 			field.raise_single_event(pcard, 0, EVENT_TOHAND_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
@@ -897,7 +897,7 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 		message->write<uint8_t>(pcard->current.controler);
 		message->write<uint8_t>(pcard->current.location);
 		message->write<uint32_t>(pcard->current.sequence);
-		raise_tohand_event(pcard);
+		raise_confirm_event(pcard);
 		field.raise_event(pcard, EVENT_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
 	} else {
 		message->write<uint32_t>(pgroup->container.size());
@@ -906,7 +906,7 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 			message->write<uint8_t>(_pcard->current.controler);
 			message->write<uint8_t>(_pcard->current.location);
 			message->write<uint32_t>(_pcard->current.sequence);
-			raise_tohand_event(pcard);
+			raise_confirm_event(pcard);
 		}
 		field.raise_event(&pgroup->container, EVENT_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
 	}
