@@ -873,13 +873,26 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 		return 0;
 	auto message = pduel->new_message(MSG_CONFIRM_CARDS);
 	message->write<uint8_t>(playerid);
-	if(pcard) {
+
+	//To raise the proper events:
+	// EVENT_CONFIRM event when a card is revealed (used by "Vanquish Soul Jiaolong")
+	// EVENT_TOHAND_CONFIRM event when a card in the hand is revealed (used by "Puppet King" and "Puppet Queen")
+	auto reason = (pduel->game_field->core.chain_solving) ? REASON_EFFECT : REASON_COST;
+	auto trigeff = pduel->game_field->core.reason_effect;
+	auto revealingplayer = 1 - playerid;
+	auto event_to_hand = pduel->game_field->check_event(EVENT_TO_HAND);
+
+	if (pcard) {
 		message->write<uint32_t>(1);
 		message->write<uint32_t>(pcard->data.code);
 		message->write<uint8_t>(pcard->current.controler);
 		message->write<uint8_t>(pcard->current.location);
 		message->write<uint32_t>(pcard->current.sequence);
-	} else {
+		pduel->game_field->raise_single_event(pcard, 0, EVENT_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
+		if (event_to_hand && (pcard->current.location == LOCATION_HAND))
+			pduel->game_field->raise_single_event(pcard, 0, EVENT_TOHAND_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
+	}
+	else {
 		message->write<uint32_t>(pgroup->container.size());
 		for(auto& _pcard : pgroup->container) {
 			message->write<uint32_t>(_pcard->data.code);
@@ -887,7 +900,19 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 			message->write<uint8_t>(_pcard->current.location);
 			message->write<uint32_t>(_pcard->current.sequence);
 		}
+		pduel->game_field->raise_event(&pgroup->container, EVENT_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
+		if (event_to_hand) {
+			card_set handgroup{};
+			for (auto& _pcard : pgroup->container) {
+				if (_pcard->current.location == LOCATION_HAND)
+					handgroup.insert(_pcard);
+			}
+			if (handgroup.size())
+				pduel->game_field->raise_event(&handgroup, EVENT_TOHAND_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
+		}
 	}
+	pduel->game_field->process_single_event();
+	pduel->game_field->process_instant_event();
 	return yield();
 }
 LUA_STATIC_FUNCTION(SortDecktop) {
