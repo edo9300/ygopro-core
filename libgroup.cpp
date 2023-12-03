@@ -139,9 +139,9 @@ LUA_FUNCTION(Filter) {
 	check_param_count(L, 3);
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
-	if(auto pexception = lua_get<card*>(L, 3))
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
 		cset.erase(pexception);
-	else if(auto pexgroup = lua_get<group*>(L, 3)) {
+	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -160,13 +160,9 @@ LUA_FUNCTION(Match) {
 	const auto findex = lua_get<function, true>(L, 2);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 3)) == nullptr)
-		pexgroup = lua_get<group*>(L, 3);
 	uint32_t extraargs = lua_gettop(L) - 3;
 	auto& cset = self->container;
-	if(pexception) {
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
@@ -174,9 +170,7 @@ LUA_FUNCTION(Match) {
 				cset.erase(rm);
 		}
 	} else if(pexgroup) {
-		auto pexbegin = pexgroup->container.cbegin();
-		auto pexend = pexgroup->container.cend();
-		auto should_remove = [&pexbegin, &pexend](card* pcard) {
+		auto should_remove = [pexbegin = pexgroup->container.cbegin(), pexend = pexgroup->container.cend()](card* pcard) mutable {
 			if(pexbegin == pexend)
 				return false;
 			if(*pexbegin == pcard) {
@@ -206,11 +200,9 @@ LUA_FUNCTION(FilterCount) {
 	check_param_count(L, 3);
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 3)) != nullptr)
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
 		cset.erase(pexception);
-	else if((pexgroup = lua_get<group*>(L, 3)) != nullptr) {
+	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -234,9 +226,9 @@ LUA_FUNCTION(FilterSelect) {
 		cancelable = lua_get<bool, false>(L, lastarg);
 		++lastarg;
 	}
-	if(auto pexception = lua_get<card*>(L, lastarg))
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, lastarg); pexception) {
 		cset.erase(pexception);
-	else if(auto pexgroup = lua_get<group*>(L, lastarg)) {
+	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -264,9 +256,9 @@ LUA_FUNCTION(Select) {
 		cancelable = lua_get<bool, false>(L, lastarg);
 		++lastarg;
 	}
-	if(auto pexception = lua_get<card*>(L, lastarg))
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, lastarg); pexception) {
 		cset.erase(pexception);
-	else if(auto pexgroup = lua_get<group*>(L, lastarg)) {
+	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -356,9 +348,9 @@ LUA_FUNCTION(IsExists) {
 	check_param_count(L, 4);
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
-	if(auto pexception = lua_get<card*>(L, 4))
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 4); pexception) {
 		cset.erase(pexception);
-	else if(auto pexgroup = lua_get<group*>(L, 4)) {
+	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
@@ -764,10 +756,10 @@ LUA_FUNCTION(Split) {
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
 	card_set notmatching;
-	if(auto pexception = lua_get<card*>(L, 3)) {
+	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
 		cset.erase(pexception);
 		notmatching.insert(pexception);
-	} else if(auto pexgroup = lua_get<group*>(L, 3)) {
+	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container) {
 			cset.erase(pcard);
 			notmatching.insert(pcard);
