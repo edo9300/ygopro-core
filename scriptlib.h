@@ -159,7 +159,7 @@ namespace scriptlib {
 	}
 
 	template<bool nil_allowed = false>
-	inline std::pair<card*, group*> get_card_or_group(lua_State* L, int idx) {
+	inline std::pair<card*, group*> lua_get_card_or_group(lua_State* L, int idx) {
 		if constexpr(nil_allowed) {
 			if(lua_isnoneornil(L, idx))
 				return { nullptr,nullptr };
@@ -177,7 +177,7 @@ namespace scriptlib {
 		lua_error(L, "Parameter %d should be \"Card\" or \"Group\".", idx);
 	}
 	//always return a string, whereas lua might return nullptr
-	inline const char* lua_tostring_or_empty(lua_State* L, int idx) {
+	inline const char* lua_get_string_or_empty(lua_State* L, int idx) {
 		size_t retlen = 0;
 		auto str = lua_tolstring(L, idx, &retlen);
 		return (!str || retlen == 0) ? "" : str;

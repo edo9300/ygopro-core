@@ -75,7 +75,7 @@ LUA_FUNCTION(AddCard) {
 	check_param_count(L, 2);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	if(auto [pcard, pgroup] = get_card_or_group(L, 2); pcard)
+	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 2); pcard)
 		self->container.insert(pcard);
 	else
 		self->container.insert(pgroup->container.begin(), pgroup->container.end());
@@ -87,7 +87,7 @@ LUA_FUNCTION(RemoveCard) {
 	check_param_count(L, 2);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	if(auto [pcard, pgroup] = get_card_or_group(L, 2); pcard)
+	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 2); pcard)
 		self->container.erase(pcard);
 	else {
 		if(self == pgroup)
@@ -139,7 +139,7 @@ LUA_FUNCTION(Filter) {
 	check_param_count(L, 3);
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
@@ -162,7 +162,7 @@ LUA_FUNCTION(Match) {
 	self->is_iterator_dirty = true;
 	uint32_t extraargs = lua_gettop(L) - 3;
 	auto& cset = self->container;
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
@@ -200,7 +200,7 @@ LUA_FUNCTION(FilterCount) {
 	check_param_count(L, 3);
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
@@ -226,7 +226,7 @@ LUA_FUNCTION(FilterSelect) {
 		cancelable = lua_get<bool, false>(L, lastarg);
 		++lastarg;
 	}
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, lastarg); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, lastarg); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
@@ -256,7 +256,7 @@ LUA_FUNCTION(Select) {
 		cancelable = lua_get<bool, false>(L, lastarg);
 		++lastarg;
 	}
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, lastarg); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, lastarg); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
@@ -348,7 +348,7 @@ LUA_FUNCTION(IsExists) {
 	check_param_count(L, 4);
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 4); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 4); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
@@ -607,7 +607,7 @@ LUA_FUNCTION(Remove) {
 	self->is_iterator_dirty = true;
 	uint32_t extraargs = lua_gettop(L) - 3;
 	auto& cset = self->container;
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
@@ -688,7 +688,7 @@ LUA_STATIC_FUNCTION(__add) {
 }
 LUA_FUNCTION(__sub) {
 	check_param_count(L, 2);
-	auto [pcard, pgroup] = get_card_or_group(L, 2);
+	auto [pcard, pgroup] = lua_get_card_or_group(L, 2);
 	group* newgroup = pduel->new_group(self);
 	if(pgroup) {
 		for(auto& _pcard : pgroup->container)
@@ -749,7 +749,7 @@ LUA_FUNCTION(Split) {
 	const auto findex = lua_get<function, true>(L, 2);
 	card_set cset(self->container);
 	card_set notmatching;
-	if(auto [pexception, pexgroup] = get_card_or_group<true>(L, 3); pexception) {
+	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
 		cset.erase(pexception);
 		notmatching.insert(pexception);
 	} else if(pexgroup) {

@@ -151,7 +151,7 @@ bool interpreter::load_script(const char* buffer, int len, const char* script_na
 	++no_action;
 	if(luaL_loadbuffer(current_state, buffer, len, script_name) != LUA_OK
 	   || lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
-		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
 		--no_action;
 		return false;
@@ -300,7 +300,7 @@ bool interpreter::call_function(int param_count, int ret_count) {
 	auto ret = true;
 	if(call_lua(current_state, param_count, ret_count) != LUA_OK) {
 		print_stacktrace(current_state);
-		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
 		ret = false;
 	}
@@ -363,7 +363,7 @@ bool interpreter::check_matching(card* pcard, int32_t findex, int32_t extraargs)
 	auto result = false;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		print_stacktrace(current_state);
-		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else
 		result = lua_toboolean(current_state, -1);
 	lua_pop(current_state, 1);
@@ -379,7 +379,7 @@ bool interpreter::check_matching_table(card* pcard, int32_t findex, int32_t tabl
 	auto result = false;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		print_stacktrace(current_state);
-		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else
 		result = lua_toboolean(current_state, -1);
 	lua_pop(current_state, 1);
@@ -396,7 +396,7 @@ lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_
 	lua_Integer result = 0;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		print_stacktrace(current_state);
-		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else
 		result = lua_get<lua_Integer>(current_state, -1);
 	lua_pop(current_state, 1);
@@ -414,7 +414,7 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	auto ret = call_lua(current_state, extraargs, LUA_MULTRET) == LUA_OK;
 	if(!ret) {
 		print_stacktrace(current_state);
-		pduel->handle_message(lua_tostring_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
 	} else {
 		int32_t stack_newtop = lua_gettop(current_state);
@@ -528,7 +528,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 		return COROUTINE_YIELD;
 	if(result != LUA_OK) {
 		print_stacktrace(current_state);
-		pduel->handle_message(lua_tostring_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
+		pduel->handle_message(lua_get_string_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
 	} else if(yield_value) {
 		if(nresults == 0)
 			*yield_value = 0;
@@ -596,6 +596,6 @@ void interpreter::print_stacktrace(lua_State* L) {
 	auto len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
 	if(len > sizeof("stack traceback:"))
-		pduel->handle_message(lua_tostring_or_empty(L, -1), OCG_LOG_TYPE_FOR_DEBUG);
+		pduel->handle_message(lua_get_string_or_empty(L, -1), OCG_LOG_TYPE_FOR_DEBUG);
 	lua_pop(L, 1);
 }

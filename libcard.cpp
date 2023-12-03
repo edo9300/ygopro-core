@@ -965,7 +965,7 @@ LUA_FUNCTION(GetTurnCounter) {
 }
 LUA_FUNCTION(SetMaterial) {
 	check_param_count(L, 2);
-	if(auto [pcard, pgroup] = get_card_or_group<true>(L, 2); pcard) {
+	if(auto [pcard, pgroup] = lua_get_card_or_group<true>(L, 2); pcard) {
 		self->set_material({ pcard });
 	} else if(pgroup) {
 		self->set_material(pgroup->container);
