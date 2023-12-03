@@ -906,7 +906,7 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 			message->write<uint8_t>(_pcard->current.controler);
 			message->write<uint8_t>(_pcard->current.location);
 			message->write<uint32_t>(_pcard->current.sequence);
-			raise_confirm_event(pcard);
+			raise_confirm_event(_pcard);
 		}
 		field.raise_event(&pgroup->container, EVENT_CONFIRM, trigeff, reason, revealingplayer, revealingplayer, 0);
 	}
