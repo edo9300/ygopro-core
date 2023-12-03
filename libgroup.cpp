@@ -641,33 +641,29 @@ LUA_FUNCTION(Remove) {
 	interpreter::pushobject(L, self);
 	return 1;
 }
-void get_groupcard(lua_State* L, group*& pgroup1, group*& pgroup2, card*& pcard) {
+std::tuple<group*, group*, card*> get_binary_op_group_card_parameters(lua_State* L) {
 	auto obj1 = lua_get<lua_obj*>(L, 1);
 	auto obj2 = lua_get<lua_obj*>(L, 2);
-	uint32_t type = 0;
-	if((!obj1 || !obj2) || ((type = obj1->lua_type | obj2->lua_type) & PARAM_TYPE_GROUP) == 0)
+	if(!obj1 || !obj2)
 		lua_error(L, "At least 1 parameter should be \"Group\".");
-	if((type & ~(PARAM_TYPE_GROUP | PARAM_TYPE_CARD)) != 0)
+	if(obj1->lua_type != PARAM_TYPE_GROUP)
+		std::swap(obj1, obj2);
+	if(obj1->lua_type != PARAM_TYPE_GROUP)
+		lua_error(L, "At least 1 parameter should be \"Group\".");
+
+	switch(obj2->lua_type) {
+	case PARAM_TYPE_GROUP:
+		return { static_cast<group*>(obj1), static_cast<group*>(obj2), nullptr};
+	case PARAM_TYPE_CARD:
+		return { static_cast<group*>(obj1), nullptr, static_cast<card*>(obj2) };
+	default:
 		lua_error(L, "A parameter isn't \"Group\" nor \"Card\".");
-	if(obj1->lua_type == PARAM_TYPE_CARD) {
-		pcard = static_cast<card*>(obj1);
-		pgroup1 = static_cast<group*>(obj2);
-	} else if(obj2->lua_type == PARAM_TYPE_CARD) {
-		pgroup1 = static_cast<group*>(obj1);
-		pcard = static_cast<card*>(obj2);
-	} else {
-		pgroup1 = static_cast<group*>(obj1);
-		pgroup2 = static_cast<group*>(obj2);
 	}
 }
 LUA_STATIC_FUNCTION(__band) {
 	check_param_count(L, 2);
-	group* pgroup1 = nullptr;
-	group* pgroup2 = nullptr;
-	card* pcard = nullptr;
-	get_groupcard(L, pgroup1, pgroup2, pcard);
 	card_set cset;
-	if(pcard) {
+	if(auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(L); pcard) {
 		if(pgroup1->has_card(pcard)) {
 			cset.insert(pcard);
 		}
@@ -680,10 +676,7 @@ LUA_STATIC_FUNCTION(__band) {
 }
 LUA_STATIC_FUNCTION(__add) {
 	check_param_count(L, 2);
-	group* pgroup1 = nullptr;
-	group* pgroup2 = nullptr;
-	card* pcard = nullptr;
-	get_groupcard(L, pgroup1, pgroup2, pcard);
+	auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(L);
 	group* newgroup = pduel->new_group(pgroup1);
 	if(pcard) {
 		newgroup->container.insert(pcard);
