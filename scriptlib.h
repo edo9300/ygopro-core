@@ -43,27 +43,43 @@ namespace scriptlib {
 	}
 
 	template<typename T, typename type>
-	using EnableIfTemplate = std::enable_if_t<std::is_same<T, type>::value, int>;
+	using EnableIfTemplate = std::enable_if_t<std::is_same_v<T, type>, int>;
 
 	template<typename T>
 	inline constexpr bool IsBool = std::is_same_v<T, bool>;
 
 	template<typename T>
-	inline constexpr bool IsInteger = std::is_integral_v<T>;
+	inline constexpr bool IsInteger = std::is_integral_v<T> || std::is_enum_v<T>;
 
 	template<typename T>
-	inline constexpr bool IsEnum = std::is_enum_v<T>;
+	inline constexpr bool IsCard = std::is_same_v<T, card*>;
 
 	template<typename T>
-	using EnableIfBool = std::enable_if_t<IsBool<T>, T>;
+	inline constexpr bool IsGroup = std::is_same_v<T, group*>;
 
 	template<typename T>
-	using EnableIfIntegerNotBool = std::enable_if_t<std::bool_constant<IsInteger<T> && !IsBool<T>>::value, T>;
+	inline constexpr bool IsEffect = std::is_same_v<T, effect*>;
 
 	template<typename T>
-	using EnableIfEnum = std::enable_if_t<IsEnum<T>, T>;
+	using EnableIfIntegral = std::enable_if_t<IsInteger<T> || IsBool<T>, T>;
 
 	struct function{};
+
+	template<typename T>
+	inline constexpr auto get_lua_param_type() {
+		if constexpr(std::is_same_v<T, card*>)
+			return PARAM_TYPE_CARD;
+		if constexpr(std::is_same_v<T, group*>)
+			return PARAM_TYPE_GROUP;
+		if constexpr(std::is_same_v<T, effect*>)
+			return PARAM_TYPE_EFFECT;
+		if constexpr(std::is_same_v<T, function>)
+			return PARAM_TYPE_FUNCTION;
+		if constexpr(IsBool<T>)
+			return PARAM_TYPE_BOOLEAN;
+		if constexpr(IsInteger<T>)
+			return PARAM_TYPE_INT;
+	}
 
 	template<typename T, EnableIfTemplate<T, duel*> = 0>
 	inline duel* lua_get(lua_State* L) {
@@ -84,7 +100,7 @@ namespace scriptlib {
 
 	template<typename T, EnableIfTemplate<T, lua_obj*> = 0>
 	inline lua_obj* lua_get(lua_State* L, int idx) {
-		if(lua_isnone(L, idx))
+		if(lua_isnoneornil(L, idx))
 			return nullptr;
 		if(auto obj = lua_touserdata(L, idx)) {
 			auto* ret = *static_cast<lua_obj**>(obj);
@@ -95,100 +111,56 @@ namespace scriptlib {
 		return nullptr;
 	}
 
-	template<typename T, bool check = false, EnableIfTemplate<T, card*> = 0>
-	inline card* lua_get(lua_State* L, int idx) {
-		if constexpr(!check) {
-			if(lua_isnone(L, idx))
+	template<typename T, bool forced = false, std::enable_if_t<IsCard<T> || IsGroup<T> || IsEffect<T>, int> = 0>
+	inline T lua_get(lua_State* L, int idx) {
+		if constexpr(!forced) {
+			if(lua_isnoneornil(L, idx))
 				return nullptr;
 		}
-		card* ret = nullptr;
-		check_param(L, PARAM_TYPE_CARD, idx, !check, &ret);
-		return ret;
-	}
-
-	template<typename T, bool check = false, EnableIfTemplate<T, group*> = 0>
-	inline group* lua_get(lua_State* L, int idx) {
-		if constexpr(!check) {
-			if(lua_isnone(L, idx))
-				return nullptr;
-		}
-		group* ret = nullptr;
-		check_param(L, PARAM_TYPE_GROUP, idx, !check, &ret);
-		return ret;
-	}
-
-	template<typename T, bool check = false, EnableIfTemplate<T, effect*> = 0>
-	inline effect* lua_get(lua_State* L, int idx) {
-		if constexpr(!check) {
-			if(lua_isnone(L, idx))
-				return nullptr;
-		}
-		effect* ret = nullptr;
-		check_param(L, PARAM_TYPE_EFFECT, idx, !check, &ret);
+		T ret = nullptr;
+		check_param(L, get_lua_param_type<T>(), idx, !forced, &ret);
 		return ret;
 	}
 
 	template<typename T>
-	inline EnableIfBool<T> lua_get(lua_State* L, int idx) {
-		check_param(L, PARAM_TYPE_BOOLEAN, idx);
-		return lua_toboolean(L, idx);
-	}
-
-	template<typename T, T def>
-	inline EnableIfBool<T> lua_get(lua_State* L, int idx) {
-		if(!check_param(L, PARAM_TYPE_BOOLEAN, idx, true))
-			return def;
-		return lua_toboolean(L, idx);
-	}
-
-	template<typename T>
-	inline EnableIfEnum<T> lua_get(lua_State* L, int idx) {
-		check_param(L, PARAM_TYPE_INT, idx);
-		if(lua_isinteger(L, idx))
-			return static_cast<T>(lua_tointeger(L, idx));
-		return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
-	}
-
-	template<typename T, T def>
-	inline EnableIfEnum<T> lua_get(lua_State* L, int idx) {
-		if(!check_param(L, PARAM_TYPE_INT, idx, true))
-			return def;
-		if(lua_isinteger(L, idx))
-			return static_cast<T>(lua_tointeger(L, idx));
-		return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
+	inline EnableIfIntegral<T> lua_get(lua_State* L, int idx) {
+		constexpr auto lua_type = get_lua_param_type<T>();
+		check_param(L, lua_type, idx);
+		if constexpr(lua_type == PARAM_TYPE_BOOLEAN) {
+			return static_cast<bool>(lua_toboolean(L, idx));
+		}
+		if constexpr(lua_type == PARAM_TYPE_INT) {
+			if(lua_isinteger(L, idx))
+				return static_cast<T>(lua_tointeger(L, idx));
+			return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
+		}
 	}
 
 	template<typename T>
-	inline EnableIfIntegerNotBool<T> lua_get(lua_State* L, int idx) {
-		check_param(L, PARAM_TYPE_INT, idx);
-		if(lua_isinteger(L, idx))
-			return static_cast<T>(lua_tointeger(L, idx));
-		return static_cast<T>(std::round(lua_tonumber(L, idx)));
-	}
-
-	template<typename T>
-	inline EnableIfIntegerNotBool<T> lua_get(lua_State* L, int idx, T chk) {
-		if(lua_isnone(L, idx) || !check_param(L, PARAM_TYPE_INT, idx, true))
-			return chk;
-		if(lua_isinteger(L, idx))
-			return static_cast<T>(lua_tointeger(L, idx));
-		return static_cast<T>(std::round(lua_tonumber(L, idx)));
+	inline EnableIfIntegral<T> lua_get(lua_State* L, int idx, T def) {
+		constexpr auto lua_type = get_lua_param_type<T>();
+		if(!check_param(L, lua_type, idx, true))
+			return def;
+		if constexpr(lua_type == PARAM_TYPE_BOOLEAN) {
+			return static_cast<bool>(lua_toboolean(L, idx));
+		}
+		if constexpr(lua_type == PARAM_TYPE_INT) {
+			if(lua_isinteger(L, idx))
+				return static_cast<T>(lua_tointeger(L, idx));
+			return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
+		}
 	}
 
 	template<typename T, T def>
-	inline EnableIfIntegerNotBool<T> lua_get(lua_State* L, int idx) {
-		if(lua_isnone(L, idx) || !check_param(L, PARAM_TYPE_INT, idx, true))
-			return def;
-		if(lua_isinteger(L, idx))
-			return static_cast<T>(lua_tointeger(L, idx));
-		return static_cast<T>(std::round(lua_tonumber(L, idx)));
+	inline EnableIfIntegral<T> lua_get(lua_State* L, int idx) {
+		return lua_get<T>(L, idx, def);
 	}
 
 	template<bool nil_allowed = false>
 	inline std::pair<card*, group*> lua_get_card_or_group(lua_State* L, int idx) {
 		if constexpr(nil_allowed) {
 			if(lua_isnoneornil(L, idx))
-				return { nullptr,nullptr };
+				return { nullptr, nullptr };
 		}
 		auto obj = lua_get<lua_obj*>(L, idx);
 		if(obj) {
