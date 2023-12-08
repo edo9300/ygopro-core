@@ -35,6 +35,10 @@ void chain::set_triggering_state(card* pcard) {
 	}
 	triggering_sequence = pcard->current.sequence;
 	triggering_position = pcard->current.position;
+	triggering_status = pcard->status;
+	triggering_summon_type = pcard->summon.type & 0xff00ffff;
+	triggering_summon_location = pcard->summon.location;
+	triggering_summon_state = pcard->is_status(STATUS_PROC_COMPLETE);
 	triggering_state.code = pcard->get_code();
 	triggering_state.code2 = pcard->get_another_code();
 	triggering_state.level = pcard->get_level();

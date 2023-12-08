@@ -1990,6 +1990,17 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 		case CHAININFO::EXTTYPE:
 			lua_pushinteger(L, ch->triggering_effect->card_type);
 			break;
+		case CHAININFO::TRIGGERING_STATUS:
+			lua_pushinteger(L, ch->triggering_status);
+			break;
+		case CHAININFO::TRIGGERING_SUMMON_LOCATION:
+			lua_pushinteger(L, ch->triggering_summon_location);
+			break;
+		case CHAININFO::TRIGGERING_SUMMON_TYPE:
+			lua_pushinteger(L, ch->triggering_summon_type);
+			break;
+		case CHAININFO::TRIGGERING_SUMMON_STATE:
+			lua_pushboolean(L, (ch->triggering_summon_state) != 0);
 		default:
 			lua_error(L, "Passed invalid CHAININFO flag.");
 		}
