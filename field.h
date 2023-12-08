@@ -58,7 +58,7 @@ struct chain {
 	uint32_t triggering_status{};
 	uint32_t triggering_summon_type{};
 	uint8_t triggering_summon_location{};
-	bool triggering_summon_state{}; //properly summoned or not
+	bool triggering_summon_proc_complete{}; //properly summoned or not
 	card_state triggering_state;
 	effect* triggering_effect;
 	group* target_cards;
@@ -741,7 +741,7 @@ enum class CHAININFO : uint16_t {
 	TRIGGERING_STATUS,
 	TRIGGERING_SUMMON_LOCATION,
 	TRIGGERING_SUMMON_TYPE,
-	TRIGGERING_SUMMON_STATE,
+	TRIGGERING_SUMMON_PROC_COMPLETE,
 };
 
 //Timing

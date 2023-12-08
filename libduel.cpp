@@ -1999,8 +1999,8 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 		case CHAININFO::TRIGGERING_SUMMON_TYPE:
 			lua_pushinteger(L, ch->triggering_summon_type);
 			break;
-		case CHAININFO::TRIGGERING_SUMMON_STATE:
-			lua_pushboolean(L, (ch->triggering_summon_state) != 0);
+		case CHAININFO::TRIGGERING_SUMMON_PROC_COMPLETE:
+			lua_pushboolean(L, ch->triggering_summon_proc_complete);
 			break;
 		default:
 			lua_error(L, "Passed invalid CHAININFO flag.");
