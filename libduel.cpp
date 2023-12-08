@@ -1943,6 +1943,9 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 		case CHAININFO_TRIGGERING_CODE2:
 			lua_pushinteger(L, ch->triggering_state.code2);
 			break;
+		case CHAININFO_TRIGGERING_TYPE:
+			lua_pushinteger(L, ch->triggering_state.type);
+			break;
 		case CHAININFO_TRIGGERING_LEVEL:
 			lua_pushinteger(L, ch->triggering_state.level);
 			break;
