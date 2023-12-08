@@ -1249,31 +1249,16 @@ LUA_STATIC_FUNCTION(GetControl) {
 LUA_STATIC_FUNCTION(SwapControl) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	card* pcard1 = nullptr;
-	card* pcard2 = nullptr;
-	group* pgroup1 = nullptr;
-	group* pgroup2 = nullptr;
-	auto obj1 = lua_get<lua_obj*>(L, 1);
-	auto obj2 = lua_get<lua_obj*>(L, 2);
-	if((!obj1 || !obj2) ||
-		((obj1->lua_type | obj2->lua_type) & ~(PARAM_TYPE_CARD | PARAM_TYPE_GROUP)) ||
-	    obj1->lua_type != obj2->lua_type) {
-		lua_error(L, "Parameter %d should be \"Card\" or \"Group\".", 1);
-	}
-	if(obj1->lua_type == PARAM_TYPE_CARD) {
-		pcard1 = static_cast<card*>(obj1);
-		pcard2 = static_cast<card*>(obj2);
-	} else if(obj1->lua_type == PARAM_TYPE_GROUP) {
-		pgroup1 = static_cast<group*>(obj1);
-		pgroup2 = static_cast<group*>(obj2);
-	} else
-		unreachable();
 	uint16_t reset_phase = lua_get<uint16_t, 0>(L, 3) & 0x3ff;
 	auto reset_count = lua_get<uint8_t, 0>(L, 4);
-	if(pcard1)
-		pduel->game_field->swap_control(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, pcard1, pcard2, reset_phase, reset_count);
-	else
-		pduel->game_field->swap_control(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, pgroup1->container, pgroup2->container, reset_phase, reset_count);
+	auto& field = *pduel->game_field;
+	if(auto [pcard1, pgroup1] = lua_get_card_or_group(L, 1); pcard1) {
+		auto pcard2 = lua_get<card*, true>(L, 2);
+		field.swap_control(field.core.reason_effect, field.core.reason_player, pcard1, pcard2, reset_phase, reset_count);
+	} else {
+		auto pgroup2 = lua_get<group*, true>(L, 2);
+		field.swap_control(field.core.reason_effect, field.core.reason_player, pgroup1->container, pgroup2->container, reset_phase, reset_count);
+	}
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
