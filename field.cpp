@@ -38,7 +38,7 @@ void chain::set_triggering_state(card* pcard) {
 	triggering_status = pcard->status;
 	triggering_summon_type = pcard->summon.type & 0xff00ffff;
 	triggering_summon_location = pcard->summon.location;
-	triggering_summon_state = pcard->is_status(STATUS_PROC_COMPLETE);
+	triggering_summon_proc_complete = pcard->is_status(STATUS_PROC_COMPLETE);
 	triggering_state.code = pcard->get_code();
 	triggering_state.code2 = pcard->get_another_code();
 	triggering_state.level = pcard->get_level();
@@ -48,6 +48,10 @@ void chain::set_triggering_state(card* pcard) {
 	triggering_state.race = pcard->get_race();
 	triggering_state.attack = pcard->get_attack();
 	triggering_state.defense = pcard->get_defense();
+	//For the triggering archetypes:
+	auto& setcode = triggering_state.setcodes;
+	setcode.clear();
+	pcard->get_set_card(setcode);
 }
 bool tevent::operator< (const tevent& v) const {
 	return std::memcmp(this, &v, sizeof(tevent)) < 0;

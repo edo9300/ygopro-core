@@ -1931,7 +1931,8 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 			}
 			else if(ch->triggering_location & LOCATION_EMZONE) {
 				lua_pushinteger(L, ch->triggering_sequence - 5);
-			} else
+			}
+			else
 				lua_pushinteger(L, ch->triggering_sequence);
 			break;
 		case CHAININFO::TRIGGERING_POSITION:
@@ -2002,6 +2003,18 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 		case CHAININFO::TRIGGERING_SUMMON_PROC_COMPLETE:
 			lua_pushboolean(L, ch->triggering_summon_proc_complete);
 			break;
+		case CHAININFO::TRIGGERING_SETCODES:
+		{
+			const auto& setcodes = ch->triggering_state.setcodes;
+			lua_createtable(L, setcodes.size(), 0);
+			int i = 1;
+			for (const auto& setcode : setcodes) {
+				lua_pushinteger(L, i++);
+				lua_pushinteger(L, setcode);
+				lua_settable(L, -3);
+			}
+			break;
+		}
 		default:
 			lua_error(L, "Passed invalid CHAININFO flag.");
 		}
