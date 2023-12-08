@@ -2001,6 +2001,7 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 			break;
 		case CHAININFO::TRIGGERING_SUMMON_STATE:
 			lua_pushboolean(L, (ch->triggering_summon_state) != 0);
+			break;
 		default:
 			lua_error(L, "Passed invalid CHAININFO flag.");
 		}
