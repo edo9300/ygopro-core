@@ -18,7 +18,7 @@ namespace scriptlib {
 	void push_group_lib(lua_State* L);
 	void push_duel_lib(lua_State* L);
 	void push_debug_lib(lua_State* L);
-	bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
+	bool check_param(lua_State* L, LuaParam param_type, int32_t index, bool retfalse = false, void* retobj = nullptr);
 	void check_action_permission(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
 	inline int32_t push_return_cards(lua_State* L, bool cancelable) {
@@ -68,17 +68,17 @@ namespace scriptlib {
 	template<typename T>
 	inline constexpr auto get_lua_param_type() {
 		if constexpr(std::is_same_v<T, card*>)
-			return PARAM_TYPE_CARD;
+			return LuaParam::CARD;
 		if constexpr(std::is_same_v<T, group*>)
-			return PARAM_TYPE_GROUP;
+			return LuaParam::GROUP;
 		if constexpr(std::is_same_v<T, effect*>)
-			return PARAM_TYPE_EFFECT;
+			return LuaParam::EFFECT;
 		if constexpr(std::is_same_v<T, function>)
-			return PARAM_TYPE_FUNCTION;
+			return LuaParam::FUNCTION;
 		if constexpr(IsBool<T>)
-			return PARAM_TYPE_BOOLEAN;
+			return LuaParam::BOOLEAN;
 		if constexpr(IsInteger<T>)
-			return PARAM_TYPE_INT;
+			return LuaParam::INT;
 	}
 
 	template<typename T, EnableIfTemplate<T, duel*> = 0>
@@ -94,7 +94,7 @@ namespace scriptlib {
 			if(lua_isnoneornil(L, idx))
 				return 0;
 		}
-		check_param(L, PARAM_TYPE_FUNCTION, idx);
+		check_param(L, LuaParam::FUNCTION, idx);
 		return idx;
 	}
 
@@ -104,7 +104,7 @@ namespace scriptlib {
 			return nullptr;
 		if(auto obj = lua_touserdata(L, idx)) {
 			auto* ret = *static_cast<lua_obj**>(obj);
-			if(ret->lua_type == PARAM_TYPE_DELETED)
+			if(ret->lua_type == LuaParam::DELETED)
 				lua_error(L, "Attempting to access deleted object.");
 			return ret;
 		}
@@ -126,10 +126,10 @@ namespace scriptlib {
 	inline EnableIfIntegral<T> lua_get(lua_State* L, int idx) {
 		constexpr auto lua_type = get_lua_param_type<T>();
 		check_param(L, lua_type, idx);
-		if constexpr(lua_type == PARAM_TYPE_BOOLEAN) {
+		if constexpr(lua_type == LuaParam::BOOLEAN) {
 			return static_cast<bool>(lua_toboolean(L, idx));
 		}
-		if constexpr(lua_type == PARAM_TYPE_INT) {
+		if constexpr(lua_type == LuaParam::INT) {
 			if(lua_isinteger(L, idx))
 				return static_cast<T>(lua_tointeger(L, idx));
 			return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
@@ -141,10 +141,10 @@ namespace scriptlib {
 		constexpr auto lua_type = get_lua_param_type<T>();
 		if(!check_param(L, lua_type, idx, true))
 			return def;
-		if constexpr(lua_type == PARAM_TYPE_BOOLEAN) {
+		if constexpr(lua_type == LuaParam::BOOLEAN) {
 			return static_cast<bool>(lua_toboolean(L, idx));
 		}
-		if constexpr(lua_type == PARAM_TYPE_INT) {
+		if constexpr(lua_type == LuaParam::INT) {
 			if(lua_isinteger(L, idx))
 				return static_cast<T>(lua_tointeger(L, idx));
 			return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
@@ -165,9 +165,9 @@ namespace scriptlib {
 		auto obj = lua_get<lua_obj*>(L, idx);
 		if(obj) {
 			switch(obj->lua_type) {
-			case PARAM_TYPE_CARD:
+			case LuaParam::CARD:
 				return { reinterpret_cast<card*>(obj), nullptr };
-			case PARAM_TYPE_GROUP:
+			case LuaParam::GROUP:
 				return{ nullptr, reinterpret_cast<group*>(obj) };
 			default: break;
 			}

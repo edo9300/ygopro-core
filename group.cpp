@@ -11,8 +11,8 @@
 group::group(duel* pd, lua_obj* pobj) :
 	lua_obj_helper(pd)
 {
-	if(pobj->lua_type == PARAM_TYPE_CARD)
+	if(pobj->lua_type == LuaParam::CARD)
 		container.insert(static_cast<card*>(pobj));
-	else if(pobj->lua_type == PARAM_TYPE_GROUP)
+	else if(pobj->lua_type == LuaParam::GROUP)
 		container = static_cast<group*>(pobj)->container;
 }

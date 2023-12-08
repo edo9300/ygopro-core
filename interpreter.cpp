@@ -90,7 +90,7 @@ void interpreter::register_card(card* pcard) {
 	if(pcard->data.code) {
 		const bool forced = !(pcard->data.type & TYPE_NORMAL) || (pcard->data.type & TYPE_PENDULUM);
 		pcard->set_status(STATUS_INITIALIZING, TRUE);
-		add_param<PARAM_TYPE_CARD>(pcard);
+		add_param<LuaParam::CARD>(pcard);
 		call_card_function(pcard, "initial_effect", 1, 0, forced);
 		pcard->set_status(STATUS_INITIALIZING, FALSE);
 	}
@@ -230,24 +230,24 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	luaL_checkstack(L, static_cast<uint32_t>(params.size()), nullptr);
 	for (const auto& it : params) {
 		switch(it.second) {
-		case PARAM_TYPE_INT:
+		case LuaParam::INT:
 			lua_pushinteger(L, it.first.integer);
 			break;
-		case PARAM_TYPE_STRING:
+		case LuaParam::STRING:
 			lua_pushstring(L, static_cast<const char*>(it.first.ptr));
 			break;
-		case PARAM_TYPE_BOOLEAN:
+		case LuaParam::BOOLEAN:
 			lua_pushboolean(L, static_cast<bool>(it.first.integer));
 			break;
-		case PARAM_TYPE_CARD:
-		case PARAM_TYPE_EFFECT:
-		case PARAM_TYPE_GROUP:
+		case LuaParam::CARD:
+		case LuaParam::EFFECT:
+		case LuaParam::GROUP:
 			pushobject(L, static_cast<lua_obj*>(it.first.ptr));
 			break;
-		case PARAM_TYPE_FUNCTION:
+		case LuaParam::FUNCTION:
 			pushobject(L, static_cast<int32_t>(it.first.integer));
 			break;
-		case PARAM_TYPE_INDEX: {
+		case LuaParam::INDEX: {
 			auto index = static_cast<int32_t>(it.first.integer);
 			if(index > 0)
 				lua_pushvalue(L, index);
@@ -261,7 +261,7 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			}
 			break;
 		}
-		case PARAM_TYPE_DELETED:
+		case LuaParam::DELETED:
 			unreachable();
 			break;
 		}

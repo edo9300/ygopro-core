@@ -23,7 +23,7 @@ struct tevent;
 enum effect_flag : uint32_t;
 enum effect_flag2 : uint32_t;
 
-class effect : public lua_obj_helper<PARAM_TYPE_EFFECT> {
+class effect : public lua_obj_helper<LuaParam::EFFECT> {
 public:
 	uint8_t count_limit{};
 	uint8_t count_limit_max{};

@@ -2826,7 +2826,7 @@ LUA_STATIC_FUNCTION(SetOperationInfo) {
 	if(!ch)
 		return 0;
 	optarget opt{ nullptr, count, playerid, param };
-	if(pobj && (pobj->lua_type & (PARAM_TYPE_CARD | PARAM_TYPE_GROUP))) {
+	if(pobj && (pobj->lua_type == LuaParam::CARD || pobj->lua_type == LuaParam::GROUP)) {
 		opt.op_cards = pduel->new_group(pobj);
 		// spear creting and similar stuff, they set CATEGORY_SPECIAL_SUMMON with PLAYER_ALL to increase the summon counters
 		// and the core always assume the group is exactly 2 cards
@@ -2877,7 +2877,7 @@ LUA_STATIC_FUNCTION(SetPossibleOperationInfo) {
 	if(!ch)
 		return 0;
 	optarget opt{ nullptr, count, playerid, param };
-	if(pobj && (pobj->lua_type & (PARAM_TYPE_CARD | PARAM_TYPE_GROUP))) {
+	if(pobj && (pobj->lua_type == LuaParam::CARD || pobj->lua_type == LuaParam::GROUP)) {
 		opt.op_cards = pduel->new_group(pobj);
 		opt.op_cards->is_readonly = TRUE;
 	}
@@ -3850,11 +3850,11 @@ inline int32_t is_player_can_procedure_summon_group(lua_State* L, uint32_t summo
 		core.reason_effect = peff;
 		core.reason_player = pcard->current.controler;
 		pduel->game_field->save_lp_cost();
-		pduel->lua->add_param<PARAM_TYPE_EFFECT>(peff);
-		pduel->lua->add_param<PARAM_TYPE_CARD>(pcard);
-		pduel->lua->add_param<PARAM_TYPE_BOOLEAN>(TRUE);
-		pduel->lua->add_param<PARAM_TYPE_EFFECT>(oreason);
-		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
+		pduel->lua->add_param<LuaParam::EFFECT>(peff);
+		pduel->lua->add_param<LuaParam::CARD>(pcard);
+		pduel->lua->add_param<LuaParam::BOOLEAN>(TRUE);
+		pduel->lua->add_param<LuaParam::EFFECT>(oreason);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
 		if(pduel->lua->check_condition(peff->condition, 5)) {
 			pduel->game_field->restore_lp_cost();
 			core.reason_effect = oreason;
@@ -4095,7 +4095,7 @@ LUA_STATIC_FUNCTION(MajesticCopy) {
 	auto ccard = lua_get<card*, true>(L, 2);
 	uint32_t resv = 0;
 	uint16_t resc = 0;
-	if(check_param(L, PARAM_TYPE_INT, 3, true)) {
+	if(check_param(L, LuaParam::INT, 3, true)) {
 		resv = lua_get<uint32_t>(L, 3);
 		resc = lua_get<uint16_t, 1>(L, 4);
 	} else {

@@ -11,36 +11,36 @@
 
 namespace scriptlib {
 
-bool check_param(lua_State* L, LuaParamType param_type, int32_t index, bool retfalse, void* retobj) {
+bool check_param(lua_State* L, LuaParam param_type, int32_t index, bool retfalse, void* retobj) {
 	const char* type = nullptr;
 	lua_obj* obj = nullptr;
 	switch(param_type) {
-	case PARAM_TYPE_CARD:
-	case PARAM_TYPE_GROUP:
-	case PARAM_TYPE_EFFECT:
+	case LuaParam::CARD:
+	case LuaParam::GROUP:
+	case LuaParam::EFFECT:
 		if((obj = lua_get<lua_obj*>(L, index)) != nullptr && obj->lua_type == param_type) {
 			if(retobj)
 				*(lua_obj**)retobj = obj;
 			return true;
 		}
-		type = param_type == PARAM_TYPE_CARD ? "Card" : param_type == PARAM_TYPE_GROUP ? "Group" : "Effect";
+		type = param_type == LuaParam::CARD ? "Card" : param_type == LuaParam::GROUP ? "Group" : "Effect";
 		break;
-	case PARAM_TYPE_FUNCTION:
+	case LuaParam::FUNCTION:
 		if(lua_isfunction(L, index))
 			return true;
 		type = "Function";
 		break;
-	case PARAM_TYPE_STRING:
+	case LuaParam::STRING:
 		if(lua_isstring(L, index))
 			return true;
 		type = "String";
 		break;
-	case PARAM_TYPE_INT:
+	case LuaParam::INT:
 		if(lua_isinteger(L, index) || lua_isnumber(L, index))
 			return true;
 		type = "Int";
 		break;
-	case PARAM_TYPE_BOOLEAN:
+	case LuaParam::BOOLEAN:
 		if(!lua_isnone(L, index))
 			return true;
 		type = "boolean";
@@ -76,7 +76,7 @@ int32_t push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
 int32_t is_deleted_object(lua_State* L) {
 	if(auto obj = lua_touserdata(L, 1)) {
 		auto* ret = *static_cast<lua_obj**>(obj);
-		lua_pushboolean(L, ret->lua_type == PARAM_TYPE_DELETED);
+		lua_pushboolean(L, ret->lua_type == LuaParam::DELETED);
 	} else {
 		lua_pushboolean(L, false);
 	}

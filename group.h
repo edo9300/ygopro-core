@@ -17,7 +17,7 @@
 class card;
 class duel;
 
-class group : public lua_obj_helper<PARAM_TYPE_GROUP> {
+class group : public lua_obj_helper<LuaParam::GROUP> {
 public:
 	card_set container;
 	card_set::iterator it;

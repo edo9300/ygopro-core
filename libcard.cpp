@@ -694,9 +694,9 @@ LUA_FUNCTION(IsSummonCode) {
 	for (const auto& peff : eset) {
 		if (!peff->operation)
 			continue;
-		pduel->lua->add_param<PARAM_TYPE_CARD>(scard);
-		pduel->lua->add_param<PARAM_TYPE_INT>(sumtype);
-		pduel->lua->add_param<PARAM_TYPE_INT>(playerid);
+		pduel->lua->add_param<LuaParam::CARD>(scard);
+		pduel->lua->add_param<LuaParam::INT>(sumtype);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
 		if (!pduel->lua->check_condition(peff->operation, 3))
 			continue;
 		if (peff->code == EFFECT_ADD_CODE)

@@ -196,7 +196,7 @@ LUA_STATIC_FUNCTION(ReloadFieldEnd) {
 template<int message_code, size_t max_len>
 int32_t write_string_message(lua_State* L) {
 	check_param_count(L, 1);
-	check_param(L, PARAM_TYPE_STRING, 1);
+	check_param(L, LuaParam::STRING, 1);
 	size_t len = 0;
 	const char* pstr = lua_tolstring(L, 1, &len);
 	if(len > max_len)

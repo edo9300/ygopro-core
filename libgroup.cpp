@@ -646,15 +646,15 @@ std::tuple<group*, group*, card*> get_binary_op_group_card_parameters(lua_State*
 	auto obj2 = lua_get<lua_obj*>(L, 2);
 	if(!obj1 || !obj2)
 		lua_error(L, "At least 1 parameter should be \"Group\".");
-	if(obj1->lua_type != PARAM_TYPE_GROUP)
+	if(obj1->lua_type != LuaParam::GROUP)
 		std::swap(obj1, obj2);
-	if(obj1->lua_type != PARAM_TYPE_GROUP)
+	if(obj1->lua_type != LuaParam::GROUP)
 		lua_error(L, "At least 1 parameter should be \"Group\".");
 
 	switch(obj2->lua_type) {
-	case PARAM_TYPE_GROUP:
+	case LuaParam::GROUP:
 		return { static_cast<group*>(obj1), static_cast<group*>(obj2), nullptr};
-	case PARAM_TYPE_CARD:
+	case LuaParam::CARD:
 		return { static_cast<group*>(obj1), nullptr, static_cast<card*>(obj2) };
 	default:
 		lua_error(L, "A parameter isn't \"Group\" nor \"Card\".");
