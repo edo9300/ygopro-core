@@ -46,13 +46,22 @@ namespace scriptlib {
 	using EnableIfTemplate = std::enable_if_t<std::is_same<T, type>::value, int>;
 
 	template<typename T>
-	using IsBool = std::is_same<T, bool>;
+	inline constexpr bool IsBool = std::is_same_v<T, bool>;
 
 	template<typename T>
-	using EnableIfBool = std::enable_if_t<IsBool<T>::value, bool>;
+	inline constexpr bool IsInteger = std::is_integral_v<T>;
 
 	template<typename T>
-	using EnableIfIntegerNotBool = std::enable_if_t<std::integral_constant<bool, std::is_integral<T>::value && !IsBool<T>::value>::value, T>;
+	inline constexpr bool IsEnum = std::is_enum_v<T>;
+
+	template<typename T>
+	using EnableIfBool = std::enable_if_t<IsBool<T>, T>;
+
+	template<typename T>
+	using EnableIfIntegerNotBool = std::enable_if_t<std::bool_constant<IsInteger<T> && !IsBool<T>>::value, T>;
+
+	template<typename T>
+	using EnableIfEnum = std::enable_if_t<IsEnum<T>, T>;
 
 	struct function{};
 
@@ -125,11 +134,28 @@ namespace scriptlib {
 		return lua_toboolean(L, idx);
 	}
 
-	template<typename T, bool def>
+	template<typename T, T def>
 	inline EnableIfBool<T> lua_get(lua_State* L, int idx) {
 		if(!check_param(L, PARAM_TYPE_BOOLEAN, idx, true))
 			return def;
 		return lua_toboolean(L, idx);
+	}
+
+	template<typename T>
+	inline EnableIfEnum<T> lua_get(lua_State* L, int idx) {
+		check_param(L, PARAM_TYPE_INT, idx);
+		if(lua_isinteger(L, idx))
+			return static_cast<T>(lua_tointeger(L, idx));
+		return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
+	}
+
+	template<typename T, T def>
+	inline EnableIfEnum<T> lua_get(lua_State* L, int idx) {
+		if(!check_param(L, PARAM_TYPE_INT, idx, true))
+			return def;
+		if(lua_isinteger(L, idx))
+			return static_cast<T>(lua_tointeger(L, idx));
+		return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
 	}
 
 	template<typename T>
