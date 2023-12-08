@@ -2360,7 +2360,7 @@ LUA_STATIC_FUNCTION(SelectCardsFromCodes) {
 			luaL_checkstack(L, static_cast<int>(ret_codes.list.size() + (3 * ret_index) /* account for table creation */), nullptr);
 			for(const auto& obj : ret_codes.list) {
 				if(ret_index) {
-					lua_newtable(L);
+					lua_createtable(L, 2, 0);
 					lua_pushinteger(L, 1);
 				}
 				lua_pushinteger(L, obj.first);

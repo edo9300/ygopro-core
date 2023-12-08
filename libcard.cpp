@@ -1931,7 +1931,7 @@ LUA_FUNCTION(GetCounter) {
 }
 LUA_FUNCTION(GetAllCounters) {
 	check_param_count(L, 1);
-	lua_newtable(L);
+	lua_createtable(L, self->counters.size(), 0);
 	for(const auto& counter : self->counters) {
 		lua_pushinteger(L, counter.first);
 		lua_pushinteger(L, counter.second[0] + counter.second[1]);

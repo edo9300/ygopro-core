@@ -580,7 +580,7 @@ LUA_FUNCTION(GetClass) {
 	for(auto& pcard : self->container) {
 		er.insert(pduel->lua->get_operation_value(pcard, findex, extraargs));
 	}
-	lua_newtable(L);
+	lua_createtable(L, er.size(), 0);
 	int i = 1;
 	for(auto& val : er) {
 		lua_pushinteger(L, i++);
