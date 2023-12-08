@@ -1894,30 +1894,30 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 	uint32_t args = static_cast<uint32_t>(lua_istable(L, 2) ? lua_rawlen(L, 2) : top - 1);
 	luaL_checkstack(L, args, nullptr);
 	lua_iterate_table_or_stack(L, 2, top, [L, ch, pduel]() -> int {
-		auto flag = lua_get<uint32_t>(L, -1);
+		auto flag = lua_get<CHAININFO>(L, -1);
 		switch(flag) {
-		case CHAININFO_CHAIN_COUNT:
+		case CHAININFO::CHAIN_COUNT:
 			lua_pushinteger(L, ch->chain_count);
 			break;
-		case CHAININFO_TRIGGERING_EFFECT:
+		case CHAININFO::TRIGGERING_EFFECT:
 			interpreter::pushobject(L, ch->triggering_effect);
 			break;
-		case CHAININFO_TRIGGERING_PLAYER:
+		case CHAININFO::TRIGGERING_PLAYER:
 			lua_pushinteger(L, ch->triggering_player);
 			break;
-		case CHAININFO_TRIGGERING_CONTROLER:
+		case CHAININFO::TRIGGERING_CONTROLER:
 			lua_pushinteger(L, ch->triggering_controler);
 			break;
-		case CHAININFO_TRIGGERING_LOCATION:
+		case CHAININFO::TRIGGERING_LOCATION:
 			lua_pushinteger(L, ch->triggering_location & ~(LOCATION_STZONE | LOCATION_MMZONE | LOCATION_EMZONE));
 			break;
-		case CHAININFO_TRIGGERING_LOCATION_SYMBOLIC:
+		case CHAININFO::TRIGGERING_LOCATION_SYMBOLIC:
 			lua_pushinteger(L, ch->triggering_location & ~(LOCATION_MZONE | LOCATION_SZONE));
 			break;
-		case CHAININFO_TRIGGERING_SEQUENCE:
+		case CHAININFO::TRIGGERING_SEQUENCE:
 			lua_pushinteger(L, ch->triggering_sequence);
 			break;
-		case CHAININFO_TRIGGERING_SEQUENCE_SYMBOLIC:
+		case CHAININFO::TRIGGERING_SEQUENCE_SYMBOLIC:
 			if(pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD) && (ch->triggering_location & ~(LOCATION_STZONE | LOCATION_MMZONE)))
 				lua_pushinteger(L, ch->triggering_sequence + 1);
 			else if(ch->triggering_location & LOCATION_PZONE) {
@@ -1934,60 +1934,60 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 			} else
 				lua_pushinteger(L, ch->triggering_sequence);
 			break;
-		case CHAININFO_TRIGGERING_POSITION:
+		case CHAININFO::TRIGGERING_POSITION:
 			lua_pushinteger(L, ch->triggering_position);
 			break;
-		case CHAININFO_TRIGGERING_CODE:
+		case CHAININFO::TRIGGERING_CODE:
 			lua_pushinteger(L, ch->triggering_state.code);
 			break;
-		case CHAININFO_TRIGGERING_CODE2:
+		case CHAININFO::TRIGGERING_CODE2:
 			lua_pushinteger(L, ch->triggering_state.code2);
 			break;
-		case CHAININFO_TRIGGERING_TYPE:
+		case CHAININFO::TRIGGERING_TYPE:
 			lua_pushinteger(L, ch->triggering_state.type);
 			break;
-		case CHAININFO_TRIGGERING_LEVEL:
+		case CHAININFO::TRIGGERING_LEVEL:
 			lua_pushinteger(L, ch->triggering_state.level);
 			break;
-		case CHAININFO_TRIGGERING_RANK:
+		case CHAININFO::TRIGGERING_RANK:
 			lua_pushinteger(L, ch->triggering_state.rank);
 			break;
-		case CHAININFO_TRIGGERING_ATTRIBUTE:
+		case CHAININFO::TRIGGERING_ATTRIBUTE:
 			lua_pushinteger(L, ch->triggering_state.attribute);
 			break;
-		case CHAININFO_TRIGGERING_RACE:
+		case CHAININFO::TRIGGERING_RACE:
 			lua_pushinteger(L, ch->triggering_state.race);
 			break;
-		case CHAININFO_TRIGGERING_ATTACK:
+		case CHAININFO::TRIGGERING_ATTACK:
 			lua_pushinteger(L, ch->triggering_state.attack);
 			break;
-		case CHAININFO_TRIGGERING_DEFENSE:
+		case CHAININFO::TRIGGERING_DEFENSE:
 			lua_pushinteger(L, ch->triggering_state.defense);
 			break;
-		case CHAININFO_TARGET_CARDS:
+		case CHAININFO::TARGET_CARDS:
 			interpreter::pushobject(L, ch->target_cards);
 			break;
-		case CHAININFO_TARGET_PLAYER:
+		case CHAININFO::TARGET_PLAYER:
 			lua_pushinteger(L, ch->target_player);
 			break;
-		case CHAININFO_TARGET_PARAM:
+		case CHAININFO::TARGET_PARAM:
 			lua_pushinteger(L, ch->target_param);
 			break;
-		case CHAININFO_DISABLE_REASON:
+		case CHAININFO::DISABLE_REASON:
 			interpreter::pushobject(L, ch->disable_reason);
 			break;
-		case CHAININFO_DISABLE_PLAYER:
+		case CHAININFO::DISABLE_PLAYER:
 			lua_pushinteger(L, ch->disable_player);
 			break;
-		case CHAININFO_CHAIN_ID:
+		case CHAININFO::CHAIN_ID:
 			lua_pushinteger(L, ch->chain_id);
 			break;
-		case CHAININFO_TYPE:
+		case CHAININFO::TYPE:
 			if((ch->triggering_effect->card_type & (TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP)) == (TYPE_TRAP | TYPE_MONSTER))
 				lua_pushinteger(L, TYPE_MONSTER);
 			else lua_pushinteger(L, (ch->triggering_effect->card_type & (TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP)));
 			break;
-		case CHAININFO_EXTTYPE:
+		case CHAININFO::EXTTYPE:
 			lua_pushinteger(L, ch->triggering_effect->card_type);
 			break;
 		default:
