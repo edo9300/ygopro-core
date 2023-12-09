@@ -18,7 +18,8 @@ if [[ "$TARGET_OS" == "windows" ]]; then
 	./vcpkg.exe integrate install
 else
 	cd /tmp
-	curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz
+	curl --retry 2 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.5.tar.gz || \
+	curl --retry 2 --connect-timeout 30 --location --remote-header-name --remote-name https://www.tecgraf.puc-rio.br/lua/mirror/ftp/lua-5.3.5.tar.gz
 	tar xf lua-5.3.5.tar.gz
 	cd lua-5.3.5
 	if [[ -n ${LUA_APICHECK:-""} ]]; then
