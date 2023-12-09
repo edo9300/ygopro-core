@@ -2597,7 +2597,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		return FALSE;
 	}
 	case 34: {
-		pduel->delete_group(std::exchange(arg.cards_destroyed_by_battle, nullptr));
+		arg.cards_destroyed_by_battle = nullptr;
 		// for unexpected end of damage step
 		core.damage_calculated = true;
 		core.selfdes_disabled = false;
