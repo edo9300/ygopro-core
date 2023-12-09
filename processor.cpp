@@ -3701,7 +3701,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					bool double_damage = false;
 					//bool half_damage = false;
 					for(const auto& peff : eset) {
-						if(peff->get_value() == static_cast<int32_t>(DOUBLE_DAMAGE))
+						if(peff->get_value() == DOUBLE_DAMAGE)
 							double_damage = true;
 						//if(peff->get_value() == HALF_DAMAGE)
 						//	half_damage = true;
@@ -3790,7 +3790,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 						bool half_dam = false;
 						int32_t dam_value = -1;
 						for(const auto& peff : eset) {
-							int32_t val = -1;
+							lua_Integer val = -1;
 							if(!peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 								pduel->lua->add_param<LuaParam::INT>(p);
 								pduel->lua->add_param<LuaParam::CARD>(core.attacker);
@@ -3803,10 +3803,10 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 								dam_value = 0;
 								break;
 							} else if(val > 0)
-								dam_value = val;
-							else if(val == static_cast<int32_t>(DOUBLE_DAMAGE))
+								dam_value = static_cast<int32_t>(val);
+							else if(val == DOUBLE_DAMAGE)
 								double_dam = true;
-							else if(val == static_cast<int32_t>(HALF_DAMAGE))
+							else if(val == HALF_DAMAGE)
 								half_dam = true;
 						}
 						if(double_dam && half_dam) {
@@ -3913,7 +3913,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 			bool half_dam = false;
 			int32_t dam_value = -1;
 			for(const auto& peff : eset) {
-				int32_t val = -1;
+				lua_Integer val = -1;
 				if(!peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 					pduel->lua->add_param<LuaParam::INT>(p);
 					pduel->lua->add_param<LuaParam::CARD>(reason_card);
@@ -3926,10 +3926,10 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					dam_value = 0;
 					break;
 				} else if(val > 0)
-					dam_value = val;
-				else if(val == static_cast<int32_t>(DOUBLE_DAMAGE))
+					dam_value = static_cast<int32_t>(val);
+				else if(val == DOUBLE_DAMAGE)
 					double_dam = true;
-				else if(val == static_cast<int32_t>(HALF_DAMAGE))
+				else if(val == HALF_DAMAGE)
 					half_dam = true;
 			}
 			if(double_dam && half_dam) {
