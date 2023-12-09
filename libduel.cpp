@@ -1881,9 +1881,6 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 	lua_iterate_table_or_stack(L, 2, top, [L, ch, pduel]() -> int {
 		auto flag = lua_get<CHAININFO>(L, -1);
 		switch(flag) {
-		case CHAININFO::CHAIN_COUNT:
-			lua_pushinteger(L, ch->chain_count);
-			break;
 		case CHAININFO::TRIGGERING_EFFECT:
 			interpreter::pushobject(L, ch->triggering_effect);
 			break;
