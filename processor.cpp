@@ -3799,15 +3799,16 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 								pduel->lua->add_param<LuaParam::CARD>(core.attacker);
 								val = peff->get_value(1);
 							}
-							if(val == 0) {
+							if(val == DOUBLE_DAMAGE) {
+								double_dam = true;
+							} else if(val == HALF_DAMAGE) {
+								half_dam = true;
+							} else if(val > 0) {
+								dam_value = static_cast<int32_t>(val);
+							} else if(val == 0) {
 								dam_value = 0;
 								break;
-							} else if(val > 0)
-								dam_value = static_cast<int32_t>(val);
-							else if(val == DOUBLE_DAMAGE)
-								double_dam = true;
-							else if(val == HALF_DAMAGE)
-								half_dam = true;
+							}
 						}
 						if(double_dam && half_dam) {
 							double_dam = false;
@@ -3922,15 +3923,16 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, ui
 					pduel->lua->add_param<LuaParam::CARD>(reason_card);
 					val = peff->get_value(1);
 				}
-				if(val == 0) {
+				if(val == DOUBLE_DAMAGE) {
+					double_dam = true;
+				} else if(val == HALF_DAMAGE) {
+					half_dam = true;
+				} else if(val > 0) {
+					dam_value = static_cast<int32_t>(val);
+				} else if(val == 0) {
 					dam_value = 0;
 					break;
-				} else if(val > 0)
-					dam_value = static_cast<int32_t>(val);
-				else if(val == DOUBLE_DAMAGE)
-					double_dam = true;
-				else if(val == HALF_DAMAGE)
-					half_dam = true;
+				}
 			}
 			if(double_dam && half_dam) {
 				double_dam = false;
