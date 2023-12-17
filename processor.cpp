@@ -5031,7 +5031,7 @@ bool field::process(Processors::SortDeck& arg) {
 		return FALSE;
 	}
 	case 1: {
-		if(returns.at<int8_t>(0) == 1 || count == 0)
+		if(returns.at<int8_t>(0) == -1 || count == 0)
 			return TRUE;
 		card* tc[64];
 		for(uint32_t i = 0; i < count; ++i)
