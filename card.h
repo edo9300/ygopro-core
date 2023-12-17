@@ -160,6 +160,7 @@ public:
 	card* equiping_target{};
 	card* pre_equip_target{};
 	card* overlay_target{};
+	card* pre_overlay_target{};
 	relation_map relations;
 	counter_map counters;
 	effect_count indestructable_effects;

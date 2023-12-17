@@ -742,11 +742,16 @@ effect* effect::clone(int32_t majestic) {
 	}
 	return ceffect;
 }
-card* effect::get_owner() const {
+card* effect::get_real_handler() const {
 	if(active_handler)
 		return active_handler;
 	if(type & EFFECT_TYPE_XMATERIAL)
-		return handler->overlay_target;
+		return handler->overlay_target ? handler->overlay_target : handler->pre_overlay_target;
+	return nullptr;
+}
+card* effect::get_owner() const {
+	if(auto real_handler = get_real_handler(); real_handler)
+		return real_handler;
 	return owner;
 }
 uint8_t effect::get_owner_player() {
@@ -755,10 +760,8 @@ uint8_t effect::get_owner_player() {
 	return get_owner()->current.controler;
 }
 card* effect::get_handler() const {
-	if(active_handler)
-		return active_handler;
-	if(type & EFFECT_TYPE_XMATERIAL)
-		return handler->overlay_target;
+	if(auto real_handler = get_real_handler(); real_handler)
+		return real_handler;
 	return handler;
 }
 uint8_t effect::get_handler_player() {

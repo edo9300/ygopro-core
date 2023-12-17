@@ -100,6 +100,7 @@ public:
 	void* get_label_object();
 	int32_t get_speed();
 	effect* clone(int32_t majestic = FALSE);
+	card* get_real_handler() const;
 	card* get_owner() const;
 	uint8_t get_owner_player();
 	card* get_handler() const;

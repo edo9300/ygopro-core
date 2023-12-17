@@ -1682,6 +1682,7 @@ void card::xyz_add(card* mat) {
 		return;
 	xyz_materials.push_back(mat);
 	mat->overlay_target = this;
+	mat->pre_overlay_target = nullptr;
 	mat->current.controler = PLAYER_NONE;
 	mat->current.location = LOCATION_OVERLAY;
 	mat->current.sequence = static_cast<uint32_t>(xyz_materials.size() - 1);
@@ -1704,7 +1705,7 @@ void card::xyz_remove(card* mat) {
 	mat->current.controler = PLAYER_NONE;
 	mat->current.location = 0;
 	mat->current.sequence = 0;
-	mat->overlay_target = 0;
+	mat->pre_overlay_target = std::exchange(mat->overlay_target, nullptr);
 	for(auto clit = xyz_materials.begin(); clit != xyz_materials.end(); ++clit)
 		(*clit)->current.sequence = clit - xyz_materials.begin();
 	for(auto eit = mat->xmaterial_effect.begin(); eit != mat->xmaterial_effect.end(); ++eit) {
