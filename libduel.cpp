@@ -3596,11 +3596,8 @@ LUA_STATIC_FUNCTION(IsPlayerCanDraw) {
 		return 1;
 	}
 	auto count = lua_get<uint32_t, 0>(L, 2);
-	if(count == 0)
-		lua_pushboolean(L, pduel->game_field->is_player_can_draw(playerid));
-	else
-		lua_pushboolean(L, pduel->game_field->is_player_can_draw(playerid)
-		                && (pduel->game_field->player[playerid].list_main.size() >= count));
+	lua_pushboolean(L, pduel->game_field->is_player_can_draw(playerid)
+					&& (pduel->game_field->player[playerid].list_main.size() >= count));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanDiscardDeck) {

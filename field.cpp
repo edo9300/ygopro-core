@@ -2618,16 +2618,18 @@ int32_t field::check_with_sum_greater_limit_m(const card_vector& mats, int32_t a
 int32_t field::is_player_can_draw(uint8_t playerid) {
 	return !is_player_affected_by_effect(playerid, EFFECT_CANNOT_DRAW);
 }
-int32_t field::is_player_can_discard_deck(uint8_t playerid, int32_t count) {
-	if(player[playerid].list_main.size() < (uint32_t)count)
+int32_t field::is_player_can_discard_deck(uint8_t playerid, uint32_t count) {
+	if(player[playerid].list_main.size() < count)
 		return FALSE;
 	return !is_player_affected_by_effect(playerid, EFFECT_CANNOT_DISCARD_DECK);
 }
-int32_t field::is_player_can_discard_deck_as_cost(uint8_t playerid, int32_t count) {
-	if(player[playerid].list_main.size() < (uint32_t)count)
+int32_t field::is_player_can_discard_deck_as_cost(uint8_t playerid, uint32_t count) {
+	if(player[playerid].list_main.size() < count)
 		return FALSE;
 	if(is_player_affected_by_effect(playerid, EFFECT_CANNOT_DISCARD_DECK))
 		return FALSE;
+	if(player[playerid].list_main.empty())
+		return TRUE;
 	card* topcard = player[playerid].list_main.back();
 	if((count == 1) && topcard->is_position(POS_FACEUP))
 		return topcard->is_capable_cost_to_grave(playerid);

@@ -529,8 +529,8 @@ public:
 	static int32_t check_with_sum_greater_limit_m(const card_vector& mats, int32_t acc, int32_t index, int32_t opmin, int32_t must_count, int32_t* should_continue);
 
 	int32_t is_player_can_draw(uint8_t playerid);
-	int32_t is_player_can_discard_deck(uint8_t playerid, int32_t count);
-	int32_t is_player_can_discard_deck_as_cost(uint8_t playerid, int32_t count);
+	int32_t is_player_can_discard_deck(uint8_t playerid, uint32_t count);
+	int32_t is_player_can_discard_deck_as_cost(uint8_t playerid, uint32_t count);
 	int32_t is_player_can_discard_hand(uint8_t playerid, card* pcard, effect* peffect, uint32_t reason);
 	int32_t is_player_can_action(uint8_t playerid, uint32_t actionlimit);
 	int32_t is_player_can_summon(uint32_t sumtype, uint8_t playerid, card* pcard, uint8_t toplayer);
