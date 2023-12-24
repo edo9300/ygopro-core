@@ -12,7 +12,6 @@
 #include "common.h"
 #include "card.h"
 #include "progressivebuffer.h"
-#include "effectset.h"
 #include <vector>
 #include <set>
 #include <map>

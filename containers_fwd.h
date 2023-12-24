@@ -22,6 +22,10 @@ class effect;
 using effect_vector = std::vector<effect*>;
 using effect_container = std::multimap<uint32_t, effect*>;
 using effect_indexer = std::unordered_map<effect*, effect_container::iterator>;
+using effect_set = std::vector<effect*>;
+using effect_set_v = effect_set;
+
+bool effect_sort_id(const effect* e1, const effect* e2);
 
 struct chain;
 using chain_array = std::vector<chain>;

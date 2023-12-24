@@ -11,7 +11,6 @@
 #include "containers_fwd.h"
 #include "common.h"
 #include "lua_obj.h"
-#include "effectset.h"
 #include "duel.h"
 #include <set>
 #include <map>
