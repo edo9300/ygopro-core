@@ -181,7 +181,7 @@ struct lpcost {
 	int32_t lpstack[8]{};
 };
 
-namespace Processors {
+namespace P {
 struct Adjust {
 	int16_t step;
 	Adjust(int16_t step_) : step(step_) {}
@@ -1018,6 +1018,8 @@ struct NeedsAnswer : std::false_type {};
 template <typename T>
 struct NeedsAnswer <T, decltype((void)T::needs_answer, 0)> : std::true_type {};
 }
+
+namespace Processors = P;
 
 using Processors::processor_unit;
 
