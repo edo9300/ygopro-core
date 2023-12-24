@@ -18,7 +18,7 @@
 
 //use forceinline only in release builds
 #if defined(_DEBUG) || !defined(__OPTIMIZE__)
-#define LUA_INLINE
+#define LUA_INLINE NoInline
 #else
 #define LUA_INLINE ForceInline
 #endif
