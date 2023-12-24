@@ -12,6 +12,7 @@
 #include <list>
 #include <map>
 #include <memory> //std::shared_ptr
+#include <optional>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -181,7 +182,6 @@ struct lpcost {
 };
 
 namespace Processors {
-struct InvalidState {};
 struct Adjust {
 	int16_t step;
 	Adjust(int16_t step_) : step(step_) {}
@@ -994,7 +994,7 @@ struct RefreshRelay {
 		step(step_) {}
 };
 
-using processor_unit = std::variant<InvalidState, Adjust, Turn, RefreshLoc, Startup,
+using processor_unit = std::variant<Adjust, Turn, RefreshLoc, Startup,
 	SelectBattleCmd, SelectIdleCmd, SelectEffectYesNo, SelectYesNo,
 	SelectOption, SelectCard, SelectCardCodes, SelectUnselectCard,
 	SelectChain, SelectPlace, SelectDisField, SelectPosition,
@@ -1055,7 +1055,7 @@ struct processor {
 
 	processor_list units;
 	processor_list subunits;
-	processor_unit reserved;
+	std::optional<processor_unit> reserved;
 	card_set just_sent_cards;
 	card_vector select_cards;
 	std::vector<std::pair<uint32_t, uint32_t>> select_cards_codes;
@@ -1560,11 +1560,6 @@ public:
 			++arg.step;
 			return status;
 		}
-	}
-
-	OCG_DuelStatus operator()(Processors::InvalidState& arg) {
-		(void)arg;
-		unreachable();
 	}
 };
 

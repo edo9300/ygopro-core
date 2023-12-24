@@ -2561,9 +2561,11 @@ bool field::process(Processors::BattleCommand& arg) {
 		process_single_event();
 		process_instant_event();
 		if(core.effect_damage_step) {
-			auto* damage_step = std::get_if<Processors::DamageStep>(&core.reserved);
-			if(damage_step)
-				damage_step->cards_destroyed_by_battle = arg.cards_destroyed_by_battle;
+			if(core.reserved) {
+				auto* damage_step = std::get_if<Processors::DamageStep>(&(*core.reserved));
+				if(damage_step)
+					damage_step->cards_destroyed_by_battle = arg.cards_destroyed_by_battle;
+			}
 			return TRUE;
 		}
 		arg.step = 32;
@@ -4281,8 +4283,8 @@ bool field::process(Processors::SolveChain& arg) {
 			core.chain_limit.clear();
 			return FALSE;
 		}
-		if(core.summoning_card || core.summoning_proc_group_type)
-			core.subunits.push_back(std::move(core.reserved));
+		if((core.summoning_card || core.summoning_proc_group_type) && core.reserved)
+			core.subunits.push_back(*std::exchange(core.reserved, std::nullopt));
 		core.summoning_card = nullptr;
 		core.summoning_proc_group_type = 0;
 		arg.step = -1;
@@ -4302,8 +4304,8 @@ bool field::process(Processors::SolveChain& arg) {
 		core.used_event.splice(core.used_event.end(), core.point_event);
 		pduel->new_message(MSG_CHAIN_END);
 		reset_chain();
-		if(core.summoning_card || core.summoning_proc_group_type || core.effect_damage_step == 1)
-			core.subunits.push_back(std::move(core.reserved));
+		if((core.summoning_card || core.summoning_proc_group_type || core.effect_damage_step == 1) && core.reserved)
+			core.subunits.push_back(*std::exchange(core.reserved, std::nullopt));
 		core.summoning_proc_group_type = 0;
 		core.summoning_card = nullptr;
 		return FALSE;
