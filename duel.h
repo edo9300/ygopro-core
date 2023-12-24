@@ -55,7 +55,7 @@ public:
 		void write(const void* buff, size_t size);
 		void write(loc_info loc);
 		template<typename T, typename T2>
-		__forceinline void write(T2 data) {
+		ForceInline void write(T2 data) {
 			write_internal<T>(static_cast<T>(data));
 		}
 	};

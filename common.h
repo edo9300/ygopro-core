@@ -11,11 +11,16 @@
 #if defined( _MSC_VER) && !defined(__clang_analyzer__)
 #pragma warning(disable: 4244)
 #define unreachable() __assume(0)
+#define NoInline __declspec(noinline)
+#define ForceInline __forceinline
 #else
 #if !defined(__forceinline)
-#define __forceinline __attribute__((always_inline)) inline
+#define ForceInline __attribute__((always_inline)) inline
+#else
+#define ForceInline __forceinline
 #endif
 #define unreachable() __builtin_unreachable()
+#define NoInline __attribute__ ((noinline))
 #endif
 
 #include <cstdint>

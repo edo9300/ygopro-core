@@ -20,7 +20,7 @@
 #if defined(_DEBUG) || !defined(__OPTIMIZE__)
 #define LUA_INLINE
 #else
-#define LUA_INLINE __forceinline
+#define LUA_INLINE ForceInline
 #endif
 
 namespace {

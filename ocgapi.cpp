@@ -150,7 +150,7 @@ void insert_value_int(std::vector<uint8_t>& vec, T val) {
 	std::memcpy(&vec[vec_size], &val, val_size);
 }
 template<typename T, typename T2>
-__forceinline void insert_value(std::vector<uint8_t>& vec, T2 val) {
+ForceInline void insert_value(std::vector<uint8_t>& vec, T2 val) {
 	insert_value_int<T>(vec, static_cast<T>(val));
 }
 
