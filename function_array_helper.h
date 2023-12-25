@@ -17,7 +17,7 @@
 #include "common.h"
 
 //use forceinline only in release builds
-#if defined(_DEBUG) || !defined(__OPTIMIZE__)
+#if defined(_DEBUG) || (!defined(_MSC_VER) && !defined(__OPTIMIZE__))
 #define LUA_INLINE NoInline
 #else
 #define LUA_INLINE ForceInline
