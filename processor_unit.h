@@ -843,11 +843,12 @@ using processor_unit = std::variant<Adjust, Turn, RefreshLoc, Startup,
 	SelectFusion, DiscardHand, DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay,
 	RefreshRelay>;
 
-template <typename T, typename = int>
+template <typename T, typename = void>
 struct NeedsAnswer : std::false_type {};
 
 template <typename T>
-struct NeedsAnswer <T, decltype((void)T::needs_answer, 0)> : std::true_type {};
+struct NeedsAnswer <T, std::void_t<decltype(T::needs_answer)>> : std::true_type {};
+
 }
 
 namespace Processors = P;

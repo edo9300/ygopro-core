@@ -711,14 +711,14 @@ public:
 	bool process(Processors::RockPaperScissors& arg);
 
 
-	template<typename T, OCG_DuelStatus status = Processors::NeedsAnswer<T>::value ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE>
+	template<typename T>
 	OCG_DuelStatus operator()(T& arg) {
 		if(process(arg)) {
 			core.units.pop_front();
 			return OCG_DUEL_STATUS_CONTINUE;
 		} else {
 			++arg.step;
-			return status;
+			return Processors::NeedsAnswer<T>::value ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE;
 		}
 	}
 };
