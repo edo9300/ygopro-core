@@ -22,6 +22,7 @@ if not subproject then
 	language "C++"
 	objdir "obj"
 	configurations { "Debug", "Release" }
+	symbols "On"
 	
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
@@ -53,7 +54,6 @@ if not subproject then
 		end
 	
 	filter "configurations:Debug"
-		symbols "On"
 		defines "_DEBUG"
 		targetdir "bin/debug"
 		runtime "Debug"
