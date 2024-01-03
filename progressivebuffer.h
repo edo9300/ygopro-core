@@ -1,7 +1,8 @@
-// Copyright (c) 2019-2022 Edoardo Lolletti <edoardo762@gmail.com>
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// Refer to the COPYING file included.
-
+/*
+ * Copyright (c) 2019-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 #ifndef PROGRESSIVEBUFFER_H_
 #define PROGRESSIVEBUFFER_H_
 

@@ -1,7 +1,8 @@
-// Copyright (c) 2023 Edoardo Lolletti <edoardo762@gmail.com>
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// Refer to the COPYING file included.
-
+/*
+ * Copyright (c) 2023-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 #ifndef EFFECT_CONSTANTS_H_
 #define EFFECT_CONSTANTS_H_
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2019, Dylam De La Torre, (DyXel)
+ * Copyright (c) 2019-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 #ifndef OCGAPI_H
 #define OCGAPI_H
 #include "ocgapi_types.h"

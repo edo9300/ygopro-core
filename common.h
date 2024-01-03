@@ -1,10 +1,9 @@
 /*
- * common.h
+ * Copyright (c) 2009-2015, Argon Sun (Fluorohydride)
+ * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
- *  Created on: 2009-1-7
- *      Author: Argon.Sun
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-
 #ifndef COMMON_H_
 #define COMMON_H_
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Edoardo Lolletti <edoardo762@gmail.com>
+ * Copyright (c) 2022-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */

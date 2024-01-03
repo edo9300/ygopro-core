@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2020, Dylam De La Torre, (DyXel)
+ * Copyright (c) 2020-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 #ifndef XOSHIRO256_HPP
 #define XOSHIRO256_HPP
 #include <array>
@@ -17,7 +23,7 @@ public:
 	constexpr Xoshiro256StarStar(const StateType& initialState) noexcept : s(initialState)
 	{}
 
-	ResultType operator()() noexcept
+	constexpr ResultType operator()() noexcept
 	{
 		const uint64_t result = rotl(s[1] * 5, 7) * 9;
 
