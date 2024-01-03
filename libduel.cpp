@@ -735,11 +735,11 @@ LUA_STATIC_FUNCTION(MoveSequence) {
 		lua_error(L, "Invalid sequence");
 
 	auto& core = field.core;
-	int res = FALSE;
+	bool res = false;
 	if(pcard->is_affect_by_effect(core.reason_effect)) {
 		const auto previous_loc_info = pcard->get_info_location();
 		const auto previous_code = pcard->data.code;
-		if((res = field.move_card(playerid, pcard, pcard->current.location, seq, pzone)) == TRUE) {
+		if(res = field.move_card(playerid, pcard, pcard->current.location, seq, pzone); res) {
 			if(cur_pzone != pzone) {
 				auto message = pduel->new_message(MSG_MOVE);
 				message->write<uint32_t>(previous_code);
@@ -1459,7 +1459,7 @@ LUA_STATIC_FUNCTION(ChangeAttackTarget) {
 	if(((target && std::find(cv.begin(), cv.end(), target) != cv.end()) || ignore) ||
 		(!target && !attacker->is_affected_by_effect(EFFECT_CANNOT_DIRECT_ATTACK))) {
 		pduel->game_field->core.attack_target = target;
-		pduel->game_field->core.attack_rollback = FALSE;
+		pduel->game_field->core.attack_rollback = false;
 		pduel->game_field->core.opp_mzone.clear();
 		uint8_t turnp = pduel->game_field->infos.turn_player;
 		for(auto& pcard : pduel->game_field->player[1 - turnp].list_mzone) {
@@ -2139,7 +2139,7 @@ LUA_STATIC_FUNCTION(Readjust) {
 		pduel->game_field->send_to(adjcard, 0, REASON_RULE, pduel->game_field->core.reason_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return yield();
 	}
-	pduel->game_field->core.re_adjust = TRUE;
+	pduel->game_field->core.re_adjust = true;
 	return 0;
 }
 LUA_STATIC_FUNCTION(AdjustInstantly) {
@@ -2597,7 +2597,7 @@ LUA_STATIC_FUNCTION(GetTargetCount) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, 0, 0, TRUE);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
 }
@@ -2618,7 +2618,7 @@ LUA_STATIC_FUNCTION(IsExistingTarget) {
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
 	auto count = lua_get<uint16_t>(L, 5);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(findex, self, location1, location2, 0, pexception, pexgroup, extraargs, 0, count, TRUE));
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(findex, self, location1, location2, nullptr, pexception, pexgroup, extraargs, nullptr, count, true));
 	return 1;
 }
 /**
@@ -2653,7 +2653,7 @@ LUA_STATIC_FUNCTION(SelectTarget) {
 	if(pduel->game_field->core.current_chain.size() == 0)
 		return 0;
 	group* pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, 0, 0, TRUE);
+	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->add_process(PROCESSOR_SELECT_CARD, 0, 0, 0, playerid + (cancelable << 16), min + (max << 16));
 	return yieldk({

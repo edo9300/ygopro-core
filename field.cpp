@@ -108,7 +108,7 @@ void field::reload_field_info() {
 }
 // The core of moving cards, and Debug.AddCard() will call this function directly.
 // check Fusion/S/X monster redirection by the rule, set fieldid_r
-void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone) {
+void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, bool pzone) {
 	if (pcard->current.location != 0)
 		return;
 	if (!is_location_useable(playerid, location, sequence))
@@ -141,7 +141,7 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 			player[playerid].list_main.push_back(pcard);
 			pcard->current.sequence = static_cast<uint32_t>(player[playerid].list_main.size() - 1);
 			if(!core.shuffle_check_disabled)
-				core.shuffle_deck_check[playerid] = TRUE;
+				core.shuffle_deck_check[playerid] = true;
 		}
 		pcard->sendto_param.position = POS_FACEDOWN;
 		break;
@@ -152,7 +152,7 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 		uint32_t pos = pcard->is_affected_by_effect(EFFECT_PUBLIC) ? POS_FACEUP : POS_FACEDOWN;
 		pcard->sendto_param.position = pos;
 		if(!(pcard->current.reason & REASON_DRAW) && !core.shuffle_check_disabled)
-			core.shuffle_hand_check[playerid] = TRUE;
+			core.shuffle_hand_check[playerid] = true;
 		break;
 	}
 	case LOCATION_GRAVE: {
@@ -176,10 +176,7 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 		break;
 	}
 	}
-	if(pzone)
-		pcard->current.pzone = true;
-	else
-		pcard->current.pzone = false;
+	pcard->current.pzone = pzone;
 	pcard->apply_field_effect();
 	pcard->fieldid = infos.field_id++;
 	pcard->fieldid_r = pcard->fieldid;
@@ -206,7 +203,7 @@ void field::remove_card(card* pcard) {
 		player[playerid].list_main.erase(player[playerid].list_main.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_DECK);
 		if(!core.shuffle_check_disabled)
-			core.shuffle_deck_check[playerid] = TRUE;
+			core.shuffle_deck_check[playerid] = true;
 		break;
 	case LOCATION_HAND:
 		player[playerid].list_hand.erase(player[playerid].list_hand.begin() + pcard->current.sequence);
@@ -250,9 +247,9 @@ void field::remove_card(card* pcard) {
 // 4. control_adjust()
 // 5. move_card()
 // check Fusion/S/X monster redirection by the rule
-uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone) {
+bool field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, bool pzone) {
 	if (!is_location_useable(playerid, location, sequence))
-		return FALSE;
+		return false;
 	uint8_t preplayer = pcard->current.controler;
 	uint8_t presequence = pcard->current.sequence;
 	if(pcard->is_extra_deck_monster() && (location & (LOCATION_HAND | LOCATION_DECK))) {
@@ -260,7 +257,7 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 		pcard->sendto_param.position = POS_FACEDOWN_DEFENSE;
 	}
 	if (pcard->current.location) {
-		if (pcard->current.location == location && pcard->current.pzone == !!pzone) {
+		if (pcard->current.location == location && pcard->current.pzone == pzone) {
 			if (pcard->current.location == LOCATION_DECK) {
 				if(preplayer == playerid) {
 					auto message = pduel->new_message(MSG_MOVE);
@@ -274,25 +271,25 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 					} else {
 						player[playerid].list_main.push_back(pcard);
 						if(!core.shuffle_check_disabled)
-							core.shuffle_deck_check[playerid] = TRUE;
+							core.shuffle_deck_check[playerid] = true;
 					}
 					reset_sequence(playerid, LOCATION_DECK);
 					pcard->previous.controler = preplayer;
 					pcard->current.controler = playerid;
 					message->write(pcard->get_info_location());
 					message->write<uint32_t>(pcard->current.reason);
-					return TRUE;
+					return true;
 				} else
 					remove_card(pcard);
 			} else if(location & LOCATION_ONFIELD) {
 				if (playerid == preplayer && sequence == presequence)
-					return FALSE;
+					return false;
 				if(location == LOCATION_MZONE) {
 					if(sequence >= player[playerid].list_mzone.size() || player[playerid].list_mzone[sequence])
-						return FALSE;
+						return false;
 				} else {
 					if(sequence >= player[playerid].list_szone.size() || player[playerid].list_szone[sequence])
-						return FALSE;
+						return false;
 				}
 				duel::duel_message* message = nullptr;
 				if(preplayer == playerid) {
@@ -330,15 +327,15 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 					if(check_unique_onfield(pcard, pcard->current.controler, pcard->current.location))
 						pcard->unique_fieldid = UINT_MAX;
 				}
-				return TRUE;
+				return true;
 			} else if(location == LOCATION_HAND) {
 				if(preplayer == playerid)
-					return FALSE;
+					return false;
 				remove_card(pcard);
 			} else {
 				if(location == LOCATION_GRAVE) {
 					if(pcard->current.sequence == player[pcard->current.controler].list_grave.size() - 1)
-						return FALSE;
+						return false;
 					auto message = pduel->new_message(MSG_MOVE);
 					message->write<uint32_t>(pcard->data.code);
 					message->write(pcard->get_info_location());
@@ -349,7 +346,7 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 					message->write<uint32_t>(pcard->current.reason);
 				} else if(location == LOCATION_REMOVED) {
 					if(pcard->current.sequence == player[pcard->current.controler].list_remove.size() - 1)
-						return FALSE;
+						return false;
 					auto message = pduel->new_message(MSG_MOVE);
 					message->write<uint32_t>(pcard->data.code);
 					message->write(pcard->get_info_location());
@@ -368,7 +365,7 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 					message->write(pcard->get_info_location());
 					message->write<uint32_t>(pcard->current.reason);
 				}
-				return TRUE;
+				return true;
 			}
 		} else {
 			if((pcard->data.type & TYPE_PENDULUM) && (location == LOCATION_GRAVE)
@@ -382,7 +379,7 @@ uint8_t field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_
 		}
 	}
 	add_card(playerid, pcard, location, sequence, pzone);
-	return TRUE;
+	return true;
 }
 void field::swap_card(card* pcard1, card* pcard2, uint8_t new_sequence1, uint8_t new_sequence2) {
 	uint8_t p1 = pcard1->current.controler, p2 = pcard2->current.controler;
@@ -908,7 +905,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 			if(!pcard->is_position(POS_FACEUP))
 				shuffle = true;
 		if(!shuffle) {
-			core.shuffle_hand_check[playerid] = FALSE;
+			core.shuffle_hand_check[playerid] = false;
 			return;
 		}
 	}
@@ -933,7 +930,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		for(auto& pcard : to_shuffle)
 			message->write<uint32_t>(pcard->data.code);
 		if(location == LOCATION_HAND) {
-			core.shuffle_hand_check[playerid] = FALSE;
+			core.shuffle_hand_check[playerid] = false;
 			for(auto& pcard : to_shuffle) {
 				for(auto& i : pcard->indexer) {
 					effect* peffect = i.first;
@@ -949,7 +946,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 	} else {
 		auto message = pduel->new_message(MSG_SHUFFLE_DECK);
 		message->write<uint8_t>(playerid);
-		core.shuffle_deck_check[playerid] = FALSE;
+		core.shuffle_deck_check[playerid] = false;
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
 			card* ptop = to_shuffle.back();
 			if(core.deck_reversed || (ptop->current.position == POS_FACEUP_DEFENSE)) {
@@ -1427,7 +1424,7 @@ void field::dec_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uin
 		return;
 	--iter->second;
 }
-void field::filter_field_effect(uint32_t code, effect_set* eset, uint8_t sort) {
+void field::filter_field_effect(uint32_t code, effect_set* eset, bool sort) {
 	auto rg = effects.aura_effect.equal_range(code);
 	for (; rg.first != rg.second; ) {
 		effect* peffect = rg.first->second;
@@ -1505,7 +1502,7 @@ void field::filter_inrange_cards(effect* peffect, card_set* cset) {
 		}
 	}
 }
-void field::filter_player_effect(uint8_t playerid, uint32_t code, effect_set* eset, uint8_t sort) {
+void field::filter_player_effect(uint8_t playerid, uint32_t code, effect_set* eset, bool sort) {
 	auto rg = effects.aura_effect.equal_range(code);
 	for (; rg.first != rg.second; ++rg.first) {
 		effect* peffect = rg.first->second;
@@ -1515,7 +1512,7 @@ void field::filter_player_effect(uint8_t playerid, uint32_t code, effect_set* es
 	if(sort)
 		std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
-int32_t field::filter_matching_card(int32_t findex, uint8_t self, uint32_t location1, uint32_t location2, group* pgroup, card* pexception, group* pexgroup, uint32_t extraargs, card** pret, int32_t fcount, int32_t is_target) {
+int32_t field::filter_matching_card(int32_t findex, uint8_t self, uint32_t location1, uint32_t location2, group* pgroup, card* pexception, group* pexgroup, uint32_t extraargs, card** pret, int32_t fcount, bool is_target) {
 	if(self != 0 && self != 1)
 		return FALSE;
 	int32_t count = 0;
@@ -1733,7 +1730,7 @@ void field::get_player_effect(uint8_t playerid, uint32_t code, effect_set* eset)
 			eset->push_back(peffect);
 	}
 }
-int32_t field::get_release_list(uint8_t playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t use_oppo, uint32_t reason) {
+int32_t field::get_release_list(uint8_t playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, bool use_oppo, uint32_t reason) {
 	uint32_t rcount = 0;
 	for(auto& pcard : player[playerid].list_mzone) {
 		if(pcard && pcard != exc && !(exg && exg->has_card(pcard)) && pcard->is_releasable_by_nonsummon(playerid, reason)
@@ -1793,7 +1790,7 @@ int32_t field::get_release_list(uint8_t playerid, card_set* release_list, card_s
 	}
 	return rcount + ex_oneof_max;
 }
-int32_t field::check_release_list(uint8_t playerid, int32_t min, int32_t /*max*/, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t check_field, uint8_t to_player, uint8_t zone, card* to_check, uint8_t use_oppo, uint32_t reason) {
+int32_t field::check_release_list(uint8_t playerid, int32_t min, int32_t /*max*/, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, bool check_field, uint8_t to_player, uint8_t zone, card* to_check, bool use_oppo, uint32_t reason) {
 	card_set relcard;
 	//card_set relcard_must;
 	card_set relcard_oneof;
@@ -2383,7 +2380,7 @@ int32_t field::effect_replace_check(uint32_t code, const tevent& e) {
 	}
 	return FALSE;
 }
-int32_t field::get_attack_target(card* pcard, card_vector* v, uint8_t chain_attack, bool select_target) {
+int32_t field::get_attack_target(card* pcard, card_vector* v, bool chain_attack, bool select_target) {
 	pcard->direct_attackable = 0;
 	uint8_t p = pcard->current.controler;
 	card_vector auto_attack, only_attack, must_attack, attack_tg;

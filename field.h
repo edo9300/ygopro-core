@@ -170,7 +170,7 @@ struct field_info {
 	uint16_t phase{ 0 };
 	uint8_t turn_player{ 0 };
 	uint8_t priorities[2]{ 0,0 };
-	uint8_t can_shuffle{ TRUE };
+	bool can_shuffle{ true };
 };
 struct lpcost {
 	int32_t count{ 0 };
@@ -307,11 +307,11 @@ struct processor {
 	std::set<uint32_t> opp_mzone;
 	chain_limit_list chain_limit;
 	chain_limit_list chain_limit_p;
-	uint8_t chain_solving;
-	uint8_t conti_solving;
+	bool chain_solving;
+	bool conti_solving;
 	uint8_t win_player{ 5 };
 	uint8_t win_reason;
-	uint8_t re_adjust;
+	bool re_adjust;
 	effect* reason_effect;
 	uint8_t reason_player{ PLAYER_NONE };
 	card* summoning_card;
@@ -328,9 +328,9 @@ struct processor {
 	group* only_use_mats;
 	int32_t forced_summon_minc;
 	int32_t forced_summon_maxc;
-	uint8_t attack_cancelable;
+	bool attack_cancelable;
 	uint8_t attack_cost_paid;
-	uint8_t attack_rollback;
+	bool attack_rollback;
 	uint8_t effect_damage_step;
 	int32_t battle_damage[2];
 	int32_t summon_count[2];
@@ -344,25 +344,25 @@ struct processor {
 	uint8_t set_group_seq[7];
 	std::vector<uint8_t> dice_results;
 	std::vector<bool> coin_results;
-	uint8_t to_bp;
-	uint8_t to_m2;
-	uint8_t to_ep;
-	uint8_t skip_m2;
-	uint8_t chain_attack;
+	bool to_bp;
+	bool to_m2;
+	bool to_ep;
+	bool skip_m2;
+	bool chain_attack;
 	uint32_t chain_attacker_id;
 	card* chain_attack_target;
 	uint8_t attack_player;
-	uint8_t selfdes_disabled;
-	uint8_t overdraw[2];
+	bool selfdes_disabled;
+	bool overdraw[2];
 	int32_t check_level;
-	uint8_t shuffle_check_disabled;
-	uint8_t shuffle_hand_check[2];
-	uint8_t shuffle_deck_check[2];
-	uint8_t deck_reversed;
-	uint8_t remove_brainwashing;
-	uint8_t flip_delayed;
-	uint8_t damage_calculated;
-	uint8_t hand_adjusted;
+	bool shuffle_check_disabled;
+	bool shuffle_hand_check[2];
+	bool shuffle_deck_check[2];
+	bool deck_reversed;
+	bool remove_brainwashing;
+	bool flip_delayed;
+	bool damage_calculated;
+	bool hand_adjusted;
 	uint8_t summon_state_count[2];
 	uint8_t normalsummon_state_count[2];
 	uint8_t flipsummon_state_count[2];
@@ -373,7 +373,7 @@ struct processor {
 	uint8_t attack_state_count[2];
 	uint8_t battle_phase_count[2];
 	uint8_t battled_count[2];
-	uint8_t phase_action;
+	bool phase_action;
 	uint32_t hint_timing[2];
 	uint8_t current_player;
 	uint8_t conti_player{ PLAYER_NONE };
@@ -424,9 +424,9 @@ public:
 	~field() = default;
 	void reload_field_info();
 
-	void add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone = FALSE);
+	void add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, bool pzone = false);
 	void remove_card(card* pcard);
-	uint8_t move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, uint8_t pzone = FALSE);
+	bool move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, bool pzone = false);
 	void swap_card(card* pcard1, card* pcard2, uint8_t new_sequence1, uint8_t new_sequence2);
 	void swap_card(card* pcard1, card* pcard2);
 	void set_control(card* pcard, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count);
@@ -473,17 +473,17 @@ public:
 	uint32_t get_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid);
 	void dec_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uint8_t playerid);
 
-	void filter_field_effect(uint32_t code, effect_set* eset, uint8_t sort = TRUE);
+	void filter_field_effect(uint32_t code, effect_set* eset, bool sort = true);
 	void filter_affected_cards(effect* peffect, card_set* cset);
 	void filter_inrange_cards(effect* peffect, card_set* cset);
-	void filter_player_effect(uint8_t playerid, uint32_t code, effect_set* eset, uint8_t sort = TRUE);
-	int32_t filter_matching_card(int32_t findex, uint8_t self, uint32_t location1, uint32_t location2, group* pgroup, card* pexception, group* pexgroup, uint32_t extraargs, card** pret = 0, int32_t fcount = 0, int32_t is_target = FALSE);
+	void filter_player_effect(uint8_t playerid, uint32_t code, effect_set* eset, bool sort = true);
+	int32_t filter_matching_card(int32_t findex, uint8_t self, uint32_t location1, uint32_t location2, group* pgroup, card* pexception, group* pexgroup, uint32_t extraargs, card** pret = nullptr, int32_t fcount = 0, bool is_target = false);
 	int32_t filter_field_card(uint8_t self, uint32_t location, uint32_t location2, group* pgroup);
 	effect* is_player_affected_by_effect(uint8_t playerid, uint32_t code);
 	void get_player_effect(uint8_t playerid, uint32_t code, effect_set* eset);
 
-	int32_t get_release_list(uint8_t playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t use_oppo, uint32_t reason);
-	int32_t check_release_list(uint8_t playerid, int32_t min, int32_t max, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, uint8_t check_field, uint8_t to_player, uint8_t zone, card* to_check, uint8_t use_oppo, uint32_t reason);
+	int32_t get_release_list(uint8_t playerid, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, bool use_oppo, uint32_t reason);
+	int32_t check_release_list(uint8_t playerid, int32_t min, int32_t max, int32_t use_hand, int32_t fun, int32_t exarg, card* exc, group* exg, bool check_field, uint8_t to_player, uint8_t zone, card* to_check, bool use_oppo, uint32_t reason);
 	int32_t get_summon_release_list(card* target, card_set* release_list, card_set* ex_list, card_set* ex_list_oneof, group* mg = nullptr, uint32_t ex = 0, uint32_t releasable = 0xff00ff, uint32_t pos = 0x1);
 	int32_t get_summon_count_limit(uint8_t playerid);
 	int32_t get_draw_count(uint8_t playerid);
@@ -517,7 +517,7 @@ public:
 
 	uint32_t get_field_counter(uint8_t playerid, uint8_t self, uint8_t oppo, uint16_t countertype);
 	int32_t effect_replace_check(uint32_t code, const tevent& e);
-	int32_t get_attack_target(card* pcard, card_vector* v, uint8_t chain_attack = FALSE, bool select_target = true);
+	int32_t get_attack_target(card* pcard, card_vector* v, bool chain_attack = false, bool select_target = true);
 	bool confirm_attack_target();
 	void attack_all_target_check();
 	int32_t check_tribute(card* pcard, int32_t min, int32_t max, group* mg, uint8_t toplayer, uint32_t zone = 0x1f, uint32_t releasable = 0xff00ff, uint32_t pos = 0x1);
@@ -581,7 +581,7 @@ public:
 	int32_t process_battle_command(uint16_t step);
 	int32_t process_forced_battle(uint16_t step);
 	int32_t process_damage_step(uint16_t step, uint32_t new_attack);
-	void calculate_battle_damage(effect** pdamchange, card** preason_card, uint8_t* battle_destroyed);
+	void calculate_battle_damage(effect** pdamchange, card** preason_card, std::array<bool, 2>* battle_destroyed);
 	int32_t process_turn(uint16_t step, uint8_t turn_player);
 
 	int32_t add_chain(uint16_t step);

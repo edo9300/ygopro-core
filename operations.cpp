@@ -416,10 +416,10 @@ int32_t field::draw(uint16_t step, effect* reason_effect, uint32_t reason, uint8
 			returns.set<int32_t>(0, 0);
 			return TRUE;
 		}
-		core.overdraw[playerid] = FALSE;
+		core.overdraw[playerid] = false;
 		for(uint32_t i = 0; i < count; ++i) {
 			if(player[playerid].list_main.size() == 0) {
-				core.overdraw[playerid] = TRUE;
+				core.overdraw[playerid] = true;
 				break;
 			}
 			++drawn;
@@ -2168,7 +2168,7 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 	}
 	case 12: {
 		set_control(target, target->current.controler, 0, 0);
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		target->current.reason = REASON_SUMMON;
 		target->summon.player = sumplayer;
 		auto message = pduel->new_message(MSG_SUMMONING);
@@ -2310,7 +2310,7 @@ int32_t field::flip_summon(uint16_t step, uint8_t sumplayer, card* target) {
 		target->current.position = POS_FACEUP_ATTACK;
 		target->summon.player = sumplayer;
 		target->fieldid = infos.field_id++;
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			++core.flipsummon_state_count[sumplayer];
 			check_card_counter(target, ACTIVITY_FLIPSUMMON, sumplayer);
@@ -2686,7 +2686,7 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 	}
 	case 10: {
 		set_control(target, target->current.controler, 0, 0);
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		++core.normalsummon_state_count[setplayer];
 		check_card_counter(target, ACTIVITY_NORMALSUMMON, setplayer);
 		target->set_status(STATUS_SUMMON_TURN, TRUE);
@@ -2735,7 +2735,7 @@ int32_t field::sset(uint16_t step, uint8_t setplayer, uint8_t toplayer, card* ta
 		return FALSE;
 	}
 	case 2: {
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		target->set_status(STATUS_SET_TURN, TRUE);
 		if(target->data.type & TYPE_MONSTER) {
 			effect* peffect = target->is_affected_by_effect(EFFECT_MONSTER_SSET);
@@ -2797,7 +2797,7 @@ int32_t field::sset_g(uint16_t step, uint8_t setplayer, uint8_t toplayer, group*
 		core.set_group_pre_set.clear();
 		core.set_group_set.clear();
 		core.set_group_used_zones = 0;
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		core.units.begin()->ptarget = (group*)set_cards;
 		return FALSE;
 	}
@@ -3096,7 +3096,7 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 		if(core.shuffle_deck_check[1])
 			shuffle(1, LOCATION_DECK);
 		set_control(target, target->current.controler, 0, 0);
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		target->current.reason_effect = core.units.begin()->peffect;
 		auto message = pduel->new_message(MSG_SPSUMMONING);
 		message->write<uint32_t>(target->data.code);
@@ -3263,7 +3263,7 @@ int32_t field::special_summon_rule(uint16_t step, uint8_t sumplayer, card* targe
 		group* pgroup = core.units.begin()->ptarget;
 		if(pgroup->container.size() == 0)
 			return TRUE;
-		core.phase_action = TRUE;
+		core.phase_action = true;
 		pgroup->it = pgroup->container.begin();
 		return FALSE;
 	}
@@ -5007,8 +5007,8 @@ int32_t field::move_to_field(uint16_t step, card* target, uint8_t enable, uint8_
 			target->unequip();
 		if(target->current.location == LOCATION_MZONE) {
 			effect_set eset;
-			filter_player_effect(0, EFFECT_MUST_USE_MZONE, &eset, FALSE);
-			filter_player_effect(1, EFFECT_MUST_USE_MZONE, &eset, FALSE);
+			filter_player_effect(0, EFFECT_MUST_USE_MZONE, &eset, false);
+			filter_player_effect(1, EFFECT_MUST_USE_MZONE, &eset, false);
 			target->filter_effect(EFFECT_MUST_USE_MZONE, &eset);
 			uint32_t lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
 			for(const auto& peff : eset) {

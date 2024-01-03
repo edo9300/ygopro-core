@@ -1686,7 +1686,7 @@ LUA_FUNCTION(CanChainAttack) {
 		return 1;
 	}
 	pduel->game_field->core.select_cards.clear();
-	pduel->game_field->get_attack_target(self, &pduel->game_field->core.select_cards, TRUE);
+	pduel->game_field->get_attack_target(self, &pduel->game_field->core.select_cards, true);
 	if(pduel->game_field->core.select_cards.empty() && (monsteronly || !self->direct_attackable))
 		lua_pushboolean(L, 0);
 	else

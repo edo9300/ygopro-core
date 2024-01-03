@@ -183,10 +183,10 @@ LUA_STATIC_FUNCTION(ReloadFieldBegin) {
 LUA_STATIC_FUNCTION(ReloadFieldEnd) {
 	auto& field = pduel->game_field;
 	auto& core = field->core;
-	core.shuffle_hand_check[0] = FALSE;
-	core.shuffle_hand_check[1] = FALSE;
-	core.shuffle_deck_check[0] = FALSE;
-	core.shuffle_deck_check[1] = FALSE;
+	core.shuffle_hand_check[0] = false;
+	core.shuffle_hand_check[1] = false;
+	core.shuffle_deck_check[0] = false;
+	core.shuffle_deck_check[1] = false;
 	field->reload_field_info();
 	if(lua_isyieldable(L))
 		return yield();

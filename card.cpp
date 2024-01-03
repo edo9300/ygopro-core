@@ -3136,7 +3136,7 @@ void card::get_unique_target(card_set* cset, uint8_t controler, card* icard) {
 }
 int32_t card::check_cost_condition(uint32_t ecode, uint8_t playerid) {
 	effect_set eset;
-	pduel->game_field->filter_player_effect(playerid, ecode, &eset, FALSE);
+	pduel->game_field->filter_player_effect(playerid, ecode, &eset, false);
 	filter_effect(ecode, &eset);
 	for(const auto& peffect : eset) {
 		pduel->lua->add_param<LuaParam::EFFECT>(peffect);
@@ -3149,7 +3149,7 @@ int32_t card::check_cost_condition(uint32_t ecode, uint8_t playerid) {
 }
 int32_t card::check_cost_condition(uint32_t ecode, uint8_t playerid, uint32_t sumtype) {
 	effect_set eset;
-	pduel->game_field->filter_player_effect(playerid, ecode, &eset, FALSE);
+	pduel->game_field->filter_player_effect(playerid, ecode, &eset, false);
 	filter_effect(ecode, &eset);
 	for(const auto& peffect : eset) {
 		pduel->lua->add_param<LuaParam::EFFECT>(peffect);
