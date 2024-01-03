@@ -293,7 +293,6 @@ struct processor {
 	std::unordered_map<uint32_t, uint32_t> spsummon_once_map[2];
 	std::unordered_map<uint32_t, uint32_t> spsummon_once_map_rst[2];
 	std::multimap<int32_t, card*, std::greater<int32_t>> xmaterial_lst;
-	int64_t temp_var[4];
 	uint32_t global_flag;
 	uint32_t pre_field[2];
 	std::set<uint32_t> opp_mzone;

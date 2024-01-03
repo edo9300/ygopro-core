@@ -2398,13 +2398,9 @@ bool field::process(Processors::BattleCommand& arg) {
 			message->write<uint8_t>(0);
 		}
 		arg.damage_change_effect = damchange;
+		arg.reason_card = reason_card;
 		if(reason_card)
-			core.temp_var[0] = reason_card->current.controler;
-		if(!reason_card)
-			core.temp_var[1] = 0;
-		else if(reason_card == core.attacker)
-			core.temp_var[1] = 1;
-		else core.temp_var[1] = 2;
+			arg.reason_player = reason_card->current.controler;
 		if(!damchange) {
 			if(core.battle_damage[infos.turn_player]) {
 				raise_single_event(core.attacker, 0, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
@@ -2431,23 +2427,18 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.attacker->battled_cards.addcard(core.attack_target);
 		if(core.attack_target)
 			core.attack_target->battled_cards.addcard(core.attacker);
-		uint8_t reason_player = core.temp_var[0];
-		card* reason_card = 0;
-		if(core.temp_var[1] == 1)
-			reason_card = core.attacker;
-		else if(core.temp_var[1] == 2)
-			reason_card = core.attack_target;
+		auto* reason_card = arg.reason_card;
 		effect* damchange = std::exchange(arg.damage_change_effect, nullptr);
 		if(!damchange) {
 			if(core.battle_damage[0])
-				damage(0, REASON_BATTLE, reason_player, reason_card, 0, core.battle_damage[0]);
+				damage(0, REASON_BATTLE, arg.reason_player, reason_card, 0, core.battle_damage[0]);
 			if(core.battle_damage[1])
-				damage(0, REASON_BATTLE, reason_player, reason_card, 1, core.battle_damage[1]);
+				damage(0, REASON_BATTLE, arg.reason_player, reason_card, 1, core.battle_damage[1]);
 		} else {
 			if(core.battle_damage[0])
-				damage(damchange, REASON_EFFECT, reason_player, reason_card, 0, core.battle_damage[0]);
+				damage(damchange, REASON_EFFECT, arg.reason_player, reason_card, 0, core.battle_damage[0]);
 			if(core.battle_damage[1])
-				damage(damchange, REASON_EFFECT, reason_player, reason_card, 1, core.battle_damage[1]);
+				damage(damchange, REASON_EFFECT, arg.reason_player, reason_card, 1, core.battle_damage[1]);
 		}
 		reset_phase(PHASE_DAMAGE_CAL);
 		adjust_all();
