@@ -1783,8 +1783,8 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 		if(target->current.location == LOCATION_MZONE) {
 			core.units.begin()->step = 4;
 			if(!ignore_count && !core.extra_summon[sumplayer]) {
-				for(const auto& peff : eset) {
-					core.units.begin()->ptr1 = peff;
+				if(!eset.empty()) {
+					core.units.begin()->ptr1 = eset.front();
 					return FALSE;
 				}
 			}
@@ -1815,7 +1815,7 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 						releasable = static_cast<uint32_t>(retval[2]);
 				}
 				if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
-					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
+					new_zone = (new_zone >> 16) | (new_zone & 0xffffu << 16);
 				new_zone &= zone;
 				if(proc) {
 					if(new_min_tribute < min_tribute)
@@ -1865,7 +1865,7 @@ int32_t field::summon(uint16_t step, uint8_t sumplayer, card* target, effect* pr
 			if(min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
 			if (proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
-					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
+					new_zone = (new_zone >> 16) | (new_zone & 0xffffu << 16);
 			zone &= new_zone;
 			core.units.begin()->arg1 = sumplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24);
 		}
@@ -2449,7 +2449,7 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 						releasable = static_cast<uint32_t>(retval[2]);
 				}
 				if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
-					new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
+					new_zone = (new_zone >> 16) | (new_zone & 0xffffu << 16);
 				new_zone &= zone;
 				if(proc) {
 					if(new_min_tribute < (int32_t)min_tribute)
@@ -2499,7 +2499,7 @@ int32_t field::mset(uint16_t step, uint8_t setplayer, card* target, effect* proc
 			if(min_tribute < new_min_tribute)
 				min_tribute = new_min_tribute;
 			if(proc && proc->is_flag(EFFECT_FLAG_SPSUM_PARAM) && proc->o_range)
-				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
+				new_zone = (new_zone >> 16) | (new_zone & 0xffffu << 16);
 			zone &= new_zone;
 			core.units.begin()->arg1 = setplayer + (ignore_count << 8) + (min_tribute << 16) + (zone << 24);
 		}
@@ -2845,7 +2845,7 @@ int32_t field::sset_g(uint16_t step, uint8_t setplayer, uint8_t toplayer, group*
 		card_set* set_cards = &core.set_group_pre_set;
 		card* target = *set_cards->begin();
 		target->enable_field_effect(false);
-		uint32_t zone;
+		uint32_t zone{};
 		if(target->data.type & TYPE_FIELD) {
 			zone = 1 << 5;
 		} else {

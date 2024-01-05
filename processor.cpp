@@ -3325,8 +3325,8 @@ int32_t field::process_battle_command(uint16_t step) {
 			return TRUE;
 		}
 		core.units.begin()->step = 32;
+		[[fallthrough]];
 	}
-	// fall through
 	case 32: {
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_EVENT);

@@ -13,7 +13,6 @@
 class ProgressiveBuffer {
 public:
 	std::vector<uint8_t> data;
-	ProgressiveBuffer() {};
 	void clear() {
 		data.clear();
 	}

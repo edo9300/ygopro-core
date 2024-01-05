@@ -548,11 +548,9 @@ int32_t effect::reset(uint32_t reset_level, uint32_t reset_type) {
 		if(reset_level & 0xffff0000 & reset_flag)
 			return TRUE;
 		return FALSE;
-		break;
 	}
 	case RESET_CARD: {
 		return owner && (owner->data.code == reset_level);
-		break;
 	}
 	case RESET_PHASE: {
 		if(!(reset_flag & RESET_PHASE))
@@ -565,15 +563,12 @@ int32_t effect::reset(uint32_t reset_level, uint32_t reset_type) {
 		if(reset_count == 0)
 			return TRUE;
 		return FALSE;
-		break;
 	}
 	case RESET_CODE: {
 		return (code == reset_level) && (type & EFFECT_TYPE_SINGLE) && !(type & EFFECT_TYPE_ACTIONS);
-		break;
 	}
 	case RESET_COPY: {
 		return copy_id == reset_level;
-		break;
 	}
 	}
 	return FALSE;

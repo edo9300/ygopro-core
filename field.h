@@ -192,7 +192,7 @@ class return_card_generic {
 public:
 	bool canceled;
 	std::vector<T> list;
-	return_card_generic():canceled(false) {};
+	return_card_generic():canceled(false) {}
 	void clear() {
 		canceled = false;
 		list.clear();

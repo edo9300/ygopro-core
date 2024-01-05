@@ -28,7 +28,7 @@ public:
 	int32_t ref_handle;
 	duel* pduel{ nullptr };
 protected:
-	lua_obj(LuaParam _lua_type, duel* _pduel) :lua_type(_lua_type), pduel(_pduel) {};
+	lua_obj(LuaParam _lua_type, duel* _pduel) :lua_type(_lua_type), pduel(_pduel) {}
 };
 
 template<LuaParam _Type>
@@ -37,7 +37,7 @@ class lua_obj_helper : public lua_obj {
 				  _Type == LuaParam::EFFECT || _Type == LuaParam::DELETED,
 				  "Invalid parameter type");
 public:
-	lua_obj_helper(duel* pduel) : lua_obj(_Type, pduel) {};
+	lua_obj_helper(duel* pduel_) : lua_obj(_Type, pduel_) {}
 };
 
 #endif /* LUA_OBJ_H_ */

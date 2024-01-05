@@ -264,7 +264,6 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 		}
 		case LuaParam::DELETED:
 			unreachable();
-			break;
 		}
 		++pushed;
 	}

@@ -2716,7 +2716,7 @@ int32_t card::check_summon_procedure(effect* peffect, uint8_t playerid, uint8_t 
 			if(new_min_tribute < min_tribute)
 				new_min_tribute = min_tribute;
 			if (peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM) && peffect->o_range)
-				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
+				new_zone = (new_zone >> 16) | (new_zone & 0xffffu << 16);
 			new_zone &= zone;
 			if(is_summonable(peffect, new_min_tribute, new_zone, releasable, peffect))
 				return TRUE;
@@ -2808,7 +2808,7 @@ int32_t card::check_set_procedure(effect* peffect, uint8_t playerid, uint8_t ign
 					releasable = static_cast<uint32_t>(retval[2]);
 			}
 			if (peffect->is_flag(EFFECT_FLAG_SPSUM_PARAM) && peffect->o_range)
-				new_zone = (new_zone >> 16) | (new_zone & 0xffff << 16);
+				new_zone = (new_zone >> 16) | (new_zone & 0xffffu << 16);
 			if(new_min_tribute < (int32_t)min_tribute)
 				new_min_tribute = min_tribute;
 			new_zone &= zone;
@@ -3570,7 +3570,6 @@ int32_t card::is_destructable_by_effect(effect* peffect, uint8_t playerid) {
 		pduel->lua->add_param<LuaParam::INT>(playerid);
 		if(peff->check_value_condition(3)) {
 			return FALSE;
-			break;
 		}
 	}
 	eset.clear();
@@ -3584,7 +3583,6 @@ int32_t card::is_destructable_by_effect(effect* peffect, uint8_t playerid) {
 			pduel->lua->add_param<LuaParam::INT>(playerid);
 			if(peff->check_value_condition(3)) {
 				return FALSE;
-				break;
 			}
 		} else {
 			pduel->lua->add_param<LuaParam::EFFECT>(peffect);
@@ -3595,7 +3593,6 @@ int32_t card::is_destructable_by_effect(effect* peffect, uint8_t playerid) {
 				auto it = indestructable_effects.emplace(peff->id, 0);
 				if(it.first->second + 1 <= ct) {
 					return FALSE;
-					break;
 				}
 			}
 		}

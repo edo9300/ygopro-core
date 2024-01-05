@@ -47,7 +47,6 @@ bool check_param(lua_State* L, LuaParam param_type, int32_t index, bool retfalse
 		break;
 	default:
 		unreachable();
-		break;
 	}
 	if(retfalse)
 		return false;

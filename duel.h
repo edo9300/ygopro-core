@@ -38,7 +38,7 @@ struct card_data {
 	uint32_t rscale{};
 	uint32_t link_marker{};
 	card_data(const OCG_CardData& data);
-	card_data() {};
+	card_data() = default;
 };
 
 class duel {

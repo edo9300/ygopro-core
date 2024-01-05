@@ -3487,7 +3487,7 @@ LUA_STATIC_FUNCTION(TossCoin) {
 	return yieldk({
 		const auto& coin_results = pduel->game_field->core.coin_results;
 		luaL_checkstack(L, static_cast<int>(coin_results.size()), nullptr);
-		for(const auto& result : coin_results)
+		for(const auto result : coin_results)
 			lua_pushinteger(L, static_cast<int8_t>(result));
 		return static_cast<int32_t>(coin_results.size());
 	});
@@ -3520,7 +3520,7 @@ LUA_STATIC_FUNCTION(RockPaperScissors) {
 LUA_STATIC_FUNCTION(GetCoinResult) {
 	const auto& coin_results = pduel->game_field->core.coin_results;
 	luaL_checkstack(L, static_cast<int>(coin_results.size()), nullptr);
-	for(const auto& coin : coin_results)
+	for(const auto coin : coin_results)
 		lua_pushinteger(L, static_cast<int>(coin));
 	return static_cast<int32_t>(coin_results.size());
 }
@@ -3960,7 +3960,6 @@ LUA_STATIC_FUNCTION(GetActivityCount) {
 			break;
 		default:
 			lua_error(L, "Passed invalid ACTIVITY flag.");
-			break;
 		}
 		return 1;
 	});

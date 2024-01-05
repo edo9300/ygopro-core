@@ -1215,9 +1215,9 @@ bool field::has_separate_pzone(uint8_t p) const {
 uint32_t field::get_pzone_zones_flag() const {
 	uint32_t flag = 0;
 	if(!has_separate_pzone(0))
-		flag |= 0xC000;
+		flag |= 0xC000u;
 	if(!has_separate_pzone(1))
-		flag |= 0xC000 << 16;
+		flag |= 0xC000u << 16;
 	return flag;
 }
 uint8_t field::get_pzone_index(uint8_t seq, uint8_t p) const {

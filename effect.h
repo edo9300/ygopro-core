@@ -58,8 +58,7 @@ public:
 	uint64_t description{};
 	std::vector<lua_Integer> label;
 
-	explicit effect(duel* pd) : lua_obj_helper(pd) {};
-	~effect() = default;
+	explicit effect(duel* pd) : lua_obj_helper(pd) {}
 
 	int32_t is_disable_related();
 	int32_t is_self_destroy_related();
