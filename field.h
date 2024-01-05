@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <utility> //std::forward
 #include <vector>
+#include "bit.h"
 #include "card.h"
 #include "common.h"
 #include "containers_fwd.h"
@@ -417,7 +418,13 @@ public:
 	return_card_code return_card_codes;
 	tevent nil_event;
 
-	static int32_t field_used_count[32];
+	static constexpr auto field_used_count = ([]() constexpr {
+		std::array<int32_t, 32> ret{};
+		for(size_t i = 0; i < ret.size(); ++i) {
+			ret[i] = bit::popcnt(i);
+		}
+		return ret;
+	})();
 	explicit field(duel* pduel, const OCG_DuelOptions& options);
 	~field() = default;
 	void reload_field_info();

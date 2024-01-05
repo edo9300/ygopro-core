@@ -11,7 +11,7 @@
 namespace bit {
 
 template<typename T>
-inline uint8_t popcnt(T val) {
+constexpr inline uint8_t popcnt(T val) {
 	uint8_t ans = 0;
 	while(val) {
 		val &= val - 1;
@@ -21,7 +21,7 @@ inline uint8_t popcnt(T val) {
 }
 
 template<typename T, typename T2>
-inline bool has_invalid_bits(T value, T2 allowed) {
+constexpr inline bool has_invalid_bits(T value, T2 allowed) {
 	return (value & (~allowed)) != 0;
 }
 

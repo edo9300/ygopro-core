@@ -31,7 +31,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 	pduel = pd;
 	no_action = 0;
 	call_depth = 0;
-	memcpy(lua_getextraspace(lua_state), &pd, sizeof(duel*));
+	std::memcpy(lua_getextraspace(lua_state), &pd, sizeof(duel*));
 	// Open basic and used functionality
 	auto open_lib = [L=lua_state](const char* libname, lua_CFunction openf) {
 		luaL_requiref(L, libname, openf, 1);
@@ -229,27 +229,27 @@ bool interpreter::load_card_script(uint32_t code) {
 void interpreter::push_param(lua_State* L, bool is_coroutine) {
 	int32_t pushed = 0;
 	luaL_checkstack(L, static_cast<uint32_t>(params.size()), nullptr);
-	for (const auto& it : params) {
-		switch(it.second) {
+	for(const auto& [param, type] : params) {
+		switch(type) {
 		case LuaParam::INT:
-			lua_pushinteger(L, it.first.integer);
+			lua_pushinteger(L, param.integer);
 			break;
 		case LuaParam::STRING:
-			lua_pushstring(L, static_cast<const char*>(it.first.ptr));
+			lua_pushstring(L, static_cast<const char*>(param.ptr));
 			break;
 		case LuaParam::BOOLEAN:
-			lua_pushboolean(L, static_cast<bool>(it.first.integer));
+			lua_pushboolean(L, static_cast<bool>(param.integer));
 			break;
 		case LuaParam::CARD:
 		case LuaParam::EFFECT:
 		case LuaParam::GROUP:
-			pushobject(L, static_cast<lua_obj*>(it.first.ptr));
+			pushobject(L, static_cast<lua_obj*>(param.ptr));
 			break;
 		case LuaParam::FUNCTION:
-			pushobject(L, static_cast<int32_t>(it.first.integer));
+			pushobject(L, static_cast<int32_t>(param.integer));
 			break;
 		case LuaParam::INDEX: {
-			auto index = static_cast<int32_t>(it.first.integer);
+			auto index = static_cast<int32_t>(param.integer);
 			if(index > 0)
 				lua_pushvalue(L, index);
 			else if(is_coroutine) {
