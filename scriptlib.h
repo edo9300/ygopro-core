@@ -6,6 +6,10 @@
 #ifndef SCRIPTLIB_H_
 #define SCRIPTLIB_H_
 
+#include <cmath> //std::round
+#include <cstring> //std::memcpy
+#include <type_traits> //std::is_same_v, std::enable_if_t, std::invoke_result_t, std::result_of_t
+#include <utility> //std::pair
 #include "common.h"
 #include "interpreter.h"
 #include "lua_obj.h"
@@ -82,7 +86,7 @@ namespace scriptlib {
 	template<typename T, EnableIfTemplate<T, duel*> = 0>
 	inline duel* lua_get(lua_State* L) {
 		duel* pduel = nullptr;
-		memcpy(&pduel, lua_getextraspace(L), sizeof(duel*));
+		std::memcpy(&pduel, lua_getextraspace(L), sizeof(duel*));
 		return pduel;
 	}
 

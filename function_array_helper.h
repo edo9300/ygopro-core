@@ -10,10 +10,9 @@
 #define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
 
 #ifndef __INTELLISENSE__
-#include <type_traits>
 #include <array>
 #include <lauxlib.h>
-
+#include <type_traits>
 #include "common.h"
 
 //use forceinline only in release builds

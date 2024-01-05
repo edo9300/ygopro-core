@@ -4,15 +4,16 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include <algorithm>
-#include <numeric>
-#include "scriptlib.h"
-#include "duel.h"
-#include "field.h"
+#include <algorithm> //std::min, std::find
+#include <numeric> //std::iota
+#include <utility> //std::move, std::swap
 #include "card.h"
-#include "effect.h"
-#include "group.h"
 #include "bit.h"
+#include "duel.h"
+#include "effect.h"
+#include "field.h"
+#include "group.h"
+#include "scriptlib.h"
 
 #define LUA_MODULE Duel
 #include "function_array_helper.h"

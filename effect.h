@@ -7,17 +7,16 @@
 #ifndef EFFECT_H_
 #define EFFECT_H_
 
-#include <cstdlib>
+#include <lua.h> //lua_Integer
 #include <vector>
-#include <map>
 #include "common.h"
-#include "lua_obj.h"
-#include "field.h"
 #include "effect_constants.h"
+#include "lua_obj.h"
 
 class card;
 class duel;
 class group;
+struct chain;
 struct tevent;
 enum effect_flag : uint32_t;
 enum effect_flag2 : uint32_t;

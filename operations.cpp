@@ -4,14 +4,17 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "field.h"
-#include "duel.h"
+#include <algorithm> //std::sort, std::copy_if, std::set_difference, std::copy
+#include <iterator> //std::inserter
+#include <set>
+#include <utility> //std::move
+#include <vector>
 #include "card.h"
+#include "duel.h"
 #include "effect.h"
+#include "field.h"
 #include "group.h"
 #include "interpreter.h"
-#include <algorithm>
-#include <iterator>
 
 int32_t field::negate_chain(uint8_t chaincount) {
 	if(core.current_chain.size() == 0)

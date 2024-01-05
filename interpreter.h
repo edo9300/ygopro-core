@@ -8,18 +8,15 @@
 #define INTERPRETER_H_
 
 // Due to longjmp behaviour, we must build Lua as C++ to avoid UB
+#include <cstdio> //std::snprintf
+#include <lauxlib.h>
+#include <list>
 #include <lua.h>
 #include <lualib.h>
-#include <lauxlib.h>
-
-#include "common.h"
 #include <unordered_map>
-#include <list>
-#include <vector>
 #include <utility> //std::forward
-#include <cstdio>
-#include <cstring>
-#include <cmath>
+#include <vector>
+#include "common.h"
 #include "lua_obj.h"
 #include "ocgapi_types.h"
 

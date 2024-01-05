@@ -4,14 +4,16 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+#include <algorithm> //std::sort, std::unique
+#include <iterator> //std::distance
+#include <type_traits> //std::is_same
+#include <stack>
+#include <vector>
 #include "bit.h"
-#include "field.h"
+#include "card.h"
 #include "duel.h"
 #include "effect.h"
-#include "card.h"
-
-#include <algorithm>
-#include <stack>
+#include "field.h"
 
 int32_t field::select_battle_command(uint16_t step, uint8_t playerid) {
 	if(step == 0) {
@@ -254,7 +256,7 @@ bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<Return
 			return false;
 		}
 	}
-	if(std::is_same<ReturnType, card*>::value) {
+	if(std::is_same_v<ReturnType, card*>) {
 		std::sort(list.begin(), list.end());
 		auto ip = std::unique(list.begin(), list.end());
 		bool res = (ip == list.end());

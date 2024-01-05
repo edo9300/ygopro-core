@@ -7,15 +7,14 @@
 #ifndef CARD_H_
 #define CARD_H_
 
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include "containers_fwd.h"
 #include "common.h"
-#include "lua_obj.h"
 #include "duel.h"
-#include <set>
-#include <map>
-#include <unordered_set>
-#include <unordered_map>
-#include <tuple>
+#include "lua_obj.h"
 
 class card;
 class duel;
@@ -267,7 +266,7 @@ public:
 	void reset(uint32_t id, uint32_t reset_type);
 	void reset_effect_count();
 	void refresh_disable_status();
-	std::tuple<uint8_t, effect*> refresh_control_status();
+	std::pair<uint8_t, effect*> refresh_control_status();
 
 	void count_turn(uint16_t ct);
 	void create_relation(card* target, uint32_t reset);

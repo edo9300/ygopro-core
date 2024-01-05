@@ -4,14 +4,16 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+#include <algorithm> //std::sort
+#include <cstring> //std::memcpy
+#include <utility> //std::pair, std::make_pair, std::swap
+#include <set>
+#include <vector>
 #include "card.h"
-#include "field.h"
-#include "effect.h"
 #include "duel.h"
-#include "group.h"
+#include "effect.h"
+#include "field.h"
 #include "interpreter.h"
-#include <algorithm>
-#include <iterator>
 
 bool card_sort::operator()(const card* c1, const card* c2) const {
 	return c1->cardid < c2->cardid;
@@ -2170,7 +2172,7 @@ void card::refresh_disable_status() {
 	else
 		set_status(STATUS_DISABLED, FALSE);
 }
-std::tuple<uint8_t, effect*> card::refresh_control_status() {
+std::pair<uint8_t, effect*> card::refresh_control_status() {
 	uint8_t final = owner;
 	effect* ceffect = nullptr;
 	uint32_t last_id = 0;
@@ -2185,7 +2187,7 @@ std::tuple<uint8_t, effect*> card::refresh_control_status() {
 			ceffect = peffect;
 		}
 	}
-	return std::make_tuple(final, ceffect);
+	return std::make_pair(final, ceffect);
 }
 void card::count_turn(uint16_t ct) {
 	turn_counter = ct;

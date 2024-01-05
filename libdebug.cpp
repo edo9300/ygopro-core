@@ -4,10 +4,10 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "scriptlib.h"
+#include "card.h"
 #include "duel.h"
 #include "field.h"
-#include "card.h"
+#include "scriptlib.h"
 
 #define LUA_MODULE Debug
 #include "function_array_helper.h"

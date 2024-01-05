@@ -4,15 +4,17 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "lua_obj.h"
+#include <cstring> //std::memcpy
+#include <utility> //std::exchange
+#include <vector>
 #include "duel.h"
-#include "group.h"
 #include "card.h"
 #include "effect.h"
-#include "scriptlib.h"
+#include "field.h"
 #include "interpreter.h"
-#include <cmath>
-#include <utility> //std::exchange
+#include "lua_obj.h"
+#include "group.h"
+#include "scriptlib.h"
 
 using namespace scriptlib;
 

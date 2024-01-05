@@ -7,16 +7,17 @@
 #ifndef DUEL_H_
 #define DUEL_H_
 
+#include <deque>
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility> //std::forward
+#include <vector>
 #include "common.h"
-#include "ocgapi_types.h"
 #include "group.h"
 #include "interpreter.h"
+#include "ocgapi_types.h"
 #include "RNG/Xoshiro256.hpp"
-#include <set>
-#include <unordered_set>
-#include <unordered_map>
-#include <vector>
-#include <deque>
 
 class card;
 class effect;

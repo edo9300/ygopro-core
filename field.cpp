@@ -4,12 +4,15 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include <algorithm>
-#include "field.h"
-#include "duel.h"
+#include <algorithm> //std::sort, std::swap, std::find, std::find_if, std::min, std::none_of
+#include <cstring> //std::memcmp
+#include <utility> //std::move
+#include <vector>
 #include "card.h"
-#include "group.h"
+#include "duel.h"
 #include "effect.h"
+#include "field.h"
+#include "group.h"
 #include "interpreter.h"
 
 int32_t field::field_used_count[32] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5};

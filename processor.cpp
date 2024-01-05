@@ -4,13 +4,16 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include <iterator>
-#include <algorithm>
-#include "field.h"
+#include <algorithm> //std::sort, std::find_if_not, std::find, std::max
+#include <array>
+#include <iterator> //std::next
+#include <set>
+#include <utility> //std::make_pair, std::exchange, std::move
 #include "duel.h"
-#include "card.h"
-#include "group.h"
 #include "effect.h"
+#include "card.h"
+#include "field.h"
+#include "group.h"
 #include "interpreter.h"
 
 void field::add_process(uint16_t type, uint16_t step, effect* peffect, group* target, int64_t arg1, int64_t arg2, int64_t arg3, int64_t arg4, void* ptr1, void* ptr2) {
@@ -5512,9 +5515,7 @@ int32_t field::adjust_step(uint16_t step) {
 			for(auto& pcard : player[p].list_mzone) {
 				if(!pcard) continue;
 				uint8_t cur = pcard->current.controler;
-				auto res = pcard->refresh_control_status();
-				uint8_t ref = std::get<uint8_t>(res);
-				effect* peffect = std::get<effect*>(res);
+				auto [ref, peffect] = pcard->refresh_control_status();
 				if(cur != ref && pcard->is_capable_change_control()) {
 					core.control_adjust_set[p].insert(pcard);
 					if(peffect && (!(peffect->type & EFFECT_TYPE_SINGLE) || peffect->condition))

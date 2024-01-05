@@ -7,20 +7,18 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
-#include "containers_fwd.h"
-#include "common.h"
-#include "card.h"
-#include "progressivebuffer.h"
-#include <vector>
-#include <set>
-#include <map>
-#include <list>
 #include <array>
-#include <functional>
+#include <list>
+#include <map>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
-#include <bitset>
-#include <cmath>
+#include <utility> //std::forward
+#include <vector>
+#include "card.h"
+#include "common.h"
+#include "containers_fwd.h"
+#include "progressivebuffer.h"
 
 class duel;
 class group;

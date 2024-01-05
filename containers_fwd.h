@@ -6,12 +6,12 @@
 #ifndef CONTAINERS_FWD_H
 #define CONTAINERS_FWD_H
 
-#include <vector>
 #include <cstdint>
-#include <set>
 #include <list>
 #include <map>
 #include <unordered_map>
+#include <vector>
+#include <set>
 
 class group;
 

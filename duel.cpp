@@ -4,12 +4,13 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "duel.h"
-#include "interpreter.h"
-#include "field.h"
+#include <array>
+#include <cstring> //std::memcpy
 #include "card.h"
+#include "duel.h"
 #include "effect.h"
-#include "group.h"
+#include "field.h"
+#include "interpreter.h"
 
 duel::duel(const OCG_DuelOptions& options) :
 	random(std::array<uint64_t,4>{ { options.seed[0], options.seed[1], options.seed[2], options.seed[3] } }),

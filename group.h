@@ -7,11 +7,11 @@
 #ifndef GROUP_H_
 #define GROUP_H_
 
-#include "containers_fwd.h"
-#include "common.h"
-#include "lua_obj.h"
 #include <set>
 #include <vector>
+#include "common.h"
+#include "containers_fwd.h"
+#include "lua_obj.h"
 
 class card;
 class duel;

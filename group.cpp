@@ -4,8 +4,8 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "group.h"
 #include "card.h"
+#include "group.h"
 
 group::group(duel* pd, lua_obj* pobj) :
 	lua_obj_helper(pd)

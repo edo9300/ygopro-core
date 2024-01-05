@@ -4,10 +4,11 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "effect.h"
+#include <vector>
 #include "card.h"
 #include "duel.h"
-#include "group.h"
+#include "effect.h"
+#include "field.h"
 #include "interpreter.h"
 
 bool effect_sort_id(const effect* e1, const effect* e2) {

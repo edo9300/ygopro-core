@@ -4,10 +4,10 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "scriptlib.h"
 #include "duel.h"
-#include "lua_obj.h"
 #include "field.h"
+#include "lua_obj.h"
+#include "scriptlib.h"
 
 namespace scriptlib {
 

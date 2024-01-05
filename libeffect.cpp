@@ -4,12 +4,10 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include "scriptlib.h"
 #include "duel.h"
-#include "field.h"
-#include "card.h"
 #include "effect.h"
-#include "group.h"
+#include "field.h"
+#include "scriptlib.h"
 
 #define LUA_MODULE Effect
 using LUA_CLASS = effect;

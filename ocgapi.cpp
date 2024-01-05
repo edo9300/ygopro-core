@@ -4,6 +4,9 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+#include <cstring> //std::memcpy
+#include <new> //std::nothrow
+#include <vector>
 #include "ocgapi.h"
 #include "interpreter.h"
 #include "duel.h"
