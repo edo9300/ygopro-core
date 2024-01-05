@@ -192,7 +192,8 @@ namespace scriptlib {
 		}
 	}
 
-#if !defined(__ANDROID__) && ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#if (!defined(_LIBCPP_VERSION) || _LIBCPP_VERSION >= 7000) && \
+	((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
 	template<typename T, typename... Arg>
 	using FunctionResult = std::invoke_result_t<T, Arg...>;
 #else
