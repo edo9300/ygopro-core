@@ -69,11 +69,11 @@ namespace scriptlib {
 
 	template<typename T>
 	inline constexpr auto get_lua_param_type() {
-		if constexpr(std::is_same_v<T, card*>)
+		if constexpr(IsCard<T>)
 			return LuaParam::CARD;
-		if constexpr(std::is_same_v<T, group*>)
+		if constexpr(IsGroup<T>)
 			return LuaParam::GROUP;
-		if constexpr(std::is_same_v<T, effect*>)
+		if constexpr(IsEffect<T>)
 			return LuaParam::EFFECT;
 		if constexpr(std::is_same_v<T, function>)
 			return LuaParam::FUNCTION;
@@ -245,7 +245,7 @@ namespace scriptlib {
 
 	template<typename T>
 	inline bool lua_find_in_table_or_in_stack(lua_State* L, int idx, int max, T&& func) {
-		static_assert(std::is_same<FunctionResult<T>, bool>::value, "Callback function must return bool");
+		static_assert(std::is_same_v<FunctionResult<T>, bool>, "Callback function must return bool");
 		if(lua_istable(L, idx)) {
 			lua_pushnil(L);
 			while(lua_next(L, idx) != 0) {
@@ -275,15 +275,16 @@ namespace scriptlib {
 	}
 	template<typename T>
 	static int32_t from_lua_ref(lua_State* L) {
+		static_assert(IsCard<T*> || IsGroup<T*> || IsEffect<T*>);
 		auto ref = lua_get<int32_t>(L, 1);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 		auto obj = lua_get<T*>(L, -1);
 		if(!obj) {
-			if(std::is_same<T, card>::value)
+			if constexpr(IsCard<T*>)
 				lua_error(L, "Parameter 1 should be a lua reference to a Card.");
-			else if(std::is_same<T, group>::value)
+			else if constexpr(IsGroup<T*>)
 				lua_error(L, "Parameter 1 should be a lua reference to a Group.");
-			else if(std::is_same<T, effect>::value)
+			else if constexpr(IsEffect<T*>)
 				lua_error(L, "Parameter 1 should be a lua reference to an Effect.");
 		}
 		return 1;
