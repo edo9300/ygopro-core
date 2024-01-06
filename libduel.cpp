@@ -3350,28 +3350,25 @@ LUA_STATIC_FUNCTION(AnnounceCard) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto playerid = lua_get<uint8_t>(L, 1);
+	auto& options = pduel->game_field->core.select_options;
 	pduel->game_field->core.select_options.clear();
-	auto paramcount = lua_gettop(L);
-	if(lua_istable(L, 2)) {
-		lua_table_iterate(L, 2, [&options = pduel->game_field->core.select_options, L] {
-			options.push_back(lua_get<uint64_t>(L, -1));
-		});
-	} else if(paramcount <= 2) {
+	if(auto paramcount = lua_gettop(L); paramcount <= 2) {
 		uint32_t ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
 		if(paramcount == 2)
 			ttype = lua_get<uint32_t>(L, 2);
-		pduel->game_field->core.select_options.push_back(ttype);
-		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
+		options.push_back(ttype);
+		options.push_back(OPCODE_ISTYPE);
 	} else {
-		for(int32_t i = 2; i <= paramcount; ++i)
-			pduel->game_field->core.select_options.push_back(lua_get<uint64_t>(L, i));
+		lua_iterate_table_or_stack(L, 2, paramcount, [&options, L]{
+			options.push_back(lua_get<uint64_t>(L, -1));
+		});
 	}
 	int32_t stack_size = 0;
 	bool has_opcodes = false;
-	for(auto& it : pduel->game_field->core.select_options) {
-		if(it != OPCODE_ALLOW_ALIASES && it != OPCODE_ALLOW_TOKENS)
+	for(auto& opcode : options) {
+		if(opcode != OPCODE_ALLOW_ALIASES && opcode != OPCODE_ALLOW_TOKENS)
 			has_opcodes = true;
-		switch(it) {
+		switch(opcode) {
 		case OPCODE_ADD:
 		case OPCODE_SUB:
 		case OPCODE_MUL:
@@ -3406,8 +3403,8 @@ LUA_STATIC_FUNCTION(AnnounceCard) {
 	if(stack_size != 1 && has_opcodes)
 		lua_error(L, "Parameters are invalid.");
 	if(!has_opcodes) {
-		pduel->game_field->core.select_options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
-		pduel->game_field->core.select_options.push_back(OPCODE_ISTYPE);
+		options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
+		options.push_back(OPCODE_ISTYPE);
 	}
 	pduel->game_field->add_process(PROCESSOR_ANNOUNCE_CARD, 0, 0, 0, playerid, 0);
 	return yieldk({
@@ -3719,12 +3716,9 @@ LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster) {
 	dat.code = code;
 	dat.alias = 0;
 	if(!lua_isnoneornil(L, 3)) {
-		if(lua_istable(L, 3)) {
-			lua_table_iterate(L, 3, [&setcodes = dat.setcodes, &L] {
-				setcodes.insert(lua_get<uint16_t>(L, -1));
-			});
-		} else
-			dat.setcodes.insert(lua_get<uint16_t>(L, 3));
+		lua_iterate_table_or_stack(L, 3, 3, [&setcodes = dat.setcodes, &L]{
+			setcodes.insert(lua_get<uint16_t>(L, -1));
+		});
 	}
 	if(!lua_isnoneornil(L, 4))
 		dat.type = lua_get<uint32_t>(L, 4);

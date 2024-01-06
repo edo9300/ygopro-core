@@ -206,10 +206,8 @@ namespace scriptlib {
 
 	template<typename T, EnableOnReturn<T, void> = 0>
 	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
-		if(lua_istable(L, idx)) {
-			lua_table_iterate(L, idx, func);
-			return;
-		}
+		if(lua_istable(L, idx))
+			return lua_table_iterate(L, idx, func);
 		for(; idx <= max; ++idx) {
 			lua_pushvalue(L, idx);
 			func();

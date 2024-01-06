@@ -2300,12 +2300,9 @@ LUA_FUNCTION(Setcode) {
 	check_param_count(L, 1);
 	if(lua_gettop(L) > 1) {
 		self->data.setcodes.clear();
-		if(lua_istable(L, 2)) {
-			lua_table_iterate(L, 2, [&setcodes = self->data.setcodes, &L] {
-				setcodes.insert(lua_get<uint16_t>(L, -1));
-			});
-		} else
-			self->data.setcodes.insert(lua_get<uint16_t>(L, 2));
+		lua_iterate_table_or_stack(L, 2, 2, [&setcodes = self->data.setcodes, L]{
+			setcodes.insert(lua_get<uint16_t>(L, -1));
+		});
 		return 0;
 	} else {
 		luaL_checkstack(L, static_cast<int>(self->data.setcodes.size()), nullptr);
@@ -2331,12 +2328,9 @@ LUA_FUNCTION(Recreate) {
 	if (self->recreate(code)) {
 		self->data.alias = lua_get<uint32_t>(L, 3, self->data.alias);
 		if(lua_gettop(L) > 3 && !lua_isnoneornil(L, 4)) {
-			if(lua_istable(L, 4)) {
-				lua_table_iterate(L, 4, [&setcodes = self->data.setcodes, &L] {
-					setcodes.insert(lua_get<uint16_t>(L, -1));
-				});
-			} else
-				self->data.setcodes.insert(lua_get<uint16_t>(L, 4));
+			lua_iterate_table_or_stack(L, 4, 4, [&setcodes = self->data.setcodes, L]{
+				setcodes.insert(lua_get<uint16_t>(L, -1));
+			});
 		}
 		self->data.type = lua_get<uint32_t>(L, 5, self->data.type);
 		self->data.level = lua_get<uint32_t>(L, 6, self->data.level);
