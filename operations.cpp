@@ -583,7 +583,7 @@ bool field::process(Processors::Damage& arg) {
 		arg.amount = val;
 		if(is_step) {
 			arg.step = 1;
-			core.recover_damage_reserve.emplace_back(arg);
+			core.recover_damage_reserve.push_back(std::move(arg));
 			return TRUE;
 		}
 		return FALSE;
@@ -656,7 +656,7 @@ bool field::process(Processors::Recover& arg) {
 		}
 		if(is_step) {
 			arg.step = 1;
-			core.recover_damage_reserve.emplace_back(arg);
+			core.recover_damage_reserve.push_back(std::move(arg));
 			return TRUE;
 		}
 		return FALSE;

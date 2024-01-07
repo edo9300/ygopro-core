@@ -2847,7 +2847,7 @@ bool field::process(Processors::DamageStep& arg) {
 		infos.phase = PHASE_DAMAGE_CAL;
 		emplace_process<Processors::BattleCommand>(Step{ 26 });
 		arg.step = 2;
-		core.reserved = arg;
+		core.reserved = std::move(arg);
 		return TRUE;
 	}
 	case 2: {
