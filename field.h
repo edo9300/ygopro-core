@@ -717,7 +717,7 @@ public:
 			return OCG_DUEL_STATUS_CONTINUE;
 		} else {
 			++arg.step;
-			return Processors::NeedsAnswer<T>::value ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE;
+			return Processors::NeedsAnswer<T> ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE;
 		}
 	}
 };
