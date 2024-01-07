@@ -190,12 +190,11 @@ struct SelectTribute : public Process<false> {
 	uint8_t zone;
 	card* target;
 	effect* extra_release_effect;
-	std::unique_ptr<card_set> must_choose_one;
+	card_set must_choose_one;
 	SelectTribute(uint16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
 				  int32_t max_, uint8_t toplayer_, uint8_t zone_) :
 		Process(step_), min(min_), max(max_), playerid(playerid_), cancelable(cancelable_),
-		toplayer(toplayer_), zone(zone_), target(target_), extra_release_effect(nullptr),
-		must_choose_one(nullptr) {}
+		toplayer(toplayer_), zone(zone_), target(target_), extra_release_effect(nullptr) {}
 };
 struct PointEvent : public Process<false> {
 	bool skip_trigger;
@@ -376,11 +375,11 @@ struct ChangePos : public Process<false> {
 	bool oppo_selection;
 	effect* reason_effect;
 	group* targets;
-	std::unique_ptr<card_set> to_grave_set;
+	card_set to_grave_set;
 	ChangePos(uint16_t step_, group* targets_, effect* reason_effect_,
 					   uint8_t reason_player_, bool enable_) :
 		Process(step_), reason_player(reason_player_), enable(enable_), oppo_selection(false),
-		reason_effect(reason_effect_), targets(targets_), to_grave_set(nullptr) {}
+		reason_effect(reason_effect_), targets(targets_) {}
 };
 struct OperationReplace : public Process<false> {
 	bool is_destroy;
@@ -406,13 +405,13 @@ struct SummonRule : public Process<false> {
 	card* target;
 	effect* summon_procedure_effect;
 	effect* extra_summon_effect;
-	std::unique_ptr<card_set> tributes;
-	std::unique_ptr<effect_set> spsummon_cost_effects;
+	card_set tributes;
+	effect_set summon_cost_effects;
 	SummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, effect* proc_,
 						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
 		Process(step_), sumplayer(sumplayer_), min_tribute(min_tribute_), max_allowed_tributes(0),
 		ignore_count(ignore_count_), zone(zone_), target(target_), summon_procedure_effect(proc_),
-		extra_summon_effect(nullptr), tributes(nullptr), spsummon_cost_effects(nullptr) {}
+		extra_summon_effect(nullptr) {}
 };
 struct SpSummonRule : public Process<false> {
 	uint8_t sumplayer;
@@ -421,10 +420,10 @@ struct SpSummonRule : public Process<false> {
 	card* target;
 	effect* summon_proc_effect;
 	group* cards_to_summon_g;
-	std::unique_ptr<effect_set> special_spsummon_cost_effects;
+	effect_set spsummon_cost_effects;
 	SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_, bool is_mid_chain_ = false) :
 		Process(step_), sumplayer(sumplayer_), is_mid_chain(is_mid_chain_), summon_type(summon_type_), target(target_),
-		summon_proc_effect(nullptr), cards_to_summon_g(nullptr), special_spsummon_cost_effects(nullptr) {}
+		summon_proc_effect(nullptr), cards_to_summon_g(nullptr) {}
 };
 struct SpSummon : public Process<false> {
 	uint8_t reason_player;
@@ -439,9 +438,9 @@ struct SpSummon : public Process<false> {
 struct FlipSummon : public Process<false> {
 	uint8_t sumplayer;
 	card* target;
-	std::unique_ptr<effect_set> flip_spsummon_cost_effects;
+	effect_set flip_summon_cost_effects;
 	FlipSummon(uint16_t step_, uint8_t sumplayer_, card* target_) :
-		Process(step_), sumplayer(sumplayer_), target(target_), flip_spsummon_cost_effects(nullptr) {}
+		Process(step_), sumplayer(sumplayer_), target(target_) {}
 };
 struct MonsterSet : public Process<false> {
 	uint8_t setplayer;
@@ -452,11 +451,11 @@ struct MonsterSet : public Process<false> {
 	card* target;
 	effect* summon_procedure_effect;
 	effect* extra_summon_effect;
-	std::unique_ptr<card_set> tributes;
+	card_set tributes;
 	MonsterSet(uint16_t step_, uint8_t setplayer_, card* target_, effect* proc_,
 						bool ignore_count_, uint8_t min_tribute_, uint32_t zone_) :
 		Process(step_), setplayer(setplayer_), min_tribute(min_tribute_), max_allowed_tributes(0), ignore_count(ignore_count_),
-		zone(zone_), target(target_), summon_procedure_effect(proc_), extra_summon_effect(nullptr), tributes(nullptr) {}
+		zone(zone_), target(target_), summon_procedure_effect(proc_), extra_summon_effect(nullptr) {}
 };
 struct SpellSet : public Process<false> {
 	uint8_t setplayer;
@@ -472,9 +471,9 @@ struct SpSummonStep : public Process<false> {
 	uint32_t zone;
 	group* targets;
 	card* target;
-	std::unique_ptr<effect_set> spsummon_cost_effects;
+	effect_set spsummon_cost_effects;
 	SpSummonStep(uint16_t step_, group* targets_, card* target_, uint32_t zone_) :
-		Process(step_), zone(zone_), targets(targets_), target(target_), spsummon_cost_effects(nullptr) {}
+		Process(step_), zone(zone_), targets(targets_), target(target_) {}
 };
 struct SpellSetGroup : public Process<false> {
 	uint8_t setplayer;
@@ -499,11 +498,11 @@ struct Draw : public Process<false> {
 	uint8_t playerid;
 	uint32_t reason;
 	effect* reason_effect;
-	std::unique_ptr<card_set> drawn_set;
+	card_set drawn_set;
 	Draw(uint16_t step_, effect* reason_effect_, uint32_t reason_, uint8_t reason_player_,
 				  uint8_t playerid_, uint16_t count_) :
 		Process(step_), count(count_), reason_player(reason_player_), playerid(playerid_),
-		reason(reason_), reason_effect(reason_effect_), drawn_set(nullptr) {}
+		reason(reason_), reason_effect(reason_effect_) {}
 };
 struct Damage : public Process<false> {
 	uint8_t reason_player;
@@ -550,12 +549,11 @@ struct GetControl : public Process<false> {
 	uint32_t zone;
 	effect* reason_effect;
 	group* targets;
-	std::unique_ptr<card_set> destroy_set;
+	card_set destroy_set;
 	GetControl(uint16_t step_, effect* reason_effect_, uint8_t chose_player_, group* targets_,
 						uint8_t playerid_, uint16_t reset_phase_, uint8_t reset_count_, uint32_t zone_) :
 		Process(step_), chose_player(chose_player_), playerid(playerid_), reset_count(reset_count_),
-		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_),
-		destroy_set(nullptr) {}
+		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_) {}
 };
 struct SwapControl : public Process<false> {
 	uint8_t reset_count;
@@ -572,10 +570,10 @@ struct SwapControl : public Process<false> {
 };
 struct ControlAdjust : public Process<false> {
 	uint8_t adjusting_player;
-	std::unique_ptr<card_set> destroy_set;
-	std::unique_ptr<card_set> adjust_set;
+	card_set destroy_set;
+	card_set adjust_set;
 	ControlAdjust(uint16_t step_) :
-		Process(step_), adjusting_player(0), destroy_set(nullptr), adjust_set(nullptr) {}
+		Process(step_), adjusting_player(0) {}
 };
 struct SelfDestroyUnique : public Process<false> {
 	uint8_t playerid;
@@ -593,9 +591,9 @@ struct SelfToGrave : public Process<false> {
 };
 struct TrapMonsterAdjust : public Process<false> {
 	bool oppo_selection;
-	std::unique_ptr<card_set> to_grave_set;
+	card_set to_grave_set;
 	TrapMonsterAdjust(uint16_t step_) :
-		Process(step_), oppo_selection(false), to_grave_set(nullptr) {}
+		Process(step_), oppo_selection(false) {}
 };
 struct PayLPCost : public Process<false> {
 	uint8_t playerid;

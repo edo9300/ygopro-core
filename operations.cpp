@@ -6,6 +6,7 @@
  */
 #include <algorithm> //std::sort, std::copy_if, std::set_difference, std::copy
 #include <iterator> //std::inserter
+#include <memory> //std::make_unique
 #include <set>
 #include <utility> //std::move
 #include <vector>
@@ -459,8 +460,8 @@ bool field::process(Processors::Draw& arg) {
 		adjust_instant();
 		arg.count = drawn;
 		auto& drawn_set = arg.drawn_set;
-		drawn_set = std::make_unique<card_set>();
-		drawn_set->insert(cv.begin(), cv.end());
+		drawn_set.clear();
+		drawn_set.insert(cv.begin(), cv.end());
 		if(drawn) {
 			if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
 				if(player[playerid].list_main.size()) {
@@ -484,8 +485,8 @@ bool field::process(Processors::Draw& arg) {
 			if(core.deck_reversed && (public_count < drawn)) {
 				message = pduel->new_message(MSG_CONFIRM_CARDS);
 				message->write<uint8_t>(1 - playerid);
-				message->write<uint32_t>(drawn_set->size());
-				for(auto& pcard : *drawn_set) {
+				message->write<uint32_t>(drawn_set.size());
+				for(auto& pcard : drawn_set) {
 					message->write<uint32_t>(pcard->data.code);
 					message->write<uint8_t>(pcard->current.controler);
 					message->write<uint8_t>(pcard->current.location);
@@ -493,7 +494,7 @@ bool field::process(Processors::Draw& arg) {
 				}
 				shuffle(playerid, LOCATION_HAND);
 			}
-			for (auto& pcard : *drawn_set) {
+			for (auto& pcard : drawn_set) {
 				if(pcard->owner != pcard->current.controler) {
 					effect* deffect = pduel->new_effect();
 					deffect->owner = pcard;
@@ -509,15 +510,15 @@ bool field::process(Processors::Draw& arg) {
 				raise_single_event(pcard, 0, EVENT_MOVE, reason_effect, reason, reason_player, playerid, 0);
 			}
 			process_single_event();
-			raise_event(drawn_set.get(), EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
-			raise_event(drawn_set.get(), EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
-			raise_event(drawn_set.get(), EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(&drawn_set, EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(&drawn_set, EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(&drawn_set, EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
 			process_instant_event();
 		}
 		return FALSE;
 	}
 	case 1: {
-		core.operated_set.swap(*arg.drawn_set);
+		core.operated_set.swap(arg.drawn_set);
 		returns.set<uint32_t>(0, count);
 		return TRUE;
 	}
@@ -1064,7 +1065,7 @@ bool field::process(Processors::GetControl& arg) {
 	auto zone = arg.zone;
 	switch(arg.step) {
 	case 0: {
-		arg.destroy_set = std::make_unique<card_set>();
+		arg.destroy_set.clear();
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
 			card* pcard = *cit++;
 			pcard->filter_disable_related_cards();
@@ -1088,7 +1089,7 @@ bool field::process(Processors::GetControl& arg) {
 		}
 		int32_t fcount = get_useable_count(nullptr, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_CONTROL, zone);
 		if(fcount <= 0) {
-			arg.destroy_set->swap(targets->container);
+			arg.destroy_set.swap(targets->container);
 			arg.step = 5;
 			return FALSE;
 		}
@@ -1107,7 +1108,7 @@ bool field::process(Processors::GetControl& arg) {
 		return FALSE;
 	}
 	case 1: {
-		arg.destroy_set->insert(return_cards.list.begin(), return_cards.list.end());
+		arg.destroy_set.insert(return_cards.list.begin(), return_cards.list.end());
 		for(auto& pcard : return_cards.list)
 			targets->container.erase(pcard);
 		return FALSE;
@@ -1162,8 +1163,8 @@ bool field::process(Processors::GetControl& arg) {
 		return FALSE;
 	}
 	case 6: {
-		if(arg.destroy_set->size())
-			destroy(std::move(*arg.destroy_set), 0, REASON_RULE, PLAYER_NONE);
+		if(arg.destroy_set.size())
+			destroy(std::move(arg.destroy_set), 0, REASON_RULE, PLAYER_NONE);
 		return FALSE;
 	}
 	case 7: {
@@ -1340,7 +1341,7 @@ bool field::process(Processors::ControlAdjust& arg) {
 	switch(arg.step) {
 	case 0: {
 		auto& destroy_set = arg.destroy_set;
-		destroy_set = std::make_unique<card_set>();
+		destroy_set.clear();
 		uint32_t b0 = get_useable_count(nullptr, 0, LOCATION_MZONE, 0, LOCATION_REASON_CONTROL);
 		uint32_t b1 = get_useable_count(nullptr, 1, LOCATION_MZONE, 1, LOCATION_REASON_CONTROL);
 		for(auto& pcard : core.control_adjust_set[0])
@@ -1350,7 +1351,7 @@ bool field::process(Processors::ControlAdjust& arg) {
 		if(core.control_adjust_set[0].size() > core.control_adjust_set[1].size()) {
 			if(core.control_adjust_set[0].size() - core.control_adjust_set[1].size() > b1) {
 				if(core.control_adjust_set[1].size() == 0 && b1 == 0) {
-					destroy_set->swap(core.control_adjust_set[0]);
+					destroy_set.swap(core.control_adjust_set[0]);
 					arg.step = 4;
 				} else {
 					arg.adjusting_player = 0;
@@ -1369,7 +1370,7 @@ bool field::process(Processors::ControlAdjust& arg) {
 		} else if(core.control_adjust_set[0].size() < core.control_adjust_set[1].size()) {
 			if(core.control_adjust_set[1].size() - core.control_adjust_set[0].size() > b0) {
 				if(core.control_adjust_set[0].size() == 0 && b0 == 0) {
-					destroy_set->swap(core.control_adjust_set[1]);
+					destroy_set.swap(core.control_adjust_set[1]);
 					arg.step = 4;
 				} else {
 					arg.adjusting_player = 1;
@@ -1391,7 +1392,7 @@ bool field::process(Processors::ControlAdjust& arg) {
 	}
 	case 1: {
 		auto& destroy_set = arg.destroy_set;
-		destroy_set->insert(return_cards.list.begin(), return_cards.list.end());
+		destroy_set.insert(return_cards.list.begin(), return_cards.list.end());
 		for(auto& pcard : return_cards.list)
 			core.control_adjust_set[arg.adjusting_player].erase(pcard);
 		return FALSE;
@@ -1415,18 +1416,18 @@ bool field::process(Processors::ControlAdjust& arg) {
 			pcard2->reset(RESET_CONTROL, RESET_EVENT);
 		}
 		auto& adjust_set = arg.adjust_set;
-		adjust_set = std::make_unique<card_set>();
-		adjust_set->insert(cit1, core.control_adjust_set[0].end());
-		adjust_set->insert(cit2, core.control_adjust_set[1].end());
+		adjust_set.clear();
+		adjust_set.insert(cit1, core.control_adjust_set[0].end());
+		adjust_set.insert(cit2, core.control_adjust_set[1].end());
 		return FALSE;
 	}
 	case 3: {
 		auto& adjust_set = arg.adjust_set;
-		if(adjust_set->empty())
+		if(adjust_set.empty())
 			return FALSE;
-		auto cit = adjust_set->begin();
+		auto cit = adjust_set.begin();
 		card* pcard = *cit;
-		adjust_set->erase(cit);
+		adjust_set.erase(cit);
 		pcard->reset(RESET_CONTROL, RESET_EVENT);
 		move_to_field(pcard, 1 - pcard->current.controler, 1 - pcard->current.controler, LOCATION_MZONE, pcard->current.position);
 		arg.step = 2;
@@ -1456,8 +1457,8 @@ bool field::process(Processors::ControlAdjust& arg) {
 	}
 	case 5: {
 		auto& destroy_set = arg.destroy_set;
-		if(destroy_set->size())
-			destroy(std::move(*destroy_set), 0, REASON_RULE, PLAYER_NONE);
+		if(destroy_set.size())
+			destroy(std::move(destroy_set), 0, REASON_RULE, PLAYER_NONE);
 		return TRUE;
 	}
 	}
@@ -1606,7 +1607,7 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 			arg.step = 3;
 			return FALSE;
 		}
-		to_grave_set = std::make_unique<card_set>();
+		to_grave_set.clear();
 		return FALSE;
 	}
 	case 1: {
@@ -1617,7 +1618,7 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 		int32_t fcount = get_useable_count(nullptr, check_player, LOCATION_SZONE, check_player, 0);
 		if(fcount <= 0) {
 			for(auto& pcard : core.trap_monster_adjust_set[check_player]) {
-				to_grave_set->insert(pcard);
+				to_grave_set.insert(pcard);
 				arg.step = 2;
 			}
 			core.trap_monster_adjust_set[check_player].clear();
@@ -1640,7 +1641,7 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 		if(oppo_selection)
 			check_player = 1 - infos.turn_player;
 		for(auto& pcard : return_cards.list) {
-			to_grave_set->insert(pcard);
+			to_grave_set.insert(pcard);
 			core.trap_monster_adjust_set[check_player].erase(pcard);
 		}
 		if(!oppo_selection) {
@@ -1667,8 +1668,8 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 			}
 			tp = 1 - tp;
 		}
-		if(to_grave_set && to_grave_set->size())
-			send_to(std::move(*to_grave_set), 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		if(to_grave_set.size())
+			send_to(std::move(to_grave_set), 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return TRUE;
 	}
 	}
@@ -2017,20 +2018,16 @@ bool field::process(Processors::SummonRule& arg) {
 				--core.summon_depth;
 				return TRUE;
 			}
-			if(return_cards.list.size()) {
-				arg.tributes = std::make_unique<card_set>(return_cards.list.begin(), return_cards.list.end());
-			}
+			arg.tributes.clear();
+			arg.tributes.insert(return_cards.list.begin(), return_cards.list.end());
 		}
-		effect_set eset;
-		target->filter_effect(EFFECT_SUMMON_COST, &eset);
-		if(eset.size()) {
-			for(const auto& peffect : eset) {
-				if(peffect->operation) {
-					core.sub_solving_event.push_back(nil_event);
-					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
-				}
+		arg.summon_cost_effects.clear();
+		target->filter_effect(EFFECT_SUMMON_COST, &arg.summon_cost_effects);
+		for(const auto& peffect : arg.summon_cost_effects) {
+			if(peffect->operation) {
+				core.sub_solving_event.push_back(nil_event);
+				emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 			}
-			arg.spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
 		}
 		return FALSE;
 	}
@@ -2044,8 +2041,7 @@ bool field::process(Processors::SummonRule& arg) {
 			min = 1;
 		else
 			min = 2;
-		if(tributes)
-			min -= static_cast<int32_t>(tributes->size());
+		min -= static_cast<int32_t>(tributes.size());
 		if(min > 0) {
 			effect_set eset;
 			target->filter_effect(EFFECT_DECREASE_TRIBUTE, &eset);
@@ -2097,13 +2093,12 @@ bool field::process(Processors::SummonRule& arg) {
 		target->summon.location = LOCATION_HAND;
 		target->summon.type = SUMMON_TYPE_NORMAL;
 		target->summon.pzone = false;
-		if(tributes) {
-			for(auto& pcard : *tributes)
+		if(!tributes.empty()) {
+			for(auto& pcard : tributes)
 				pcard->current.reason_card = target;
-			target->set_material(*tributes);
-			release(std::move(*tributes), 0, REASON_SUMMON | REASON_MATERIAL, sumplayer);
+			target->set_material(tributes);
+			release(std::move(tributes), 0, REASON_SUMMON | REASON_MATERIAL, sumplayer);
 			target->summon.type |= SUMMON_TYPE_ADVANCE;
-			arg.tributes.reset();
 			adjust_all();
 		}
 		target->current.reason_effect = 0;
@@ -2175,6 +2170,21 @@ bool field::process(Processors::SummonRule& arg) {
 			positions = (uint8_t)summon_procedure_effect->s_range & POS_FACEUP;
 			if(summon_procedure_effect->o_range)
 				targetplayer = 1 - sumplayer;
+		}
+		effect_set eset;
+		filter_player_effect(sumplayer, EFFECT_FORCE_NORMAL_SUMMON_POSITION, &eset);
+		for(auto& eff : eset) {
+			if(eff->target) {
+				pduel->lua->add_param<LuaParam::EFFECT>(eff);
+				pduel->lua->add_param<LuaParam::CARD>(target);
+				pduel->lua->add_param<LuaParam::INT>(sumplayer);
+				pduel->lua->add_param<LuaParam::INT>(target->summon.type);
+				pduel->lua->add_param<LuaParam::INT>(positions);
+				pduel->lua->add_param<LuaParam::INT>(targetplayer);
+				if(!pduel->lua->check_condition(eff->target, 5))
+					continue;
+			}
+			positions &= eff->get_value();
 		}
 		target->enable_field_effect(false);
 		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone);
@@ -2276,10 +2286,8 @@ bool field::process(Processors::SummonRule& arg) {
 				dec_effect_code(summon_procedure_effect->count_code, summon_procedure_effect->count_flag, summon_procedure_effect->count_hopt_index, sumplayer);
 			}
 		}
-		if(arg.spsummon_cost_effects) {
-			for(const auto& peffect : *arg.spsummon_cost_effects)
-				remove_oath_effect(peffect);
-		}
+		for(const auto& peffect : arg.summon_cost_effects)
+			remove_oath_effect(peffect);
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		adjust_instant();
@@ -2290,11 +2298,8 @@ bool field::process(Processors::SummonRule& arg) {
 		if(summon_procedure_effect) {
 			release_oath_relation(summon_procedure_effect);
 		}
-		if(arg.spsummon_cost_effects) {
-			for(const auto& peffect : *arg.spsummon_cost_effects)
-				release_oath_relation(peffect);
-			arg.spsummon_cost_effects.reset();
-		}
+		for(const auto& peffect : arg.summon_cost_effects)
+			release_oath_relation(peffect);
 		target->set_status(STATUS_SUMMONING, FALSE);
 		target->set_status(STATUS_SUMMON_TURN, TRUE);
 		target->enable_field_effect(true);
@@ -2346,16 +2351,14 @@ bool field::process(Processors::FlipSummon& arg) {
 			return TRUE;
 		if(check_unique_onfield(target, sumplayer, LOCATION_MZONE))
 			return TRUE;
-		effect_set eset;
-		target->filter_effect(EFFECT_FLIPSUMMON_COST, &eset);
-		if(eset.size()) {
-			for(const auto& peffect : eset) {
-				if(peffect->operation) {
-					core.sub_solving_event.push_back(nil_event);
-					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
-				}
+		auto& summon_cost_effects = arg.flip_summon_cost_effects;
+		summon_cost_effects.clear();
+		target->filter_effect(EFFECT_FLIPSUMMON_COST, &summon_cost_effects);
+		for(const auto& peffect : summon_cost_effects) {
+			if(peffect->operation) {
+				core.sub_solving_event.push_back(nil_event);
+				emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 			}
-			arg.flip_spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
 		}
 		return FALSE;
 	}
@@ -2386,20 +2389,16 @@ bool field::process(Processors::FlipSummon& arg) {
 	case 2: {
 		if(target->is_status(STATUS_SUMMONING))
 			return FALSE;
-		if(arg.flip_spsummon_cost_effects) {
-			for(const auto& peffect : *arg.flip_spsummon_cost_effects)
-				remove_oath_effect(peffect);
-		}
+		for(const auto& peffect : arg.flip_summon_cost_effects)
+			remove_oath_effect(peffect);
 		if(target->current.location == LOCATION_MZONE)
 			send_to(target, 0, REASON_RULE, sumplayer, sumplayer, LOCATION_GRAVE, 0, 0);
 		emplace_process<Processors::PointEvent>(false, false, false);
 		return TRUE;
 	}
 	case 3: {
-		if(arg.flip_spsummon_cost_effects) {
-			for(const auto& peffect : *arg.flip_spsummon_cost_effects)
-				release_oath_relation(peffect);
-		}
+		for(const auto& peffect : arg.flip_summon_cost_effects)
+			release_oath_relation(peffect);
 		target->set_status(STATUS_SUMMONING, FALSE);
 		target->enable_field_effect(true);
 		if(target->is_status(STATUS_DISABLED))
@@ -2610,8 +2609,10 @@ bool field::process(Processors::MonsterSet& arg) {
 			if(return_cards.canceled) {
 				return TRUE;
 			}
-			if(return_cards.list.size())
-				arg.tributes = std::make_unique<card_set>(return_cards.list.begin(), return_cards.list.end());
+			if(!return_cards.list.empty()) {
+				arg.tributes.clear();
+				arg.tributes.insert(return_cards.list.begin(), return_cards.list.end());
+			}
 		}
 		effect_set eset;
 		target->filter_effect(EFFECT_MSET_COST, &eset);
@@ -2628,11 +2629,11 @@ bool field::process(Processors::MonsterSet& arg) {
 		target->summon.location = LOCATION_HAND;
 		target->summon.pzone = false;
 		target->summon.type = SUMMON_TYPE_NORMAL;
-		if(tributes) {
-			for(auto& pcard : *tributes)
+		if(!tributes.empty()) {
+			for(auto& pcard : tributes)
 				pcard->current.reason_card = target;
-			target->set_material(*tributes);
-			release(std::move(*tributes), 0, REASON_SUMMON | REASON_MATERIAL, setplayer);
+			target->set_material(tributes);
+			release(std::move(tributes), 0, REASON_SUMMON | REASON_MATERIAL, setplayer);
 			target->summon.type |= SUMMON_TYPE_ADVANCE;
 			adjust_all();
 		}
@@ -3054,16 +3055,13 @@ bool field::process(Processors::SpSummonRule& arg) {
 	case 2: {
 		if(!returns.at<int32_t>(0))
 			return TRUE;
-		effect_set eset;
-		target->filter_effect(EFFECT_SPSUMMON_COST, &eset);
-		if(eset.size()) {
-			for(const auto& peffect : eset) {
-				if(peffect->operation) {
-					core.sub_solving_event.push_back(nil_event);
-					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
-				}
+		arg.spsummon_cost_effects.clear();
+		target->filter_effect(EFFECT_SPSUMMON_COST, &arg.spsummon_cost_effects);
+		for(const auto& peffect : arg.spsummon_cost_effects) {
+			if(peffect->operation) {
+				core.sub_solving_event.push_back(nil_event);
+				emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 			}
-			arg.special_spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
 		}
 		return FALSE;
 	}
@@ -3207,11 +3205,8 @@ bool field::process(Processors::SpSummonRule& arg) {
 			arg.step = 14;
 			return FALSE;
 		}
-		if(arg.special_spsummon_cost_effects) {
-			for(const auto& peffect : *arg.special_spsummon_cost_effects)
-				remove_oath_effect(peffect);
-			arg.special_spsummon_cost_effects.reset();
-		}
+		for(const auto& peffect : arg.spsummon_cost_effects)
+			remove_oath_effect(peffect);
 		if(!is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
 			auto proc = arg.summon_proc_effect;
 			remove_oath_effect(proc);
@@ -3227,11 +3222,8 @@ bool field::process(Processors::SpSummonRule& arg) {
 	}
 	case 15: {
 		release_oath_relation(arg.summon_proc_effect);
-		if(arg.special_spsummon_cost_effects) {
-			for(const auto& peffect : *arg.special_spsummon_cost_effects)
-				release_oath_relation(peffect);
-			arg.special_spsummon_cost_effects.reset();
-		}
+		for(const auto& peffect : arg.spsummon_cost_effects)
+			release_oath_relation(peffect);
 		target->set_status(STATUS_SUMMONING, FALSE);
 		target->set_status(STATUS_PROC_COMPLETE | STATUS_SPSUMMON_TURN, TRUE);
 		target->enable_field_effect(true);
@@ -3301,16 +3293,13 @@ bool field::process(Processors::SpSummonRule& arg) {
 				pgroup->container.erase(pcard);
 				continue;
 			}
-			effect_set eset;
-			pcard->filter_effect(EFFECT_SPSUMMON_COST, &eset);
-			if(eset.size()) {
-				for(const auto& peffect : eset) {
-					if(peffect->operation) {
-						core.sub_solving_event.push_back(nil_event);
-						emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
-					}
+			arg.spsummon_cost_effects.clear();
+			pcard->filter_effect(EFFECT_SPSUMMON_COST, &arg.spsummon_cost_effects);
+			for(const auto& peffect : arg.spsummon_cost_effects) {
+				if(peffect->operation) {
+					core.sub_solving_event.push_back(nil_event);
+					emplace_process<Processors::ExecuteOperation>(peffect, sumplayer);
 				}
-				arg.special_spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
 			}
 		}
 		return FALSE;
@@ -3447,11 +3436,8 @@ bool field::process(Processors::SpSummonRule& arg) {
 					dec_effect_code(proc->count_code, proc->count_flag, proc->count_hopt_index, sumplayer);
 				}
 			}
-			if(arg.special_spsummon_cost_effects) {
-				for(const auto& peffect : *arg.special_spsummon_cost_effects)
-					remove_oath_effect(peffect);
-				arg.special_spsummon_cost_effects.reset();
-			}
+			for(const auto& peffect : arg.spsummon_cost_effects)
+				remove_oath_effect(peffect);
 			emplace_process<Processors::PointEvent>(false, false, false);
 			return TRUE;
 		}
@@ -3460,11 +3446,8 @@ bool field::process(Processors::SpSummonRule& arg) {
 	case 27: {
 		group* pgroup = arg.cards_to_summon_g;
 		release_oath_relation(arg.summon_proc_effect);
-		if(arg.special_spsummon_cost_effects) {
-			for(const auto& peffect : *arg.special_spsummon_cost_effects)
-				release_oath_relation(peffect);
-			arg.special_spsummon_cost_effects.reset();
-		}
+		for(const auto& peffect : arg.spsummon_cost_effects)
+			release_oath_relation(peffect);
 		for(auto& pcard : pgroup->container) {
 			pcard->set_status(STATUS_SUMMONING, FALSE);
 			pcard->set_status(STATUS_SPSUMMON_TURN, TRUE);
@@ -3564,7 +3547,6 @@ bool field::process(Processors::SpSummonStep& arg) {
 	uint8_t positions = target->spsummon_param & 0xff;
 	switch(arg.step) {
 	case 0: {
-		effect_set eset;
 		if(target->is_affected_by_effect(EFFECT_REVIVE_LIMIT) && !target->is_status(STATUS_PROC_COMPLETE)) {
 			if((!nolimit && (target->current.location & 0x38)) || (!nocheck && !nolimit && (target->current.location & 0x3))) {
 				arg.step = 4;
@@ -3585,6 +3567,7 @@ bool field::process(Processors::SpSummonStep& arg) {
 			return FALSE;
 		}
 		if(!nocheck) {
+			effect_set eset;
 			target->filter_effect(EFFECT_SPSUMMON_CONDITION, &eset);
 			for(const auto& peff : eset) {
 				pduel->lua->add_param<LuaParam::EFFECT>(core.reason_effect);
@@ -3598,24 +3581,19 @@ bool field::process(Processors::SpSummonStep& arg) {
 				}
 			}
 		}
-		eset.clear();
-		target->filter_effect(EFFECT_SPSUMMON_COST, &eset);
-		if(eset.size()) {
-			for(const auto& peffect : eset) {
-				if(peffect->operation) {
-					core.sub_solving_event.push_back(nil_event);
-					emplace_process<Processors::ExecuteOperation>(peffect, target->summon.player);
-				}
+		arg.spsummon_cost_effects.clear();
+		target->filter_effect(EFFECT_SPSUMMON_COST, &arg.spsummon_cost_effects);
+		for(const auto& peffect : arg.spsummon_cost_effects) {
+			if(peffect->operation) {
+				core.sub_solving_event.push_back(nil_event);
+				emplace_process<Processors::ExecuteOperation>(peffect, target->summon.player);
 			}
-			arg.spsummon_cost_effects = std::make_unique<effect_set>(std::move(eset));
 		}
 		return FALSE;
 	}
 	case 1: {
-		if(arg.spsummon_cost_effects) {
-			for(const auto& peffect : *arg.spsummon_cost_effects)
-				release_oath_relation(peffect);
-		}
+		for(const auto& peffect : arg.spsummon_cost_effects)
+			release_oath_relation(peffect);
 		if(!targets)
 			core.special_summoning.insert(target);
 		target->enable_field_effect(false);
@@ -5207,11 +5185,10 @@ bool field::process(Processors::ChangePos& arg) {
 				continue;
 			}
 		}
-		arg.to_grave_set = std::make_unique<card_set>();
+		arg.to_grave_set.clear();
 		return FALSE;
 	}
 	case 1: {
-		auto& to_grave_set = arg.to_grave_set;
 		uint8_t playerid = reason_player;
 		if(arg.oppo_selection)
 			playerid = 1 - reason_player;
@@ -5232,7 +5209,7 @@ bool field::process(Processors::ChangePos& arg) {
 			int32_t fcount = get_useable_count(nullptr, playerid, LOCATION_SZONE, playerid, 0);
 			if(fcount <= 0) {
 				for(auto& pcard : ssets) {
-					to_grave_set->insert(pcard);
+					arg.to_grave_set.insert(pcard);
 					targets->container.erase(pcard);
 				}
 				arg.step = 2;
@@ -5252,9 +5229,8 @@ bool field::process(Processors::ChangePos& arg) {
 		return FALSE;
 	}
 	case 2: {
-		auto& to_grave_set = arg.to_grave_set;
 		for(auto& pcard : return_cards.list) {
-			to_grave_set->insert(pcard);
+			arg.to_grave_set.insert(pcard);
 			targets->container.erase(pcard);
 		}
 		return FALSE;
@@ -5358,8 +5334,8 @@ bool field::process(Processors::ChangePos& arg) {
 		if(equipings.size())
 			destroy(std::move(equipings), 0, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);
 		auto& to_grave_set = arg.to_grave_set;
-		if(to_grave_set->size()) {
-			send_to(std::move(*to_grave_set), 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+		if(to_grave_set.size()) {
+			send_to(std::move(to_grave_set), 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		}
 		return FALSE;
 	}
@@ -5864,11 +5840,11 @@ bool field::process(Processors::SelectTribute& arg) {
 		int32_t rmax = 0;
 		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
 		int32_t ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
-		auto must_choose_one = std::make_unique<card_set>();
+		card_set must_choose_one;
 		for(auto& pcard : core.release_cards) {
 			if((pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer && ((zone >> pcard->current.sequence) & 1)))
 				if(ct <= 0)
-					must_choose_one->insert(pcard);
+					must_choose_one.insert(pcard);
 			rmax += (pcard)->release_param;
 		}
 		auto message = pduel->new_message(MSG_HINT);
@@ -5884,7 +5860,7 @@ bool field::process(Processors::SelectTribute& arg) {
 			emplace_process<Processors::SelectTributeP>(playerid, cancelable, min, max);
 			return TRUE;
 		}
-		bool force = !must_choose_one->empty();
+		bool force = !must_choose_one.empty();
 		core.select_cards.clear();
 		core.unselect_cards.clear();
 		for(auto it = core.release_cards_ex_oneof.begin(); it != core.release_cards_ex_oneof.end();) {
@@ -5895,12 +5871,12 @@ bool field::process(Processors::SelectTribute& arg) {
 				++it;
 		}
 		if(max - core.release_cards_ex.size() == 1 && force) {
-			for(auto& pcard : *must_choose_one)
+			for(auto& pcard : must_choose_one)
 				core.select_cards.push_back(pcard);
 			for(auto& pcard : core.release_cards_ex)
 				core.select_cards.push_back(pcard);
 		} else if(max <= 1 && force) {
-			for(auto& pcard : *must_choose_one)
+			for(auto& pcard : must_choose_one)
 				core.select_cards.push_back(pcard);
 		} else {
 			for(auto& pcard : core.release_cards)
@@ -5912,7 +5888,7 @@ bool field::process(Processors::SelectTribute& arg) {
 		}
 		emplace_process<Processors::SelectUnselectCard>(playerid, cancelable, min, max, false);
 		arg.step = 2;
-		arg.must_choose_one = std::move(must_choose_one);
+		arg.must_choose_one.swap(must_choose_one);
 		return FALSE;
 	}
 	case 2: {
@@ -5927,8 +5903,8 @@ bool field::process(Processors::SelectTribute& arg) {
 		min = min > 0 ? min : 0;
 		max = max > 0 ? max : 0;
 		auto& must_choose_one = arg.must_choose_one;
-		bool force = !must_choose_one->empty();
-		for(auto& pcard : *must_choose_one) {
+		bool force = !must_choose_one.empty();
+		for(auto& pcard : must_choose_one) {
 			if(core.operated_set.find(pcard) != core.operated_set.end())
 				force = false;
 		}
@@ -5939,14 +5915,14 @@ bool field::process(Processors::SelectTribute& arg) {
 			if(core.operated_set.find(pcard) == core.operated_set.end())
 				++exsize;
 		if(max - exsize == 1 && force) {
-			for(auto& pcard : *must_choose_one)
+			for(auto& pcard : must_choose_one)
 				if(core.operated_set.find(pcard) == core.operated_set.end())
 					core.select_cards.push_back(pcard);
 			for(auto& pcard : core.release_cards_ex)
 				if(core.operated_set.find(pcard) == core.operated_set.end())
 					core.select_cards.push_back(pcard);
 		} else if(max <= 1 && force) {
-			for(auto& pcard : *must_choose_one)
+			for(auto& pcard : must_choose_one)
 				core.select_cards.push_back(pcard);
 		} else if(exsize && exsize == max) {
 			for(auto& pcard : core.release_cards_ex)
