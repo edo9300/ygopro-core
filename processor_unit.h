@@ -22,59 +22,59 @@ struct Process {
 	Process& operator=(Process&&) = default; // movable
 	int16_t step;
 protected:
-	explicit Process(int16_t step_) : step(step_) {}
+	explicit Process(uint16_t step_) : step(step_) {}
 };
 struct Adjust : public Process<false> {
-	Adjust(int16_t step_) : Process(step_) {}
+	Adjust(uint16_t step_) : Process(step_) {}
 };
 struct Turn : public Process<false> {
 	uint8_t turn_player;
 	bool has_performed_second_battle_phase;
-	Turn(int16_t step_, uint8_t turn_player_) : Process(step_), turn_player(turn_player_),
+	Turn(uint16_t step_, uint8_t turn_player_) : Process(step_), turn_player(turn_player_),
 		has_performed_second_battle_phase(false) {}
 };
 struct RefreshLoc : public Process<false> {
 	uint8_t dis_count;
 	uint32_t previously_disabled_locations;
 	effect* current_disable_field_effect;
-	RefreshLoc(int16_t step_) :
+	RefreshLoc(uint16_t step_) :
 		Process(step_), dis_count(0), previously_disabled_locations(0),
 		current_disable_field_effect(nullptr) {}
 };
 struct Startup : public Process<false> {
-	Startup(int16_t step_) : Process(step_) {}
+	Startup(uint16_t step_) : Process(step_) {}
 };
 struct SelectBattleCmd : public Process<true> {
 	uint8_t playerid;
-	SelectBattleCmd(int16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
+	SelectBattleCmd(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectIdleCmd : public Process<true> {
 	uint8_t playerid;
-	SelectIdleCmd(int16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
+	SelectIdleCmd(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectEffectYesNo : public Process<true> {
 	uint8_t playerid;
 	card* pcard;
 	uint64_t description;
-	SelectEffectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_, card* pcard_) :
+	SelectEffectYesNo(uint16_t step_, uint8_t playerid_, uint64_t description_, card* pcard_) :
 		Process(step_), playerid(playerid_), pcard(pcard_), description(description_) {}
 };
 struct SelectYesNo : public Process<true> {
 	uint8_t playerid;
 	uint64_t description;
-	SelectYesNo(int16_t step_, uint8_t playerid_, uint64_t description_) :
+	SelectYesNo(uint16_t step_, uint8_t playerid_, uint64_t description_) :
 		Process(step_), playerid(playerid_), description(description_) {}
 };
 struct SelectOption : public Process<true> {
 	uint8_t playerid;
-	SelectOption(int16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
+	SelectOption(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectCard : public Process<true> {
 	uint8_t playerid;
 	bool cancelable;
 	uint8_t min;
 	uint8_t max;
-	SelectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
+	SelectCard(uint16_t step_, uint8_t playerid_, bool cancelable_,
 			   uint8_t min_, uint8_t max_) :
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
@@ -83,7 +83,7 @@ struct SelectCardCodes : public Process<true> {
 	bool cancelable;
 	uint8_t min;
 	uint8_t max;
-	SelectCardCodes(int16_t step_, uint8_t playerid_, bool cancelable_,
+	SelectCardCodes(uint16_t step_, uint8_t playerid_, bool cancelable_,
 					uint8_t min_, uint8_t max_) :
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
@@ -93,7 +93,7 @@ struct SelectUnselectCard : public Process<true> {
 	uint8_t min;
 	uint8_t max;
 	bool finishable;
-	SelectUnselectCard(int16_t step_, uint8_t playerid_, bool cancelable_,
+	SelectUnselectCard(uint16_t step_, uint8_t playerid_, bool cancelable_,
 					   uint8_t min_, uint8_t max_, bool finishable_) :
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_),
 		finishable(finishable_) {}
@@ -102,7 +102,7 @@ struct SelectChain : public Process<true> {
 	uint8_t playerid;
 	uint8_t spe_count;
 	bool forced;
-	SelectChain(int16_t step_, uint8_t playerid_, uint8_t spe_count_, bool forced_) :
+	SelectChain(uint16_t step_, uint8_t playerid_, uint8_t spe_count_, bool forced_) :
 		Process(step_), playerid(playerid_), spe_count(spe_count_), forced(forced_) {}
 };
 struct SelectPlace : public Process<true> {
@@ -110,11 +110,11 @@ struct SelectPlace : public Process<true> {
 	uint8_t count;
 	uint32_t flag;
 	bool disable_field;
-	SelectPlace(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
+	SelectPlace(uint16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
 		Process(step_), playerid(playerid_), count(count_), flag(flag_), disable_field(false) {}
 };
 struct SelectDisField : SelectPlace {
-	SelectDisField(int16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
+	SelectDisField(uint16_t step_, uint8_t playerid_, uint32_t flag_, uint8_t count_) :
 		SelectPlace(step_, playerid_, flag_, count_) {
 		disable_field = true;
 	}
@@ -123,7 +123,7 @@ struct SelectPosition : public Process<true> {
 	uint8_t playerid;
 	uint8_t positions;
 	uint32_t code;
-	SelectPosition(int16_t step_, uint8_t playerid_, uint32_t code_, uint8_t positions_) :
+	SelectPosition(uint16_t step_, uint8_t playerid_, uint32_t code_, uint8_t positions_) :
 		Process(step_), playerid(playerid_), positions(positions_), code(code_) {}
 };
 struct SelectTributeP : public Process<true> {
@@ -131,12 +131,12 @@ struct SelectTributeP : public Process<true> {
 	bool cancelable;
 	uint8_t min;
 	uint8_t max;
-	SelectTributeP(int16_t step_, uint8_t playerid_, bool cancelable_, uint8_t min_, uint8_t max_) :
+	SelectTributeP(uint16_t step_, uint8_t playerid_, bool cancelable_, uint8_t min_, uint8_t max_) :
 		Process(step_), playerid(playerid_), cancelable(cancelable_), min(min_), max(max_) {}
 };
 struct SortChain : public Process<false> {
 	uint8_t playerid;
-	SortChain(int16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
+	SortChain(uint16_t step_, uint8_t playerid_) : Process(step_), playerid(playerid_) {}
 };
 struct SelectCounter : public Process<true> {
 	uint16_t countertype;
@@ -154,13 +154,13 @@ struct SelectSum : public Process<true> {
 	int32_t acc;
 	int32_t min;
 	int32_t max;
-	SelectSum(int16_t step_, uint8_t playerid_, int32_t acc_, int32_t min_, int32_t max_) :
+	SelectSum(uint16_t step_, uint8_t playerid_, int32_t acc_, int32_t min_, int32_t max_) :
 		Process(step_), playerid(playerid_), acc(acc_), min(min_), max(max_) {}
 };
 struct SortCard : public Process<true> {
 	uint8_t playerid;
 	bool is_chain;
-	SortCard(int16_t step_, uint8_t playerid_, bool is_chain_) :
+	SortCard(uint16_t step_, uint8_t playerid_, bool is_chain_) :
 		Process(step_), playerid(playerid_), is_chain(is_chain_) {}
 };
 struct SelectRelease : public Process<false> {
@@ -174,7 +174,7 @@ struct SelectRelease : public Process<false> {
 	card* to_check;
 	effect* extra_release_nonsum_effect;
 	std::unique_ptr<card_set> must_choose_one;
-	SelectRelease(int16_t step_, uint8_t playerid_, bool cancelable_, uint16_t min_,
+	SelectRelease(uint16_t step_, uint8_t playerid_, bool cancelable_, uint16_t min_,
 				  uint16_t max_, bool check_field_, card* to_check_, uint8_t toplayer_,
 				  uint8_t zone_) :
 		Process(step_), min(min_), max(max_), playerid(playerid_), cancelable(cancelable_),
@@ -191,7 +191,7 @@ struct SelectTribute : public Process<false> {
 	card* target;
 	effect* extra_release_effect;
 	std::unique_ptr<card_set> must_choose_one;
-	SelectTribute(int16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
+	SelectTribute(uint16_t step_, card* target_, uint8_t playerid_, bool cancelable_, int32_t min_,
 				  int32_t max_, uint8_t toplayer_, uint8_t zone_) :
 		Process(step_), min(min_), max(max_), playerid(playerid_), cancelable(cancelable_),
 		toplayer(toplayer_), zone(zone_), target(target_), extra_release_effect(nullptr),
@@ -201,27 +201,27 @@ struct PointEvent : public Process<false> {
 	bool skip_trigger;
 	bool skip_freechain;
 	bool skip_new;
-	PointEvent(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
+	PointEvent(uint16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
 		Process(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_), skip_new(skip_new_) {}
 };
 struct QuickEffect : public Process<false> {
 	bool skip_freechain;
 	bool is_opponent;
 	uint8_t priority_player;
-	QuickEffect(int16_t step_, bool skip_freechain_, uint8_t priority_player_) :
+	QuickEffect(uint16_t step_, bool skip_freechain_, uint8_t priority_player_) :
 		Process(step_), skip_freechain(skip_freechain_), is_opponent(false), priority_player(priority_player_) {}
 };
 struct IdleCommand : public Process<false> {
 	uint8_t phase_to_change_to;
 	card* card_to_reposition;
-	IdleCommand(int16_t step_) :
+	IdleCommand(uint16_t step_) :
 		Process(step_), phase_to_change_to(0), card_to_reposition(nullptr) {}
 };
 struct PhaseEvent : public Process<false> {
 	uint16_t phase;
 	bool is_opponent;
 	bool priority_passed;
-	PhaseEvent(int16_t step_, uint16_t phase_) :
+	PhaseEvent(uint16_t step_, uint16_t phase_) :
 		Process(step_), phase(phase_), is_opponent(false), priority_passed(false) {}
 };
 struct BattleCommand : public Process<false> {
@@ -235,7 +235,7 @@ struct BattleCommand : public Process<false> {
 	effect* damage_change_effect;
 	group* cards_destroyed_by_battle;
 	card* reason_card;
-	BattleCommand(int16_t step_, group* cards_destroyed_by_battle_ = nullptr) :
+	BattleCommand(uint16_t step_, group* cards_destroyed_by_battle_ = nullptr) :
 		Process(step_), phase_to_change_to(0), is_replaying_attack(false), attack_announce_failed(false),
 		repeat_battle_phase(false), second_battle_phase_is_optional(false),
 		previous_point_event_had_any_trigger_to_resolve(false), reason_player(PLAYER_NONE), damage_change_effect(nullptr),
@@ -247,17 +247,17 @@ struct DamageStep : public Process<false> {
 	card* attacker;
 	card* attack_target;
 	group* cards_destroyed_by_battle;
-	DamageStep(int16_t step_, card* attacker_, card* attack_target_, bool new_attack_) :
+	DamageStep(uint16_t step_, card* attacker_, card* attack_target_, bool new_attack_) :
 		Process(step_), backup_phase(0), new_attack(new_attack_), attacker(attacker_), attack_target(attack_target_), cards_destroyed_by_battle(nullptr) {}
 };
 struct ForcedBattle : public Process<false> {
 	uint16_t backup_phase;
-	ForcedBattle(int16_t step_) :
+	ForcedBattle(uint16_t step_) :
 		Process(step_), backup_phase(0) {}
 };
 struct AddChain : public Process<false> {
 	bool is_activated_effect;
-	AddChain(int16_t step_) :
+	AddChain(uint16_t step_) :
 		Process(step_), is_activated_effect(false) {}
 };
 struct SolveChain : public Process<false> {
@@ -265,21 +265,21 @@ struct SolveChain : public Process<false> {
 	bool skip_freechain;
 	bool skip_new;
 	int32_t backed_up_operation;
-	SolveChain(int16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
+	SolveChain(uint16_t step_, bool skip_trigger_, bool skip_freechain_, bool skip_new_) :
 		Process(step_), skip_trigger(skip_trigger_), skip_freechain(skip_freechain_),
 		skip_new(skip_new_), backed_up_operation(0) {}
 };
 struct SolveContinuous : public Process<false> {
 	uint8_t reason_player;
 	effect* reason_effect;
-	SolveContinuous(int16_t step_) :
+	SolveContinuous(uint16_t step_) :
 		Process(step_), reason_player(0), reason_effect(nullptr) {}
 };
 struct ExecuteCost : public Process<false> {
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
-	ExecuteCost(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
+	ExecuteCost(uint16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
 		Process(step_), triggering_player(triggering_player_), shuffle_check_was_disabled(false),
 		triggering_effect(triggering_effect_) {}
 };
@@ -287,7 +287,7 @@ struct ExecuteOperation : public Process<false> {
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
-	ExecuteOperation(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
+	ExecuteOperation(uint16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
 		Process(step_), triggering_player(triggering_player_), shuffle_check_was_disabled(false),
 		triggering_effect(triggering_effect_) {}
 };
@@ -295,7 +295,7 @@ struct ExecuteTarget : public Process<false> {
 	uint8_t triggering_player;
 	bool shuffle_check_was_disabled;
 	effect* triggering_effect;
-	ExecuteTarget(int16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
+	ExecuteTarget(uint16_t step_, effect* triggering_effect_, uint8_t triggering_player_) :
 		Process(step_), triggering_player(triggering_player_), shuffle_check_was_disabled(false),
 		triggering_effect(triggering_effect_) {}
 };
