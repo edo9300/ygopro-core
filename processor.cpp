@@ -2553,7 +2553,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		process_instant_event();
 		if(core.effect_damage_step) {
 			if(core.reserved) {
-				auto* damage_step = std::get_if<Processors::DamageStep>(&(*core.reserved));
+				auto* damage_step = Processors::get_opt_variant<Processors::DamageStep>(*core.reserved);
 				if(damage_step)
 					damage_step->cards_destroyed_by_battle = arg.cards_destroyed_by_battle;
 			}

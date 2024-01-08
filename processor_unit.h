@@ -734,7 +734,7 @@ struct RefreshRelay : public Process<false> {
 		Process(step_) {}
 };
 
-using processor_unit = std::variant<Adjust, Turn, RefreshLoc, Startup,
+using processors = std::variant<Adjust, Turn, RefreshLoc, Startup,
 	SelectBattleCmd, SelectIdleCmd, SelectEffectYesNo, SelectYesNo,
 	SelectOption, SelectCard, SelectCardCodes, SelectUnselectCard,
 	SelectChain, SelectPlace, SelectDisField, SelectPosition,
@@ -751,6 +751,78 @@ using processor_unit = std::variant<Adjust, Turn, RefreshLoc, Startup,
 	AnnounceCard, AnnounceNumber, TossCoin, TossDice, RockPaperScissors,
 	SelectFusion, DiscardHand, DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay,
 	RefreshRelay>;
+
+//Ugly hack only to ease debugging the core under visual studio it
+//splits the big variant into multiple variants of 30 types max so
+//that they can be properly displayed with the visual studio debugger
+#if (defined(_DEBUG) && defined(_MSC_VER)) || defined(PROCESSOR_VARIANT_CAP)
+#if !defined(PROCESSOR_VARIANT_CAP) || (PROCESSOR_VARIANT_CAP + 0) == 0
+static constexpr auto MAX_VARIANT_TYPES = 30;
+#else
+static constexpr auto MAX_VARIANT_TYPES = PROCESSOR_VARIANT_CAP;
+#endif
+
+template <typename T, std::size_t offset, std::size_t amount, typename = std::make_index_sequence<amount>>
+struct variant_slice;
+
+template <typename T, std::size_t offset, std::size_t amount, std::size_t... ints>
+struct variant_slice<T, offset, amount, std::index_sequence<ints...>> {
+	using type = std::variant<std::variant_alternative_t<offset + ints, T>...>;
+};
+
+template <typename T, std::size_t offset, std::size_t amount>
+using variant_slice_t = typename variant_slice<T, offset, amount>::type;
+
+template <typename T, std::size_t max_variant_size, typename = std::make_index_sequence<std::variant_size_v<T> / max_variant_size>>
+struct split_to_subvariants;
+
+template <typename T, std::size_t max_variant_size, std::size_t... ints>
+struct split_to_subvariants<T, max_variant_size, std::index_sequence<ints...>> {
+private:
+	static constexpr auto total = std::variant_size_v<T>;
+	static constexpr auto remaining_types = total % max_variant_size;
+public:
+	using type = std::conditional_t<
+		remaining_types != 0,
+		std::variant<
+		variant_slice_t<T, ints * max_variant_size, max_variant_size>...,
+		variant_slice_t<T, total - remaining_types, remaining_types>
+		>,
+		std::variant<variant_slice_t<T, ints * max_variant_size, max_variant_size>...>
+	>;
+};
+
+using processor_unit = split_to_subvariants<processors, MAX_VARIANT_TYPES>::type;
+
+template<typename T>
+static constexpr inline auto* get_opt_variant(processor_unit& unit) {
+	return std::visit([](auto& v) -> T* {
+		if constexpr(std::is_constructible_v<std::remove_reference_t<decltype(v)>, T>) {
+			return std::get_if<T>(&v);
+		}
+		return nullptr;
+	}, unit);
+}
+
+template<typename T, typename... Args>
+constexpr inline void emplace_variant(std::list<processor_unit>& list, Args&&... args) {
+	T obj(std::forward<Args>(args)...);
+	list.push_back(std::move(obj));
+}
+#else
+
+using processor_unit = processors;
+
+template<typename T>
+static constexpr inline auto* get_opt_variant(processor_unit& unit) {
+	return std::get_if<T>(&unit);
+}
+
+template<typename T, typename... Args>
+constexpr inline void emplace_variant(std::list<processor_unit>& list, Args&&... args) {
+	list.emplace_back(std::in_place_type<T>, std::forward<Args>(args)...);
+}
+#endif
 
 template<typename T>
 inline constexpr bool NeedsAnswer = T::needs_answer;
