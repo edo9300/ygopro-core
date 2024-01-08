@@ -93,17 +93,17 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, OCG_NewCardInfo info) {
 
 OCGAPI void OCG_StartDuel(OCG_Duel ocg_duel) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
-	pduel->game_field->add_process(PROCESSOR_STARTUP, 0, 0, 0, 0, 0);
+	pduel->game_field->emplace_process<Processors::Startup>();
 }
 
 OCGAPI int OCG_DuelProcess(OCG_Duel ocg_duel) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	pduel->buff.clear();
-	auto flag = 0;
+	auto flag = OCG_DUEL_STATUS_END;
 	do {
 		flag = pduel->game_field->process();
 		pduel->generate_buffer();
-	} while(pduel->buff.size() == 0 && flag == PROCESSOR_FLAG_CONTINUE);
+	} while(pduel->buff.size() == 0 && flag == OCG_DUEL_STATUS_CONTINUE);
 	return flag;
 }
 

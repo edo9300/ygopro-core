@@ -2079,7 +2079,7 @@ void field::adjust_self_destroy_set() {
 		}
 		std::sort(uniq_set.begin(), uniq_set.end(), [](card* lhs, card* rhs) { return lhs->fieldid < rhs->fieldid; });
 		for(auto& pcard : uniq_set) {
-			add_process(PROCESSOR_SELF_DESTROY, 0, 0, 0, p, 0, 0, 0, pcard);
+			emplace_process<Processors::SelfDestroyUnique>(pcard, p);
 			core.unique_destroy_set.insert(pcard);
 		}
 		p = 1 - p;
@@ -2110,9 +2110,9 @@ void field::adjust_self_destroy_set() {
 		}
 	}
 	if(!core.self_destroy_set.empty())
-		add_process(PROCESSOR_SELF_DESTROY, 10, 0, 0, 0, 0);
+		emplace_process<Processors::SelfDestroy>();
 	if(!core.self_tograve_set.empty())
-		add_process(PROCESSOR_SELF_DESTROY, 20, 0, 0, 0, 0);
+		emplace_process<Processors::SelfToGrave>();
 }
 void field::erase_grant_effect(effect* peffect) {
 	auto eit = effects.grant_effect.find(peffect);

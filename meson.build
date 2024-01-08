@@ -27,6 +27,7 @@ ocgcore_src = files([
 	'operations.cpp',
 	'playerop.cpp',
 	'processor.cpp',
+	'processor_visit.cpp',
 	'scriptlib.cpp',
 ])
 
