@@ -199,7 +199,7 @@ jobs:
       shell: bash
       run: |
         cd ..
-        svn checkout https://github.com/edo9300/edopro-android/trunk/deps/lua
+        curl https://codeload.github.com/edo9300/edopro-android/tar.gz/master | tar -xz --strip=2 edopro-android-master/deps/lua
     - name: Build
       shell: bash
       run: ./travis/build-android.sh
