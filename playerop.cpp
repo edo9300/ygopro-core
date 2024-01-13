@@ -894,10 +894,10 @@ bool field::process(Processors::SortCard& arg) {
 	} else {
 		if(returns.at<int8_t>(0) == -1)
 			return TRUE;
-		bool c[64] = {};
-		uint8_t m = static_cast<uint8_t>(core.select_cards.size());
+		auto m = static_cast<uint8_t>(core.select_cards.size());
+		std::vector<bool> c(m);
 		for(uint8_t i = 0; i < m; ++i) {
-			int8_t v = returns.at<int8_t>(i);
+			auto v = returns.at<int8_t>(i);
 			if(v < 0 || v >= m || c[v]) {
 				pduel->new_message(MSG_RETRY);
 				return FALSE;

@@ -3931,11 +3931,11 @@ bool field::process(Processors::SortChain& arg) {
 	case 1: {
 		if(returns.at<int8_t>(0) == -1)
 			return TRUE;
-		chain_array sorted_chains(chains.size());
+		std::map<const chain*, int8_t> sort_map;
 		int i = 0;
-		for(const auto& _ch : chains)
-			sorted_chains[returns.at<int8_t>(i++)] = _ch;
-		chains.assign(sorted_chains.begin(), sorted_chains.end());
+		for(const auto& ch : chains)
+			sort_map[&ch] = returns.at<int8_t>(i++);
+		chains.sort([&sort_map](const chain& c1, const chain& c2) { return sort_map[&c1] < sort_map[&c2]; });
 		return TRUE;
 	}
 	}
@@ -5026,7 +5026,7 @@ bool field::process(Processors::SortDeck& arg) {
 	case 1: {
 		if(returns.at<int8_t>(0) == -1 || count == 0)
 			return TRUE;
-		card* tc[64];
+		card_vector tc(core.select_cards.size());
 		for(uint32_t i = 0; i < count; ++i)
 			tc[returns.at<uint8_t>(i)] = core.select_cards[i];
 		for(uint32_t i = 0; i < count; ++i) {

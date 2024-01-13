@@ -16,7 +16,6 @@
 class group;
 
 class card;
-using card_list = std::list<card*>;
 using card_vector = std::vector<card*>;
 struct card_sort {
 	bool operator()(const card* c1, const card* c2) const;
