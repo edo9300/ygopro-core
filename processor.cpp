@@ -2355,8 +2355,8 @@ bool field::process(Processors::BattleCommand& arg) {
 				core.attack_target->set_status(STATUS_OPPO_BATTLE, TRUE);
 			}
 		}
-		effect* damchange = 0;
-		card* reason_card = 0;
+		effect* damchange = nullptr;
+		card* reason_card = nullptr;
 		std::array<bool, 2> bd;
 		calculate_battle_damage(&damchange, &reason_card, &bd);
 		if(bd[0]) {
@@ -2366,7 +2366,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				message->write<uint8_t>(HINT_CARD);
 				message->write<uint8_t>(0);
 				message->write<uint64_t>(indestructable_effect->owner->data.code);
-				bd[0] = FALSE;
+				bd[0] = false;
 			} else
 				core.attacker->set_status(STATUS_BATTLE_RESULT, TRUE);
 		}
@@ -2377,7 +2377,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				message->write<uint8_t>(HINT_CARD);
 				message->write<uint8_t>(0);
 				message->write<uint64_t>(indestructable_effect->owner->data.code);
-				bd[1] = FALSE;
+				bd[1] = false;
 			} else
 				core.attack_target->set_status(STATUS_BATTLE_RESULT, TRUE);
 		}

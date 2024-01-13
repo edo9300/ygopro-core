@@ -24,11 +24,11 @@ class duel;
 
 class lua_obj {
 public:
-	LuaParam lua_type;
-	int32_t ref_handle;
 	duel* pduel{ nullptr };
+	int32_t ref_handle;
+	LuaParam lua_type;
 protected:
-	lua_obj(LuaParam _lua_type, duel* _pduel) :lua_type(_lua_type), pduel(_pduel) {}
+	lua_obj(LuaParam _lua_type, duel* _pduel) :pduel(_pduel), lua_type(_lua_type) {}
 };
 
 template<LuaParam _Type>
