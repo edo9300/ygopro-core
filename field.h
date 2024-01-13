@@ -561,7 +561,7 @@ public:
 	struct Step { uint16_t step; };
 	template<typename T, typename... Args>
 	constexpr inline void emplace_process(Step step, Args&&... args) {
-		core.subunits.emplace_back(std::in_place_type<T>, step.step, std::forward<Args>(args)...);
+		Processors::emplace_variant<T>(core.subunits, step.step, std::forward<Args>(args)...);
 	}
 	template<typename T, typename... Args>
 	constexpr inline void emplace_process(Args&&... args) {
@@ -709,6 +709,10 @@ public:
 	bool process(Processors::AnnounceNumber& arg);
 	bool process(Processors::RockPaperScissors& arg);
 
+	template<typename... Args>
+	OCG_DuelStatus operator()(std::variant<Args...>& arg) {
+		return std::visit(*this, arg);
+	}
 
 	template<typename T>
 	OCG_DuelStatus operator()(T& arg) {
