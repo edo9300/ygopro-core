@@ -192,16 +192,16 @@ public:
 	uint32_t second_code(uint32_t code);
 	uint32_t get_code();
 	uint32_t get_another_code();
-	void get_summon_code(std::set<uint32_t>& codes, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
+	void get_summon_code(std::set<uint32_t>& codes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
 	int32_t is_set_card(uint16_t set_code);
 	int32_t is_origin_set_card(uint16_t set_code);
 	int32_t is_pre_set_card(uint16_t set_code);
-	int32_t is_summon_set_card(uint16_t set_code, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
+	int32_t is_summon_set_card(uint16_t set_code, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
 	void get_set_card(std::set<uint16_t>& setcodes);
 	const std::set<uint16_t>& get_origin_set_card() const { return data.setcodes; }
 	void get_pre_set_card(std::set<uint16_t>& setcodes);
-	void get_summon_set_card(std::set<uint16_t>& setcodes, card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
-	uint32_t get_type(card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
+	void get_summon_set_card(std::set<uint16_t>& setcodes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
+	uint32_t get_type(card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
 	int32_t get_base_attack();
 	int32_t get_attack();
 	int32_t get_base_defense();
@@ -212,8 +212,8 @@ public:
 	uint32_t get_synchro_level(card* pcard);
 	uint32_t get_ritual_level(card* pcard);
 	uint32_t check_xyz_level(card* pcard, uint32_t lv);
-	uint32_t get_attribute(card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
-	uint64_t get_race(card* scard = 0, uint64_t sumtype = 0, uint8_t playerid = 2);
+	uint32_t get_attribute(card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
+	uint64_t get_race(card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
 	uint32_t get_lscale();
 	uint32_t get_rscale();
 	uint32_t get_link_marker();
@@ -354,7 +354,7 @@ public:
 	int32_t is_capable_be_battle_target(card* pcard);
 	int32_t is_capable_be_effect_target(effect* peffect, uint8_t playerid);
 	int32_t is_can_be_fusion_material(card* fcard, uint64_t summon_type, uint8_t playerid);
-	int32_t is_can_be_synchro_material(card* scard, uint8_t playerid, card* tuner = 0);
+	int32_t is_can_be_synchro_material(card* scard, uint8_t playerid, card* tuner = nullptr);
 	int32_t is_can_be_ritual_material(card* scard, uint8_t playerid);
 	int32_t is_can_be_xyz_material(card* scard, uint8_t playerid, uint32_t reason);
 	int32_t is_can_be_link_material(card* scard, uint8_t playerid);

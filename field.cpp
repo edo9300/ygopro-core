@@ -59,11 +59,11 @@ bool tevent::operator< (const tevent& v) const {
 field::field(duel* _pduel, const OCG_DuelOptions& options) :pduel(_pduel), player({ {options.team1, options.team2} }) {
 	core.duel_options = options.flags;
 	nil_event.event_code = 0;
-	nil_event.event_cards = 0;
+	nil_event.event_cards = nullptr;
 	nil_event.event_player = PLAYER_NONE;
 	nil_event.event_value = 0;
 	nil_event.reason = 0;
-	nil_event.reason_effect = 0;
+	nil_event.reason_effect = nullptr;
 	nil_event.reason_player = PLAYER_NONE;
 }
 void field::reload_field_info() {
@@ -195,10 +195,10 @@ void field::remove_card(card* pcard) {
 	uint8_t playerid = pcard->current.controler;
 	switch (pcard->current.location) {
 	case LOCATION_MZONE:
-		player[playerid].list_mzone[pcard->current.sequence] = 0;
+		player[playerid].list_mzone[pcard->current.sequence] = nullptr;
 		break;
 	case LOCATION_SZONE:
-		player[playerid].list_szone[pcard->current.sequence] = 0;
+		player[playerid].list_szone[pcard->current.sequence] = nullptr;
 		break;
 	case LOCATION_DECK:
 		player[playerid].list_main.erase(player[playerid].list_main.begin() + pcard->current.sequence);
@@ -306,14 +306,14 @@ bool field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 				pcard->previous.position = pcard->current.position;
 				pcard->previous.pzone = pcard->current.pzone;
 				if (location == LOCATION_MZONE) {
-					player[preplayer].list_mzone[presequence] = 0;
+					player[preplayer].list_mzone[presequence] = nullptr;
 					player[preplayer].used_location &= ~(1 << presequence);
 					player[playerid].list_mzone[sequence] = pcard;
 					player[playerid].used_location |= 1 << sequence;
 					pcard->current.controler = playerid;
 					pcard->current.sequence = sequence;
 				} else {
-					player[preplayer].list_szone[presequence] = 0;
+					player[preplayer].list_szone[presequence] = nullptr;
 					player[preplayer].used_location &= ~(256 << presequence);
 					player[playerid].list_szone[sequence] = pcard;
 					player[playerid].used_location |= 256 << sequence;
@@ -420,18 +420,18 @@ void field::swap_card(card* pcard1, card* pcard2, uint8_t new_sequence1, uint8_t
 				pcard2->unique_fieldid = UINT_MAX;
 		}
 		if(l1 == LOCATION_MZONE) {
-			player[p1].list_mzone[s1] = 0;
+			player[p1].list_mzone[s1] = nullptr;
 			player[p1].used_location &= ~(1 << s1);
-			player[p2].list_mzone[s2] = 0;
+			player[p2].list_mzone[s2] = nullptr;
 			player[p2].used_location &= ~(1 << s2);
 			player[p2].list_mzone[new_sequence2] = pcard1;
 			player[p2].used_location |= 1 << new_sequence2;
 			player[p1].list_mzone[new_sequence1] = pcard2;
 			player[p1].used_location |= 1 << new_sequence1;
 		} else if(l1 == LOCATION_SZONE) {
-			player[p1].list_szone[s1] = 0;
+			player[p1].list_szone[s1] = nullptr;
 			player[p1].used_location &= ~(256 << s1);
-			player[p2].list_szone[s2] = 0;
+			player[p2].list_szone[s2] = nullptr;
 			player[p2].used_location &= ~(256 << s2);
 			player[p2].list_szone[new_sequence2] = pcard1;
 			player[p2].used_location |= 256 << new_sequence2;
@@ -543,7 +543,7 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 	case LOCATION_PZONE: {
 		if(sequence < 2) {
 			card* pcard = player[playerid].list_szone[get_pzone_index(sequence, playerid)];
-			return pcard && pcard->current.pzone ? pcard : 0;
+			return pcard && pcard->current.pzone ? pcard : nullptr;
 		}
 		return nullptr;
 	}
@@ -573,7 +573,7 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 		return nullptr;
 	}
 	}
-	return 0;
+	return nullptr;
 }
 // return: the given slot in LOCATION_MZONE or all LOCATION_SZONE is available or not
 int32_t field::is_location_useable(uint32_t playerid, uint32_t location, uint32_t sequence) {
@@ -863,7 +863,7 @@ int32_t field::check_extra_link(int32_t playerid, card* pcard, int32_t sequence)
 	pcard->current.sequence = sequence;
 	pcard->current.position = POS_FACEUP_ATTACK;
 	int32_t ret = pcard->is_extra_link_state();
-	player[playerid].list_mzone[sequence] = 0;
+	player[playerid].list_mzone[sequence] = nullptr;
 	pcard->current.controler = cur_controler;
 	pcard->current.location = cur_location;
 	pcard->current.sequence = cur_sequence;
@@ -1041,7 +1041,7 @@ void field::swap_deck_and_grave(uint8_t playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 		pcard->reset(RESET_TODECK, RESET_EVENT);
-		raise_single_event(pcard, 0, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
+		raise_single_event(pcard, nullptr, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
 	}
 	for(auto& pcard : ex) {
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
@@ -1052,7 +1052,7 @@ void field::swap_deck_and_grave(uint8_t playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 		pcard->reset(RESET_TODECK, RESET_EVENT);
-		raise_single_event(pcard, 0, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
+		raise_single_event(pcard, nullptr, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
 	}
 	message->write<uint32_t>(cur_player.list_extra.size() - cur_player.extra_p_count);
 	cur_player.list_extra.insert(cur_player.list_extra.end() - cur_player.extra_p_count, ex.begin(), ex.end());
@@ -1722,7 +1722,7 @@ effect* field::is_player_affected_by_effect(uint8_t playerid, uint32_t code) {
 		if (peffect->is_target_player(playerid) && peffect->is_available())
 			return peffect;
 	}
-	return 0;
+	return nullptr;
 }
 void field::get_player_effect(uint8_t playerid, uint32_t code, effect_set* eset) {
 	for (auto rg = effects.aura_effect.begin(); rg != effects.aura_effect.end(); ++rg) {
@@ -2195,14 +2195,14 @@ effect* field::check_unique_onfield(card* pcard, uint8_t controler, uint8_t loca
 			return ucard->unique_effect;
 	}
 	if(!pcard->unique_code || !(pcard->unique_location & location) || pcard->get_status(STATUS_DISABLED | STATUS_FORBIDDEN))
-		return 0;
+		return nullptr;
 	card_set cset;
 	pcard->get_unique_target(&cset, controler, icard);
 	if(pcard->check_unique_code(pcard))
 		cset.insert(pcard);
 	if(cset.size() >= 2)
 		return pcard->unique_effect;
-	return 0;
+	return nullptr;
 }
 int32_t field::check_spsummon_once(card* pcard, uint8_t playerid) {
 	if(pcard->spsummon_code == 0)
@@ -2325,7 +2325,7 @@ int32_t field::check_lp_cost(uint8_t playerid, uint32_t lp) {
 	if(val <= 0)
 		return TRUE;
 	tevent e;
-	e.event_cards = 0;
+	e.event_cards = nullptr;
 	e.event_player = playerid;
 	e.event_value = lp;
 	e.reason = 0;
@@ -2441,7 +2441,7 @@ int32_t field::get_attack_target(card* pcard, card_vector* v, bool chain_attack,
 			extra_count_m = val;
 	}
 	if(!chain_attack && pcard->announce_count > extra_count
-		&& (!extra_count_m || pcard->announce_count > extra_count_m || pcard->announced_cards.findcard(0))) {
+		&& (!extra_count_m || pcard->announce_count > extra_count_m || pcard->announced_cards.findcard(nullptr))) {
 		effect* peffect;
 		if((peffect = pcard->is_affected_by_effect(EFFECT_ATTACK_ALL)) != nullptr && pcard->attack_all_target) {
 			for(auto& atarget : *pv) {
@@ -2519,7 +2519,7 @@ int32_t field::check_tribute(card* pcard, int32_t min, int32_t max, group* mg, u
 	if(toplayer == 1 - sumplayer)
 		ex = TRUE;
 	card_set release_list, ex_list;
-	int32_t m = get_summon_release_list(pcard, &release_list, &ex_list, 0, mg, ex, releasable, pos);
+	int32_t m = get_summon_release_list(pcard, &release_list, &ex_list, nullptr, mg, ex, releasable, pos);
 	if(max > m)
 		max = m;
 	if(min > max)
@@ -2863,7 +2863,7 @@ int32_t field::is_player_can_remove_counter(uint8_t playerid, card* pcard, uint8
 		return TRUE;
 	auto pr = effects.continuous_effect.equal_range(EFFECT_RCOUNTER_REPLACE + countertype);
 	tevent e;
-	e.event_cards = 0;
+	e.event_cards = nullptr;
 	e.event_player = playerid;
 	e.event_value = count;
 	e.reason = reason;
@@ -2882,7 +2882,7 @@ int32_t field::is_player_can_remove_overlay_card(uint8_t playerid, group* pgroup
 		return TRUE;
 	auto pr = effects.continuous_effect.equal_range(EFFECT_OVERLAY_REMOVE_REPLACE);
 	tevent e;
-	e.event_cards = 0;
+	e.event_cards = nullptr;
 	e.event_player = playerid;
 	e.event_value = min;
 	e.reason = reason;

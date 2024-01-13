@@ -701,7 +701,7 @@ effect* effect::clone(int32_t majestic) {
 	int32_t ref = ceffect->ref_handle;
 	*ceffect = *this;
 	ceffect->ref_handle = ref;
-	ceffect->handler = 0;
+	ceffect->handler = nullptr;
 	if(condition)
 		ceffect->condition = pduel->lua->clone_lua_ref(condition);
 	if(cost)

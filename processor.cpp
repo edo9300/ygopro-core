@@ -55,7 +55,7 @@ bool field::process(Processors::ExecuteCost& arg) {
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->cost, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
 	if (result != COROUTINE_YIELD) {
-		core.reason_effect = 0;
+		core.reason_effect = nullptr;
 		core.reason_player = PLAYER_NONE;
 		--core.check_level;
 		if(core.check_level == 0) {
@@ -112,7 +112,7 @@ bool field::process(Processors::ExecuteOperation& arg) {
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->operation, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
 	if (result != COROUTINE_YIELD) {
-		core.reason_effect = 0;
+		core.reason_effect = nullptr;
 		core.reason_player = PLAYER_NONE;
 		--core.check_level;
 		if(core.check_level == 0) {
@@ -174,7 +174,7 @@ bool field::process(Processors::ExecuteTarget& arg) {
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->target, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
 	if (result != COROUTINE_YIELD) {
-		core.reason_effect = 0;
+		core.reason_effect = nullptr;
 		core.reason_player = PLAYER_NONE;
 		--core.check_level;
 		if(core.check_level == 0) {
@@ -195,13 +195,13 @@ bool field::process(Processors::ExecuteTarget& arg) {
 }
 void field::raise_event(card* event_card, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
 	auto& new_event = core.queue_event.emplace_back();
-	new_event.trigger_card = 0;
+	new_event.trigger_card = nullptr;
 	if (event_card) {
 		group* pgroup = pduel->new_group(event_card);
 		pgroup->is_readonly = TRUE;
 		new_event.event_cards = pgroup;
 	} else
-		new_event.event_cards = 0;
+		new_event.event_cards = nullptr;
 	new_event.event_code = event_code;
 	new_event.reason_effect = reason_effect;
 	new_event.reason = reason;
@@ -212,13 +212,13 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 }
 void field::raise_event(card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
 	auto& new_event = core.queue_event.emplace_back();
-	new_event.trigger_card = 0;
+	new_event.trigger_card = nullptr;
 	if (event_cards) {
 		group* pgroup = pduel->new_group(*event_cards);
 		pgroup->is_readonly = TRUE;
 		new_event.event_cards = pgroup;
 	} else
-		new_event.event_cards = 0;
+		new_event.event_cards = nullptr;
 	new_event.event_code = event_code;
 	new_event.reason_effect = reason_effect;
 	new_event.reason = reason;
@@ -235,7 +235,7 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 		pgroup->is_readonly = TRUE;
 		new_event.event_cards = pgroup;
 	} else
-		new_event.event_cards = 0;
+		new_event.event_cards = nullptr;
 	new_event.event_code = event_code;
 	new_event.reason_effect = reason_effect;
 	new_event.reason = reason;
@@ -550,7 +550,7 @@ bool field::process(Processors::PhaseEvent& arg) {
 	}
 	case 21: {
 		if(return_cards.list.size())
-			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, 0, REASON_RULE + REASON_DISCARD + REASON_ADJUST, infos.turn_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(card_set{ return_cards.list.begin(), return_cards.list.end() }, nullptr, REASON_RULE + REASON_DISCARD + REASON_ADJUST, infos.turn_player, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 22: {
@@ -789,10 +789,10 @@ bool field::process(Processors::PointEvent& arg) {
 		   || check_event(EVENT_CHAIN_END))) {
 			chain newchain;
 			{
-				newchain.evt.event_cards = 0;
+				newchain.evt.event_cards = nullptr;
 				newchain.evt.event_value = 0;
 				newchain.evt.event_player = PLAYER_NONE;
-				newchain.evt.reason_effect = 0;
+				newchain.evt.reason_effect = nullptr;
 				newchain.evt.reason = 0;
 				newchain.evt.reason_player = PLAYER_NONE;
 			}
@@ -1186,11 +1186,11 @@ int32_t field::process_instant_event() {
 				newchain.triggering_effect = peffect;
 				newchain.triggering_player = owner_player;
 				newchain.evt = ev;
-				newchain.target_cards = 0;
+				newchain.target_cards = nullptr;
 				newchain.target_player = PLAYER_NONE;
 				newchain.target_param = 0;
 				newchain.disable_player = PLAYER_NONE;
-				newchain.disable_reason = 0;
+				newchain.disable_reason = nullptr;
 				newchain.flag = 0;
 			}
 		}
@@ -1369,11 +1369,11 @@ int32_t field::process_single_event(effect* peffect, const tevent& e, chain_list
 			newchain.triggering_effect = peffect;
 			newchain.triggering_player = owner_player;
 			newchain.evt = e;
-			newchain.target_cards = 0;
+			newchain.target_cards = nullptr;
 			newchain.target_player = PLAYER_NONE;
 			newchain.target_param = 0;
 			newchain.disable_player = PLAYER_NONE;
-			newchain.disable_reason = 0;
+			newchain.disable_reason = nullptr;
 			newchain.flag = 0;
 		}
 	} else {
@@ -1509,10 +1509,10 @@ bool field::process(Processors::IdleCommand& arg) {
 		}
 		core.summonable_cards.clear();
 		for(auto& pcard : player[infos.turn_player].list_hand)
-			if(pcard->is_can_be_summoned(infos.turn_player, FALSE, 0, 0))
+			if(pcard->is_can_be_summoned(infos.turn_player, FALSE, nullptr, 0))
 				core.summonable_cards.push_back(pcard);
 		for(auto& pcard : player[infos.turn_player].list_mzone) {
-			if(pcard && pcard->is_can_be_summoned(infos.turn_player, FALSE, 0, 0))
+			if(pcard && pcard->is_can_be_summoned(infos.turn_player, FALSE, nullptr, 0))
 				core.summonable_cards.push_back(pcard);
 		}
 		core.spsummonable_cards.clear();
@@ -1555,7 +1555,7 @@ bool field::process(Processors::IdleCommand& arg) {
 		core.msetable_cards.clear();
 		core.ssetable_cards.clear();
 		for(auto& pcard : player[infos.turn_player].list_hand) {
-			if(pcard->is_setable_mzone(infos.turn_player, FALSE, 0, 0))
+			if(pcard->is_setable_mzone(infos.turn_player, FALSE, nullptr, 0))
 				core.msetable_cards.push_back(pcard);
 			if(pcard->is_setable_szone(infos.turn_player))
 				core.ssetable_cards.push_back(pcard);
@@ -1581,9 +1581,9 @@ bool field::process(Processors::IdleCommand& arg) {
 			newchain->evt.event_code = peffect->code;
 			newchain->evt.event_player = PLAYER_NONE;
 			newchain->evt.event_value = 0;
-			newchain->evt.event_cards = 0;
+			newchain->evt.event_cards = nullptr;
 			newchain->evt.reason = 0;
-			newchain->evt.reason_effect = 0;
+			newchain->evt.reason_effect = nullptr;
 			newchain->evt.reason_player = PLAYER_NONE;
 			newchain->set_triggering_state(phandler);
 			newchain->triggering_player = infos.turn_player;
@@ -1656,7 +1656,7 @@ bool field::process(Processors::IdleCommand& arg) {
 	case 5: {
 		card* target = core.summonable_cards[returns.at<int32_t>(0) >> 16];
 		core.summon_cancelable = TRUE;
-		summon(infos.turn_player, target, 0, FALSE, 0);
+		summon(infos.turn_player, target, nullptr, FALSE, 0);
 		arg.step = -1;
 		return FALSE;
 	}
@@ -1671,12 +1671,12 @@ bool field::process(Processors::IdleCommand& arg) {
 		card* target = core.repositionable_cards[returns.at<int32_t>(0) >> 16];
 		if(target->is_position(POS_FACEUP_ATTACK)) {
 			core.phase_action = true;
-			change_position(target, 0, infos.turn_player, POS_FACEUP_DEFENSE, FALSE);
+			change_position(target, nullptr, infos.turn_player, POS_FACEUP_DEFENSE, FALSE);
 			adjust_all();
 			emplace_process<Processors::PointEvent>(false, false, false);
 		} else if(target->is_position(POS_FACEUP_DEFENSE)) {
 			core.phase_action = true;
-			change_position(target, 0, infos.turn_player, POS_FACEUP_ATTACK, FALSE);
+			change_position(target, nullptr, infos.turn_player, POS_FACEUP_ATTACK, FALSE);
 			adjust_all();
 			emplace_process<Processors::PointEvent>(false, false, false);
 		} else if(target->is_position(POS_FACEDOWN_ATTACK)) {
@@ -1698,7 +1698,7 @@ bool field::process(Processors::IdleCommand& arg) {
 	case 8: {
 		card* target = core.msetable_cards[returns.at<int32_t>(0) >> 16];
 		core.summon_cancelable = TRUE;
-		mset(target->current.controler, target, 0, FALSE, 0);
+		mset(target->current.controler, target, nullptr, FALSE, 0);
 		arg.step = -1;
 		return FALSE;
 	}
@@ -1749,7 +1749,7 @@ bool field::process(Processors::IdleCommand& arg) {
 			emplace_process<Processors::FlipSummon>(target->current.controler, target);
 		else {
 			core.phase_action = true;
-			change_position(target, 0, infos.turn_player, POS_FACEDOWN_DEFENSE, FALSE);
+			change_position(target, nullptr, infos.turn_player, POS_FACEDOWN_DEFENSE, FALSE);
 			adjust_all();
 			emplace_process<Processors::PointEvent>(false, false, false);
 		}
@@ -1767,16 +1767,16 @@ bool field::process(Processors::IdleCommand& arg) {
 bool field::process(Processors::BattleCommand& arg) {
 	switch(arg.step) {
 	case 0: {
-		effect* peffect = 0;
+		effect* peffect = nullptr;
 		core.select_chains.clear();
 		nil_event.event_code = EVENT_FREE_CHAIN;
 		if(!core.chain_attack) {
 			core.chain_attacker_id = 0;
-			core.chain_attack_target = 0;
+			core.chain_attack_target = nullptr;
 		}
 		core.attack_player = FALSE;
-		core.attacker = 0;
-		core.attack_target = 0;
+		core.attacker = nullptr;
+		core.attack_target = nullptr;
 		if((peffect = is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_BP)) != nullptr || core.force_turn_end) {
 			arg.step = 41;
 			arg.phase_to_change_to = 2;
@@ -1870,9 +1870,9 @@ bool field::process(Processors::BattleCommand& arg) {
 			newchain->evt.event_code = peffect->code;
 			newchain->evt.event_player = PLAYER_NONE;
 			newchain->evt.event_value = 0;
-			newchain->evt.event_cards = 0;
+			newchain->evt.event_cards = nullptr;
 			newchain->evt.reason = 0;
-			newchain->evt.reason_effect = 0;
+			newchain->evt.reason_effect = nullptr;
 			newchain->evt.reason_player = PLAYER_NONE;
 			newchain->set_triggering_state(phandler);
 			newchain->triggering_player = infos.turn_player;
@@ -2052,7 +2052,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			return FALSE;
 		}
 		if(returns.at<int32_t>(0) == -2)
-			core.attack_target = 0;
+			core.attack_target = nullptr;
 		else
 			core.attack_target = return_cards.list[0];
 		if(core.attack_target)
@@ -2084,8 +2084,8 @@ bool field::process(Processors::BattleCommand& arg) {
 		auto message = pduel->new_message(MSG_ATTACK);
 		message->write(core.attacker->get_info_location());
 		if(core.attack_target) {
-			raise_single_event(core.attack_target, 0, EVENT_BE_BATTLE_TARGET, 0, 0, 0, 1 - infos.turn_player, 0);
-			raise_event(core.attack_target, EVENT_BE_BATTLE_TARGET, 0, 0, 0, 1 - infos.turn_player, 0);
+			raise_single_event(core.attack_target, nullptr, EVENT_BE_BATTLE_TARGET, nullptr, 0, 0, 1 - infos.turn_player, 0);
+			raise_event(core.attack_target, EVENT_BE_BATTLE_TARGET, nullptr, 0, 0, 1 - infos.turn_player, 0);
 			message->write(core.attack_target->get_info_location());
 		} else {
 			message->write(loc_info{});
@@ -2097,8 +2097,8 @@ bool field::process(Processors::BattleCommand& arg) {
 				core.opp_mzone.insert(pcard->fieldid_r);
 		}
 		if(!arg.is_replaying_attack) {
-			raise_single_event(core.attacker, 0, EVENT_ATTACK_ANNOUNCE, 0, 0, 0, infos.turn_player, 0);
-			raise_event(core.attacker, EVENT_ATTACK_ANNOUNCE, 0, 0, 0, infos.turn_player, 0);
+			raise_single_event(core.attacker, nullptr, EVENT_ATTACK_ANNOUNCE, nullptr, 0, 0, infos.turn_player, 0);
+			raise_event(core.attacker, EVENT_ATTACK_ANNOUNCE, nullptr, 0, 0, infos.turn_player, 0);
 		}
 		core.attacker->attack_controler = core.attacker->current.controler;
 		core.pre_field[0] = core.attacker->fieldid_r;
@@ -2234,11 +2234,11 @@ bool field::process(Processors::BattleCommand& arg) {
 	case 20: {
 		// start of PHASE_DAMAGE;
 		(void)pduel->new_message(MSG_DAMAGE_STEP_START);
-		raise_single_event(core.attacker, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
+		raise_single_event(core.attacker, nullptr, EVENT_BATTLE_START, nullptr, 0, 0, 0, 0);
 		if(core.attack_target) {
-			raise_single_event(core.attack_target, 0, EVENT_BATTLE_START, 0, 0, 0, 0, 1);
+			raise_single_event(core.attack_target, nullptr, EVENT_BATTLE_START, nullptr, 0, 0, 0, 1);
 		}
-		raise_event((card*)0, EVENT_BATTLE_START, 0, 0, 0, 0, 0);
+		raise_event((card*)nullptr, EVENT_BATTLE_START, nullptr, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
 		arg.previous_point_event_had_any_trigger_to_resolve = false;
@@ -2267,19 +2267,19 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.attacker->temp.position = core.attacker->current.position;
 		core.attack_target->temp.position = core.attack_target->current.position;
 		if(core.attack_target->is_position(POS_FACEDOWN)) {
-			change_position(core.attack_target, 0, PLAYER_NONE, core.attack_target->current.position >> 1, 0, TRUE);
+			change_position(core.attack_target, nullptr, PLAYER_NONE, core.attack_target->current.position >> 1, 0, TRUE);
 			adjust_all();
 		}
 		return FALSE;
 	}
 	case 22: {
-		raise_single_event(core.attacker, 0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 0);
+		raise_single_event(core.attacker, nullptr, EVENT_BATTLE_CONFIRM, nullptr, 0, 0, 0, 0);
 		if(core.attack_target) {
 			if(core.attack_target->temp.position & POS_FACEDOWN)
 				core.pre_field[1] = core.attack_target->fieldid_r;
-			raise_single_event(core.attack_target, 0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 1);
+			raise_single_event(core.attack_target, nullptr, EVENT_BATTLE_CONFIRM, nullptr, 0, 0, 0, 1);
 		}
-		raise_event((card*)0, EVENT_BATTLE_CONFIRM, 0, 0, 0, 0, 0);
+		raise_event((card*)nullptr, EVENT_BATTLE_CONFIRM, nullptr, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
 		if(!is_flag(DUEL_6_STEP_BATLLE_STEP) || !arg.previous_point_event_had_any_trigger_to_resolve
@@ -2309,10 +2309,10 @@ bool field::process(Processors::BattleCommand& arg) {
 	case 24: {
 		// PHASE_DAMAGE_CAL;
 		calculate_battle_damage(nullptr, nullptr, nullptr);
-		raise_single_event(core.attacker, 0, EVENT_PRE_DAMAGE_CALCULATE, 0, 0, 0, 0, 0);
+		raise_single_event(core.attacker, nullptr, EVENT_PRE_DAMAGE_CALCULATE, nullptr, 0, 0, 0, 0);
 		if(core.attack_target)
-			raise_single_event(core.attack_target, 0, EVENT_PRE_DAMAGE_CALCULATE, 0, 0, 0, 0, 1);
-		raise_event((card*)0, EVENT_PRE_DAMAGE_CALCULATE, 0, 0, 0, 0, 0);
+			raise_single_event(core.attack_target, nullptr, EVENT_PRE_DAMAGE_CALCULATE, nullptr, 0, 0, 0, 1);
+		raise_event((card*)nullptr, EVENT_PRE_DAMAGE_CALCULATE, nullptr, 0, 0, 0, 0);
 		process_single_event();
 		process_instant_event();
 		auto message = pduel->new_message(MSG_HINT);
@@ -2403,16 +2403,16 @@ bool field::process(Processors::BattleCommand& arg) {
 			arg.reason_player = reason_card->current.controler;
 		if(!damchange) {
 			if(core.battle_damage[infos.turn_player]) {
-				raise_single_event(core.attacker, 0, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
+				raise_single_event(core.attacker, nullptr, EVENT_PRE_BATTLE_DAMAGE, nullptr, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
 				if(core.attack_target)
-					raise_single_event(core.attack_target, 0, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
-				raise_event(reason_card, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
+					raise_single_event(core.attack_target, nullptr, EVENT_PRE_BATTLE_DAMAGE, nullptr, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
+				raise_event(reason_card, EVENT_PRE_BATTLE_DAMAGE, nullptr, 0, reason_card->current.controler, infos.turn_player, core.battle_damage[infos.turn_player]);
 			}
 			if(core.battle_damage[1 - infos.turn_player]) {
-				raise_single_event(core.attacker, 0, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, 1 - infos.turn_player, core.battle_damage[1 - infos.turn_player]);
+				raise_single_event(core.attacker, nullptr, EVENT_PRE_BATTLE_DAMAGE, nullptr, 0, reason_card->current.controler, 1 - infos.turn_player, core.battle_damage[1 - infos.turn_player]);
 				if(core.attack_target)
-					raise_single_event(core.attack_target, 0, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, 1 - infos.turn_player, core.battle_damage[1 - infos.turn_player]);
-				raise_event(reason_card, EVENT_PRE_BATTLE_DAMAGE, 0, 0, reason_card->current.controler, 1 - infos.turn_player, core.battle_damage[1 - infos.turn_player]);
+					raise_single_event(core.attack_target, nullptr, EVENT_PRE_BATTLE_DAMAGE, nullptr, 0, reason_card->current.controler, 1 - infos.turn_player, core.battle_damage[1 - infos.turn_player]);
+				raise_event(reason_card, EVENT_PRE_BATTLE_DAMAGE, nullptr, 0, reason_card->current.controler, 1 - infos.turn_player, core.battle_damage[1 - infos.turn_player]);
 			}
 		}
 		process_single_event();
@@ -2431,9 +2431,9 @@ bool field::process(Processors::BattleCommand& arg) {
 		effect* damchange = std::exchange(arg.damage_change_effect, nullptr);
 		if(!damchange) {
 			if(core.battle_damage[0])
-				damage(0, REASON_BATTLE, arg.reason_player, reason_card, 0, core.battle_damage[0]);
+				damage(nullptr, REASON_BATTLE, arg.reason_player, reason_card, 0, core.battle_damage[0]);
 			if(core.battle_damage[1])
-				damage(0, REASON_BATTLE, arg.reason_player, reason_card, 1, core.battle_damage[1]);
+				damage(nullptr, REASON_BATTLE, arg.reason_player, reason_card, 1, core.battle_damage[1]);
 		} else {
 			if(core.battle_damage[0])
 				damage(damchange, REASON_EFFECT, arg.reason_player, reason_card, 0, core.battle_damage[0]);
@@ -2454,7 +2454,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			core.attacker->temp.reason_card = core.attacker->current.reason_card;
 			core.attacker->temp.reason_effect = core.attacker->current.reason_effect;
 			core.attacker->temp.reason_player = core.attacker->current.reason_player;
-			core.attacker->current.reason_effect = 0;
+			core.attacker->current.reason_effect = nullptr;
 			core.attacker->current.reason = REASON_BATTLE;
 			core.attacker->current.reason_card = core.attack_target;
 			core.attacker->current.reason_player = core.attack_target->current.controler;
@@ -2475,7 +2475,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			core.attack_target->temp.reason_card = core.attack_target->current.reason_card;
 			core.attack_target->temp.reason_effect = core.attack_target->current.reason_effect;
 			core.attack_target->temp.reason_player = core.attack_target->current.reason_player;
-			core.attack_target->current.reason_effect = 0;
+			core.attack_target->current.reason_effect = nullptr;
 			core.attack_target->current.reason = REASON_BATTLE;
 			core.attack_target->current.reason_card = core.attacker;
 			core.attack_target->current.reason_player = core.attacker->current.controler;
@@ -2505,7 +2505,7 @@ bool field::process(Processors::BattleCommand& arg) {
 	}
 	case 29: {
 		if(core.battle_destroy_rep.size())
-			destroy(core.battle_destroy_rep, 0, REASON_EFFECT | REASON_REPLACE, PLAYER_NONE);
+			destroy(core.battle_destroy_rep, nullptr, REASON_EFFECT | REASON_REPLACE, PLAYER_NONE);
 		if(core.desrep_chain.size())
 			emplace_process<Processors::OperationReplace>(Step{ 15 }, nullptr, nullptr, nullptr, false);
 		adjust_all();
@@ -2545,10 +2545,10 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.flip_delayed = false;
 		core.new_fchain.splice(core.new_fchain.begin(), core.new_fchain_b);
 		core.new_ochain.splice(core.new_ochain.begin(), core.new_ochain_b);
-		raise_single_event(core.attacker, 0, EVENT_BATTLED, 0, 0, PLAYER_NONE, 0, 0);
+		raise_single_event(core.attacker, nullptr, EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 0);
 		if(core.attack_target)
-			raise_single_event(core.attack_target, 0, EVENT_BATTLED, 0, 0, PLAYER_NONE, 0, 1);
-		raise_event((card*)0, EVENT_BATTLED, 0, 0, PLAYER_NONE, 0, 0);
+			raise_single_event(core.attack_target, nullptr, EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 1);
+		raise_event((card*)nullptr, EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 0);
 		process_single_event();
 		process_instant_event();
 		if(core.effect_damage_step) {
@@ -2600,29 +2600,29 @@ bool field::process(Processors::BattleCommand& arg) {
 		card_set ing;
 		card_set ed;
 		if(core.attacker->is_status(STATUS_BATTLE_DESTROYED) && (core.attacker->current.reason & REASON_BATTLE)) {
-			raise_single_event(core.attack_target, 0, EVENT_BATTLE_DESTROYING, 0, core.attacker->current.reason, core.attack_target->current.controler, 0, 1);
-			raise_single_event(core.attacker, 0, EVENT_BATTLE_DESTROYED, 0, core.attacker->current.reason, core.attack_target->current.controler, 0, 0);
-			raise_single_event(core.attacker, 0, EVENT_DESTROYED, 0, core.attacker->current.reason, core.attack_target->current.controler, 0, 0);
+			raise_single_event(core.attack_target, nullptr, EVENT_BATTLE_DESTROYING, nullptr, core.attacker->current.reason, core.attack_target->current.controler, 0, 1);
+			raise_single_event(core.attacker, nullptr, EVENT_BATTLE_DESTROYED, nullptr, core.attacker->current.reason, core.attack_target->current.controler, 0, 0);
+			raise_single_event(core.attacker, nullptr, EVENT_DESTROYED, nullptr, core.attacker->current.reason, core.attack_target->current.controler, 0, 0);
 			ing.insert(core.attack_target);
 			ed.insert(core.attacker);
 		}
 		if(core.attack_target && core.attack_target->is_status(STATUS_BATTLE_DESTROYED) && (core.attack_target->current.reason & REASON_BATTLE)) {
-			raise_single_event(core.attacker, 0, EVENT_BATTLE_DESTROYING, 0, core.attack_target->current.reason, core.attacker->current.controler, 0, 0);
-			raise_single_event(core.attack_target, 0, EVENT_BATTLE_DESTROYED, 0, core.attack_target->current.reason, core.attacker->current.controler, 0, 1);
-			raise_single_event(core.attack_target, 0, EVENT_DESTROYED, 0, core.attack_target->current.reason, core.attacker->current.controler, 0, 1);
+			raise_single_event(core.attacker, nullptr, EVENT_BATTLE_DESTROYING, nullptr, core.attack_target->current.reason, core.attacker->current.controler, 0, 0);
+			raise_single_event(core.attack_target, nullptr, EVENT_BATTLE_DESTROYED, nullptr, core.attack_target->current.reason, core.attacker->current.controler, 0, 1);
+			raise_single_event(core.attack_target, nullptr, EVENT_DESTROYED, nullptr, core.attack_target->current.reason, core.attacker->current.controler, 0, 1);
 			ing.insert(core.attacker);
 			ed.insert(core.attack_target);
 		}
 		if(ing.size())
-			raise_event(&ing, EVENT_BATTLE_DESTROYING, 0, 0, 0, 0, 0);
+			raise_event(&ing, EVENT_BATTLE_DESTROYING, nullptr, 0, 0, 0, 0);
 		if(ed.size()) {
-			raise_event(&ed, EVENT_BATTLE_DESTROYED, 0, 0, 0, 0, 0);
-			raise_event(&ed, EVENT_DESTROYED, 0, 0, 0, 0, 0);
+			raise_event(&ed, EVENT_BATTLE_DESTROYED, nullptr, 0, 0, 0, 0);
+			raise_event(&ed, EVENT_DESTROYED, nullptr, 0, 0, 0, 0);
 		}
-		raise_single_event(core.attacker, 0, EVENT_DAMAGE_STEP_END, 0, 0, 0, 0, 0);
+		raise_single_event(core.attacker, nullptr, EVENT_DAMAGE_STEP_END, nullptr, 0, 0, 0, 0);
 		if(core.attack_target)
-			raise_single_event(core.attack_target, 0, EVENT_DAMAGE_STEP_END, 0, 0, 0, 0, 1);
-		raise_event((card*)0, EVENT_DAMAGE_STEP_END, 0, 0, 0, 0, 0);
+			raise_single_event(core.attack_target, nullptr, EVENT_DAMAGE_STEP_END, nullptr, 0, 0, 0, 1);
+		raise_event((card*)nullptr, EVENT_DAMAGE_STEP_END, nullptr, 0, 0, 0, 0);
 		core.attacker->set_status(STATUS_BATTLE_DESTROYED, FALSE);
 		if(core.attack_target)
 			core.attack_target->set_status(STATUS_BATTLE_DESTROYED, FALSE);
@@ -2695,8 +2695,8 @@ bool field::process(Processors::BattleCommand& arg) {
 		return FALSE;
 	}
 	case 42: {
-		core.attacker = 0;
-		core.attack_target = 0;
+		core.attacker = nullptr;
+		core.attack_target = nullptr;
 		if(arg.repeat_battle_phase && arg.second_battle_phase_is_optional) {
 			emplace_process<Processors::SelectYesNo>(infos.turn_player, 32);
 			return FALSE;
@@ -2758,7 +2758,7 @@ bool field::process(Processors::ForcedBattle& arg) {
 		core.attack_cancelable = true;
 		core.attack_cost_paid = FALSE;
 		core.chain_attacker_id = 0;
-		core.chain_attack_target = 0;
+		core.chain_attack_target = nullptr;
 		returns.set<int32_t>(0, 1);
 		reset_phase(infos.phase);
 		reset_phase(PHASE_BATTLE_START);
@@ -2792,8 +2792,8 @@ bool field::process(Processors::ForcedBattle& arg) {
 				pcard->battled_cards.clear();
 			}
 		}
-		core.attacker = 0;
-		core.attack_target = 0;
+		core.attacker = nullptr;
+		core.attack_target = nullptr;
 		auto message = pduel->new_message(MSG_NEW_PHASE);
 		message->write<uint16_t>(infos.phase);
 		return TRUE;
@@ -2836,7 +2836,7 @@ bool field::process(Processors::DamageStep& arg) {
 		if(core.attack_target) {
 			core.pre_field[1] = core.attack_target->fieldid_r;
 			if(core.attack_target->is_position(POS_FACEDOWN)) {
-				change_position(core.attack_target, 0, PLAYER_NONE, core.attack_target->current.position >> 1, 0, TRUE);
+				change_position(core.attack_target, nullptr, PLAYER_NONE, core.attack_target->current.position >> 1, 0, TRUE);
 				adjust_all();
 			}
 		} else
@@ -2874,8 +2874,8 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, st
 	uint32_t da = 0, dd = 0, a = aa, d;
 	uint8_t pa = core.attacker->current.controler, pd;
 	uint8_t damp = 0;
-	effect* damchange = 0;
-	card* reason_card = 0;
+	effect* damchange = nullptr;
+	card* reason_card = nullptr;
 	std::array<bool, 2> bd{};
 	bool pierce = false;
 	core.battle_damage[0] = core.battle_damage[1] = 0;
@@ -3184,7 +3184,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, st
 			core.battle_damage[1 - damp] = 0;
 	}
 	if(!core.battle_damage[damp] && !core.battle_damage[1 - damp])
-		reason_card = 0;
+		reason_card = nullptr;
 	if(pdamchange)
 		*pdamchange = damchange;
 	if(preason_card)
@@ -3291,7 +3291,7 @@ bool field::process(Processors::Turn& arg) {
 		infos.phase = PHASE_DRAW;
 		core.phase_action = false;
 		core.hand_adjusted = false;
-		raise_event((card*)0, EVENT_PHASE_START + PHASE_DRAW, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PHASE_START + PHASE_DRAW, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
 		return FALSE;
@@ -3309,7 +3309,7 @@ bool field::process(Processors::Turn& arg) {
 		}
 		auto message = pduel->new_message(MSG_NEW_PHASE);
 		message->write<uint16_t>(infos.phase);
-		raise_event((card*)0, EVENT_PREDRAW, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PREDRAW, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_EVENT);
@@ -3329,7 +3329,7 @@ bool field::process(Processors::Turn& arg) {
 				count = std::max<int32_t>(static_cast<int32_t>(5 - player[turn_player].list_hand.size()), count);
 			}
 			if(count > 0) {
-				draw(0, REASON_RULE, turn_player, turn_player, count);
+				draw(nullptr, REASON_RULE, turn_player, turn_player, count);
 				emplace_process<Processors::PointEvent>(false, false, false);
 			}
 		}
@@ -3358,7 +3358,7 @@ bool field::process(Processors::Turn& arg) {
 		}
 		auto message = pduel->new_message(MSG_NEW_PHASE);
 		message->write<uint16_t>(infos.phase);
-		raise_event((card*)0, EVENT_PHASE_START + PHASE_STANDBY, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PHASE_START + PHASE_STANDBY, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		/*if(core.set_forced_attack)
 			emplace_process<Processors::ForcedBattle>();*/
@@ -3377,7 +3377,7 @@ bool field::process(Processors::Turn& arg) {
 		//Main1
 		infos.phase = PHASE_MAIN1;
 		core.phase_action = false;
-		raise_event((card*)0, EVENT_PHASE_START + PHASE_MAIN1, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PHASE_START + PHASE_MAIN1, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
 		/*if(core.set_forced_attack)
@@ -3424,7 +3424,7 @@ bool field::process(Processors::Turn& arg) {
 				emplace_process<Processors::ForcedBattle>();*/
 			return FALSE;
 		}
-		raise_event((card*)0, EVENT_PHASE_START + PHASE_BATTLE_START, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PHASE_START + PHASE_BATTLE_START, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
 		/*if(core.set_forced_attack)
@@ -3485,7 +3485,7 @@ bool field::process(Processors::Turn& arg) {
 		//Main2
 		infos.phase = PHASE_MAIN2;
 		core.phase_action = false;
-		raise_event((card*)0, EVENT_PHASE_START + PHASE_MAIN2, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PHASE_START + PHASE_MAIN2, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
 		/*if(core.set_forced_attack)
@@ -3524,7 +3524,7 @@ bool field::process(Processors::Turn& arg) {
 		}
 		auto message = pduel->new_message(MSG_NEW_PHASE);
 		message->write<uint16_t>(infos.phase);
-		raise_event((card*)0, EVENT_PHASE_START + PHASE_END, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_PHASE_START + PHASE_END, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
 		/*if(core.set_forced_attack)
@@ -3549,7 +3549,7 @@ bool field::process(Processors::Turn& arg) {
 		return FALSE;
 	}
 	case 19: {
-		raise_event((card*)0, EVENT_TURN_END, 0, 0, 0, turn_player, 0);
+		raise_event((card*)nullptr, EVENT_TURN_END, nullptr, 0, 0, turn_player, 0);
 		process_instant_event();
 		adjust_all();
 		/*if(core.set_forced_attack)
@@ -3603,7 +3603,7 @@ bool field::process(Processors::AddChain& arg) {
 		card* phandler = peffect->get_handler();
 		phandler->set_status(STATUS_ACT_FROM_HAND, phandler->current.location == LOCATION_HAND);
 		if(phandler->current.location == LOCATION_SZONE) {
-			change_position(phandler, 0, phandler->current.controler, POS_FACEUP, 0);
+			change_position(phandler, nullptr, phandler->current.controler, POS_FACEUP, 0);
 		} else {
 			uint32_t zone = 0xff;
 			if(!(phandler->data.type & (TYPE_FIELD | TYPE_PENDULUM)) && peffect->is_flag(EFFECT_FLAG_LIMIT_ZONE)) {
@@ -3663,10 +3663,10 @@ bool field::process(Processors::AddChain& arg) {
 			peffect->set_active_type();
 		peffect->active_handler = peffect->handler->overlay_target;
 		clit.chain_count = static_cast<uint8_t>(core.current_chain.size()) + 1;
-		clit.target_cards = 0;
+		clit.target_cards = nullptr;
 		clit.target_player = PLAYER_NONE;
 		clit.target_param = 0;
-		clit.disable_reason = 0;
+		clit.disable_reason = nullptr;
 		clit.disable_player = PLAYER_NONE;
 		clit.replace_op = 0;
 		if(phandler->current.location == LOCATION_HAND)
@@ -3778,7 +3778,7 @@ bool field::process(Processors::AddChain& arg) {
 		if(clit.target_cards && clit.target_cards->container.size()) {
 			if(peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
 				for(auto& pcard : clit.target_cards->container)
-					raise_single_event(pcard, 0, EVENT_BECOME_TARGET, peffect, 0, clit.triggering_player, 0, clit.chain_count);
+					raise_single_event(pcard, nullptr, EVENT_BECOME_TARGET, peffect, 0, clit.triggering_player, 0, clit.chain_count);
 				process_single_event();
 				if(clit.target_cards->container.size())
 					raise_event(&clit.target_cards->container, EVENT_BECOME_TARGET, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
@@ -3948,11 +3948,11 @@ void field::solve_continuous(uint8_t playerid, effect* peffect, const tevent& e)
 	newchain.triggering_effect = peffect;
 	newchain.triggering_player = playerid;
 	newchain.evt = e;
-	newchain.target_cards = 0;
+	newchain.target_cards = nullptr;
 	newchain.target_player = PLAYER_NONE;
 	newchain.target_param = 0;
 	newchain.disable_player = PLAYER_NONE;
-	newchain.disable_reason = 0;
+	newchain.disable_reason = nullptr;
 	newchain.flag = 0;
 	emplace_process<Processors::SolveContinuous>();
 }
@@ -4065,7 +4065,7 @@ bool field::process(Processors::SolveChain& arg) {
 		message->write<uint8_t>(cait->chain_count);
 		add_to_disable_check_list(cait->triggering_effect->get_handler());
 		adjust_instant();
-		raise_event((card*)0, EVENT_CHAIN_ACTIVATING, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
+		raise_event((card*)nullptr, EVENT_CHAIN_ACTIVATING, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 		process_instant_event();
 		return FALSE;
 	}
@@ -4083,7 +4083,7 @@ bool field::process(Processors::SolveChain& arg) {
 			}
 			core.new_fchain.remove_if([chaincount = cait->chain_count](const chain& ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
 			core.new_ochain.remove_if([chaincount = cait->chain_count](const chain& ch) { return ch.evt.event_code == EVENT_CHAINING && ch.evt.event_value == chaincount; });
-			raise_event((card*)0, EVENT_CHAIN_NEGATED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
+			raise_event((card*)nullptr, EVENT_CHAIN_NEGATED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 			process_instant_event();
 			arg.step = 9;
 			return FALSE;
@@ -4095,7 +4095,7 @@ bool field::process(Processors::SolveChain& arg) {
 		release_oath_relation(peffect);
 		break_effect();
 		core.chain_solving = true;
-		raise_event((card*)0, EVENT_CHAIN_SOLVING, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
+		raise_event((card*)nullptr, EVENT_CHAIN_SOLVING, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 		process_instant_event();
 		return FALSE;
 	}
@@ -4127,7 +4127,7 @@ bool field::process(Processors::SolveChain& arg) {
 					auto message = pduel->new_message(MSG_CHAIN_DISABLED);
 					message->write<uint8_t>(cait->chain_count);
 				}
-				raise_event((card*)0, EVENT_CHAIN_DISABLED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
+				raise_event((card*)nullptr, EVENT_CHAIN_DISABLED, peffect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 				process_instant_event();
 				arg.step = 3;
 				return FALSE;
@@ -4220,7 +4220,7 @@ bool field::process(Processors::SolveChain& arg) {
 			emplace_process<Processors::SolveContinuous>();
 		} else
 			core.conti_player = PLAYER_NONE;
-		raise_event((card*)0, EVENT_CHAIN_SOLVED, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
+		raise_event((card*)nullptr, EVENT_CHAIN_SOLVED, cait->triggering_effect, 0, cait->triggering_player, cait->triggering_player, cait->chain_count);
 		adjust_disable_check_list();
 		process_instant_event();
 		arg.step = 9;
@@ -4247,11 +4247,11 @@ bool field::process(Processors::SolveChain& arg) {
 					&& !pcard->is_status(STATUS_LEAVE_CONFIRMED) && pcard->is_has_relation(*cait)) {
 				card* fscard = player[1 - pcard->current.controler].list_szone[5];
 				if(fscard && fscard->is_position(POS_FACEUP))
-					destroy(fscard, 0, REASON_RULE, 1 - pcard->current.controler);
+					destroy(fscard, nullptr, REASON_RULE, 1 - pcard->current.controler);
 			}
 		}
 		peffect->active_type = 0;
-		peffect->active_handler = 0;
+		peffect->active_handler = nullptr;
 		pcard->release_relation(*cait);
 		if(cait->target_cards)
 			pduel->delete_group(cait->target_cards);
@@ -4288,7 +4288,7 @@ bool field::process(Processors::SolveChain& arg) {
 				core.leave_confirmed.erase(rm);
 		}
 		if(core.leave_confirmed.size())
-			send_to(core.leave_confirmed, 0, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
+			send_to(core.leave_confirmed, nullptr, REASON_RULE, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		return FALSE;
 	}
 	case 12: {
@@ -4303,7 +4303,7 @@ bool field::process(Processors::SolveChain& arg) {
 	}
 	case 13: {
 		core.just_sent_cards.clear();
-		raise_event((card*)0, EVENT_CHAIN_END, 0, 0, 0, 0, 0);
+		raise_event((card*)nullptr, EVENT_CHAIN_END, nullptr, 0, 0, 0, 0);
 		process_instant_event();
 		adjust_all();
 		if(!arg.skip_trigger || !(arg.skip_freechain || arg.skip_new) || !arg.skip_new) {
@@ -4738,12 +4738,12 @@ bool field::process(Processors::Adjust& arg) {
 		}
 		if(core.control_adjust_set[0].size() || core.control_adjust_set[1].size()) {
 			core.re_adjust = true;
-			get_control(core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
-			get_control(core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
+			get_control(core.control_adjust_set[1 - infos.turn_player], nullptr, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
+			get_control(core.control_adjust_set[infos.turn_player], nullptr, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
 			for(auto& rcard : reason_cards) {
 				++core.readjust_map[rcard];
 				if(core.readjust_map[rcard] > 3)
-					destroy(rcard, 0, REASON_RULE, PLAYER_NONE);
+					destroy(rcard, nullptr, REASON_RULE, PLAYER_NONE);
 			}
 		}
 		core.last_control_changed_id = infos.field_id;
@@ -4776,8 +4776,8 @@ bool field::process(Processors::Adjust& arg) {
 			}
 			if(core.control_adjust_set[0].size() || core.control_adjust_set[1].size()) {
 				core.re_adjust = true;
-				get_control(core.control_adjust_set[1 - infos.turn_player], 0, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
-				get_control(core.control_adjust_set[infos.turn_player], 0, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
+				get_control(core.control_adjust_set[1 - infos.turn_player], nullptr, PLAYER_NONE, infos.turn_player, 0, 0, 0xff);
+				get_control(core.control_adjust_set[infos.turn_player], nullptr, PLAYER_NONE, 1 - infos.turn_player, 0, 0, 0xff);
 			}
 		}
 		arg.step = 7;
@@ -4811,7 +4811,7 @@ bool field::process(Processors::Adjust& arg) {
 		}
 		if(destroy_set.size()) {
 			core.re_adjust = true;
-			destroy(std::move(destroy_set), 0, REASON_RULE, PLAYER_NONE);
+			destroy(std::move(destroy_set), nullptr, REASON_RULE, PLAYER_NONE);
 		}
 		return FALSE;
 	}
@@ -4940,7 +4940,7 @@ bool field::process(Processors::Adjust& arg) {
 		return FALSE;
 	}
 	case 15: {
-		raise_event((card*)0, EVENT_ADJUST, 0, 0, PLAYER_NONE, PLAYER_NONE, 0);
+		raise_event((card*)nullptr, EVENT_ADJUST, nullptr, 0, PLAYER_NONE, PLAYER_NONE, 0);
 		process_instant_event();
 		return FALSE;
 	}
@@ -4970,7 +4970,7 @@ bool field::process(Processors::Startup& arg) {
 		core.shuffle_hand_check[1] = false;
 		core.shuffle_deck_check[0] = false;
 		core.shuffle_deck_check[1] = false;
-		raise_event((card*)0, EVENT_STARTUP, 0, 0, 0, 0, 0);
+		raise_event((card*)nullptr, EVENT_STARTUP, nullptr, 0, 0, 0, 0);
 		process_instant_event();
 		return FALSE;
 	}
@@ -4979,7 +4979,7 @@ bool field::process(Processors::Startup& arg) {
 			core.shuffle_hand_check[p] = false;
 			core.shuffle_deck_check[p] = false;
 			if(player[p].start_count > 0)
-				draw(0, REASON_RULE, PLAYER_NONE, p, player[p].start_count);
+				draw(nullptr, REASON_RULE, PLAYER_NONE, p, player[p].start_count);
 			auto list_size = player[p].extra_lists_main.size();
 			for(size_t l = 0; l < list_size; l++) {
 				auto& main = player[p].extra_lists_main[l];
