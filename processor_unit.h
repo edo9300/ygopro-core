@@ -10,6 +10,7 @@
 #include <memory> //std::unique_ptr
 #include <type_traits> //std::false_type, std::true_type
 #include <variant>
+#include "common.h"
 #include "containers_fwd.h"
 
 namespace P {
