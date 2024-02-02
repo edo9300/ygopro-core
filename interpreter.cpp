@@ -527,7 +527,7 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 	if(result == LUA_YIELD)
 		return COROUTINE_YIELD;
 	if(result != LUA_OK) {
-		print_stacktrace(current_state);
+		print_stacktrace(rthread);
 		pduel->handle_message(lua_get_string_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
 	} else if(yield_value) {
 		if(nresults == 0)
