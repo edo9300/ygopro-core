@@ -1973,7 +1973,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.attack_player = FALSE;
 		core.select_cards.clear();
 		return_cards.clear();
-		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
+		get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
 		// direct attack
 		if(core.attacker->direct_attackable) {
 			if(core.select_cards.size() == 0) {
@@ -1993,8 +1993,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			arg.step = 6;
 			return FALSE;
 		}
-		// must attack monster
-		if(atype == 3 || is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS)) {
+		if(is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS)) {
 			if(core.select_cards.size() == 1)
 				return_cards.list.push_back(core.select_cards.front());
 			else {
