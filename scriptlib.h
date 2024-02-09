@@ -28,16 +28,7 @@ namespace scriptlib {
 	}
 	int32_t is_deleted_object(lua_State* L);
 
-	template<typename... Args>
-	[[noreturn]] ForceInline void lua_error(Args... args) {
-		// std::forward is not used as visual studio 17+ isn't able to optimize
-		// it out even with the highest optimization level, the passed parameters are always
-		// integers/pointers so there's no loss in passing them by value.
-		// __forceinline is used as otherwise clang wouldn't be able to inline this function
-		// but we do want it to be inlined
-		luaL_error(args...);
-		unreachable();
-	}
+#define lua_error(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
 
 	inline void check_param_count(lua_State* L, int32_t count) {
 		if(lua_gettop(L) < count)
