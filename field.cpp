@@ -2381,7 +2381,7 @@ int32_t field::effect_replace_check(uint32_t code, const tevent& e) {
 	}
 	return FALSE;
 }
-int32_t field::get_attack_target(card* pcard, card_vector* v, bool chain_attack, bool select_target) {
+int32_t field::get_attack_target(card* pcard, card_vector* v, bool chain_attack, bool select_target, std::multimap<effect*, card*>* must_attack_map) {
 	pcard->direct_attackable = 0;
 	uint8_t p = pcard->current.controler;
 	card_vector auto_attack, only_attack, must_attack, attack_tg;
@@ -2391,8 +2391,11 @@ int32_t field::get_attack_target(card* pcard, card_vector* v, bool chain_attack,
 				auto_attack.push_back(atarget);
 			if(pcard->is_affected_by_effect(EFFECT_ONLY_ATTACK_MONSTER, atarget))
 				only_attack.push_back(atarget);
-			if(pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER, atarget))
+			if(auto* peffect = pcard->is_affected_by_effect(EFFECT_MUST_ATTACK_MONSTER, atarget); peffect) {
 				must_attack.push_back(atarget);
+				if(must_attack_map)
+					must_attack_map->emplace(peffect, atarget);
+			}
 		}
 	}
 	card_vector* pv = nullptr;

@@ -7,6 +7,7 @@
 #define PROCESSOR_UNIT_H_
 
 #include <cstdint>
+#include <map> //std::multimap
 #include <memory> //std::unique_ptr
 #include <type_traits> //std::false_type, std::true_type
 #include <variant>
@@ -235,6 +236,7 @@ struct BattleCommand : public Process<false> {
 	effect* damage_change_effect;
 	group* cards_destroyed_by_battle;
 	card* reason_card;
+	std::multimap<effect*, card*> must_attack_map;
 	BattleCommand(uint16_t step_, group* cards_destroyed_by_battle_ = nullptr) :
 		Process(step_), phase_to_change_to(0), is_replaying_attack(false), attack_announce_failed(false),
 		repeat_battle_phase(false), second_battle_phase_is_optional(false),

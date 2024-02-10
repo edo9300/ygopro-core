@@ -515,7 +515,7 @@ public:
 
 	uint32_t get_field_counter(uint8_t playerid, uint8_t self, uint8_t oppo, uint16_t countertype);
 	int32_t effect_replace_check(uint32_t code, const tevent& e);
-	int32_t get_attack_target(card* pcard, card_vector* v, bool chain_attack = false, bool select_target = true);
+	int32_t get_attack_target(card* pcard, card_vector* v, bool chain_attack = false, bool select_target = true, std::multimap<effect*, card*>* must_attack_map = nullptr);
 	bool confirm_attack_target();
 	void attack_all_target_check();
 	int32_t check_tribute(card* pcard, int32_t min, int32_t max, group* mg, uint8_t toplayer, uint32_t zone = 0x1f, uint32_t releasable = 0xff00ff, uint32_t pos = 0x1);

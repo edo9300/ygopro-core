@@ -1973,7 +1973,8 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.attack_player = FALSE;
 		core.select_cards.clear();
 		return_cards.clear();
-		get_attack_target(core.attacker, &core.select_cards, core.chain_attack);
+		arg.must_attack_map.clear();
+		auto atype = get_attack_target(core.attacker, &core.select_cards, core.chain_attack, true, &arg.must_attack_map);
 		// direct attack
 		if(core.attacker->direct_attackable) {
 			if(core.select_cards.size() == 0) {
@@ -1993,7 +1994,15 @@ bool field::process(Processors::BattleCommand& arg) {
 			arg.step = 6;
 			return FALSE;
 		}
-		if(is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS)) {
+		auto differentMustAttackMonsterEffects = [&] {
+			size_t count = 0;
+			const auto& must = arg.must_attack_map;
+			for(auto it = must.begin(), end = must.end(); it != end; it = must.upper_bound(it->first))
+				++count;
+			return count;
+		}();
+
+		if((atype == 3 && differentMustAttackMonsterEffects != 1) || is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS)) {
 			if(core.select_cards.size() == 1)
 				return_cards.list.push_back(core.select_cards.front());
 			else {
@@ -2005,13 +2014,17 @@ bool field::process(Processors::BattleCommand& arg) {
 				message->write<uint8_t>(1 - infos.turn_player);
 				message->write<uint64_t>(549);
 				emplace_process<Processors::SelectCard>(1 - infos.turn_player, false, 1, 1);
+				if(atype == 3 && arg.must_attack_map.size() != differentMustAttackMonsterEffects) {
+					arg.step = 15;
+					return FALSE;
+				}
 			}
 		} else {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_SELECTMSG);
 			message->write<uint8_t>(infos.turn_player);
 			message->write<uint64_t>(549);
-			emplace_process<Processors::SelectCard>(infos.turn_player, static_cast<bool>(core.attack_cancelable), 1, 1);
+			emplace_process<Processors::SelectCard>(infos.turn_player, core.attack_cancelable, 1, 1);
 		}
 		arg.step = 5;
 		return FALSE;
@@ -2208,6 +2221,32 @@ bool field::process(Processors::BattleCommand& arg) {
 		adjust_instant();
 		emplace_process<Processors::PointEvent>(false, false, false);
 		arg.step = -1;
+		return FALSE;
+	}
+	// EFFECT_MUST_ATTACK_MONSTER where an effect affects more than 1 monster
+	case 16: {
+		auto selected_card = return_cards.list.front();
+		const auto range = arg.must_attack_map.equal_range(
+			std::find_if(arg.must_attack_map.begin(), arg.must_attack_map.end(),
+						[selected_card](const auto& must_pair) {
+							return must_pair.second == selected_card;
+						})->first);
+		if(std::distance(range.first, range.second) < 2) {
+			core.attack_target = selected_card;
+			core.pre_field[1] = core.attack_target->fieldid_r;
+			arg.step = 5;
+			return FALSE;
+		}
+		core.select_cards.clear();
+		std::transform(range.first, range.second, std::back_inserter(core.select_cards), [](const auto& pair) {
+			return pair.second;
+		});
+		auto message = pduel->new_message(MSG_HINT);
+		message->write<uint8_t>(HINT_SELECTMSG);
+		message->write<uint8_t>(infos.turn_player);
+		message->write<uint64_t>(549);
+		emplace_process<Processors::SelectCard>(infos.turn_player, core.attack_cancelable, 1, 1);
+		arg.step = 5;
 		return FALSE;
 	}
 	case 19: {
