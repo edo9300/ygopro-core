@@ -15,6 +15,7 @@
 #include "containers_fwd.h"
 
 namespace P {
+inline constexpr auto restart = static_cast<uint16_t>(~(uint16_t()));
 template<bool NA>
 struct Process {
 	static constexpr auto needs_answer = NA;
@@ -22,7 +23,7 @@ struct Process {
 	Process& operator=(const Process&) = delete; // non copyable
 	Process(Process&&) = default; // construction-movable
 	Process& operator=(Process&&) = default; // movable
-	int16_t step;
+	uint16_t step;
 protected:
 	explicit Process(uint16_t step_) : step(step_) {}
 };

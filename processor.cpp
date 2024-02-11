@@ -464,7 +464,7 @@ bool field::process(Processors::PhaseEvent& arg) {
 			else {
 				arg.priority_passed = true;
 				arg.is_opponent = !arg.is_opponent;
-				arg.step = -1;
+				arg.step = Processors::restart;
 			}
 			return FALSE;
 		}
@@ -513,13 +513,13 @@ bool field::process(Processors::PhaseEvent& arg) {
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 		emplace_process<Processors::SolveChain>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 4: {
 		adjust_instant();
 		emplace_process<Processors::PointEvent>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 20: {
@@ -556,7 +556,7 @@ bool field::process(Processors::PhaseEvent& arg) {
 	case 22: {
 		core.hand_adjusted = true;
 		emplace_process<Processors::PointEvent>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		arg.is_opponent = false;
 		arg.priority_passed = false;
 		return FALSE;
@@ -897,12 +897,12 @@ bool field::process(Processors::PointEvent& arg) {
 		if(!core.select_chains.empty())
 			emplace_process<Processors::SelectChain>(check_player, core.spe_effect[check_player], false);
 		else
-			arg.step = -1;
+			arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 33: {
 		if(returns.at<int32_t>(0) == -1) {
-			arg.step = -1;
+			arg.step = Processors::restart;
 			return FALSE;
 		}
 		auto newchain = std::next(core.select_chains.begin(), returns.at<int32_t>(0));
@@ -953,7 +953,7 @@ bool field::process(Processors::QuickEffect& arg) {
 		if(returns.at<int32_t>(0) == -1) {
 			if(core.quick_f_chain.size()) {
 				arg.is_opponent = true;
-				arg.step = -1;
+				arg.step = Processors::restart;
 			} else if(core.new_chains.size()) {
 				emplace_process<Processors::AddChain>();
 				emplace_process<Processors::QuickEffect>(false, 1 - core.new_chains.back().triggering_player);
@@ -974,7 +974,7 @@ bool field::process(Processors::QuickEffect& arg) {
 		peffect->dec_count(tp);
 		core.new_chains.splice(core.new_chains.end(), core.select_chains, newchain);
 		core.quick_f_chain.erase(peffect);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 2: {
@@ -1433,7 +1433,7 @@ bool field::process(Processors::IdleCommand& arg) {
 		nil_event.event_code = EVENT_FREE_CHAIN;
 		if(core.set_forced_attack) {
 			core.set_forced_attack = false;
-			arg.step = -1;
+			arg.step = Processors::restart;
 			emplace_process<Processors::ForcedBattle>();
 			return FALSE;
 		}
@@ -1613,7 +1613,7 @@ bool field::process(Processors::IdleCommand& arg) {
 			arg.step = 8;
 			return FALSE;
 		} else if (ctype == 8) {
-			arg.step = -1;
+			arg.step = Processors::restart;
 			shuffle(infos.turn_player, LOCATION_HAND);
 			infos.can_shuffle = false;
 			return FALSE;
@@ -1644,27 +1644,27 @@ bool field::process(Processors::IdleCommand& arg) {
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 		emplace_process<Processors::SolveChain>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 3: {
 		adjust_instant();
 		emplace_process<Processors::PointEvent>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 5: {
 		card* target = core.summonable_cards[returns.at<int32_t>(0) >> 16];
 		core.summon_cancelable = TRUE;
 		summon(infos.turn_player, target, nullptr, FALSE, 0);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 6: {
 		card* target = core.spsummonable_cards[returns.at<int32_t>(0) >> 16];
 		core.summon_cancelable = TRUE;
 		special_summon_rule(infos.turn_player, target, 0);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 7: {
@@ -1692,20 +1692,20 @@ bool field::process(Processors::IdleCommand& arg) {
 		} else
 			emplace_process<Processors::FlipSummon>(target->current.controler, target);
 		target->set_status(STATUS_FORM_CHANGED, TRUE);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 8: {
 		card* target = core.msetable_cards[returns.at<int32_t>(0) >> 16];
 		core.summon_cancelable = TRUE;
 		mset(target->current.controler, target, nullptr, FALSE, 0);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 9: {
 		card* target = core.ssetable_cards[returns.at<int32_t>(0) >> 16];
 		emplace_process<Processors::SpellSet>(target->current.controler, target->current.controler, target, nullptr);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 10: {
@@ -1717,7 +1717,7 @@ bool field::process(Processors::IdleCommand& arg) {
 			for(auto& ch : core.current_chain)
 				ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 			emplace_process<Processors::SolveChain>(false, false, false);
-			arg.step = -1;
+			arg.step = Processors::restart;
 			return FALSE;
 		}
 		reset_phase(infos.phase);
@@ -1754,7 +1754,7 @@ bool field::process(Processors::IdleCommand& arg) {
 			emplace_process<Processors::PointEvent>(false, false, false);
 		}
 		target->set_status(STATUS_FORM_CHANGED, TRUE);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	}
@@ -1945,7 +1945,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 		emplace_process<Processors::SolveChain>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 3: {
@@ -1961,7 +1961,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				returns.set<int32_t>(0, 2);
 				arg.step = 0;
 			} else
-				arg.step = -1;
+				arg.step = Processors::restart;
 			return FALSE;
 		}
 		if(core.forced_attack)
@@ -2060,7 +2060,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				returns.set<int32_t>(0, 2);
 				arg.step = 0;
 			} else
-				arg.step = -1;
+				arg.step = Processors::restart;
 			return FALSE;
 		}
 		if(returns.at<int32_t>(0) == -2)
@@ -2087,7 +2087,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				returns.set<int32_t>(0, 2);
 				arg.step = 0;
 			} else
-				arg.step = -1;
+				arg.step = Processors::restart;
 		}
 		return FALSE;
 	}
@@ -2202,7 +2202,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			returns.set<int32_t>(0, 2);
 			arg.step = 0;
 		} else
-			arg.step = -1;
+			arg.step = Processors::restart;
 		reset_phase(PHASE_DAMAGE);
 		adjust_all();
 		return FALSE;
@@ -2220,7 +2220,7 @@ bool field::process(Processors::BattleCommand& arg) {
 	case 15: {
 		adjust_instant();
 		emplace_process<Processors::PointEvent>(false, false, false);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	// EFFECT_MUST_ATTACK_MONSTER where an effect affects more than 1 monster
@@ -2690,7 +2690,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			returns.set<int32_t>(0, 2);
 			arg.step = 0;
 		} else
-			arg.step = -1;
+			arg.step = Processors::restart;
 		infos.phase = PHASE_BATTLE_STEP;
 		pduel->new_message(MSG_DAMAGE_STEP_END);
 		reset_phase(PHASE_DAMAGE);
@@ -2708,7 +2708,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 			emplace_process<Processors::SolveChain>(false, false, false);
 			if(!core.forced_attack)
-				arg.step = -1;
+				arg.step = Processors::restart;
 			return FALSE;
 		}
 		reset_phase(PHASE_BATTLE_STEP);
@@ -3599,7 +3599,7 @@ bool field::process(Processors::Turn& arg) {
 		core.new_ochain.clear();
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
-		arg.step = -1;
+		arg.step = Processors::restart;
 		arg.turn_player = 1 - arg.turn_player;
 		return FALSE;
 	}
@@ -4316,7 +4316,7 @@ bool field::process(Processors::SolveChain& arg) {
 			core.subunits.push_back(*std::exchange(core.reserved, std::nullopt));
 		core.summoning_card = nullptr;
 		core.summoning_proc_group_type = 0;
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 11: {
@@ -4984,7 +4984,7 @@ bool field::process(Processors::Adjust& arg) {
 	}
 	case 16: {
 		if(core.re_adjust) {
-			arg.step = -1;
+			arg.step = Processors::restart;
 			return FALSE;
 		}
 		if(core.shuffle_hand_check[0])

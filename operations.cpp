@@ -1560,7 +1560,7 @@ bool field::process(Processors::SelfDestroy& arg) {
 			destroy(pcard, nullptr, REASON_EFFECT, PLAYER_SELFDES);
 		}
 		core.self_destroy_set.erase(it);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 1: {
@@ -1587,7 +1587,7 @@ bool field::process(Processors::SelfToGrave& arg) {
 			send_to(pcard, nullptr, REASON_EFFECT, PLAYER_NONE, PLAYER_NONE, LOCATION_GRAVE, 0, POS_FACEUP);
 		}
 		core.self_tograve_set.erase(it);
-		arg.step = -1;
+		arg.step = Processors::restart;
 		return FALSE;
 	}
 	case 1: {
