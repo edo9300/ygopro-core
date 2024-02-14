@@ -4,7 +4,7 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include <algorithm> //std::sort
+#include <algorithm> //std::sort, std::min
 #include <cstring> //std::memcpy
 #include <utility> //std::pair, std::make_pair, std::swap
 #include <set>
@@ -2302,7 +2302,7 @@ int32_t card::destination_redirect(uint8_t destination, uint32_t /*reason*/) {
 }
 // cmit->second[0]: permanent
 // cmit->second[1]: reset while negated
-int32_t card::add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t singly) {
+int32_t card::add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, bool singly) {
 	if(!is_can_add_counter(playerid, countertype, count, singly, 0))
 		return FALSE;
 	uint16_t cttype = countertype & ~COUNTER_NEED_ENABLE;
@@ -2315,12 +2315,12 @@ int32_t card::add_counter(uint8_t playerid, uint16_t countertype, uint16_t count
 	uint16_t pcount = count;
 	if(singly) {
 		effect_set eset;
-		uint16_t limit = 0;
+		auto limit = UINT16_MAX + 1;
 		filter_effect(EFFECT_COUNTER_LIMIT + cttype, &eset);
 		for(const auto& peffect : eset)
-			limit = peffect->get_value();
-		if(limit) {
-			uint16_t mcount = limit - get_counter(cttype);
+			limit = std::min<int>(static_cast<uint16_t>(peffect->get_value()), limit);
+		if(limit != (UINT16_MAX + 1)) {
+			uint16_t mcount = static_cast<uint16_t>(limit) - get_counter(cttype);
 			if(pcount > mcount)
 				pcount = mcount;
 		}
@@ -2361,7 +2361,7 @@ int32_t card::remove_counter(uint16_t countertype, uint16_t count) {
 	message->write<uint16_t>(count);
 	return TRUE;
 }
-int32_t card::is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t singly, uint32_t loc) {
+int32_t card::is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, bool singly, uint32_t loc) {
 	effect_set eset;
 	if(count > 0) {
 		if(!pduel->game_field->is_player_can_place_counter(playerid, this, countertype, count))
@@ -2396,15 +2396,17 @@ int32_t card::is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_
 	if(!check)
 		return FALSE;
 	uint16_t cttype = countertype & ~COUNTER_NEED_ENABLE;
-	int32_t limit = -1;
+	auto limit = UINT16_MAX + 1;
 	int32_t cur = 0;
 	auto cmit = counters.find(cttype);
 	if(cmit != counters.end())
 		cur = cmit->second[0] + cmit->second[1];
 	filter_effect(EFFECT_COUNTER_LIMIT + cttype, &eset);
 	for(const auto& peffect : eset)
-		limit = peffect->get_value();
-	if(limit > 0 && (cur + (singly ? 1 : count) > limit))
+		limit = std::min<int>(static_cast<uint16_t>(peffect->get_value()), limit);
+	if(singly)
+		count = 1;
+	if((limit != (UINT16_MAX + 1)) && (cur + count > limit))
 		return FALSE;
 	return TRUE;
 }

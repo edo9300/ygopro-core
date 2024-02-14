@@ -281,9 +281,9 @@ public:
 	void release_relation(effect* peffect);
 	int32_t leave_field_redirect(uint32_t reason);
 	int32_t destination_redirect(uint8_t destination, uint32_t reason);
-	int32_t add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t singly);
+	int32_t add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, bool singly);
 	int32_t remove_counter(uint16_t countertype, uint16_t count);
-	int32_t is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, uint8_t singly, uint32_t loc);
+	int32_t is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_t count, bool singly, uint32_t loc);
 	int32_t get_counter(uint16_t countertype);
 	void set_material(card_set materials);
 	void add_card_target(card* pcard);
