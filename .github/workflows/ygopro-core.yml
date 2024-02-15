@@ -20,7 +20,7 @@ jobs:
       run: |
         echo "VCPKG_CACHE_ZIP_URL=$DEPENDENCIES_BASE_URL/installed_x86-windows-static.zip" >> $GITHUB_ENV
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1
+      uses: microsoft/setup-msbuild@v2
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
@@ -256,7 +256,7 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: osx
         path: ocgcore/libocgcore.dylib
@@ -310,7 +310,7 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: osx-cctools
         path: ocgcore/libocgcore.dylib
@@ -358,7 +358,7 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: osx-aarch64
         path: ocgcore/libocgcore.dylib
@@ -412,7 +412,7 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: osx-aarch64-cctools
         path: ocgcore/libocgcore.dylib
@@ -441,7 +441,7 @@ jobs:
         fetch-depth: 1
         submodules: true
     - name: Download osx artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     - name: Merge binaries
       shell: bash
       run: |
@@ -489,7 +489,7 @@ jobs:
         wget https://github.com/edo9300/cctools-build/releases/download/preview/lipo
         chmod +x lipo
     - name: Download osx artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     - name: Merge binaries
       shell: bash
       run: |
