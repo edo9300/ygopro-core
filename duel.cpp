@@ -125,7 +125,6 @@ void duel::clear_buffer() {
 	buff.clear();
 }
 void duel::set_response(const void* resp, size_t len) {
-	game_field->returns.clear();
 	game_field->returns.data.resize(len);
 	if(len)
 		std::memcpy(game_field->returns.data.data(), resp, len);
