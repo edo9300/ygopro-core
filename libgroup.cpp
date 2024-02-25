@@ -43,13 +43,11 @@ LUA_STATIC_FUNCTION(CreateGroup) {
 }
 LUA_FUNCTION_ALIAS(FromCards);
 LUA_FUNCTION(Clone) {
-	check_param_count(L, 1);
 	group* newgroup = pduel->new_group(self);
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
 LUA_FUNCTION(DeleteGroup) {
-	check_param_count(L, 1);
 	if(self->is_readonly != 2)
 		return 0;
 	self->is_readonly = 0;
@@ -57,7 +55,6 @@ LUA_FUNCTION(DeleteGroup) {
 	return 0;
 }
 LUA_FUNCTION(KeepAlive) {
-	check_param_count(L, 1);
 	if(self->is_readonly != 1) {
 		self->is_readonly = 2;
 		pduel->sgroups.erase(self);
@@ -66,7 +63,6 @@ LUA_FUNCTION(KeepAlive) {
 	return 1;
 }
 LUA_FUNCTION(Clear) {
-	check_param_count(L, 1);
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
 	self->container.clear();
@@ -102,7 +98,6 @@ LUA_FUNCTION(RemoveCard) {
 }
 LUA_FUNCTION_ALIAS(Sub);
 LUA_FUNCTION(GetNext) {
-	check_param_count(L, 1);
 	if(self->is_iterator_dirty)
 		lua_error(L, "Called Group.GetNext without first calling Group.GetFirst");
 	if(self->it == self->container.end() || (++self->it) == self->container.end())
@@ -112,7 +107,6 @@ LUA_FUNCTION(GetNext) {
 	return 1;
 }
 LUA_FUNCTION(GetFirst) {
-	check_param_count(L, 1);
 	self->is_iterator_dirty = false;
 	if(self->it = self->container.begin(); self->it != self->container.end())
 		interpreter::pushobject(L, *self->it);
@@ -133,7 +127,6 @@ LUA_FUNCTION(TakeatPos) {
 	return 1;
 }
 LUA_FUNCTION(GetCount) {
-	check_param_count(L, 1);
 	lua_pushinteger(L, self->container.size());
 	return 1;
 }
@@ -701,7 +694,6 @@ LUA_FUNCTION(__sub) {
 	return 1;
 }
 LUA_FUNCTION(__len) {
-	check_param_count(L, 1);
 	lua_pushinteger(L, self->container.size());
 	return 1;
 }
