@@ -4103,7 +4103,7 @@ LUA_STATIC_FUNCTION(MajesticCopy) {
 	auto ccard = lua_get<card*, true>(L, 2);
 	uint32_t resv = 0;
 	uint16_t resc = 0;
-	if(check_param(L, LuaParam::INT, 3, true)) {
+	if(check_param<LuaParam::INT, true>(L, 3)) {
 		resv = lua_get<uint32_t>(L, 3);
 		resc = lua_get<uint16_t, 1>(L, 4);
 	} else {
