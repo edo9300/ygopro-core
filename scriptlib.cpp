@@ -12,31 +12,39 @@
 namespace scriptlib {
 
 const char* get_lua_type_name(lua_State* L, int32_t index) {
-	if(lua_isfunction(L, index))
+	switch(auto type = lua_type(L, index); type) {
+	case LUA_TFUNCTION:
 		return "Function";
-	if(lua_isstring(L, index))
+	case LUA_TSTRING:
 		return "String";
-	if(lua_isinteger(L, index) || lua_isnumber(L, index))
+	case LUA_TNUMBER:
 		return "Int";
-	if(lua_isboolean(L, index))
+	case LUA_TBOOLEAN:
 		return "boolean";
-	if(lua_isnil(L, index) || lua_isnone(L, index))
+	case LUA_TTABLE:
+		return "table";
+	case LUA_TNIL:
+	case LUA_TNONE:
 		return "nil";
-	if(auto* obj = lua_get<lua_obj*>(L, index); obj != nullptr) {
-		switch(obj->lua_type) {
-		case LuaParam::CARD:
-			return "Card";
-		case LuaParam::GROUP:
-			return "Group";
-		case LuaParam::EFFECT:
-			return "Effect";
-		case LuaParam::DELETED:
-			return "Deleted";
-		default:
-			unreachable();
+	case LUA_TUSERDATA:
+		if(auto* obj = lua_get<lua_obj*>(L, index); obj != nullptr) {
+			switch(obj->lua_type) {
+			case LuaParam::CARD:
+				return "Card";
+			case LuaParam::GROUP:
+				return "Group";
+			case LuaParam::EFFECT:
+				return "Effect";
+			case LuaParam::DELETED:
+				return "Deleted";
+			default:
+				unreachable();
+			}
 		}
+		[[fallthrough]];
+	default:
+		return "unknown";
 	}
-	return "unknown";
 }
 
 void check_action_permission(lua_State* L) {

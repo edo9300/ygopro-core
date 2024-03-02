@@ -313,16 +313,17 @@ namespace scriptlib {
 				return static_cast<ReturnType>(true);
 			}
 		} else if constexpr(param_type == LuaParam::FUNCTION) {
-			if(lua_isfunction(L, index))
+			if(lua_type(L, index) == LUA_TFUNCTION)
 				return static_cast<ReturnType>(true);
 		} else if constexpr(param_type == LuaParam::STRING) {
-			if(lua_isstring(L, index))
+			if(lua_type(L, index) == LUA_TSTRING)
 				return static_cast<ReturnType>(true);
 		} else if constexpr(param_type == LuaParam::INT) {
-			if(lua_isinteger(L, index) || lua_isnumber(L, index))
+			if(lua_type(L, index) == LUA_TNUMBER)
 				return static_cast<ReturnType>(true);
 		} else if constexpr(param_type == LuaParam::BOOLEAN) {
-			if(!lua_isnone(L, index))
+			//we're really fine with anything as long as it's something
+			if(lua_type(L, index) != LUA_TNONE)
 				return static_cast<ReturnType>(true);
 		}
 		if constexpr(retfalse)
