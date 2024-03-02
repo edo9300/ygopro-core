@@ -455,7 +455,7 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
     - name: Delete artifacts
-      uses: geekyeggo/delete-artifact@v2
+      uses: geekyeggo/delete-artifact@v4
       with:
         name: |
             osx-aarch64
@@ -503,7 +503,7 @@ jobs:
       shell: bash
       run: ./travis/deploy.sh
     - name: Delete artifacts
-      uses: geekyeggo/delete-artifact@v2
+      uses: geekyeggo/delete-artifact@v4
       with:
         name: |
             osx-aarch64-cctools
