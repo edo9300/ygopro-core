@@ -425,9 +425,10 @@ struct SpSummonRule : public Process<false> {
 	effect* summon_proc_effect;
 	group* cards_to_summon_g;
 	effect_set spsummon_cost_effects;
-	SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_, bool is_mid_chain_ = false) :
+	SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_,
+				 bool is_mid_chain_ = false, effect* summon_proc_effect_ = nullptr) :
 		Process(step_), sumplayer(sumplayer_), is_mid_chain(is_mid_chain_), summon_type(summon_type_), target(target_),
-		summon_proc_effect(nullptr), cards_to_summon_g(nullptr) {}
+		summon_proc_effect(summon_proc_effect_), cards_to_summon_g(nullptr) {}
 };
 struct SpSummon : public Process<false> {
 	uint8_t reason_player;

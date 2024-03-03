@@ -3531,7 +3531,7 @@ bool field::process(Processors::SpSummonRuleGroup& arg) {
 	}
 	case 1: {
 		effect* peffect = core.select_effects[returns.at<int32_t>(0)];
-		emplace_process<Processors::SpSummonRule>(Step{ 20 }, sumplayer, peffect->get_handler(), summon_type, true);
+		emplace_process<Processors::SpSummonRule>(Step{ 20 }, sumplayer, peffect->get_handler(), summon_type, true, peffect);
 		return TRUE;
 	}
 	}
