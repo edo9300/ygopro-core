@@ -228,6 +228,8 @@ struct PhaseEvent : public Process<false> {
 };
 struct BattleCommand : public Process<false> {
 	uint16_t phase_to_change_to;
+	bool forced_attack;
+	bool forced_attack_done;
 	bool is_replaying_attack;
 	bool attack_announce_failed;
 	bool repeat_battle_phase;
@@ -238,8 +240,8 @@ struct BattleCommand : public Process<false> {
 	group* cards_destroyed_by_battle;
 	card* reason_card;
 	std::multimap<effect*, card*> must_attack_map;
-	BattleCommand(uint16_t step_, group* cards_destroyed_by_battle_ = nullptr) :
-		Process(step_), phase_to_change_to(0), is_replaying_attack(false), attack_announce_failed(false),
+	BattleCommand(uint16_t step_, group* cards_destroyed_by_battle_ = nullptr, bool forced_attack_ = false) :
+		Process(step_), phase_to_change_to(0), forced_attack(forced_attack_), forced_attack_done(false), is_replaying_attack(false), attack_announce_failed(false),
 		repeat_battle_phase(false), second_battle_phase_is_optional(false),
 		previous_point_event_had_any_trigger_to_resolve(false), reason_player(PLAYER_NONE), damage_change_effect(nullptr),
 		cards_destroyed_by_battle(cards_destroyed_by_battle_), reason_card(nullptr) {}

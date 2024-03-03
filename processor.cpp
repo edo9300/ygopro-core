@@ -1855,7 +1855,21 @@ bool field::process(Processors::BattleCommand& arg) {
 	case 1: {
 		int32_t ctype = returns.at<int32_t>(0) & 0xffff;
 		int32_t sel = returns.at<int32_t>(0) >> 16;
-		if(ctype == 0) {
+		if(arg.forced_attack_done || (ctype != 0 && ctype != 1)) {
+			arg.step = 39;
+			// ignored when arg.forced_attack_done, so can be anything
+			arg.phase_to_change_to = ctype;
+			auto message = pduel->new_message(MSG_HINT);
+			message->write<uint8_t>(HINT_EVENT);
+			message->write<uint8_t>(1 - infos.turn_player);
+			message->write<uint64_t>(29);
+			core.select_chains.clear();
+			core.hint_timing[infos.turn_player] = TIMING_BATTLE_STEP_END;
+			emplace_process<Processors::QuickEffect>(false, 1 - infos.turn_player);
+			infos.priorities[infos.turn_player] = 1;
+			infos.priorities[1 - infos.turn_player] = 0;
+			return FALSE;
+		} else if(ctype == 0) {
 			auto newchain = std::next(core.select_chains.begin(), sel);
 			effect* peffect = newchain->triggering_effect;
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
@@ -1889,7 +1903,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		} else if(ctype == 1) {
 			arg.step = 2;
 			arg.attack_announce_failed = false;
-			if(!core.forced_attack)
+			if(!arg.forced_attack)
 				core.attacker = core.attackable_cards[sel];
 			core.attacker->set_status(STATUS_ATTACK_CANCELED, FALSE);
 			core.attacker->attack_controler = core.attacker->current.controler;
@@ -1918,19 +1932,6 @@ bool field::process(Processors::BattleCommand& arg) {
 				adjust_all();
 			}
 			return FALSE;
-		} else {
-			arg.step = 39;
-			arg.phase_to_change_to = ctype;
-			auto message = pduel->new_message(MSG_HINT);
-			message->write<uint8_t>(HINT_EVENT);
-			message->write<uint8_t>(1 - infos.turn_player);
-			message->write<uint64_t>(29);
-			core.select_chains.clear();
-			core.hint_timing[infos.turn_player] = TIMING_BATTLE_STEP_END;
-			emplace_process<Processors::QuickEffect>(false, 1 - infos.turn_player);
-			infos.priorities[infos.turn_player] = 1;
-			infos.priorities[1 - infos.turn_player] = 0;
-			return FALSE;
 		}
 		/*if(core.set_forced_attack) {
 			core.set_forced_attack = false;
@@ -1957,14 +1958,14 @@ bool field::process(Processors::BattleCommand& arg) {
 		}
 		//Cancel the attack cost
 		if(core.attack_cost_paid != 1 && !core.attack_cancelable) {
-			if(core.forced_attack) {
+			if(arg.forced_attack) {
 				returns.set<int32_t>(0, 2);
 				arg.step = 0;
 			} else
 				arg.step = Processors::restart;
 			return FALSE;
 		}
-		if(core.forced_attack)
+		if(arg.forced_attack)
 			arg.step = 6;
 		return FALSE;
 	}
@@ -2056,7 +2057,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				arg.step = 12;
 				return FALSE;
 			}
-			if(core.forced_attack) {
+			if(arg.forced_attack) {
 				returns.set<int32_t>(0, 2);
 				arg.step = 0;
 			} else
@@ -2083,7 +2084,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		if(arg.attack_announce_failed) {
 			++core.attacker->announce_count;
 			core.chain_attack = false;
-			if(core.forced_attack) {
+			if(arg.forced_attack) {
 				returns.set<int32_t>(0, 2);
 				arg.step = 0;
 			} else
@@ -2198,7 +2199,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			attack_all_target_check();
 		}
 		core.chain_attack = false;
-		if(core.forced_attack) {
+		if(arg.forced_attack) {
 			returns.set<int32_t>(0, 2);
 			arg.step = 0;
 		} else
@@ -2686,8 +2687,8 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.attacker->set_status(STATUS_OPPO_BATTLE, FALSE);
 		if(core.attack_target)
 			core.attack_target->set_status(STATUS_OPPO_BATTLE, FALSE);
-		if(core.forced_attack) {
-			returns.set<int32_t>(0, 2);
+		if(arg.forced_attack) {
+			arg.forced_attack_done = true;
 			arg.step = 0;
 		} else
 			arg.step = Processors::restart;
@@ -2707,7 +2708,7 @@ bool field::process(Processors::BattleCommand& arg) {
 			for(auto& ch : core.current_chain)
 				ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);
 			emplace_process<Processors::SolveChain>(false, false, false);
-			if(!core.forced_attack)
+			if(!arg.forced_attack)
 				arg.step = Processors::restart;
 			return FALSE;
 		}
@@ -2792,7 +2793,6 @@ bool field::process(Processors::ForcedBattle& arg) {
 				pcard->battled_cards.clear();
 			}
 		}
-		core.forced_attack = true;
 		core.attack_cancelable = true;
 		core.attack_cost_paid = FALSE;
 		core.chain_attacker_id = 0;
@@ -2807,12 +2807,11 @@ bool field::process(Processors::ForcedBattle& arg) {
 		core.delayed_quick_tmp.clear();
 		auto message = pduel->new_message(MSG_NEW_PHASE);
 		message->write<uint16_t>(PHASE_BATTLE_START);
-		emplace_process<Processors::BattleCommand>(Step{ 1 });
+		emplace_process<Processors::BattleCommand>(Step{ 1 }, nullptr, true);
 		return FALSE;
 	}
 	case 1: {
 		reset_phase(infos.phase);
-		core.forced_attack = false;
 		infos.phase = arg.backup_phase;
 		core.new_fchain.clear();
 		core.new_ochain.clear();
