@@ -134,9 +134,9 @@ void duel::set_response(const void* resp, size_t len) {
 int32_t duel::get_next_integer(int32_t l, int32_t h) {
 	const uint32_t range = h - l + 1;
 	const uint32_t lim = random.max() % range;
-	uint32_t n;
+	uint64_t n;
 	do {
-		n = static_cast<uint32_t>(random());
+		n = random();
 	} while(n <= lim);
 	return static_cast<int32_t>(n % range) + l;
 }
