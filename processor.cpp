@@ -617,8 +617,17 @@ bool field::process(Processors::PointEvent& arg) {
 		for (auto clit = core.new_fchain_s.begin(); clit != core.new_fchain_s.end(); ) {
 			effect* peffect = clit->triggering_effect;
 			card* phandler = peffect->get_handler();
-			if(phandler->is_has_relation(*clit)) //work around: position and control should be refreshed before raising event
+			auto update_triggering_state = [&, updated_state = false]() mutable {
+				if(std::exchange(updated_state, true))
+					return;
 				clit->set_triggering_state(phandler);
+			};
+			if(phandler->is_has_relation(*clit)) //work around: position and control should be refreshed before raising event
+				update_triggering_state();
+			if(clit->triggering_player != phandler->current.controler && !peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER)) {
+				clit->triggering_player = phandler->current.controler;
+				update_triggering_state();
+			}
 			uint8_t tp = clit->triggering_player;
 			if((!clit->was_just_sent || phandler->current.location == LOCATION_HAND)
 			   && check_trigger_effect(*clit)
@@ -681,15 +690,24 @@ bool field::process(Processors::PointEvent& arg) {
 		for (auto clit = core.new_ochain_s.begin(); clit != core.new_ochain_s.end(); ) {
 			effect* peffect = clit->triggering_effect;
 			card* phandler = peffect->get_handler();
-			if(phandler->is_has_relation(*clit)) //work around: position and control should be refreshed before raising event
+			auto update_triggering_state = [&, updated_state = false]() mutable {
+				if(std::exchange(updated_state, true))
+					return;
 				clit->set_triggering_state(phandler);
+			};
+			if(phandler->is_has_relation(*clit)) //work around: position and control should be refreshed before raising event
+				update_triggering_state();
 			if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) && (peffect->type & EFFECT_TYPE_FIELD)
 				&& (peffect->range & LOCATION_HAND) && phandler->current.location == LOCATION_HAND) {
 				if(!phandler->is_has_relation(*clit) && peffect->is_condition_check(phandler->current.controler, clit->evt))
 					phandler->create_relation(*clit);
 				peffect->set_activate_location();
 				clit->triggering_player = phandler->current.controler;
-				clit->set_triggering_state(phandler);
+				update_triggering_state();
+			}
+			if(clit->triggering_player != phandler->current.controler && !peffect->is_flag(EFFECT_FLAG_EVENT_PLAYER)) {
+				clit->triggering_player = phandler->current.controler;
+				update_triggering_state();
 			}
 			uint8_t tp = clit->triggering_player;
 			if((!clit->was_just_sent || phandler->current.location == LOCATION_HAND)
