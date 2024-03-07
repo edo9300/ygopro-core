@@ -20,7 +20,7 @@ bool card_sort::operator()(const card* c1, const card* c2) const {
 }
 template<typename T>
 static constexpr void set_max_property_val(T& val) {
-	val = (T)~T();
+	val = static_cast<T>(~T());
 }
 template<typename T>
 static constexpr bool has_valid_property_val(T val) {
@@ -2242,7 +2242,7 @@ void card::release_relation(effect* peffect) {
 	}
 	relate_effect.erase(std::make_pair(peffect, (uint16_t)0));
 }
-int32_t card::leave_field_redirect(uint32_t /*reason*/) {
+int32_t card::leave_field_redirect(uint32_t reason) {
 	effect_set es;
 	uint32_t redirect;
 	uint32_t redirects = 0;
@@ -2250,7 +2250,8 @@ int32_t card::leave_field_redirect(uint32_t /*reason*/) {
 		return 0;
 	filter_effect(EFFECT_LEAVE_FIELD_REDIRECT, &es);
 	for(const auto& peff : es) {
-		redirect = peff->get_value(this, 0);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		redirect = peff->get_value(this, 1);
 		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(peff->get_handler_player(), this))
 			redirects |= redirect;
 		else if((redirect & LOCATION_DECK) && !is_affected_by_effect(EFFECT_CANNOT_TO_DECK) && pduel->game_field->is_player_can_send_to_deck(peff->get_handler_player(), this))
@@ -2272,7 +2273,7 @@ int32_t card::leave_field_redirect(uint32_t /*reason*/) {
 		return LOCATION_HAND;
 	return 0;
 }
-int32_t card::destination_redirect(uint8_t destination, uint32_t /*reason*/) {
+int32_t card::destination_redirect(uint8_t destination, uint32_t reason) {
 	effect_set es;
 	uint32_t redirect;
 	if(data.type & TYPE_TOKEN)
@@ -2288,7 +2289,8 @@ int32_t card::destination_redirect(uint8_t destination, uint32_t /*reason*/) {
 	else
 		return 0;
 	for(const auto& peff : es) {
-		redirect = peff->get_value(this, 0);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		redirect = peff->get_value(this, 1);
 		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(peff->get_handler_player(), this))
 			return redirect;
 		if((redirect & LOCATION_DECK) && !is_affected_by_effect(EFFECT_CANNOT_TO_DECK) && pduel->game_field->is_player_can_send_to_deck(peff->get_handler_player(), this))
