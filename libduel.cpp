@@ -2350,7 +2350,7 @@ LUA_STATIC_FUNCTION(SelectCardsFromCodes) {
 	auto min = lua_get<uint16_t>(L, 2);
 	auto max = lua_get<uint16_t>(L, 3);
 	bool cancelable = lua_get<bool>(L, 4);
-	/*bool ret_index = */(void)lua_get<bool>(L, 5);
+	check_param<LuaParam::BOOLEAN>(L, 5);
 	lua_iterate_table_or_stack(L, 6, lua_gettop(L), [L, &select_codes = pduel->game_field->core.select_cards_codes]{
 		select_codes.emplace_back(lua_get<uint32_t>(L, -1), static_cast<uint32_t>(select_codes.size() + 1));
 	});
