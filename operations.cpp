@@ -670,7 +670,7 @@ bool field::process(Processors::Recover& arg) {
 		auto message = pduel->new_message(MSG_RECOVER);
 		message->write<uint8_t>(playerid);
 		message->write<uint32_t>(amount);
-		raise_event((card*)nullptr, EVENT_RECOVER, reason_effect, reason, reason_player, playerid, amount);
+		raise_event(nullptr, EVENT_RECOVER, reason_effect, reason, reason_player, playerid, amount);
 		process_instant_event();
 		return FALSE;
 	}
@@ -745,7 +745,7 @@ bool field::process(Processors::PayLPCost& arg) {
 			auto message = pduel->new_message(MSG_PAY_LPCOST);
 			message->write<uint8_t>(playerid);
 			message->write<uint32_t>(cost);
-			raise_event((card*)nullptr, EVENT_PAY_LPCOST, core.reason_effect, 0, playerid, playerid, cost);
+			raise_event(nullptr, EVENT_PAY_LPCOST, core.reason_effect, 0, playerid, playerid, cost);
 			process_instant_event();
 			return TRUE;
 		}
@@ -838,7 +838,7 @@ bool field::process(Processors::RemoveCounter& arg) {
 		return FALSE;
 	}
 	case 3: {
-		raise_event((card*)nullptr, EVENT_REMOVE_COUNTER + countertype, core.reason_effect, reason, rplayer, rplayer, count);
+		raise_event(nullptr, EVENT_REMOVE_COUNTER + countertype, core.reason_effect, reason, rplayer, rplayer, count);
 		process_instant_event();
 		return FALSE;
 	}
@@ -6033,7 +6033,7 @@ bool field::process(Processors::TossCoin& arg) {
 			core.coin_results.push_back(static_cast<bool>(coin));
 			message->write<uint8_t>(coin);
 		}
-		raise_event((card*)nullptr, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
+		raise_event(nullptr, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
 		process_instant_event();
 		return FALSE;
 	}
@@ -6043,7 +6043,7 @@ bool field::process(Processors::TossCoin& arg) {
 			heads += (result == COIN_HEADS);
 			tails += (result == COIN_TAILS);
 		}
-		raise_event((card*)nullptr, EVENT_TOSS_COIN, reason_effect, 0, reason_player, playerid, (tails << 16) | (heads << 8) | count);
+		raise_event(nullptr, EVENT_TOSS_COIN, reason_effect, 0, reason_player, playerid, (tails << 16) | (heads << 8) | count);
 		process_instant_event();
 		return TRUE;
 	}
@@ -6055,7 +6055,7 @@ bool field::process(Processors::TossCoin& arg) {
 		for(int32_t i = 0; i < count; ++i) {
 			message->write<uint8_t>(static_cast<uint8_t>(core.coin_results[i]));
 		}
-		raise_event((card*)nullptr, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
+		raise_event(nullptr, EVENT_TOSS_COIN_NEGATE, reason_effect, 0, reason_player, playerid, count);
 		process_instant_event();
 		return FALSE;
 	}
@@ -6119,12 +6119,12 @@ bool field::process(Processors::TossDice& arg) {
 				message->write<uint8_t>(dice);
 			}
 		}
-		raise_event((card*)nullptr, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
+		raise_event(nullptr, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
 		process_instant_event();
 		return FALSE;
 	}
 	case 1: {
-		raise_event((card*)nullptr, EVENT_TOSS_DICE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
+		raise_event(nullptr, EVENT_TOSS_DICE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
 		process_instant_event();
 		return TRUE;
 	}
@@ -6144,7 +6144,7 @@ bool field::process(Processors::TossDice& arg) {
 				mmessage->write<uint8_t>(core.dice_results[count1 + i]);
 			}
 		}
-		raise_event((card*)nullptr, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
+		raise_event(nullptr, EVENT_TOSS_DICE_NEGATE, reason_effect, 0, reason_player, playerid, count1 + (count2 << 16));
 		process_instant_event();
 		return FALSE;
 	}

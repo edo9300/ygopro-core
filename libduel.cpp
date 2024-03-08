@@ -1560,7 +1560,7 @@ LUA_STATIC_FUNCTION(ChangeTargetParam) {
 LUA_STATIC_FUNCTION(BreakEffect) {
 	check_action_permission(L);
 	pduel->game_field->break_effect();
-	pduel->game_field->raise_event((card*)nullptr, EVENT_BREAK_EFFECT, nullptr, 0, PLAYER_NONE, PLAYER_NONE, 0);
+	pduel->game_field->raise_event(nullptr, EVENT_BREAK_EFFECT, nullptr, 0, PLAYER_NONE, PLAYER_NONE, 0);
 	pduel->game_field->process_instant_event();
 	return yield();
 }
