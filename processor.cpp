@@ -210,15 +210,12 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 	new_event.event_value = event_value;
 	new_event.global_id = infos.event_id;
 }
-void field::raise_event(card_set* event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
+void field::raise_event(card_set event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
 	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = nullptr;
-	if (event_cards) {
-		group* pgroup = pduel->new_group(*event_cards);
-		pgroup->is_readonly = TRUE;
-		new_event.event_cards = pgroup;
-	} else
-		new_event.event_cards = nullptr;
+	group* pgroup = pduel->new_group(std::move(event_cards));
+	pgroup->is_readonly = TRUE;
+	new_event.event_cards = pgroup;
 	new_event.event_code = event_code;
 	new_event.reason_effect = reason_effect;
 	new_event.reason = reason;
@@ -2671,10 +2668,10 @@ bool field::process(Processors::BattleCommand& arg) {
 			ed.insert(core.attack_target);
 		}
 		if(ing.size())
-			raise_event(&ing, EVENT_BATTLE_DESTROYING, nullptr, 0, 0, 0, 0);
+			raise_event(std::move(ing), EVENT_BATTLE_DESTROYING, nullptr, 0, 0, 0, 0);
 		if(ed.size()) {
-			raise_event(&ed, EVENT_BATTLE_DESTROYED, nullptr, 0, 0, 0, 0);
-			raise_event(&ed, EVENT_DESTROYED, nullptr, 0, 0, 0, 0);
+			raise_event(ed, EVENT_BATTLE_DESTROYED, nullptr, 0, 0, 0, 0);
+			raise_event(std::move(ed), EVENT_DESTROYED, nullptr, 0, 0, 0, 0);
 		}
 		raise_single_event(core.attacker, nullptr, EVENT_DAMAGE_STEP_END, nullptr, 0, 0, 0, 0);
 		if(core.attack_target)
@@ -3836,7 +3833,7 @@ bool field::process(Processors::AddChain& arg) {
 					raise_single_event(pcard, nullptr, EVENT_BECOME_TARGET, peffect, 0, clit.triggering_player, 0, clit.chain_count);
 				process_single_event();
 				if(clit.target_cards->container.size())
-					raise_event(&clit.target_cards->container, EVENT_BECOME_TARGET, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
+					raise_event(clit.target_cards->container, EVENT_BECOME_TARGET, peffect, 0, clit.triggering_player, clit.triggering_player, clit.chain_count);
 			}
 		}
 		if(peffect->type & EFFECT_TYPE_ACTIVATE) {

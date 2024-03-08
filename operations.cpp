@@ -510,9 +510,9 @@ bool field::process(Processors::Draw& arg) {
 				raise_single_event(pcard, nullptr, EVENT_MOVE, reason_effect, reason, reason_player, playerid, 0);
 			}
 			process_single_event();
-			raise_event(&drawn_set, EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
-			raise_event(&drawn_set, EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
-			raise_event(&drawn_set, EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set, EVENT_DRAW, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set, EVENT_TO_HAND, reason_effect, reason, reason_player, playerid, drawn);
+			raise_event(drawn_set, EVENT_MOVE, reason_effect, reason, reason_player, playerid, drawn);
 			process_instant_event();
 		}
 		return FALSE;
@@ -1040,7 +1040,7 @@ bool field::process(Processors::XyzOverlay& arg) {
 		writetopcard(0);
 		writetopcard(1);
 		if(from_grave.size()) {
-			raise_event(&from_grave, EVENT_LEAVE_GRAVE, core.reason_effect, 0, core.reason_player, 0, 0);
+			raise_event(std::move(from_grave), EVENT_LEAVE_GRAVE, core.reason_effect, 0, core.reason_player, 0, 0);
 			process_single_event();
 			process_instant_event();
 		}
@@ -1155,8 +1155,8 @@ bool field::process(Processors::GetControl& arg) {
 			raise_single_event(pcard, nullptr, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
 		}
 		if(targets->container.size()) {
-			raise_event(&targets->container, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
-			raise_event(&targets->container, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
+			raise_event(targets->container, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
+			raise_event(targets->container, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, playerid, 0);
 		}
 		process_single_event();
 		process_instant_event();
@@ -1314,8 +1314,8 @@ bool field::process(Processors::SwapControl& arg) {
 			raise_single_event(pcard, nullptr, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, pcard->current.controler, 0);
 			raise_single_event(pcard, nullptr, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, pcard->current.controler, 0);
 		}
-		raise_event(&targets1->container, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, 0, 0);
-		raise_event(&targets1->container, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, 0, 0);
+		raise_event(targets1->container, EVENT_CONTROL_CHANGED, reason_effect, REASON_EFFECT, reason_player, 0, 0);
+		raise_event(targets1->container, EVENT_MOVE, reason_effect, REASON_EFFECT, reason_player, 0, 0);
 		process_single_event();
 		process_instant_event();
 		return FALSE;
@@ -1448,8 +1448,8 @@ bool field::process(Processors::ControlAdjust& arg) {
 			raise_single_event(pcard, nullptr, EVENT_MOVE, nullptr, REASON_RULE, 0, pcard->current.controler, 0);
 		}
 		if(core.control_adjust_set[0].size()) {
-			raise_event(&core.control_adjust_set[0], EVENT_CONTROL_CHANGED, nullptr, 0, 0, 0, 0);
-			raise_event(&core.control_adjust_set[0], EVENT_MOVE, nullptr, 0, 0, 0, 0);
+			raise_event(core.control_adjust_set[0], EVENT_CONTROL_CHANGED, nullptr, 0, 0, 0, 0);
+			raise_event(core.control_adjust_set[0], EVENT_MOVE, nullptr, 0, 0, 0, 0);
 		}
 		process_single_event();
 		process_instant_event();
@@ -1755,7 +1755,7 @@ bool field::process(Processors::Equip& arg) {
 			card_set cset;
 			cset.insert(equip_card);
 			raise_single_event(target, &cset, EVENT_EQUIP, core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
-			raise_event(&cset, EVENT_EQUIP, core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
+			raise_event(std::move(cset), EVENT_EQUIP, core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
 			core.hint_timing[target->overlay_target ? target->overlay_target->current.controler : target->current.controler] |= TIMING_EQUIP;
 			process_single_event();
 			process_instant_event();
@@ -2250,7 +2250,7 @@ bool field::process(Processors::SummonRule& arg) {
 		if (target->material_cards.size()) {
 			for (auto& mcard : target->material_cards)
 				raise_single_event(mcard, nullptr, EVENT_BE_PRE_MATERIAL, summon_procedure_effect, REASON_SUMMON, sumplayer, sumplayer, 0);
-			raise_event(&target->material_cards, EVENT_BE_PRE_MATERIAL, summon_procedure_effect, REASON_SUMMON, sumplayer, sumplayer, 0);
+			raise_event(target->material_cards, EVENT_BE_PRE_MATERIAL, summon_procedure_effect, REASON_SUMMON, sumplayer, sumplayer, 0);
 		}
 		process_single_event();
 		process_instant_event();
@@ -2313,7 +2313,7 @@ bool field::process(Processors::SummonRule& arg) {
 		if(target->material_cards.size()) {
 			for(auto& mcard : target->material_cards)
 				raise_single_event(mcard, nullptr, EVENT_BE_MATERIAL, summon_procedure_effect, REASON_SUMMON, sumplayer, sumplayer, 0);
-			raise_event(&target->material_cards, EVENT_BE_MATERIAL, summon_procedure_effect, REASON_SUMMON, sumplayer, sumplayer, 0);
+			raise_event(target->material_cards, EVENT_BE_MATERIAL, summon_procedure_effect, REASON_SUMMON, sumplayer, sumplayer, 0);
 		}
 		process_single_event();
 		process_instant_event();
@@ -2984,7 +2984,7 @@ bool field::process(Processors::SpellSetGroup& arg) {
 	}
 	case 7: {
 		adjust_instant();
-		raise_event(&core.operated_set, EVENT_SSET, reason_effect, 0, setplayer, setplayer, 0);
+		raise_event(core.operated_set, EVENT_SSET, reason_effect, 0, setplayer, setplayer, 0);
 		process_instant_event();
 		if(core.current_chain.size() == 0) {
 			adjust_all();
@@ -3174,7 +3174,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 			for (auto& mcard : target->material_cards)
 				raise_single_event(mcard, nullptr, EVENT_BE_PRE_MATERIAL, proc, matreason, sumplayer, sumplayer, 0);
 		}
-		raise_event(&target->material_cards, EVENT_BE_PRE_MATERIAL, proc, matreason, sumplayer, sumplayer, 0);
+		raise_event(target->material_cards, EVENT_BE_PRE_MATERIAL, proc, matreason, sumplayer, sumplayer, 0);
 		process_single_event();
 		process_instant_event();
 		return FALSE;
@@ -3246,7 +3246,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 			for(auto& mcard : target->material_cards)
 				raise_single_event(mcard, nullptr, EVENT_BE_MATERIAL, proc, matreason, sumplayer, sumplayer, 0);
 		}
-		raise_event(&target->material_cards, EVENT_BE_MATERIAL, proc, matreason, sumplayer, sumplayer, 0);
+		raise_event(target->material_cards, EVENT_BE_MATERIAL, proc, matreason, sumplayer, sumplayer, 0);
 		process_single_event();
 		process_instant_event();
 		return FALSE;
@@ -3402,7 +3402,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 				}
 			}
 			if(cset.size()) {
-				raise_event(&cset, EVENT_SPSUMMON, arg.summon_proc_effect, 0, sumplayer, sumplayer, 0);
+				raise_event(std::move(cset), EVENT_SPSUMMON, arg.summon_proc_effect, 0, sumplayer, sumplayer, 0);
 				process_instant_event();
 				emplace_process<Processors::PointEvent>(true, true, true);
 			}
@@ -3476,7 +3476,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 		for(auto& pcard : pgroup->container)
 			raise_single_event(pcard, nullptr, EVENT_SPSUMMON_SUCCESS, pcard->current.reason_effect, 0, pcard->current.reason_player, pcard->summon.player, 0);
 		process_single_event();
-		raise_event(&pgroup->container, EVENT_SPSUMMON_SUCCESS, arg.summon_proc_effect, 0, sumplayer, sumplayer, 0);
+		raise_event(pgroup->container, EVENT_SPSUMMON_SUCCESS, arg.summon_proc_effect, 0, sumplayer, sumplayer, 0);
 		process_instant_event();
 		if(core.current_chain.size() == 0) {
 			adjust_all();
@@ -3744,7 +3744,7 @@ bool field::process(Processors::SpSummon& arg) {
 					matreason = REASON_LINK;
 				for(auto& mcard : pcard->material_cards)
 					raise_single_event(mcard, &targets->container, EVENT_BE_MATERIAL, pcard->current.reason_effect, matreason, pcard->current.reason_player, pcard->summon.player, 0);
-				raise_event(&(pcard->material_cards), EVENT_BE_MATERIAL, reason_effect, matreason, reason_player, pcard->summon.player, 0);
+				raise_event(pcard->material_cards, EVENT_BE_MATERIAL, reason_effect, matreason, reason_player, pcard->summon.player, 0);
 			}
 			pcard->set_status(STATUS_FUTURE_FUSION, FALSE);
 		}
@@ -3753,7 +3753,7 @@ bool field::process(Processors::SpSummon& arg) {
 		return FALSE;
 	}
 	case 4: {
-		raise_event(&targets->container, EVENT_SPSUMMON_SUCCESS, reason_effect, 0, reason_player, PLAYER_NONE, 0);
+		raise_event(targets->container, EVENT_SPSUMMON_SUCCESS, reason_effect, 0, reason_player, PLAYER_NONE, 0);
 		process_instant_event();
 		return FALSE;
 	}
@@ -3968,7 +3968,7 @@ bool field::process(Processors::Destroy& arg) {
 		}
 		adjust_instant();
 		process_single_event();
-		raise_event(&targets->container, EVENT_DESTROY, reason_effect, reason, reason_player, 0, 0);
+		raise_event(targets->container, EVENT_DESTROY, reason_effect, reason, reason_player, 0, 0);
 		process_instant_event();
 		return FALSE;
 	}
@@ -4345,9 +4345,9 @@ bool field::process(Processors::SendTo& arg) {
 			}
 		}
 		if(leave_p.size())
-			raise_event(&leave_p, EVENT_LEAVE_FIELD_P, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(leave_p), EVENT_LEAVE_FIELD_P, reason_effect, reason, reason_player, 0, 0);
 		if(destroying.size())
-			raise_event(&destroying, EVENT_DESTROY, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(destroying), EVENT_DESTROY, reason_effect, reason, reason_player, 0, 0);
 		process_single_event();
 		process_instant_event();
 		return FALSE;
@@ -4640,11 +4640,11 @@ bool field::process(Processors::SendTo& arg) {
 		}
 		process_single_event();
 		if(param->leave_field.size())
-			raise_event(&param->leave_field, EVENT_LEAVE_FIELD, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(param->leave_field), EVENT_LEAVE_FIELD, reason_effect, reason, reason_player, 0, 0);
 		if(param->leave_grave.size())
-			raise_event(&param->leave_grave, EVENT_LEAVE_GRAVE, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(param->leave_grave), EVENT_LEAVE_GRAVE, reason_effect, reason, reason_player, 0, 0);
 		if((core.global_flag & GLOBALFLAG_DETACH_EVENT) && param->detach.size())
-			raise_event(&param->detach, EVENT_DETACH_MATERIAL, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(param->detach), EVENT_DETACH_MATERIAL, reason_effect, reason, reason_player, 0, 0);
 		process_instant_event();
 		adjust_instant();
 		return FALSE;
@@ -4711,20 +4711,20 @@ bool field::process(Processors::SendTo& arg) {
 			raise_single_event(pcard, nullptr, EVENT_MOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
 		}
 		if(tohand.size())
-			raise_event(&tohand, EVENT_TO_HAND, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(tohand), EVENT_TO_HAND, reason_effect, reason, reason_player, 0, 0);
 		if(todeck.size())
-			raise_event(&todeck, EVENT_TO_DECK, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(todeck), EVENT_TO_DECK, reason_effect, reason, reason_player, 0, 0);
 		if(tograve.size())
-			raise_event(&tograve, EVENT_TO_GRAVE, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(tograve), EVENT_TO_GRAVE, reason_effect, reason, reason_player, 0, 0);
 		if(remove.size())
-			raise_event(&remove, EVENT_REMOVE, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(remove), EVENT_REMOVE, reason_effect, reason, reason_player, 0, 0);
 		if(discard.size())
-			raise_event(&discard, EVENT_DISCARD, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(discard), EVENT_DISCARD, reason_effect, reason, reason_player, 0, 0);
 		if(released.size())
-			raise_event(&released, EVENT_RELEASE, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(released), EVENT_RELEASE, reason_effect, reason, reason_player, 0, 0);
 		if(destroyed.size())
-			raise_event(&destroyed, EVENT_DESTROYED, reason_effect, reason, reason_player, 0, 0);
-		raise_event(&targets->container, EVENT_MOVE, reason_effect, reason, reason_player, 0, 0);
+			raise_event(std::move(destroyed), EVENT_DESTROYED, reason_effect, reason, reason_player, 0, 0);
+		raise_event(targets->container, EVENT_MOVE, reason_effect, reason, reason_player, 0, 0);
 		process_single_event();
 		process_instant_event();
 		if(equipings.size())
@@ -4850,23 +4850,22 @@ bool field::process(Processors::DiscardDeck& arg) {
 			core.discarded_set.insert(pcard);
 		}
 		if(tohand.size())
-			raise_event(&tohand, EVENT_TO_HAND, core.reason_effect, reason, core.reason_player, 0, 0);
+			raise_event(std::move(tohand), EVENT_TO_HAND, core.reason_effect, reason, core.reason_player, 0, 0);
 		if(todeck.size())
-			raise_event(&todeck, EVENT_TO_DECK, core.reason_effect, reason, core.reason_player, 0, 0);
+			raise_event(std::move(todeck), EVENT_TO_DECK, core.reason_effect, reason, core.reason_player, 0, 0);
 		if(tograve.size())
-			raise_event(&tograve, EVENT_TO_GRAVE, core.reason_effect, reason, core.reason_player, 0, 0);
+			raise_event(std::move(tograve), EVENT_TO_GRAVE, core.reason_effect, reason, core.reason_player, 0, 0);
 		if(remove.size())
-			raise_event(&remove, EVENT_REMOVE, core.reason_effect, reason, core.reason_player, 0, 0);
-		raise_event(&core.discarded_set, EVENT_MOVE, core.reason_effect, reason, core.reason_player, 0, 0);
+			raise_event(std::move(remove), EVENT_REMOVE, core.reason_effect, reason, core.reason_player, 0, 0);
+		raise_event(core.discarded_set, EVENT_MOVE, core.reason_effect, reason, core.reason_player, 0, 0);
 		process_single_event();
 		process_instant_event();
 		adjust_instant();
 		return FALSE;
 	}
 	case 2: {
-		core.operated_set.clear();
-		core.operated_set = core.discarded_set;
-		returns.set<int32_t>(0, static_cast<int32_t>(core.discarded_set.size()));
+		core.operated_set.swap(core.discarded_set);
+		returns.set<int32_t>(0, static_cast<int32_t>(core.operated_set.size()));
 		core.discarded_set.clear();
 		return TRUE;
 	}
@@ -5325,11 +5324,11 @@ bool field::process(Processors::ChangePos& arg) {
 		adjust_instant();
 		process_single_event();
 		if(flips.size())
-			raise_event(&flips, EVENT_FLIP, reason_effect, 0, reason_player, 0, 0);
+			raise_event(std::move(flips), EVENT_FLIP, reason_effect, 0, reason_player, 0, 0);
 		if(ssets.size())
-			raise_event(&ssets, EVENT_SSET, reason_effect, 0, reason_player, 0, 0);
+			raise_event(std::move(ssets), EVENT_SSET, reason_effect, 0, reason_player, 0, 0);
 		if(pos_changed.size())
-			raise_event(&pos_changed, EVENT_CHANGE_POS, reason_effect, 0, reason_player, 0, 0);
+			raise_event(std::move(pos_changed), EVENT_CHANGE_POS, reason_effect, 0, reason_player, 0, 0);
 		process_instant_event();
 		if(equipings.size())
 			destroy(std::move(equipings), nullptr, REASON_LOST_TARGET + REASON_RULE, PLAYER_NONE);

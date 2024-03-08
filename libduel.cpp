@@ -769,10 +769,9 @@ LUA_STATIC_FUNCTION(SwapSequence) {
 		&& pcard1->is_affect_by_effect(pduel->game_field->core.reason_effect)
 		&& pcard2->is_affect_by_effect(pduel->game_field->core.reason_effect)) {
 		pduel->game_field->swap_card(pcard1, pcard2);
-		card_set swapped{ pcard1, pcard2 };
 		pduel->game_field->raise_single_event(pcard1, nullptr, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
 		pduel->game_field->raise_single_event(pcard2, nullptr, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
-		pduel->game_field->raise_event(&swapped, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
+		pduel->game_field->raise_event({ pcard1, pcard2 }, EVENT_MOVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, player, 0);
 		pduel->game_field->process_single_event();
 		pduel->game_field->process_instant_event();
 	}
@@ -908,10 +907,10 @@ LUA_STATIC_FUNCTION(ConfirmCards) {
 			message->write<uint32_t>(_pcard->current.sequence);
 			raise_confirm_event(_pcard);
 		}
-		field.raise_event(&pgroup->container, EVENT_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
+		field.raise_event(pgroup->container, EVENT_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
 	}
 	if(handgroup.size())
-		field.raise_event(&handgroup, EVENT_TOHAND_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
+		field.raise_event(std::move(handgroup), EVENT_TOHAND_CONFIRM, trigeff, reason, field.core.reason_player, revealingplayer, 0);
 	field.process_single_event();
 	field.process_instant_event();
 	return yield();
@@ -983,7 +982,7 @@ LUA_STATIC_FUNCTION(RaiseEvent) {
 	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 1); pcard)
 		pduel->game_field->raise_event(pcard, code, peffect, r, rp, ep, ev);
 	else
-		pduel->game_field->raise_event(&pgroup->container, code, peffect, r, rp, ep, ev);
+		pduel->game_field->raise_event(pgroup->container, code, peffect, r, rp, ep, ev);
 	pduel->game_field->process_instant_event();
 	return yield();
 }
@@ -1219,7 +1218,7 @@ LUA_STATIC_FUNCTION(EquipComplete) {
 		field->raise_single_event(equip_target, &core.equiping_cards, EVENT_EQUIP,
 		                          core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
 	}
-	field->raise_event(&core.equiping_cards, EVENT_EQUIP,
+	field->raise_event(core.equiping_cards, EVENT_EQUIP,
 	                               core.reason_effect, 0, core.reason_player, PLAYER_NONE, 0);
 	core.hint_timing[0] |= TIMING_EQUIP;
 	core.hint_timing[1] |= TIMING_EQUIP;
@@ -1411,7 +1410,7 @@ LUA_STATIC_FUNCTION(ShuffleSetCard) {
 		pcard->current.sequence = seq[i];
 		field->raise_single_event(pcard, nullptr, EVENT_MOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, tp, 0);
 	}
-	field->raise_event(&pgroup->container, EVENT_MOVE, field->core.reason_effect, 0, field->core.reason_player, tp, 0);
+	field->raise_event(pgroup->container, EVENT_MOVE, field->core.reason_effect, 0, field->core.reason_player, tp, 0);
 	field->process_single_event();
 	field->process_instant_event();
 	for(uint32_t i = 0; i < ct; ++i) {
@@ -1633,7 +1632,7 @@ LUA_STATIC_FUNCTION(NegateSummon) {
 	if(pcard)
 		pduel->game_field->raise_event(pcard, event_code, reason_effect, REASON_EFFECT, reason_player, sumplayer, 0);
 	else
-		pduel->game_field->raise_event(&pgroup->container, event_code, reason_effect, REASON_EFFECT, reason_player, sumplayer, 0);
+		pduel->game_field->raise_event(pgroup->container, event_code, reason_effect, REASON_EFFECT, reason_player, sumplayer, 0);
 	pduel->game_field->process_instant_event();
 	return 0;
 }

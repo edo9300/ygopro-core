@@ -1064,7 +1064,7 @@ void field::swap_deck_and_grave(uint8_t playerid) {
 	if(cur_player.list_main.size() || ex.size()) {
 		card_set cset(ex.begin(), ex.end());
 		cset.insert(cur_player.list_main.begin(), cur_player.list_main.end());
-		raise_event(&cset, EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
+		raise_event(std::move(cset), EVENT_LEAVE_GRAVE, pduel->game_field->core.reason_effect, 0, pduel->game_field->core.reason_player, 0, 0);
 		process_single_event();
 		process_instant_event();
 	}
