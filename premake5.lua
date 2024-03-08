@@ -65,12 +65,10 @@ if not subproject then
 	filter { "action:vs*", "configurations:Debug", "architecture:*64" }
 		targetdir "bin/x64/debug"
 
-	filter { "configurations:Release" , "action:not vs*" }
-		defines "NDEBUG"
-
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
+		defines "NDEBUG"
 
 	filter { "action:vs*", "configurations:Release", "architecture:*64" }
 		targetdir "bin/x64/release"

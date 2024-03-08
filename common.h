@@ -22,6 +22,7 @@
 #define NoInline __attribute__ ((noinline))
 #endif
 
+#include <cassert>
 #include <cstdint>
 
 #define TRUE 1
