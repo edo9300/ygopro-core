@@ -92,10 +92,10 @@ void duel::delete_effect(effect* peffect) {
 void duel::generate_buffer() {
 	for(auto& message : messages) {
 		uint32_t size = static_cast<uint32_t>(message.data.size());
-		if(size) {
-			write_buffer(&size, sizeof(size));
-			write_buffer(message.data.data(), size);
-		}
+		if(size == 0)
+			continue;
+		write_buffer(&size, sizeof(size));
+		write_buffer(message.data.data(), size);
 	}
 	messages.clear();
 }
@@ -115,19 +115,20 @@ void duel::restore_assumes() {
 	assumes.clear();
 }
 void duel::write_buffer(const void* data, size_t size) {
-	if(size) {
-		const auto vec_size = buff.size();
-		buff.resize(vec_size + size);
-		std::memcpy(&buff[vec_size], data, size);
-	}
+	if(size == 0)
+		return;
+	const auto vec_size = buff.size();
+	buff.resize(vec_size + size);
+	std::memcpy(&buff[vec_size], data, size);
 }
 void duel::clear_buffer() {
 	buff.clear();
 }
 void duel::set_response(const void* resp, size_t len) {
 	game_field->returns.data.resize(len);
-	if(len)
-		std::memcpy(game_field->returns.data.data(), resp, len);
+	if(len == 0)
+		return;
+	std::memcpy(game_field->returns.data.data(), resp, len);
 }
 // uniform integer distribution
 int32_t duel::get_next_integer(int32_t l, int32_t h) {
@@ -143,27 +144,23 @@ duel::duel_message* duel::new_message(uint8_t message) {
 	return &(messages.emplace_back(message));
 }
 const card_data& duel::read_card(uint32_t code) {
-	card_data* ret;
-	auto search = data_cache.find(code);
-	if(search != data_cache.end()) {
-		ret = &(search->second);
-	} else {
-		OCG_CardData data{};
-		read_card_callback(read_card_payload, code, &data);
-		ret = &(data_cache.emplace(code, data).first->second);
-		read_card_done_callback(read_card_done_payload, &data);
-	}
+	if(auto search = data_cache.find(code); search != data_cache.end())
+		return search->second;
+	OCG_CardData data{};
+	read_card_callback(read_card_payload, code, &data);
+	auto ret = &(data_cache.emplace(code, data).first->second);
+	read_card_done_callback(read_card_done_payload, &data);
 	return *ret;
 }
 duel::duel_message::duel_message(uint8_t message) {
 	write<uint8_t>(message);
 }
 void duel::duel_message::write(const void* buff, size_t size) {
-	if(size) {
-		const auto vec_size = data.size();
-		data.resize(vec_size + size);
-		std::memcpy(&data[vec_size], buff, size);
-	}
+	if(size == 0)
+	   return;
+	const auto vec_size = data.size();
+	data.resize(vec_size + size);
+	std::memcpy(&data[vec_size], buff, size);
 }
 void duel::duel_message::write(loc_info loc) {
 	write<uint8_t>(loc.controler);
@@ -173,7 +170,7 @@ void duel::duel_message::write(loc_info loc) {
 }
 
 card_data::card_data(const OCG_CardData& data) {
-#define COPY(val) this->val = data.val;
+#define COPY(val) val = data.val;
 	COPY(code);
 	COPY(alias);
 	COPY(type);
@@ -194,6 +191,6 @@ card_data::card_data(const OCG_CardData& data) {
 		std::memcpy(&sc, ptr++, sizeof(uint16_t));
 		if(sc == 0)
 			break;
-		this->setcodes.insert(sc);
+		setcodes.insert(sc);
 	}
 }
