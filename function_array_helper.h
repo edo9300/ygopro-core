@@ -9,8 +9,8 @@
 #define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
 #define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
 
-// if subsequent calls to __COUNTER__ produce the same result, that macro is broken
-#if !defined(__COUNTER__) || (__COUNTER__ + 0 == __COUNTER__ + 0)
+// if subsequent calls to __COUNTER__ don't produce consecutive integers, that macro is broken
+#if !defined(__COUNTER__) || (__COUNTER__ + 0 != __COUNTER__ - 1)
 #define HAS_COUNTER 0
 #else
 #define HAS_COUNTER 1
