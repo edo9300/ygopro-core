@@ -22,6 +22,10 @@
 #define NoInline __attribute__ ((noinline))
 #endif
 
+#if defined(__clang_analyzer__)
+#undef NDEBUG
+#endif
+
 #include <cassert>
 #include <cstdint>
 
