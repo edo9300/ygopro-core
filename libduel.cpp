@@ -3351,16 +3351,16 @@ LUA_STATIC_FUNCTION(AnnounceCard) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto& options = pduel->game_field->core.select_options;
 	pduel->game_field->core.select_options.clear();
-	if(auto paramcount = lua_gettop(L); paramcount <= 2) {
+	if(auto paramcount = lua_gettop(L); paramcount > 2 || lua_istable(L, 2)) {
+		lua_iterate_table_or_stack(L, 2, paramcount, [&options, L] {
+			options.push_back(lua_get<uint64_t>(L, -1));
+		});
+	} else {
 		uint32_t ttype = TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP;
 		if(paramcount == 2)
 			ttype = lua_get<uint32_t>(L, 2);
 		options.push_back(ttype);
 		options.push_back(OPCODE_ISTYPE);
-	} else {
-		lua_iterate_table_or_stack(L, 2, paramcount, [&options, L]{
-			options.push_back(lua_get<uint64_t>(L, -1));
-		});
 	}
 	int32_t stack_size = 0;
 	bool has_opcodes = false;
