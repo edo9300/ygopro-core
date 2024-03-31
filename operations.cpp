@@ -5758,7 +5758,7 @@ bool field::process(Processors::SelectRelease& arg) {
 				diff.insert(diff.begin(), core.release_cards_ex_oneof.begin(), core.release_cards_ex_oneof.end());
 		}
 		std::set_difference(diff.begin(), diff.end(), core.unselect_cards.begin(), core.unselect_cards.end(),
-							std::inserter(core.select_cards, core.select_cards.begin()));
+							std::inserter(core.select_cards, core.select_cards.begin()), card_sort());
 
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_SELECTMSG);
