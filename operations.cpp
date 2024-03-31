@@ -3803,7 +3803,7 @@ bool field::process(Processors::Destroy& arg) {
 		card_set extra;
 		effect_set eset;
 		card_set indestructable_set;
-		std::set<effect*> indestructable_effect_set;
+		std::set<effect*, effect_sort_by_id> indestructable_effect_set;
 		for(auto cit = targets->container.begin(); cit != targets->container.end();) {
 			auto rm = cit++;
 			card* pcard = *rm;

@@ -30,6 +30,9 @@ using effect_set = std::vector<effect*>;
 using effect_set_v = effect_set;
 
 bool effect_sort_id(const effect* e1, const effect* e2);
+struct effect_sort_by_id {
+	bool operator()(effect* e1, effect* e2) const;
+};
 
 struct chain;
 using chain_array = std::vector<chain>;

@@ -14,6 +14,9 @@
 bool effect_sort_id(const effect* e1, const effect* e2) {
 	return e1->id < e2->id;
 }
+bool effect_sort_by_id::operator()(effect* e1, effect* e2) const {
+	return effect_sort_id(e1, e2);
+}
 bool field_effect::grant_effect_container::effect_sort_by_ref::operator()(effect* e1, effect* e2) const {
 	return e1->ref_handle < e2->ref_handle;
 }
