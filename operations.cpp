@@ -5975,10 +5975,15 @@ bool field::process(Processors::SelectTribute& arg) {
 		uint32_t rmax = 0;
 		for(auto& pcard : core.operated_set)
 			rmax += pcard->release_param;
-		min -= rmax;
-		max -= rmin;
-		min = min > 0 ? min : 0;
-		max = max > 0 ? max : 0;
+		if(rmax > min)
+			min = 0;
+		else
+			min -= rmax;
+
+		if(rmin > max)
+			max = 0;
+		else
+			max -= rmin;
 		if((return_cards.canceled && min <= 0) || !max) {
 			return_cards.clear();
 			std::copy(core.operated_set.begin(), core.operated_set.end(), std::back_inserter(return_cards.list));
