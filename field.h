@@ -117,11 +117,8 @@ struct field_effect {
 	using effect_collection = std::unordered_set<effect*>;
 	using gain_effects = std::unordered_map<card*, effect*>;
 	struct grant_effect_container {
-		struct effect_sort_by_ref {
-			bool operator()(effect* e1, effect* e2) const;
-		};
 		std::unordered_map<effect*, gain_effects> unsorted;
-		std::map<effect*, gain_effects*, effect_sort_by_ref> sorted;
+		std::map<effect*, gain_effects*, effect_sort_by_initial_id> sorted;
 		using key_iterator = std::unordered_map<effect*, gain_effects>::iterator;
 		template<typename... Args>
 		void emplace(Args&&... args) {

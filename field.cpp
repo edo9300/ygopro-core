@@ -1232,7 +1232,7 @@ void field::add_effect(effect* peffect, uint8_t owner_player) {
 		peffect->flag[0] |= EFFECT_FLAG_FIELD_ONLY;
 		peffect->handler = peffect->owner;
 		peffect->effect_owner = owner_player;
-		peffect->id = infos.field_id++;
+		peffect->id = peffect->initial_id = infos.field_id++;
 	}
 	peffect->card_type = peffect->owner->data.type;
 	effect_container::iterator it;

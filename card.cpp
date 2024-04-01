@@ -1842,7 +1842,7 @@ int32_t card::add_effect(effect* peffect) {
 		eit = field_effect.emplace(peffect->code, peffect);
 	} else
 		return 0;
-	peffect->id = pduel->game_field->infos.field_id++;
+	peffect->id = peffect->initial_id = pduel->game_field->infos.field_id++;
 	peffect->card_type = data.type;
 	if(get_status(STATUS_INITIALIZING))
 		peffect->flag[0] |= EFFECT_FLAG_INITIAL;

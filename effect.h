@@ -40,6 +40,7 @@ public:
 	uint32_t code{};
 	uint32_t flag[2]{};
 	uint32_t id{};
+	uint32_t initial_id{};
 	uint32_t reset_flag{};
 	uint32_t count_code{};
 	uint32_t category{};
