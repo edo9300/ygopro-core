@@ -5711,9 +5711,7 @@ bool field::process(Processors::SelectRelease& arg) {
 		return TRUE;
 	}
 	case 2: {
-		core.select_cards.clear();
-		core.unselect_cards.clear();
-		core.unselect_cards.insert(core.unselect_cards.begin(), core.operated_set.begin(), core.operated_set.end());
+		core.unselect_cards.assign(core.operated_set.begin(), core.operated_set.end());
 
 		auto finishable = (int32_t)core.operated_set.size() >= min;
 		auto must_chosen = !arg.must_choose_one;
@@ -5758,6 +5756,7 @@ bool field::process(Processors::SelectRelease& arg) {
 				diff.insert(diff.begin(), core.release_cards_ex_oneof.begin(), core.release_cards_ex_oneof.end());
 		}
 		std::sort(diff.begin(), diff.end(), card_sort());
+		core.select_cards.clear();
 		std::set_difference(diff.begin(), diff.end(), core.unselect_cards.begin(), core.unselect_cards.end(),
 							std::inserter(core.select_cards, core.select_cards.begin()), card_sort());
 

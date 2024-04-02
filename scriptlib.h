@@ -66,15 +66,15 @@ namespace scriptlib {
 	inline constexpr auto get_lua_param_type() {
 		if constexpr(IsCard<T>)
 			return LuaParam::CARD;
-		if constexpr(IsGroup<T>)
+		else if constexpr(IsGroup<T>)
 			return LuaParam::GROUP;
-		if constexpr(IsEffect<T>)
+		else if constexpr(IsEffect<T>)
 			return LuaParam::EFFECT;
-		if constexpr(std::is_same_v<T, function>)
+		else if constexpr(std::is_same_v<T, function>)
 			return LuaParam::FUNCTION;
-		if constexpr(IsBool<T>)
+		else if constexpr(IsBool<T>)
 			return LuaParam::BOOLEAN;
-		if constexpr(IsInteger<T>)
+		else if constexpr(IsInteger<T>)
 			return LuaParam::INT;
 	}
 
@@ -82,19 +82,19 @@ namespace scriptlib {
 	static constexpr const char* get_lua_param_name() {
 		if constexpr(param == LuaParam::INT)
 			return "Int";
-		if constexpr(param == LuaParam::STRING)
+		else if constexpr(param == LuaParam::STRING)
 			return "String";
-		if constexpr(param == LuaParam::CARD)
+		else if constexpr(param == LuaParam::CARD)
 			return "Card";
-		if constexpr(param == LuaParam::GROUP)
+		else if constexpr(param == LuaParam::GROUP)
 			return "Group";
-		if constexpr(param == LuaParam::EFFECT)
+		else if constexpr(param == LuaParam::EFFECT)
 			return "Effect";
-		if constexpr(param == LuaParam::FUNCTION)
+		else if constexpr(param == LuaParam::FUNCTION)
 			return "Function";
-		if constexpr(param == LuaParam::BOOLEAN)
+		else if constexpr(param == LuaParam::BOOLEAN)
 			return "boolean";
-		if constexpr(param == LuaParam::DELETED)
+		else if constexpr(param == LuaParam::DELETED)
 			return "Deleted";
 	}
 
@@ -145,8 +145,7 @@ namespace scriptlib {
 		check_param<lua_type>(L, idx);
 		if constexpr(lua_type == LuaParam::BOOLEAN) {
 			return static_cast<bool>(lua_toboolean(L, idx));
-		}
-		if constexpr(lua_type == LuaParam::INT) {
+		} else if constexpr(lua_type == LuaParam::INT) {
 			if(lua_isinteger(L, idx))
 				return static_cast<T>(lua_tointeger(L, idx));
 			return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
@@ -160,8 +159,7 @@ namespace scriptlib {
 			return def;
 		if constexpr(lua_type == LuaParam::BOOLEAN) {
 			return static_cast<bool>(lua_toboolean(L, idx));
-		}
-		if constexpr(lua_type == LuaParam::INT) {
+		} else if constexpr(lua_type == LuaParam::INT) {
 			if(lua_isinteger(L, idx))
 				return static_cast<T>(lua_tointeger(L, idx));
 			return static_cast<T>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
@@ -328,7 +326,7 @@ namespace scriptlib {
 		}
 		if constexpr(retfalse)
 			return false;
-		if constexpr(!retfalse)
+		else
 			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_param_name<param_type>(), get_lua_type_name(L, index));
 	}
 }

@@ -22,7 +22,7 @@
 #include <type_traits>
 #include "common.h"
 
-//use forceinline only in release builds
+// use forceinline only in release builds
 #if defined(_DEBUG) || (!defined(_MSC_VER) && !defined(__OPTIMIZE__))
 #define LUA_INLINE NoInline
 #else

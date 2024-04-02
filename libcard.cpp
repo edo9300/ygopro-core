@@ -2128,7 +2128,6 @@ LUA_FUNCTION(SetSPSummonOnce) {
 }
 #define CARD_INFO_FUNC(lua_name,attr) \
 LUA_FUNCTION(lua_name) { \
-	check_param_count(L, 1);\
 	if(lua_gettop(L) > 1) { \
 		self->data.attr = lua_get<decltype(self->data.attr)>(L, 2); \
 		return 0; \
