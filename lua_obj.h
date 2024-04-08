@@ -25,7 +25,7 @@ class duel;
 class lua_obj {
 public:
 	duel* pduel{ nullptr };
-	int32_t ref_handle;
+	int32_t ref_handle{};
 	LuaParam lua_type;
 protected:
 	lua_obj(LuaParam _lua_type, duel* _pduel) :pduel(_pduel), lua_type(_lua_type) {}
