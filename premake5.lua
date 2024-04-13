@@ -46,14 +46,6 @@ if not subproject then
 	filter "action:vs*"
 		flags "MultiProcessorCompile"
 		vectorextensions "SSE2"
-		if usestandardpreprocessor then
-			usestandardpreprocessor "On"
-		end
-		if _ACTION=="vs2017" then
-			buildoptions "-experimental:preprocessor"
-		else
-			buildoptions "-Zc:preprocessor"
-		end
 
 	filter "action:not vs*"
 		buildoptions "-fno-strict-aliasing"
