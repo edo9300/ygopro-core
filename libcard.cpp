@@ -1387,14 +1387,14 @@ inline int32_t spsummonable_rule(lua_State* L, uint32_t cardtype, uint32_t sumty
 		return 0;
 	group* must = nullptr;
 	group* materials = nullptr;
-	if(auto _pcard = lua_get<card*>(L, 2 + offset))
-		must = pduel->new_group(_pcard);
-	else
-		must = lua_get<group*>(L, 2 + offset);
-	if(auto _pcard = lua_get<card*>(L, 3 + offset))
-		materials = pduel->new_group(_pcard);
-	else
-		materials = lua_get<group*>(L, 3 + offset);
+	if(auto [pcard_, pgroup_] = lua_get_card_or_group<true>(L, 2 + offset); pcard_)
+		must = pduel->new_group(pcard_);
+	else if(pgroup_)
+		must = pgroup_;
+	if(auto [pcard_, pgroup_] = lua_get_card_or_group<true>(L, 3 + offset); pcard_)
+		materials = pduel->new_group(pcard_);
+	else if(pgroup_)
+		materials = pgroup_;
 	auto minc = lua_get<uint16_t, 0>(L, 4 + offset);
 	auto maxc = lua_get<uint16_t, 0>(L, 5 + offset);
 	auto& core = pduel->game_field->core;

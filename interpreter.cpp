@@ -306,35 +306,35 @@ bool interpreter::call_function(int param_count, int ret_count) {
 	}
 	return ret;
 }
-bool interpreter::call_function(int32_t f, uint32_t param_count, int32_t ret_count) {
-	if (!f)
+bool interpreter::call_function(int32_t function, uint32_t param_count, int32_t ret_count) {
+	if (!function)
 		return ret_fail(R"("CallFunction": attempt to call a null function.)");
 	if (param_count != params.size())
 		return ret_fail(format(R"("CallFunction": incorrect parameter count (%u expected, %zu pushed))", param_count, params.size()));
 	luaL_checkstack(current_state, 1, nullptr);
-	pushobject(current_state, f);
+	pushobject(current_state, function);
 	if (!lua_isfunction(current_state, -1))
 		return ret_fail(R"("CallFunction": attempt to call an error function)");
 	return call_function(param_count, ret_count);
 }
-bool interpreter::call_card_function(card* pcard, const char* f, uint32_t param_count, int32_t ret_count, bool forced) {
+bool interpreter::call_card_function(card* pcard, const char* function_name, uint32_t param_count, int32_t ret_count, bool forced) {
 	if (param_count != params.size())
-		return ret_fail(format(R"("CallCardFunction"(c%u.%s): incorrect parameter count)", pcard->data.code, f));
+		return ret_fail(format(R"("CallCardFunction"(c%u.%s): incorrect parameter count)", pcard->data.code, function_name));
 	luaL_checkstack(current_state, 1, nullptr);
 	pushobject(current_state, pcard);
-	lua_getfield(current_state, -1, f);
+	lua_getfield(current_state, -1, function_name);
 	if (!lua_isfunction(current_state, -1)) {
 		lua_pop(current_state, 2);
-		return ret_fail(format(R"("CallCardFunction"(c%u.%s): attempt to call an error function)", pcard->data.code, f), forced);
+		return ret_fail(format(R"("CallCardFunction"(c%u.%s): attempt to call an error function)", pcard->data.code, function_name), forced);
 	}
 	lua_remove(current_state, -2);
 	return call_function(param_count, ret_count);
 }
-bool interpreter::call_code_function(uint32_t code, const char* f, uint32_t param_count, int32_t ret_count) {
+bool interpreter::call_code_function(uint32_t code, const char* function_name, uint32_t param_count, int32_t ret_count) {
 	if (param_count != params.size())
 		return ret_fail(R"("CallCodeFunction": incorrect parameter count)");
 	load_card_script(code);
-	lua_getfield(current_state, -1, f);
+	lua_getfield(current_state, -1, function_name);
 	if (!lua_isfunction(current_state, -1)) {
 		lua_pop(current_state, 2);
 		return ret_fail(R"("CallCodeFunction": attempt to call an error function)");
@@ -342,24 +342,27 @@ bool interpreter::call_code_function(uint32_t code, const char* f, uint32_t para
 	lua_remove(current_state, -2);
 	return call_function(param_count, ret_count);
 }
-bool interpreter::check_condition(int32_t f, uint32_t param_count) {
-	if(!f) {
+bool interpreter::check_condition(int32_t function, uint32_t param_count) {
+	if(!function) {
 		params.clear();
 		return true;
 	}
-	auto result = false;
-	if (call_function(f, param_count, 1)) {
-		result = lua_toboolean(current_state, -1);
-		lua_pop(current_state, 1);
-	}
+	if(!call_function(function, param_count, 1))
+		return false;
+	bool result = lua_toboolean(current_state, -1);
+	lua_pop(current_state, 1);
 	return result;
+}
+static inline void push_range_of_values(lua_State* L, int32_t idx, int32_t amount) {
+	idx = lua_absindex(L, idx);
+	for(int i = 0; i < amount; ++i)
+		lua_pushvalue(L, idx + i);
 }
 bool interpreter::check_matching(card* pcard, int32_t findex, int32_t extraargs) {
 	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	pushobject(current_state, pcard);
-	for(int32_t i = 0; i < extraargs; ++i)
-		lua_pushvalue(current_state, (int32_t)(-extraargs - 2));
+	push_range_of_values(current_state, -(extraargs + 2), extraargs);
 	auto result = false;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		print_stacktrace(current_state);
@@ -391,8 +394,7 @@ lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_
 	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	pushobject(current_state, pcard);
-	for(int32_t i = 0; i < extraargs; ++i)
-		lua_pushvalue(current_state, (int32_t)(-extraargs - 2));
+	push_range_of_values(current_state, -(extraargs + 2), extraargs);
 	lua_Integer result = 0;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		print_stacktrace(current_state);
@@ -408,9 +410,8 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	int32_t stack_top = lua_gettop(current_state);
-	lua_rawgeti(current_state, LUA_REGISTRYINDEX, pcard->ref_handle);
-	for(int32_t i = 0; i < extraargs; ++i)
-		lua_pushvalue(current_state, (int32_t)(-extraargs - 2));
+	pushobject(current_state, pcard);
+	push_range_of_values(current_state, -(extraargs + 2), extraargs);
 	auto ret = call_lua(current_state, extraargs, LUA_MULTRET) == LUA_OK;
 	if(!ret) {
 		print_stacktrace(current_state);
@@ -431,53 +432,57 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	}
 	return ret;
 }
-lua_Integer interpreter::get_function_value(int32_t f, uint32_t param_count) {
-	if(!f) {
+lua_Integer interpreter::get_function_value(int32_t function, uint32_t param_count) {
+	if(!function) {
 		params.clear();
 		return 0;
 	}
+	if(!call_function(function, param_count, 1))
+		return 0;
 	lua_Integer result = 0;
-	if (call_function(f, param_count, 1)) {
-		if(lua_isboolean(current_state, -1))
-			result = lua_get<bool>(current_state, -1);
-		else
-			result = lua_get<lua_Integer, 0>(current_state, -1);
-		lua_pop(current_state, 1);
-	}
+	if(lua_isboolean(current_state, -1))
+		result = lua_get<bool>(current_state, -1);
+	else
+		result = lua_get<lua_Integer, 0>(current_state, -1);
+	lua_pop(current_state, 1);
 	return result;
 }
-bool interpreter::get_function_value(int32_t f, uint32_t param_count, std::vector<lua_Integer>& result) {
-	if(!f) {
+bool interpreter::get_function_value(int32_t function, uint32_t param_count, std::vector<lua_Integer>& result) {
+	if(!function) {
 		params.clear();
 		return false;
 	}
 	const int32_t stack_top = lua_gettop(current_state);
-	auto res = call_function(f, param_count, LUA_MULTRET);
-	if (res) {
-		const int32_t stack_newtop = lua_gettop(current_state);
-		for (int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
-			lua_Integer return_value = 0;
-			if(lua_isboolean(current_state, index))
-				return_value = lua_get<bool>(current_state, index);
-			else
-				return_value = lua_get<lua_Integer, 0>(current_state, index);
-			result.push_back(return_value);
-		}
-		//pops all the results from the stack (lua_pop(current_state, stack_newtop - stack_top))
-		lua_settop(current_state, stack_top);
+	if(!call_function(function, param_count, LUA_MULTRET))
+		return false;
+	const int32_t stack_newtop = lua_gettop(current_state);
+	for(int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
+		lua_Integer return_value = 0;
+		if(lua_isboolean(current_state, index))
+			return_value = lua_get<bool>(current_state, index);
+		else
+			return_value = lua_get<lua_Integer, 0>(current_state, index);
+		result.push_back(return_value);
 	}
-	return res;
+	//pops all the results from the stack (lua_pop(current_state, stack_newtop - stack_top))
+	lua_settop(current_state, stack_top);
+	return true;
 }
-#if LUA_VERSION_NUM <= 503
 namespace {
+#if LUA_VERSION_NUM <= 503
 int lua_resume(lua_State* L, lua_State* from, int nargs, int* nresults) {
 	auto ret = lua_resume(L, from, nargs);
 	*nresults = lua_gettop(L);
 	return ret;
 }
-}
 #endif
-int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step) {
+auto resume_coroutine(lua_State* L, lua_State* from, int nargs) {
+	int result, nresults;
+	result = lua_resume(L, from, nargs, &nresults);
+	return std::make_pair(result, nresults);
+}
+}
+int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_Integer* yield_value, uint16_t step) {
 	auto ret_error = [&](const char* message) {
 		interpreter::print_stacktrace(current_state);
 		pduel->handle_message(message, OCG_LOG_TYPE_ERROR);
@@ -486,22 +491,22 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 	};
 	if(yield_value)
 		*yield_value = 0;
-	if (!f)
+	if (!function)
 		return ret_error(R"("CallCoroutine": attempt to call a null function)");
 	if (param_count != params.size())
 		return ret_error(R"("CallCoroutine": incorrect parameter count)");
-	auto it = coroutines.find(f);
+	auto it = coroutines.find(function);
 	lua_State* rthread;
 	if (it == coroutines.end()) {
 		rthread = lua_newthread(lua_state);
 		const auto threadref = luaL_ref(lua_state, LUA_REGISTRYINDEX);
-		pushobject(rthread, f);
+		pushobject(rthread, function);
 		if(!lua_isfunction(rthread, -1)) {
 			luaL_unref(lua_state, LUA_REGISTRYINDEX, threadref);
 			return ret_error(R"("CallCoroutine": attempt to call an error function)");
 		}
 		++call_depth;
-		auto ret = coroutines.emplace(f, std::make_pair(rthread, threadref));
+		auto ret = coroutines.emplace(function, std::make_pair(rthread, threadref));
 		it = ret.first;
 	} else {
 		if(step == 0) {
@@ -518,12 +523,9 @@ int32_t interpreter::call_coroutine(int32_t f, uint32_t param_count, lua_Integer
 		rthread = it->second.first;
 	}
 	push_param(rthread, true);
-	int result, nresults;
-	{
-		auto prev_state = std::exchange(current_state, rthread);
-		result = lua_resume(current_state, prev_state, param_count, &nresults);
-		current_state = prev_state;
-	}
+	auto prev_state = std::exchange(current_state, rthread);
+	auto [result, nresults] = resume_coroutine(current_state, prev_state, param_count);
+	current_state = prev_state;
 	if(result == LUA_YIELD)
 		return COROUTINE_YIELD;
 	if(result != LUA_OK) {
