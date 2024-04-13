@@ -120,6 +120,8 @@ public:
 	}
 };
 
+#define ensure_luaL_stack(func,L,...) [&](){ luaL_checkstack(L, 5, nullptr); return func(L, __VA_ARGS__); }()
+
 #define COROUTINE_FINISH	1
 #define COROUTINE_YIELD		2
 #define COROUTINE_ERROR		3

@@ -187,13 +187,13 @@ LUA_FUNCTION(SetLabel) {
 LUA_FUNCTION(SetLabelObject) {
 	check_param_count(L, 2);
 	if(self->label_object)
-		luaL_unref(L, LUA_REGISTRYINDEX, self->label_object);
+		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->label_object);
 	self->label_object = 0;
 	if(lua_isnoneornil(L, 2))
 		return 0;
 	if(lua_get<lua_obj*>(L, 2) != nullptr || lua_istable(L, 2)) {
 		lua_pushvalue(L, 2);
-		self->label_object = luaL_ref(L, LUA_REGISTRYINDEX);
+		self->label_object = ensure_luaL_stack(luaL_ref, L, LUA_REGISTRYINDEX);
 	} else
 		lua_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\" or \"table\".");
 	return 0;
@@ -216,7 +216,7 @@ LUA_FUNCTION(SetCondition) {
 	check_param_count(L, 2);
 	const auto findex = lua_get<function, true>(L, 2);
 	if(self->condition)
-		luaL_unref(L, LUA_REGISTRYINDEX, self->condition);
+		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->condition);
 	self->condition = interpreter::get_function_handle(L, findex);
 	return 0;
 }
@@ -224,7 +224,7 @@ LUA_FUNCTION(SetTarget) {
 	check_param_count(L, 2);
 	const auto findex = lua_get<function, true>(L, 2);
 	if(self->target)
-		luaL_unref(L, LUA_REGISTRYINDEX, self->target);
+		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->target);
 	self->target = interpreter::get_function_handle(L, findex);
 	return 0;
 }
@@ -232,14 +232,14 @@ LUA_FUNCTION(SetCost) {
 	check_param_count(L, 2);
 	const auto findex = lua_get<function, true>(L, 2);
 	if(self->cost)
-		luaL_unref(L, LUA_REGISTRYINDEX, self->cost);
+		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->cost);
 	self->cost = interpreter::get_function_handle(L, findex);
 	return 0;
 }
 LUA_FUNCTION(SetValue) {
 	check_param_count(L, 2);
 	if(self->value && self->is_flag(EFFECT_FLAG_FUNC_VALUE))
-		luaL_unref(L, LUA_REGISTRYINDEX, self->value);
+		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->value);
 	if (lua_isfunction(L, 2)) {
 		self->value = interpreter::get_function_handle(L, 2);
 		self->flag[0] |= EFFECT_FLAG_FUNC_VALUE;
@@ -266,7 +266,7 @@ LUA_FUNCTION(SetValue) {
 LUA_FUNCTION(SetOperation) {
 	check_param_count(L, 2);
 	if(self->operation)
-		luaL_unref(L, LUA_REGISTRYINDEX, self->operation);
+		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->operation);
 	self->operation = 0;
 	const auto findex = lua_get<function>(L, 2);
 	if(findex)
@@ -463,7 +463,7 @@ void scriptlib::push_effect_lib(lua_State* L) {
 	static constexpr auto effectlib = GET_LUA_FUNCTIONS_ARRAY();
 	static_assert(effectlib.back().name == nullptr);
 	lua_createtable(L, 0, static_cast<int>(effectlib.size() - 1));
-	luaL_setfuncs(L, effectlib.data(), 0);
+	ensure_luaL_stack(luaL_setfuncs, L, effectlib.data(), 0);
 	lua_pushstring(L, "__index");
 	lua_pushvalue(L, -2);
 	lua_rawset(L, -3);

@@ -22,7 +22,7 @@ LUA_STATIC_FUNCTION(Message) {
 		return 0;
 	luaL_checkstack(L, 1, nullptr);
 	for(int i = 1; i <= top; ++i) {
-		const auto* str = luaL_tolstring(L, i, nullptr);
+		const auto* str = ensure_luaL_stack(luaL_tolstring, L, i, nullptr);
 		if(str)
 			pduel->handle_message(str, OCG_LOG_TYPE_FROM_SCRIPT);
 		lua_pop(L, 1);
@@ -229,7 +229,7 @@ LUA_STATIC_FUNCTION(CardToStringWrapper) {
 		}
 		lua_settop(L, 1);
 	}
-	const char* kind = luaL_typename(L, 1);
+	const char* kind = ensure_luaL_stack(luaL_typename, L, 1);
 	lua_pushfstring(L, "%s: %p", kind, lua_topointer(L, 1));
 	return 1;
 }
@@ -240,6 +240,6 @@ void scriptlib::push_debug_lib(lua_State* L) {
 	static constexpr auto debuglib = GET_LUA_FUNCTIONS_ARRAY();
 	static_assert(debuglib.back().name == nullptr);
 	lua_createtable(L, 0, static_cast<int>(debuglib.size() - 1));
-	luaL_setfuncs(L, debuglib.data(), 0);
+	ensure_luaL_stack(luaL_setfuncs, L, debuglib.data(), 0);
 	lua_setglobal(L, "Debug");
 }

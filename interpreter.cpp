@@ -34,7 +34,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 	std::memcpy(lua_getextraspace(lua_state), &pd, sizeof(duel*));
 	// Open basic and used functionality
 	auto open_lib = [L=lua_state](const char* libname, lua_CFunction openf) {
-		luaL_requiref(L, libname, openf, 1);
+		ensure_luaL_stack(luaL_requiref, L, libname, openf, 1);
 		lua_pop(L, 1);
 	};
 	open_lib("_G", luaopen_base);
@@ -75,7 +75,7 @@ void interpreter::register_card(card* pcard) {
 	luaL_checkstack(current_state, 1, nullptr);
 	lua_obj** ppcard = create_object(lua_state);
 	*ppcard = pcard;
-	pcard->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+	pcard->ref_handle = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
 	//creates the pointer in the main state, then after taking a reference
 	//pushes it in the stack of the current_state, as load_card_script push the metatable there
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, pcard->ref_handle);
@@ -105,7 +105,7 @@ static inline void remove_object(lua_State* L, lua_obj* obj, lua_obj* replacemen
 	if(lobj)
 		*lobj = replacement;
 	lua_pop(L, 1);
-	luaL_unref(L, LUA_REGISTRYINDEX, obj->ref_handle);
+	ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, obj->ref_handle);
 	obj->ref_handle = 0;
 }
 void interpreter::register_effect(effect* peffect) {
@@ -115,17 +115,17 @@ void interpreter::unregister_effect(effect* peffect) {
 	if (!peffect)
 		return;
 	if(peffect->condition)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->condition);
+		ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, peffect->condition);
 	if(peffect->cost)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->cost);
+		ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, peffect->cost);
 	if(peffect->target)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->target);
+		ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, peffect->target);
 	if(peffect->operation)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->operation);
+		ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, peffect->operation);
 	if(peffect->value && peffect->is_flag(EFFECT_FLAG_FUNC_VALUE))
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->value);
+		ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, peffect->value);
 	if(peffect->label_object)
-		luaL_unref(lua_state, LUA_REGISTRYINDEX, peffect->label_object);
+		ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, peffect->label_object);
 	remove_object(lua_state, peffect, &deleted);
 }
 void interpreter::register_group(group* pgroup) {
@@ -144,13 +144,13 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename) {
 	lua_getglobal(lua_state, tablename);
 	lua_setmetatable(lua_state, -2);
 	//pops the lua object from the stack and takes a reference of it
-	obj->ref_handle = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+	obj->ref_handle = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
 }
 bool interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	if(!buffer)
 		return false;
 	++no_action;
-	if(luaL_loadbuffer(current_state, buffer, len, script_name) != LUA_OK
+	if(ensure_luaL_stack(luaL_loadbuffer, current_state, buffer, len, script_name) != LUA_OK
 	   || lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
 		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
@@ -499,10 +499,10 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 	lua_State* rthread;
 	if (it == coroutines.end()) {
 		rthread = lua_newthread(lua_state);
-		const auto threadref = luaL_ref(lua_state, LUA_REGISTRYINDEX);
+		const auto threadref = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
 		pushobject(rthread, function);
 		if(!lua_isfunction(rthread, -1)) {
-			luaL_unref(lua_state, LUA_REGISTRYINDEX, threadref);
+			ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, threadref);
 			return ret_error(R"("CallCoroutine": attempt to call an error function)");
 		}
 		++call_depth;
@@ -512,7 +512,7 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 		if(step == 0) {
 			auto ref = it->second.second;
 			coroutines.erase(it);
-			luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
+			ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, ref);
 			--call_depth;
 			if(call_depth == 0) {
 				pduel->release_script_group();
@@ -541,7 +541,7 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 	}
 	auto ref = it->second.second;
 	coroutines.erase(it);
-	luaL_unref(lua_state, LUA_REGISTRYINDEX, ref);
+	ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, ref);
 	--call_depth;
 	if(call_depth == 0) {
 		pduel->release_script_group();
@@ -551,7 +551,7 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 }
 int32_t interpreter::clone_lua_ref(int32_t lua_ref) {
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, lua_ref);
-	return luaL_ref(current_state, LUA_REGISTRYINDEX);
+	return ensure_luaL_stack(luaL_ref, current_state, LUA_REGISTRYINDEX);
 }
 void* interpreter::get_ref_object(int32_t ref_handler) {
 	if(ref_handler == 0)
@@ -588,13 +588,13 @@ int interpreter::pushExpandedTable(lua_State* L, int32_t table_index) {
 }
 int32_t interpreter::get_function_handle(lua_State* L, int32_t index) {
 	lua_pushvalue(L, index);
-	int32_t ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	int32_t ref = ensure_luaL_stack(luaL_ref, L, LUA_REGISTRYINDEX);
 	return ref;
 }
 
 void interpreter::print_stacktrace(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
-	luaL_traceback(L, L, nullptr, 1);
+	ensure_luaL_stack(luaL_traceback, L, L, nullptr, 1);
 	auto len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
 	if(len > sizeof("stack traceback:"))

@@ -1383,7 +1383,7 @@ void field::reset_phase(uint32_t phase) {
 }
 void field::reset_chain() {
 	for(const auto& ch_lim_p : core.chain_limit_p)
-		luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
+		ensure_luaL_stack(luaL_unref, pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim_p.function);
 	core.chain_limit_p.clear();
 	core.effect_count_code_chain.clear();
 	for(auto eit = effects.cheff.begin(); eit != effects.cheff.end();) {

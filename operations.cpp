@@ -5633,7 +5633,7 @@ bool field::process(Processors::ActivateEffect& arg) {
 	}
 	case 1: {
 		for(auto& ch_lim : core.chain_limit)
-			luaL_unref(pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
+			ensure_luaL_stack(luaL_unref, pduel->lua->lua_state, LUA_REGISTRYINDEX, ch_lim.function);
 		core.chain_limit.clear();
 		for(auto& ch : core.current_chain)
 			ch.triggering_effect->get_handler()->set_status(STATUS_CHAINING, FALSE);

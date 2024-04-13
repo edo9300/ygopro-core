@@ -46,6 +46,8 @@ if not subproject then
 	filter "action:vs*"
 		flags "MultiProcessorCompile"
 		vectorextensions "SSE2"
+		usestandardpreprocessor "On"
+		buildoptions "-experimental:preprocessor"
 
 	filter "action:not vs*"
 		buildoptions "-fno-strict-aliasing"
