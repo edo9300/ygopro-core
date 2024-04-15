@@ -22,7 +22,8 @@ constexpr inline uint8_t popcnt(T val) {
 
 template<typename T, typename T2>
 constexpr inline bool has_invalid_bits(T value, T2 allowed) {
-	return (value & (~allowed)) != 0;
+	using BiggestInt = std::conditional_t<(sizeof(T) > sizeof(T2)), T, T2>;
+	return (static_cast<BiggestInt>(value) & (~static_cast<BiggestInt>(allowed))) != static_cast<BiggestInt>(0);
 }
 
 }

@@ -1983,7 +1983,7 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 			break;
 		case CHAININFO::TRIGGERING_SETCODES: {
 			const auto& setcodes = ch->triggering_state.setcodes;
-			lua_createtable(L, setcodes.size(), 0);
+			lua_createtable(L, static_cast<int>(setcodes.size()), 0);
 			int i = 1;
 			for(const auto& setcode : setcodes) {
 				lua_pushinteger(L, i++);

@@ -1791,7 +1791,7 @@ LUA_FUNCTION(GetCounter) {
 	return 1;
 }
 LUA_FUNCTION(GetAllCounters) {
-	lua_createtable(L, self->counters.size(), 0);
+	lua_createtable(L, static_cast<int>(self->counters.size()), 0);
 	for(const auto& counter : self->counters) {
 		lua_pushinteger(L, counter.first);
 		lua_pushinteger(L, counter.second[0] + counter.second[1]);

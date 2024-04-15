@@ -19,7 +19,10 @@
 #if !defined(__INTELLISENSE__) || !HAS_COUNTER
 #include <array>
 #include <lauxlib.h>
-#include <type_traits>
+#if HAS_COUNTER
+#include <type_traits> //std::conditional_t
+#endif
+#include <utility> //std::index_sequence, std::make_index_sequence
 #include "common.h"
 
 // use forceinline only in release builds
