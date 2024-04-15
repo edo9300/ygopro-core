@@ -9,3 +9,7 @@ tmp/
 .vs/
 .DS_Store
 lua*
+!lua*/
+lua*/*
+!lua*/Android.mk
+!lua*/premake5.lua

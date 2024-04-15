@@ -23,13 +23,12 @@ LOCAL_SRC_FILES := card.cpp \
 				processor_visit.cpp \
 				scriptlib.cpp
 
-LOCAL_CFLAGS    :=  -pedantic -Wextra -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS -DNDEBUG
+LOCAL_CFLAGS   := -pedantic -Wextra -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIONS -DNDEBUG
 LOCAL_CPPFLAGS := -fexceptions -fno-rtti
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lua/include
-LOCAL_STATIC_LIBRARIES += liblua5.3
+LOCAL_STATIC_LIBRARIES += liblua
 
 include $(BUILD_SHARED_LIBRARY)
 
-$(call import-add-path,$(LOCAL_PATH)/..)
+$(call import-add-path,$(LOCAL_PATH))
 $(call import-module,lua)
 

@@ -80,8 +80,7 @@ jobs:
         sudo docker run -dt --rm --name alpine -v $PWD:/core -w="/core" alpine-cmake
     - name: Install lua
       shell: bash
-      run: |
-        sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e MAKE=make alpine ./travis/install-lua.sh
+      run: ./travis/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./travis/install-premake5.sh
@@ -197,9 +196,7 @@ jobs:
         fetch-depth: 1
     - name: Install lua
       shell: bash
-      run: |
-        cd ..
-        curl https://codeload.github.com/edo9300/edopro-android/tar.gz/master | tar -xz --strip=2 edopro-android-master/deps/lua
+      run: ./travis/install-lua.sh
     - name: Build
       shell: bash
       run: ./travis/build-android.sh

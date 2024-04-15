@@ -1,8 +1,9 @@
 local ocgcore_config=function()
-	files { "**.h", "**.hpp", "**.cpp" }
+	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp" }
 	warnings "Extra"
 	optimize "Speed"
 	cppdialect "C++17"
+	rtti "Off"
 
 	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
@@ -10,16 +11,16 @@ local ocgcore_config=function()
 		filter { "files:processor_visit.cpp" }
 			buildoptions { "-fno-exceptions" }
 	end
+	filter {}
+		include "lua"
+		links { "lua" }
+		includedirs { "lua/src" }
 end
 
 if not subproject then
 	newoption {
 		trigger = "oldwindows",
-		description = "Use the v140_xp or v141_xp toolset to support windows XP sp3"
-	}
-	newoption {
-		trigger = "lua-path",
-		description = "Path where the lua library has been installed"
+		description = "Use the v141_xp toolset to support windows XP sp3"
 	}
 	workspace "ocgcore"
 	location "build"
@@ -27,6 +28,11 @@ if not subproject then
 	objdir "obj"
 	configurations { "Debug", "Release" }
 	symbols "On"
+	staticruntime "on"
+
+	if _OPTIONS["oldwindows"] then
+		toolset "v141_xp"
+	end
 
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
@@ -38,24 +44,9 @@ if not subproject then
 	filter "platforms:x64"
 		architecture "x64"
 
-	if _OPTIONS["oldwindows"] then
-		filter {}
-			toolset "v141_xp"
-	end
-
 	filter "action:vs*"
 		flags "MultiProcessorCompile"
 		vectorextensions "SSE2"
-
-	filter "action:not vs*"
-		buildoptions "-fno-strict-aliasing"
-		if _OPTIONS["lua-path"] then
-			includedirs{ _OPTIONS["lua-path"] .. "/include" }
-			libdirs{ _OPTIONS["lua-path"] .. "/lib" }
-		else
-			includedirs "/usr/local/include"
-			libdirs "/usr/local/lib"
-		end
 
 	filter "configurations:Debug"
 		defines "_DEBUG"
@@ -78,30 +69,25 @@ if not subproject then
 		linkoptions { "-mthreads", "-municode", "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
 		defines { "UNICODE", "_UNICODE" }
 
-	local function vcpkgStaticTriplet(prj)
-		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'Win32\'">x86-windows-static</VcpkgTriplet>')
-		premake.w('<VcpkgTriplet Condition="\'$(Platform)\'==\'x64\'">x64-windows-static</VcpkgTriplet>')
-	end
-
 	local function disableWinXPWarnings(prj)
 		premake.w('<XPDeprecationWarning>false</XPDeprecationWarning>')
 	end
 
 	local function vcpkgStaticTriplet202006(prj)
-		premake.w('<VcpkgEnabled>true</VcpkgEnabled>')
-		premake.w('<VcpkgUseStatic>true</VcpkgUseStatic>')
-		premake.w('<VcpkgAutoLink>true</VcpkgAutoLink>')
+		premake.w('<VcpkgEnabled>false</VcpkgEnabled>')
+		premake.w('<VcpkgUseStatic>false</VcpkgUseStatic>')
+		premake.w('<VcpkgAutoLink>false</VcpkgAutoLink>')
 	end
 
 	require('vstudio')
 
 	premake.override(premake.vstudio.vc2010.elements, "globals", function(base, prj)
 		local calls = base(prj)
-		table.insertafter(calls, premake.vstudio.vc2010.targetPlatformVersionGlobal, vcpkgStaticTriplet)
 		table.insertafter(calls, premake.vstudio.vc2010.targetPlatformVersionGlobal, disableWinXPWarnings)
 		table.insertafter(calls, premake.vstudio.vc2010.globals, vcpkgStaticTriplet202006)
 		return calls
 	end)
+	startproject "ocgcoreshared"
 end
 
 project "ocgcore"
@@ -116,6 +102,3 @@ project "ocgcoreshared"
 	staticruntime "on"
 	visibility "Hidden"
 	ocgcore_config()
-
-	filter "action:not vs*"
-		links "lua"
