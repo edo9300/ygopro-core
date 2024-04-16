@@ -7,10 +7,10 @@ local ocgcore_config=function()
 
 	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
-	if os.istarget("macosx") then
-		filter { "files:processor_visit.cpp" }
-			buildoptions { "-fno-exceptions" }
-	end
+	filter "system:linux"
+		linkoptions { "-Wl,--no-undefined" }
+	filter { "system:macosx", "files:processor_visit.cpp" }
+		buildoptions { "-fno-exceptions" }
 	filter {}
 		include "lua"
 		links { "lua" }
@@ -29,6 +29,7 @@ if not subproject then
 	configurations { "Debug", "Release" }
 	symbols "On"
 	staticruntime "on"
+	startproject "ocgcoreshared"
 
 	if _OPTIONS["oldwindows"] then
 		toolset "v141_xp"
@@ -69,6 +70,9 @@ if not subproject then
 		linkoptions { "-mthreads", "-municode", "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
 		defines { "UNICODE", "_UNICODE" }
 
+	filter { "system:linux" }
+		linkoptions { "-static-libgcc", "-static-libstdc++" }
+
 	local function disableWinXPWarnings(prj)
 		premake.w('<XPDeprecationWarning>false</XPDeprecationWarning>')
 	end
@@ -87,7 +91,6 @@ if not subproject then
 		table.insertafter(calls, premake.vstudio.vc2010.globals, vcpkgStaticTriplet202006)
 		return calls
 	end)
-	startproject "ocgcoreshared"
 end
 
 project "ocgcore"
@@ -96,7 +99,7 @@ project "ocgcore"
 
 project "ocgcoreshared"
 	kind "SharedLib"
-	flags "NoImportLib"
+	flags { "NoImportLib", "LinkTimeOptimization" }
 	targetname "ocgcore"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"

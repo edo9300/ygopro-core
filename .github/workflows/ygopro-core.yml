@@ -12,13 +12,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-windows
       TRAVIS_OS_NAME: windows
-      VCPKG_ROOT: /c/vcpkg2
-      VCPKG_DEFAULT_TRIPLET: x86-windows-static
     steps:
-    - name: Set custom env vars
-      shell: bash
-      run: |
-        echo "VCPKG_CACHE_ZIP_URL=$DEPENDENCIES_BASE_URL/installed_x86-windows-static.zip" >> $GITHUB_ENV
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
     - uses: actions/checkout@v1
