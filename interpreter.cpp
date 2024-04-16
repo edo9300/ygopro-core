@@ -19,6 +19,9 @@
 using namespace scriptlib;
 
 // This function will be used by a lua library built with api check
+#ifdef __GNUC__
+[[gnu::used]]
+#endif
 void ocgcore_lua_api_check(void* state, const char* error_message) {
 	auto L = static_cast<lua_State*>(state);
 	auto pduel = lua_get<duel*>(L);
