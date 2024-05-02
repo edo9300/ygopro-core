@@ -1,4 +1,4 @@
-# YGOPro script engine. [![Build Status](https://travis-ci.org/edo9300/ygopro-core.svg?branch=master)](https://travis-ci.org/edo9300/ygopro-core)
+# YGOPro script engine.
 
 A bleeding-edge fork of [YGOPro core](https://github.com/Fluorohydride/ygopro) with updates to accommodate for new cards and features. It is incompatible with forks not derived from this one.
 
