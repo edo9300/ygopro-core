@@ -328,7 +328,7 @@ jobs:
       CXXFLAGS: -target arm64-apple-macos11
       CFLAGS: -target arm64-apple-macos11
       LDFLAGS: -target arm64-apple-macos11
-      SDKROOT: /Applications/Xcode_14.2.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.1.sdk
+      SDKROOT: /Applications/Xcode_14.3.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
     steps:
     - uses: actions/checkout@v1
       with:
