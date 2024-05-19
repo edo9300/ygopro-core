@@ -454,6 +454,18 @@ LUA_FUNCTION(UseCountLimit) {
 		}
 	return 0;
 }
+LUA_FUNCTION(RestoreCountLimit) {
+	check_param_count(L, 2);
+	auto p = lua_get<uint8_t>(L, 2);
+	auto count = lua_get<uint32_t, 1>(L, 3);
+	bool oath_only = lua_get<bool, false>(L, 4);
+	if(!oath_only || self->count_flag & EFFECT_COUNT_CODE_OATH)
+		while(count) {
+			self->inc_count(p);
+			--count;
+		}
+	return 0;
+}
 LUA_FUNCTION_EXISTING(GetLuaRef, get_lua_ref<effect>);
 LUA_FUNCTION_EXISTING(FromLuaRef, from_lua_ref<effect>);
 LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);

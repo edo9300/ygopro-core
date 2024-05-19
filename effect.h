@@ -83,6 +83,7 @@ public:
 	int32_t is_chainable(uint8_t tp);
 	int32_t reset(uint32_t reset_level, uint32_t reset_type);
 	void dec_count(uint32_t playerid = 2);
+	void inc_count(uint32_t playerid = 2);
 	void recharge();
 	uint8_t get_client_mode() const;
 	bool has_function_value() const {

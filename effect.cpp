@@ -590,6 +590,20 @@ void effect::dec_count(uint32_t playerid) {
 			pduel->game_field->add_effect_code(count_code, count_flag, count_hopt_index, playerid);
 	}
 }
+void effect::inc_count(uint32_t playerid) {
+	if(!is_flag(EFFECT_FLAG_COUNT_LIMIT))
+		return;
+	if(count_limit == 0)
+		return;
+	if(((count_code == 0 && count_flag == 0) || is_flag(EFFECT_FLAG_NO_TURN_RESET)) && count_limit != count_limit_max)
+		count_limit += 1;
+	if(count_code || count_flag) {
+		if(count_flag & EFFECT_COUNT_CODE_SINGLE)
+			pduel->game_field->dec_effect_code(get_handler()->fieldid, count_flag, count_hopt_index, PLAYER_NONE);
+		else
+			pduel->game_field->dec_effect_code(count_code, count_flag, count_hopt_index, playerid);
+	}
+}
 void effect::recharge() {
 	if(is_flag(EFFECT_FLAG_COUNT_LIMIT)) {
 		count_limit = count_limit_max;
