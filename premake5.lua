@@ -54,7 +54,7 @@ if not subproject then
 		targetdir "bin/debug"
 		runtime "Debug"
 
-	filter { "action:vs*", "configurations:Debug", "architecture:*64" }
+	filter { "system:windows", "configurations:Debug", "architecture:*64" }
 		targetdir "bin/x64/debug"
 
 	filter "configurations:Release"
@@ -62,12 +62,12 @@ if not subproject then
 		targetdir "bin/release"
 		defines "NDEBUG"
 
-	filter { "action:vs*", "configurations:Release", "architecture:*64" }
+	filter { "system:windows", "configurations:Release", "architecture:*64" }
 		targetdir "bin/x64/release"
 
 	filter { "action:not vs*", "system:windows" }
-		buildoptions { "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
-		linkoptions { "-mthreads", "-municode", "-static-libgcc", "-static-libstdc++", "-static", "-lpthread" }
+		buildoptions { "-static-libgcc", "-static-libstdc++", "-static" }
+		linkoptions { "-municode", "-static-libgcc", "-static-libstdc++", "-static" }
 		defines { "UNICODE", "_UNICODE" }
 
 	filter { "system:linux" }
