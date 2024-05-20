@@ -2399,7 +2399,7 @@ int32_t card::is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_
 		return FALSE;
 	uint16_t cttype = countertype & ~COUNTER_NEED_ENABLE;
 	uint32_t limit = UINT16_MAX + 1;
-	int32_t cur = 0;
+	uint32_t cur = 0;
 	auto cmit = counters.find(cttype);
 	if(cmit != counters.end())
 		cur = cmit->second[0] + cmit->second[1];
