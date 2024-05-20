@@ -67,7 +67,7 @@ if not subproject then
 
 	filter { "action:not vs*", "system:windows" }
 		buildoptions { "-static-libgcc", "-static-libstdc++", "-static" }
-		linkoptions { "-municode", "-static-libgcc", "-static-libstdc++", "-static" }
+		linkoptions { "-static-libgcc", "-static-libstdc++", "-static" }
 		defines { "UNICODE", "_UNICODE" }
 
 	filter { "system:linux" }
@@ -99,7 +99,9 @@ project "ocgcore"
 
 project "ocgcoreshared"
 	kind "SharedLib"
-	flags { "NoImportLib", "LinkTimeOptimization" }
+	flags "NoImportLib"
+	filter "configurations:Release"
+		flags "LinkTimeOptimization"
 	targetname "ocgcore"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
