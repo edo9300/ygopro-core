@@ -55,7 +55,7 @@ namespace scriptlib {
 	template<typename T>
 	using EnableIfIntegral = std::enable_if_t<IsInteger<T> || IsBool<T>, T>;
 
-	struct function{};
+	using function = struct {}*;
 
 	template<LuaParam param_type, bool retfalse = false, typename ReturnType = std::conditional_t<retfalse, bool, void>>
 	inline ReturnType check_param(lua_State* L, int32_t index, [[maybe_unused]] lua_obj** retobj = nullptr);

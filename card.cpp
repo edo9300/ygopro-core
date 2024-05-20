@@ -2317,10 +2317,10 @@ int32_t card::add_counter(uint8_t playerid, uint16_t countertype, uint16_t count
 	uint16_t pcount = count;
 	if(singly) {
 		effect_set eset;
-		auto limit = UINT16_MAX + 1;
+		uint32_t limit = UINT16_MAX + 1;
 		filter_effect(EFFECT_COUNTER_LIMIT + cttype, &eset);
 		for(const auto& peffect : eset)
-			limit = std::min<int>(static_cast<uint16_t>(peffect->get_value()), limit);
+			limit = std::min<uint32_t>(static_cast<uint16_t>(peffect->get_value()), limit);
 		if(limit != (UINT16_MAX + 1)) {
 			uint16_t mcount = static_cast<uint16_t>(limit) - get_counter(cttype);
 			if(pcount > mcount)
@@ -2398,14 +2398,14 @@ int32_t card::is_can_add_counter(uint8_t playerid, uint16_t countertype, uint16_
 	if(!check)
 		return FALSE;
 	uint16_t cttype = countertype & ~COUNTER_NEED_ENABLE;
-	auto limit = UINT16_MAX + 1;
+	uint32_t limit = UINT16_MAX + 1;
 	int32_t cur = 0;
 	auto cmit = counters.find(cttype);
 	if(cmit != counters.end())
 		cur = cmit->second[0] + cmit->second[1];
 	filter_effect(EFFECT_COUNTER_LIMIT + cttype, &eset);
 	for(const auto& peffect : eset)
-		limit = std::min<int>(static_cast<uint16_t>(peffect->get_value()), limit);
+		limit = std::min<uint32_t>(static_cast<uint16_t>(peffect->get_value()), limit);
 	if(singly)
 		count = 1;
 	if((limit != (UINT16_MAX + 1)) && (cur + count > limit))
