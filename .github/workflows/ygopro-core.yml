@@ -52,12 +52,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        docker-image: [x86_64-linux-musl, aarch64-linux-musl]
+        deploy-branch: [travis-core-linux-musl, travis-core-linux-musl-apicheck, travis-core-linux-musl-aarch64]
         include:
-          - docker-image: x86_64-linux-musl
-            deploy-branch: travis-core-linux-musl
-          - docker-image: aarch64-linux-musl
-            deploy-branch: travis-core-linux-musl-aarch64
+          - deploy-branch: travis-core-linux-musl
+            docker-image: x86_64-linux-musl
+            apicheck: 0
+          - deploy-branch: travis-core-linux-musl-apicheck
+            docker-image: x86_64-linux-musl
+            apicheck: 1
+          - deploy-branch: travis-core-linux-musl-aarch64
+            docker-image: aarch64-linux-musl
+            apicheck: 0
     runs-on: ubuntu-latest
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
@@ -74,6 +79,8 @@ jobs:
         sudo docker run -dt --rm --name alpine -v $PWD:/core -w="/core" alpine-cmake
     - name: Install lua
       shell: bash
+      env:
+        LUA_APICHECK: ${{ matrix.apicheck }}
       run: ./scripts/install-lua.sh
     - name: Install premake
       shell: bash
@@ -82,63 +89,7 @@ jobs:
       shell: bash
       run: |
         ./premake5 gmake2
-        sudo docker exec -t -w="/core" alpine make -Cbuild ocgcoreshared -j2 config=release LDFLAGS="-static -Wl,-Bstatic" &&
-        sudo chown -R $USER bin
-    - name: Predeploy
-      shell: bash
-      run: ./scripts/predeploy.sh
-    - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      shell: bash
-      run: ./scripts/deploy.sh
-    - name: Log Failure
-      uses: sarisia/actions-status-discord@v1
-      if: failure()
-      with:
-        nodetail: true
-        description: |
-            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-        title: |
-                
-        color: 0xff0000
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-        username: Github
-
-  Linux-musl-apicheck:
-    strategy:
-      fail-fast: false
-      matrix:
-        docker-image: [x86_64-linux-musl]
-        include:
-          - docker-image: x86_64-linux-musl
-            deploy-branch: travis-core-linux-musl-apicheck
-    runs-on: ubuntu-latest
-    env:
-      DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
-      TRAVIS_OS_NAME: linux
-      CXX: musl-g++
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-    - name: Setup alpine docker image
-      shell: bash
-      run: |
-        sudo docker build --build-arg target_arch=${{ matrix.docker-image }} . -t alpine-cmake -f ./scripts/Dockerfile &&
-        sudo docker run -dt --rm --name alpine -v $PWD:/core -w="/core" alpine-cmake
-    - name: Install lua
-      shell: bash
-      run: |
-        sudo docker exec -t -w="/core" -e TRAVIS_OS_NAME=linux -e MAKE=make -e LUA_APICHECK=1 alpine ./scripts/install-lua.sh
-    - name: Install premake
-      shell: bash
-      run: ./scripts/install-premake5.sh
-    - name: Build
-      shell: bash
-      run: |
-        ./premake5 gmake2
-        sudo docker exec -t -w="/core" alpine make -Cbuild ocgcoreshared -j2 config=release LDFLAGS="-static -Wl,-Bstatic" &&
+        sudo docker exec -t -w="/core" alpine make -Cbuild ocgcoreshared -j$(nproc) config=release LDFLAGS="-static -Wl,-Bstatic" &&
         sudo chown -R $USER bin
     - name: Predeploy
       shell: bash
@@ -518,7 +469,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-osx-universal
       TRAVIS_OS_NAME: osx
-    needs: [ Windows, Linux-musl, Linux-musl-apicheck, Android, Mac-os-universal-cctools ]
+    needs: [ Windows, Linux-musl, Android, Mac-os-universal-cctools ]
     steps:
     - name: Log Success
       uses: sarisia/actions-status-discord@v1

@@ -16,7 +16,7 @@ cd lua
 #endif
 
 EOT
-if [[ -n ${LUA_APICHECK:-""} ]]; then
+if [[ "${LUA_APICHECK:-0}" == "1" ]]; then
 	cat <<EOT >> src/luaconf.h
 
 #ifndef luaconf_h_ocgcore_api_check
