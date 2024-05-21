@@ -60,6 +60,62 @@ jobs:
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Github
 
+  Windows-mingw:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [win32, x64]
+        include:
+          - arch: win32
+            deploy-branch: travis-core-windows-mingw
+          - arch: x64
+            deploy-branch: travis-core-windows-mingw-x64
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
+      TRAVIS_OS_NAME: linux
+      TARGET_OS: windows
+      BUILD_CONFIG: ${{ format('release_{0}', matrix.arch) }}
+      CC: cc
+      CXX: c++
+    steps:
+    - name: Set up MinGW
+      uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: ${{ matrix.arch }}
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install lua
+      shell: bash
+      run: ./scripts/install-lua.sh
+    - name: Install premake
+      shell: bash
+      run: ./scripts/install-premake5.sh
+    - name: Build
+      shell: bash
+      run: ./scripts/build-premake5.sh
+    - name: Predeploy
+      shell: bash
+      run: ./scripts/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      shell: bash
+      run: ./scripts/deploy.sh
+    - name: Log Failure
+      uses: sarisia/actions-status-discord@v1
+      if: failure()
+      with:
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Github
+
   Linux-musl:
     strategy:
       fail-fast: false
