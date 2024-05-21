@@ -8,9 +8,4 @@ SDKMANAGER=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
 echo y | $SDKMANAGER "ndk;$NDK_VERSION"
 ln -sfn $ANDROID_HOME/ndk/$NDK_VERSION $ANDROID_HOME/ndk-bundle
 
-if [[ "$OS_NAME" == "osx" ]]; then
-	$ANDROID_HOME/ndk-bundle/ndk-build -j3
-fi
-if [[ "$OS_NAME" == "linux" ]]; then
-	$ANDROID_HOME/ndk-bundle/ndk-build -j2
-fi
+$ANDROID_HOME/ndk-bundle/ndk-build -j$(nproc)

@@ -7,11 +7,23 @@ env:
   DEPLOY_REPO: ${{ secrets.DEPLOY_REPO }}
   DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
 jobs:
-  Windows:
+  Windows-visual-studio:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [Win32, x64]
+        include:
+          - arch: Win32
+            deploy-branch: travis-core-windows
+          - arch: x64
+            deploy-branch: travis-core-windows-x64
     runs-on: windows-2019
     env:
-      DEPLOY_BRANCH: travis-core-windows
+      DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
       TRAVIS_OS_NAME: windows
+      VISUAL_STUDIO_ARCH: ${{ matrix.arch }}
+      VISUAL_STUDIO_VERSION: vs2019
+      PREMAKE_FLAGS: --oldwindows=true
     steps:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
@@ -26,7 +38,7 @@ jobs:
       run: ./scripts/install-premake5.sh
     - name: Build
       shell: bash
-      run: ./scripts/build-premake5.sh
+      run: ./scripts/build-premake5-msvc.sh
     - name: Predeploy
       shell: bash
       run: ./scripts/predeploy.sh
@@ -170,7 +182,7 @@ jobs:
     runs-on: macos-11
     env:
       DEPLOY_BRANCH: travis-core-osx
-      TRAVIS_OS_NAME: osx
+      TRAVIS_OS_NAME: macosx
       DEVELOPER_DIR: /Applications/Xcode_11.7.app/Contents/Developer
       MACOSX_DEPLOYMENT_TARGET: 10.11
     steps:
@@ -221,7 +233,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-osx-cctools
       TRAVIS_OS_NAME: linux
-      TARGET_OS: osx
+      TARGET_OS: macosx
       CC: /opt/cctools/bin/x86_64-macosx-clang
       CXX: /opt/cctools/bin/x86_64-macosx-clang++
       RANLIB: /opt/cctools/bin/x86_64-apple-darwin11-ranlib
@@ -274,7 +286,7 @@ jobs:
     runs-on: macos-latest
     env:
       DEPLOY_BRANCH: travis-core-osx-aarch64
-      TRAVIS_OS_NAME: osx
+      TRAVIS_OS_NAME: macosx
       MACOSX_DEPLOYMENT_TARGET: 11.0
       CXXFLAGS: -target arm64-apple-macos11
       CFLAGS: -target arm64-apple-macos11
@@ -323,7 +335,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-core-osx-aarch64-cctools
       TRAVIS_OS_NAME: linux
-      TARGET_OS: osx
+      TARGET_OS: macosx
       CC: /opt/cctools/bin/arm64-macosx-clang
       CXX: /opt/cctools/bin/arm64-macosx-clang++
       RANLIB: /opt/cctools/bin/arm-apple-darwin11-ranlib
@@ -468,8 +480,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DEPLOY_BRANCH: travis-osx-universal
-      TRAVIS_OS_NAME: osx
-    needs: [ Windows, Linux-musl, Android, Mac-os-universal-cctools ]
+      TRAVIS_OS_NAME: macosx
+    needs: [ Windows-visual-studio, Linux-musl, Android, Mac-os-universal-cctools ]
     steps:
     - name: Log Success
       uses: sarisia/actions-status-discord@v1

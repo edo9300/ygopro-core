@@ -12,7 +12,7 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 	curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz
 	tar xf premake-5.0.0-alpha14-linux.tar.gz
 fi
-if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+if [[ "$TRAVIS_OS_NAME" == "macosx" ]]; then
 	curl --retry 5 --connect-timeout 30 --location --remote-header-name --remote-name https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-macosx.tar.gz
 	tar xf premake-5.0.0-alpha14-macosx.tar.gz
 fi
