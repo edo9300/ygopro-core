@@ -102,6 +102,7 @@ project "ocgcoreshared"
 	flags "NoImportLib"
 	filter "configurations:Release"
 		flags "LinkTimeOptimization"
+	filter {}
 	targetname "ocgcore"
 	defines "OCGCORE_EXPORT_FUNCTIONS"
 	staticruntime "on"
