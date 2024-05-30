@@ -2125,8 +2125,11 @@ LUA_STATIC_FUNCTION(NegateAttack) {
 	});
 }
 LUA_STATIC_FUNCTION(ChainAttack) {
-	pduel->game_field->core.chain_attack = TRUE;
-	pduel->game_field->core.chain_attacker_id = pduel->game_field->core.attacker->fieldid;
+	auto* attacker = pduel->game_field->core.attacker;
+	if(!attacker || attacker->is_affect_by_effect(pduel->game_field->core.reason_effect))
+		return 0;
+	pduel->game_field->core.chain_attack = true;
+	pduel->game_field->core.chain_attacker_id = attacker->fieldid;
 	if(lua_gettop(L) > 0)
 		pduel->game_field->core.chain_attack_target = lua_get<card*, true>(L, 1);
 	return 0;
