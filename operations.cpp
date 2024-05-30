@@ -2181,7 +2181,7 @@ bool field::process(Processors::SummonRule& arg) {
 				pduel->lua->add_param<LuaParam::INT>(target->summon.type);
 				pduel->lua->add_param<LuaParam::INT>(positions);
 				pduel->lua->add_param<LuaParam::INT>(targetplayer);
-				if(!pduel->lua->check_condition(eff->target, 5))
+				if(!pduel->lua->check_condition(eff->target, 6))
 					continue;
 			}
 			positions &= eff->get_value();

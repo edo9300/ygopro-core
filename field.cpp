@@ -2693,6 +2693,26 @@ int32_t field::is_player_can_summon(uint32_t sumtype, uint8_t playerid, card* pc
 		if(pduel->lua->check_condition(peff->target, 6))
 			return FALSE;
 	}
+	eset.clear();
+	filter_player_effect(playerid, EFFECT_FORCE_NORMAL_SUMMON_POSITION, &eset);
+	uint8_t sumpos = POS_FACEUP_ATTACK;
+	if(is_player_affected_by_effect(playerid, EFFECT_DEVINE_LIGHT))
+		sumpos = POS_FACEUP;
+	for(auto& eff : eset) {
+		if(eff->target) {
+			pduel->lua->add_param<LuaParam::EFFECT>(eff);
+			pduel->lua->add_param<LuaParam::CARD>(pcard);
+			pduel->lua->add_param<LuaParam::INT>(playerid);
+			pduel->lua->add_param<LuaParam::INT>(sumtype);
+			pduel->lua->add_param<LuaParam::INT>(sumpos);
+			pduel->lua->add_param<LuaParam::INT>(toplayer);
+			if(!pduel->lua->check_condition(eff->target, 6))
+				continue;
+		}
+		sumpos &= eff->get_value();
+		if(sumpos == 0)
+			return FALSE;
+	}
 	return TRUE;
 }
 int32_t field::is_player_can_mset(uint32_t sumtype, uint8_t playerid, card* pcard, uint8_t toplayer) {
