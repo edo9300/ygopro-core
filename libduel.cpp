@@ -22,24 +22,18 @@ namespace {
 
 using namespace scriptlib;
 
-LUA_STATIC_FUNCTION(EnableGlobalFlag) {
-	check_param_count(L, 1);
+LUA_STATIC_FUNCTION(EnableGlobalFlag, [[maybe_unused]] uint32_t flag_to_enable) {
 	// noop
 	return 0;
 }
 
-LUA_STATIC_FUNCTION(GetLP) {
-	check_param_count(L, 1);
-	auto p = lua_get<int8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetLP, uint8_t p) {
 	if(p != 0 && p != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->player[p].lp);
 	return 1;
 }
-LUA_STATIC_FUNCTION(SetLP) {
-	check_param_count(L, 2);
-	auto p = lua_get<int8_t>(L, 1);
-	auto lp = lua_get<int32_t>(L, 2);
+LUA_STATIC_FUNCTION(SetLP, int8_t p, int32_t lp) {
 	if(lp < 0) lp = 0;
 	if(p != 0 && p != 1)
 		return 0;
@@ -53,49 +47,36 @@ LUA_STATIC_FUNCTION(GetTurnPlayer) {
 	lua_pushinteger(L, pduel->game_field->infos.turn_player);
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsTurnPlayer) {
-	check_param_count(L, 1);
-	const auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(IsTurnPlayer, uint8_t playerid) {
 	lua_pushboolean(L, pduel->game_field->infos.turn_player == playerid);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetTurnCount) {
-	if(lua_gettop(L) > 0) {
-		auto playerid = lua_get<uint8_t>(L, 1);
-		if(playerid != 0 && playerid != 1)
+LUA_STATIC_FUNCTION(GetTurnCount, std::optional<uint8_t> playerid) {
+	if(playerid.has_value()) {
+		auto actual_playerid = *playerid;
+		if(actual_playerid != 0 && actual_playerid != 1)
 			return 0;
-		lua_pushinteger(L, pduel->game_field->infos.turn_id_by_player[playerid]);
+		lua_pushinteger(L, pduel->game_field->infos.turn_id_by_player[actual_playerid]);
 	} else
 		lua_pushinteger(L, pduel->game_field->infos.turn_id);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetDrawCount) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetDrawCount, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->get_draw_count(playerid));
 	return 1;
 }
-LUA_STATIC_FUNCTION(RegisterEffect) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 2);
+LUA_STATIC_FUNCTION(RegisterEffect, effect* peffect, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->add_effect(peffect, playerid);
 	return 0;
 }
-LUA_STATIC_FUNCTION(RegisterFlagEffect) {
-	check_param_count(L, 5);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(RegisterFlagEffect, uint8_t playerid, uint32_t code, uint32_t reset, uint32_t flag, uint32_t count, std::optional<uint32_t> lab) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
-	auto reset = lua_get<uint32_t>(L, 3);
-	auto flag = lua_get<uint32_t>(L, 4);
-	auto count = lua_get<uint16_t>(L, 5);
-	auto lab = lua_get<uint32_t, 0>(L, 6);
+	code = (code & 0xfffffffu) | 0x10000000u;
 	if(count == 0)
 		count = 1;
 	if(reset & (RESET_PHASE) && !(reset & (RESET_SELF_TURN | RESET_OPPO_TURN)))
@@ -111,28 +92,24 @@ LUA_STATIC_FUNCTION(RegisterFlagEffect) {
 	peffect->s_range = 1;
 	peffect->o_range = 0;
 	peffect->reset_count = count;
-	peffect->label.push_back(lab);
+	peffect->label.push_back(lab.value_or(0));
 	pduel->game_field->add_effect(peffect, playerid);
 	interpreter::pushobject(L, peffect);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFlagEffect) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetFlagEffect, uint8_t playerid, uint32_t code) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
+	code = (code & 0xfffffffu) | 0x10000000u;
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
 	lua_pushinteger(L, eset.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(ResetFlagEffect) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(ResetFlagEffect, uint8_t playerid, uint32_t code) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
+	code = (code & 0xfffffffu) | 0x10000000u;
 	auto pr = pduel->game_field->effects.aura_effect.equal_range(code);
 	for(; pr.first != pr.second; ) {
 		auto rm = pr.first++;
@@ -142,13 +119,10 @@ LUA_STATIC_FUNCTION(ResetFlagEffect) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(SetFlagEffectLabel) {
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(SetFlagEffectLabel, uint8_t playerid, uint32_t code, int32_t lab) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
-	auto lab = lua_get<int32_t>(L, 3);
+	code = (code & 0xfffffffu) | 0x10000000u;
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
 	if(!eset.size())
@@ -160,12 +134,10 @@ LUA_STATIC_FUNCTION(SetFlagEffectLabel) {
 	}
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFlagEffectLabel) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetFlagEffectLabel, uint8_t playerid, uint32_t code) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
+	code = (code & 0xfffffffu) | 0x10000000u;
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
 	if(eset.empty()) {
@@ -1773,33 +1745,27 @@ LUA_STATIC_FUNCTION(GetLocationCountFromEx) {
 	}
 	return 2;
 }
-LUA_STATIC_FUNCTION(GetUsableMZoneCount) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetUsableMZoneCount, uint8_t playerid, std::optional<uint8_t> uplayer) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto uplayer = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto actual_uplayer = uplayer.value_or(pduel->game_field->core.reason_player);
 	uint32_t zone = 0xff;
 	uint32_t flag1, flag2;
-	int32_t ct1 = pduel->game_field->get_tofield_count(nullptr, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
-	int32_t ct2 = pduel->game_field->get_spsummonable_count_fromex(nullptr, playerid, uplayer, zone, &flag2);
+	int32_t ct1 = pduel->game_field->get_tofield_count(nullptr, playerid, LOCATION_MZONE, actual_uplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
+	int32_t ct2 = pduel->game_field->get_spsummonable_count_fromex(nullptr, playerid, actual_uplayer, zone, &flag2);
 	int32_t ct3 = field::field_used_count[~(flag1 | flag2) & 0x1f];
 	int32_t count = ct1 + ct2 - ct3;
-	int32_t limit = pduel->game_field->get_mzone_limit(playerid, uplayer, LOCATION_REASON_TOFIELD);
+	int32_t limit = pduel->game_field->get_mzone_limit(playerid, actual_uplayer, LOCATION_REASON_TOFIELD);
 	if(count > limit)
 		count = limit;
 	lua_pushinteger(L, count);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetLinkedGroup) {
-	check_param_count(L, 3);
-	auto rplayer = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetLinkedGroup, uint8_t rplayer, uint16_t location1, uint16_t location2) {
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	auto location1 = lua_get<uint16_t>(L, 2);
 	if(location1 == 1)
 		location1 = LOCATION_MZONE;
-	auto location2 = lua_get<uint16_t>(L, 3);
 	if(location2 == 1)
 		location2 = LOCATION_MZONE;
 	card_set cset;
@@ -1808,15 +1774,11 @@ LUA_STATIC_FUNCTION(GetLinkedGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetLinkedGroupCount) {
-	check_param_count(L, 3);
-	auto rplayer = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetLinkedGroupCount, uint8_t rplayer, uint16_t location1, uint16_t location2) {
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	auto location1 = lua_get<uint16_t>(L, 2);
 	if(location1 == 1)
 		location1 = LOCATION_MZONE;
-	auto location2 = lua_get<uint16_t>(L, 3);
 	if(location2 == 1)
 		location2 = LOCATION_MZONE;
 	card_set cset;
@@ -1824,27 +1786,19 @@ LUA_STATIC_FUNCTION(GetLinkedGroupCount) {
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetLinkedZone) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetLinkedZone, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->get_linked_zone(playerid));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFreeLinkedZone) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetFreeLinkedZone, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->get_linked_zone(playerid, true));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFieldCard) {
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto location = lua_get<uint16_t>(L, 2);
-	auto sequence = lua_get<uint32_t>(L, 3);
+LUA_STATIC_FUNCTION(GetFieldCard, uint8_t playerid, uint16_t location, uint32_t sequence) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	card* pcard = pduel->game_field->get_field_card(playerid, location, sequence);
@@ -1853,20 +1807,15 @@ LUA_STATIC_FUNCTION(GetFieldCard) {
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_STATIC_FUNCTION(CheckLocation) {
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto location = lua_get<uint16_t>(L, 2);
-	auto sequence = lua_get<uint32_t>(L, 3);
+LUA_STATIC_FUNCTION(CheckLocation, uint8_t playerid, uint16_t location, uint32_t sequence) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushboolean(L, pduel->game_field->is_location_useable(playerid, location, sequence));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetCurrentChain) {
-	const auto real = lua_get<bool, false>(L, 1);
+LUA_STATIC_FUNCTION(GetCurrentChain, std::optional<bool> real) {
 	const auto& core = pduel->game_field->core;
-	lua_pushinteger(L, real ? core.real_chain_count : core.current_chain.size());
+	lua_pushinteger(L, real.value_or(false) ? core.real_chain_count : core.current_chain.size());
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetChainInfo) {
@@ -1999,9 +1948,7 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 	});
 	return args;
 }
-LUA_STATIC_FUNCTION(GetChainEvent) {
-	check_param_count(L, 1);
-	auto count = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetChainEvent, uint8_t count) {
 	chain* ch = pduel->game_field->get_chain(count);
 	if(!ch)
 		return 0;
@@ -2037,21 +1984,13 @@ LUA_STATIC_FUNCTION(IsBattlePhase) {
 	lua_pushboolean(L, (phase >= PHASE_BATTLE_START) && (phase <= PHASE_BATTLE));
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsPhase) {
-	check_param_count(L, 1);
-	const auto phase = lua_get<uint16_t>(L, 1);
+LUA_STATIC_FUNCTION(IsPhase, uint16_t phase) {
 	lua_pushboolean(L, pduel->game_field->infos.phase == phase);
 	return 1;
 }
-LUA_STATIC_FUNCTION(SkipPhase) {
-	check_param_count(L, 4);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(SkipPhase, uint8_t playerid, uint16_t phase, uint32_t reset, uint16_t count, std::optional<uint32_t> value) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto phase = lua_get<uint16_t>(L, 2);
-	auto reset = lua_get<uint32_t>(L, 3);
-	auto count = lua_get<uint16_t>(L, 4);
-	auto value = lua_get<uint32_t, 0>(L, 5);
 	if(count <= 0)
 		count = 1;
 	int32_t code = 0;
@@ -2079,7 +2018,7 @@ LUA_STATIC_FUNCTION(SkipPhase) {
 	peffect->s_range = 1;
 	peffect->o_range = 0;
 	peffect->reset_count = count;
-	peffect->value = value;
+	peffect->value = value.value_or(0);
 	pduel->game_field->add_effect(peffect, playerid);
 	return 0;
 }
@@ -2101,9 +2040,7 @@ LUA_STATIC_FUNCTION(GetAttackTarget) {
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetBattleMonster) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetBattleMonster, uint8_t playerid) {
 	card* attacker = pduel->game_field->core.attacker;
 	card* defender = pduel->game_field->core.attack_target;
 	for(int32_t i = 0; i < 2; ++i) {
@@ -2124,14 +2061,13 @@ LUA_STATIC_FUNCTION(NegateAttack) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(ChainAttack) {
+LUA_STATIC_FUNCTION(ChainAttack, std::optional<card*> chain_attack_target) {
 	auto* attacker = pduel->game_field->core.attacker;
 	if(!attacker || !attacker->is_affect_by_effect(pduel->game_field->core.reason_effect))
 		return 0;
 	pduel->game_field->core.chain_attack = true;
 	pduel->game_field->core.chain_attacker_id = attacker->fieldid;
-	if(lua_gettop(L) > 0)
-		pduel->game_field->core.chain_attack_target = lua_get<card*, true>(L, 1);
+	pduel->game_field->core.chain_attack_target = chain_attack_target.value_or(nullptr);
 	return 0;
 }
 LUA_STATIC_FUNCTION(Readjust) {
@@ -3588,14 +3524,11 @@ LUA_STATIC_FUNCTION(GetPlayerEffect) {
 		interpreter::pushobject(L, peff);
 	return static_cast<int32_t>(eset.size());
 }
-LUA_STATIC_FUNCTION(IsPlayerCanDraw) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(IsPlayerCanDraw, uint8_t playerid, std::optional<uint32_t> count) {
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
-	auto count = lua_get<uint32_t, 0>(L, 2);
 	lua_pushboolean(L, pduel->game_field->is_player_can_draw(playerid)
 					&& (pduel->game_field->player[playerid].list_main.size() >= count));
 	return 1;
@@ -3980,11 +3913,7 @@ LUA_STATIC_FUNCTION(AddCustomActivityCounter) {
 	counter_map.emplace(counter_id, processor::action_value_t{ counter_filter, { 0, 0 } });
 	return 0;
 }
-LUA_STATIC_FUNCTION(GetCustomActivityCount) {
-	check_param_count(L, 3);
-	auto counter_id = lua_get<uint32_t>(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	auto activity_type = static_cast<ActivityType>(lua_get<uint8_t>(L, 3));
+LUA_STATIC_FUNCTION(GetCustomActivityCount, uint32_t counter_id, uint8_t playerid, ActivityType activity_type) {
 	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN || activity_type == 0)
 		lua_error(L, "Passed invalid ACTIVITY counter.");
 	auto& counter_map = pduel->game_field->core.get_counter_map(activity_type);
@@ -3996,9 +3925,7 @@ LUA_STATIC_FUNCTION(GetCustomActivityCount) {
 	return 1;
 }
 
-LUA_STATIC_FUNCTION(GetBattledCount) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetBattledCount, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->core.battled_count[playerid]);
@@ -4024,9 +3951,7 @@ LUA_STATIC_FUNCTION(AssumeReset) {
 	pduel->restore_assumes();
 	return 0;
 }
-LUA_STATIC_FUNCTION(GetCardFromCardID) {
-	check_param_count(L, 1);
-	auto id = lua_get<uint32_t>(L, 1);
+LUA_STATIC_FUNCTION(GetCardFromCardID, uint32_t id) {
 	for(auto& pcard : pduel->cards) {
 		if(pcard->cardid == id) {
 			interpreter::pushobject(L, pcard);
@@ -4075,27 +4000,21 @@ LUA_STATIC_FUNCTION(LoadScript) {
 	lua_setglobal(L, "edopro_exports");
 	return 2;
 }
-LUA_STATIC_FUNCTION(TagSwap) {
+LUA_STATIC_FUNCTION(TagSwap, uint8_t playerid) {
 	check_action_permission(L);
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
 	if (playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->tag_swap(playerid);
 	return yield();
 }
-LUA_STATIC_FUNCTION(GetPlayersCount) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetPlayersCount, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->get_player_count(playerid));
 	return 1;
 }
-LUA_STATIC_FUNCTION(SwapDeckAndGrave) {
+LUA_STATIC_FUNCTION(SwapDeckAndGrave, uint8_t playerid) {
 	check_action_permission(L);
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->swap_deck_and_grave(playerid);

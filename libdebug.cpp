@@ -29,15 +29,7 @@ LUA_STATIC_FUNCTION(Message) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(AddCard) {
-	check_param_count(L, 6);
-	auto code = lua_get<uint32_t>(L, 1);
-	auto owner = lua_get<uint8_t>(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 3);
-	auto location = lua_get<uint16_t>(L, 4);
-	auto sequence = lua_get<uint16_t>(L, 5);
-	auto position = lua_get<uint8_t>(L, 6);
-	bool proc = lua_get<bool, false>(L, 7);
+LUA_STATIC_FUNCTION(AddCard, uint32_t code, uint8_t owner, uint8_t playerid, uint16_t location, uint16_t sequence, uint8_t position, std::optional<bool> proc) {
 	if(owner != 0 && owner != 1)
 		return 0;
 	if(playerid != 0 && playerid != 1)
@@ -75,8 +67,7 @@ LUA_STATIC_FUNCTION(AddCard) {
 			pcard->enable_field_effect(true);
 			field->adjust_instant();
 		}
-		if(proc)
-			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
+		pcard->set_status(STATUS_PROC_COMPLETE, proc.value_or(false));
 		interpreter::pushobject(L, pcard);
 		return 1;
 	} else if(location & LOCATION_ONFIELD) {
@@ -84,19 +75,13 @@ LUA_STATIC_FUNCTION(AddCard) {
 		pcard->owner = owner;
 		card* fcard = field->get_field_card(playerid, location, sequence);
 		fcard->xyz_add(pcard);
-		if(proc)
-			pcard->set_status(STATUS_PROC_COMPLETE, TRUE);
+		pcard->set_status(STATUS_PROC_COMPLETE, proc.value_or(false));
 		interpreter::pushobject(L, pcard);
 		return 1;
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(SetPlayerInfo) {
-	check_param_count(L, 4);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto lp = lua_get<uint32_t>(L, 2);
-	auto startcount = lua_get<uint32_t>(L, 3);
-	auto drawcount = lua_get<uint32_t>(L, 4);
+LUA_STATIC_FUNCTION(SetPlayerInfo, uint8_t playerid, uint32_t lp, uint16_t startcount, uint16_t drawcount) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto& player = pduel->game_field->player[playerid];
@@ -106,23 +91,15 @@ LUA_STATIC_FUNCTION(SetPlayerInfo) {
 	player.draw_count = drawcount;
 	return 0;
 }
-LUA_STATIC_FUNCTION(PreSummon) {
+LUA_STATIC_FUNCTION(PreSummon, card* pcard, uint32_t summon_type, std::optional <uint8_t> summon_location, std::optional<uint8_t> summon_sequence, std::optional<bool> summon_pzone) {
 	check_param_count(L, 2);
-	auto pcard = lua_get<card*, true>(L, 1);
-	auto summon_type = lua_get<uint32_t>(L, 2);
-	auto summon_location = lua_get<uint8_t, 0>(L, 3);
-	auto summon_sequence = lua_get<uint8_t, 0>(L, 4);
-	auto summon_pzone = lua_get<bool, false>(L, 5);
-	pcard->summon.location = summon_location;
+	pcard->summon.location = summon_location.value_or(0);
 	pcard->summon.type = summon_type;
-	pcard->summon.sequence = summon_sequence;
-	pcard->summon.pzone = summon_pzone;
+	pcard->summon.sequence = summon_sequence.value_or(0);
+	pcard->summon.pzone = summon_pzone.value_or(false);
 	return 0;
 }
-LUA_STATIC_FUNCTION(PreEquip) {
-	check_param_count(L, 2);
-	auto equip_card = lua_get<card*, true>(L, 1);
-	auto target = lua_get<card*, true>(L, 2);
+LUA_STATIC_FUNCTION(PreEquip, card* equip_card, card* target) {
 	if((equip_card->current.location != LOCATION_SZONE)
 	   || (target->current.location != LOCATION_MZONE)
 	   || (target->current.position & POS_FACEDOWN))
@@ -135,18 +112,11 @@ LUA_STATIC_FUNCTION(PreEquip) {
 	}
 	return 1;
 }
-LUA_STATIC_FUNCTION(PreSetTarget) {
-	check_param_count(L, 2);
-	auto t_card = lua_get<card*, true>(L, 1);
-	auto target = lua_get<card*, true>(L, 2);
+LUA_STATIC_FUNCTION(PreSetTarget, card* t_card, card* target) {
 	t_card->add_card_target(target);
 	return 0;
 }
-LUA_STATIC_FUNCTION(PreAddCounter) {
-	check_param_count(L, 2);
-	auto pcard = lua_get<card*, true>(L, 1);
-	auto countertype = lua_get<uint16_t>(L, 2);
-	auto count = lua_get<uint16_t>(L, 3);
+LUA_STATIC_FUNCTION(PreAddCounter, card* pcard, uint16_t countertype, uint16_t count) {
 	uint16_t cttype = countertype & ~COUNTER_NEED_ENABLE;
 	auto [cmit, was_constructed] = pcard->counters.try_emplace(cttype, card::counter_map::mapped_type());
 	if(was_constructed) {
@@ -159,15 +129,12 @@ LUA_STATIC_FUNCTION(PreAddCounter) {
 		cmit->second[1] += count;
 	return 0;
 }
-LUA_STATIC_FUNCTION(ReloadFieldBegin) {
-	check_param_count(L, 1);
-	auto flag = lua_get<uint64_t>(L, 1);
-	auto rule = lua_get<uint8_t, 3>(L, 2);
-	bool build = lua_get<bool, false>(L, 3);
+LUA_STATIC_FUNCTION(ReloadFieldBegin, uint64_t flag, std::optional<uint8_t> rule, std::optional<bool> build) {
+	auto actual_rule = rule.value_or(3);
 	pduel->clear();
 #define CHECK(MR) case MR : { flag |= DUEL_MODE_MR##MR; break; }
-	if(rule && !build) {
-		switch (rule) {
+	if(actual_rule && !build.value_or(false)) {
+		switch (actual_rule) {
 		CHECK(1)
 		CHECK(2)
 		CHECK(3)
