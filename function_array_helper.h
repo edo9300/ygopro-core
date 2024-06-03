@@ -293,7 +293,7 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
 		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
-		static constexpr auto extra_args = 2 + NEEDS_DUMMY; \
+		static constexpr auto extra_args = 2; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
 			check_param_count(L, required_args); \
@@ -337,7 +337,7 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
 		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
-		static constexpr int extra_args = 2 + NEEDS_DUMMY; \
+		static constexpr int extra_args = 2; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
 			check_param_count(L, required_args); \
