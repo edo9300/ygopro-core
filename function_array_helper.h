@@ -43,7 +43,7 @@
 // aren't diagnosed
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-#elif defined(__GCC__)
+#elif defined(__GNUC__)
 #pragma GCC system_header
 #endif
 #else
