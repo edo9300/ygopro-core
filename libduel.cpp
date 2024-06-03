@@ -1536,10 +1536,9 @@ LUA_STATIC_FUNCTION(BreakEffect) {
 	pduel->game_field->process_instant_event();
 	return yield();
 }
-LUA_STATIC_FUNCTION(ChangeChainOperation) {
-	check_param_count(L, 2);
-	auto f = interpreter::get_function_handle(L, lua_get<function, true>(L, 2));
-	pduel->game_field->change_chain_effect(lua_get<uint8_t>(L, 1), f);
+LUA_STATIC_FUNCTION(ChangeChainOperation, uint8_t chain_index, Function function_index) {
+	auto f = interpreter::get_function_handle(L, function_index);
+	pduel->game_field->change_chain_effect(chain_index, f);
 	return 0;
 }
 LUA_STATIC_FUNCTION(NegateActivation) {
@@ -4064,18 +4063,14 @@ LUA_STATIC_FUNCTION(MajesticCopy) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(GetStartingHand) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetStartingHand, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	lua_pushinteger(L, pduel->game_field->player[playerid].start_count);
 	return 1;
 }
 #define INFO_FUNC_FROM_CODE(lua_name,attr) \
-LUA_STATIC_FUNCTION(GetCard ##lua_name ##FromCode) { \
-	check_param_count(L, 1); \
-	auto code = lua_get<uint32_t>(L, 1); \
+LUA_STATIC_FUNCTION(GetCard ##lua_name ##FromCode, uint32_t code) { \
 	const auto& data = pduel->read_card(code); \
 	if(data.code == 0) \
 		return 0; \
@@ -4094,9 +4089,7 @@ INFO_FUNC_FROM_CODE(Lscale, lscale)
 INFO_FUNC_FROM_CODE(LinkMarker, link_marker)
 #undef INFO_FUNC_FROM_CODE
 
-LUA_STATIC_FUNCTION(GetCardSetcodeFromCode) {
-	check_param_count(L, 1);
-	auto code = lua_get<uint32_t>(L, 1);
+LUA_STATIC_FUNCTION(GetCardSetcodeFromCode, uint32_t code) {
 	const auto& data = pduel->read_card(code);
 	if(data.code == 0)
 		return 0;
