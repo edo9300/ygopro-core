@@ -53,20 +53,15 @@ LUA_FUNCTION(GetFieldID) {
 	lua_pushinteger(L, self->id);
 	return 1;
 }
-LUA_FUNCTION(SetDescription) {
-	check_param_count(L, 2);
-	self->description = lua_get<uint64_t>(L, 2);
+LUA_FUNCTION(SetDescription, uint64_t description) {
+	self->description = description;
 	return 0;
 }
-LUA_FUNCTION(SetCode) {
-	check_param_count(L, 2);
-	self->code = lua_get<uint32_t>(L, 2);
+LUA_FUNCTION(SetCode, uint32_t code) {
+	self->code = code;
 	return 0;
 }
-LUA_FUNCTION(SetRange) {
-	check_param_count(L, 2);
-	auto& range = self->range;
-	range = lua_get<uint16_t>(L, 2);
+LUA_FUNCTION(SetRange, uint16_t range) {
 	if((range & (LOCATION_MMZONE | LOCATION_EMZONE)) == (LOCATION_MMZONE | LOCATION_EMZONE))
 		range |= LOCATION_MZONE;
 	if(range & LOCATION_MZONE)
@@ -75,26 +70,22 @@ LUA_FUNCTION(SetRange) {
 		range |= LOCATION_SZONE;
 	if(range & LOCATION_SZONE)
 		range &= ~(LOCATION_FZONE | LOCATION_STZONE | LOCATION_PZONE);
+	self->range = range;
 	return 0;
 }
-LUA_FUNCTION(SetTargetRange) {
-	check_param_count(L, 3);
-	self->s_range = lua_get<uint16_t>(L, 2);
-	self->o_range = lua_get<uint16_t>(L, 3);
+LUA_FUNCTION(SetTargetRange, uint16_t self_range, uint16_t oppo_range) {
+	self->s_range = self_range;
+	self->o_range = oppo_range;
 	self->flag[0] &= ~EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
 }
-LUA_FUNCTION(SetAbsoluteRange) {
-	check_param_count(L, 4);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	auto s = lua_get<uint16_t>(L, 3);
-	auto o = lua_get<uint16_t>(L, 4);
+LUA_FUNCTION(SetAbsoluteRange, uint8_t playerid, uint16_t self_range, uint16_t oppo_range) {
 	if(playerid == 0) {
-		self->s_range = s;
-		self->o_range = o;
+		self->s_range = self_range;
+		self->o_range = oppo_range;
 	} else {
-		self->s_range = o;
-		self->o_range = s;
+		self->s_range = oppo_range;
+		self->o_range = self_range;
 	}
 	self->flag[0] |= EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
@@ -137,43 +128,36 @@ LUA_FUNCTION(SetCountLimit) {
 	self->count_hopt_index = hopt_index;
 	return 0;
 }
-LUA_FUNCTION(SetReset) {
-	check_param_count(L, 2);
-	auto v = lua_get<uint32_t>(L, 2);
-	auto c = lua_get<uint16_t, 0>(L, 3);
-	if(c == 0)
-		c = 1;
-	if(v & (RESET_PHASE) && !(v & (RESET_SELF_TURN | RESET_OPPO_TURN)))
-		v |= (RESET_SELF_TURN | RESET_OPPO_TURN);
-	self->reset_flag = v;
-	self->reset_count = c;
+LUA_FUNCTION(SetReset, uint32_t reset_flag, std::optional<uint16_t> reset_count) {
+	auto count = reset_count.value_or(1);
+	if(count == 0)
+		count = 1;
+	if(reset_flag & (RESET_PHASE) && !(reset_flag & (RESET_SELF_TURN | RESET_OPPO_TURN)))
+		reset_flag |= (RESET_SELF_TURN | RESET_OPPO_TURN);
+	self->reset_flag = reset_flag;
+	self->reset_count = count;
 	return 0;
 }
-LUA_FUNCTION(SetType) {
-	check_param_count(L, 2);
-	auto v = lua_get<uint16_t>(L, 2);
-	if (v & 0x0ff0)
-		v |= EFFECT_TYPE_ACTIONS;
+LUA_FUNCTION(SetType, uint16_t type) {
+	if (type & 0x0ff0)
+		type |= EFFECT_TYPE_ACTIONS;
 	else
-		v &= ~EFFECT_TYPE_ACTIONS;
-	if(v & (EFFECT_TYPE_ACTIVATE | EFFECT_TYPE_IGNITION | EFFECT_TYPE_QUICK_O | EFFECT_TYPE_QUICK_F))
-		v |= EFFECT_TYPE_FIELD;
-	if(v & EFFECT_TYPE_ACTIVATE)
+		type &= ~EFFECT_TYPE_ACTIONS;
+	if(type & (EFFECT_TYPE_ACTIVATE | EFFECT_TYPE_IGNITION | EFFECT_TYPE_QUICK_O | EFFECT_TYPE_QUICK_F))
+		type |= EFFECT_TYPE_FIELD;
+	if(type & EFFECT_TYPE_ACTIVATE)
 		self->range = LOCATION_SZONE + LOCATION_FZONE + LOCATION_HAND;
-	if(v & EFFECT_TYPE_FLIP) {
+	if(type & EFFECT_TYPE_FLIP) {
 		self->code = EVENT_FLIP;
-		if(!(v & EFFECT_TYPE_TRIGGER_O))
-			v |= EFFECT_TYPE_TRIGGER_F;
+		if(!(type & EFFECT_TYPE_TRIGGER_O))
+			type |= EFFECT_TYPE_TRIGGER_F;
 	}
-	self->type = v;
+	self->type = type;
 	return 0;
 }
-LUA_FUNCTION(SetProperty) {
-	check_param_count(L, 2);
-	auto v1 = lua_get<uint32_t>(L, 2);
-	auto v2 = lua_get<uint32_t, 0>(L, 3);
-	self->flag[0] = (self->flag[0] & 0x4fu) | (v1 & ~0x4fu);
-	self->flag[1] = v2;
+LUA_FUNCTION(SetProperty, uint32_t prop1, std::optional<uint32_t> prop2) {
+	self->flag[0] = (self->flag[0] & 0x4fu) | (prop1 & ~0x4fu);
+	self->flag[1] = prop2.value_or(0);
 	return 0;
 }
 LUA_FUNCTION(SetLabel) {
@@ -198,39 +182,28 @@ LUA_FUNCTION(SetLabelObject) {
 		lua_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\" or \"table\".");
 	return 0;
 }
-LUA_FUNCTION(SetCategory) {
-	check_param_count(L, 2);
-	auto v = lua_get<uint32_t>(L, 2);
-	self->category = v;
+LUA_FUNCTION(SetCategory, uint32_t category) {
+	self->category = category;
 	return 0;
 }
-LUA_FUNCTION(SetHintTiming) {
-	check_param_count(L, 2);
-	auto vs = lua_get<uint32_t>(L, 2);
-	auto vo = lua_get<uint32_t>(L, 3, vs);
-	self->hint_timing[0] = vs;
-	self->hint_timing[1] = vo;
+LUA_FUNCTION(SetHintTiming, uint32_t self_timings, std::optional<uint32_t> opponent_timings) {
+	self->hint_timing[0] = self_timings;
+	self->hint_timing[1] = opponent_timings.value_or(self_timings);
 	return 0;
 }
-LUA_FUNCTION(SetCondition) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(SetCondition, Function findex) {
 	if(self->condition)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->condition);
 	self->condition = interpreter::get_function_handle(L, findex);
 	return 0;
 }
-LUA_FUNCTION(SetTarget) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(SetTarget, Function findex) {
 	if(self->target)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->target);
 	self->target = interpreter::get_function_handle(L, findex);
 	return 0;
 }
-LUA_FUNCTION(SetCost) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(SetCost, Function findex) {
 	if(self->cost)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->cost);
 	self->cost = interpreter::get_function_handle(L, findex);
@@ -263,21 +236,18 @@ LUA_FUNCTION(SetValue) {
 	}
 	return 0;
 }
-LUA_FUNCTION(SetOperation) {
-	check_param_count(L, 2);
+LUA_FUNCTION(SetOperation, Function findex) {
 	if(self->operation)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->operation);
 	self->operation = 0;
-	const auto findex = lua_get<function>(L, 2);
 	if(findex)
 		self->operation = interpreter::get_function_handle(L, findex);
 	return 0;
 }
-LUA_FUNCTION(SetOwnerPlayer) {
-	auto p = lua_get<uint8_t>(L, 2);
-	if(p != 0 && p != 1)
+LUA_FUNCTION(SetOwnerPlayer, uint8_t playerid) {
+	if(playerid != 0 && playerid != 1)
 		return 0;
-	self->effect_owner = p;
+	self->effect_owner = playerid;
 	return 0;
 }
 LUA_FUNCTION(GetDescription) {
@@ -394,34 +364,25 @@ LUA_FUNCTION(GetActiveType) {
 	lua_pushinteger(L, self->get_active_type());
 	return 1;
 }
-LUA_FUNCTION(IsActiveType) {
-	check_param_count(L, 2);
-	lua_pushboolean(L, (self->get_active_type() & lua_get<uint32_t>(L, 2)) != 0);
+LUA_FUNCTION(IsActiveType, uint32_t type) {
+	lua_pushboolean(L, (self->get_active_type() & type) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsHasProperty) {
-	check_param_count(L, 2);
-	auto tflag1 = lua_get<uint32_t>(L, 2);
-	auto tflag2 = lua_get<uint32_t, 0>(L, 3);
-	lua_pushboolean(L, ((!tflag1 || (self->flag[0] & tflag1)) && (!tflag2 || (self->flag[1] & tflag2))));
+LUA_FUNCTION(IsHasProperty, uint32_t flag1, std::optional<uint32_t> flag2) {
+	auto tflag2 = flag2.value_or(0);
+	lua_pushboolean(L, ((!flag1 || (self->flag[0] & flag1)) && (!tflag2 || (self->flag[1] & tflag2))));
 	return 1;
 }
-LUA_FUNCTION(IsHasCategory) {
-	check_param_count(L, 2);
-	lua_pushboolean(L, (self->category & lua_get<uint32_t>(L, 2)) != 0);
+LUA_FUNCTION(IsHasCategory, uint32_t category) {
+	lua_pushboolean(L, (self->category & category) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsHasType) {
-	check_param_count(L, 2);
-	lua_pushboolean(L, (self->type & lua_get<uint16_t>(L, 2)) != 0);
+LUA_FUNCTION(IsHasType, uint16_t type) {
+	lua_pushboolean(L, (self->type & type) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsActivatable) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	bool neglect_loc = lua_get<bool, false>(L, 3);
-	bool neglect_target = lua_get<bool, false>(L, 4);
-	lua_pushboolean(L, self->is_activateable(playerid, pduel->game_field->nil_event, 0, 0, neglect_target, neglect_loc));
+LUA_FUNCTION(IsActivatable, uint8_t playerid, std::optional<bool> ignore_location, std::optional<bool> ignore_target) {
+	lua_pushboolean(L, self->is_activateable(playerid, pduel->game_field->nil_event, 0, 0, ignore_target.value_or(false), ignore_location.value_or(false)));
 	return 1;
 }
 LUA_FUNCTION(IsActivated) {
@@ -436,33 +397,21 @@ LUA_FUNCTION(GetActivateSequence) {
 	lua_pushinteger(L, self->active_sequence);
 	return 1;
 }
-LUA_FUNCTION(CheckCountLimit) {
-	check_param_count(L, 2);
-	auto p = lua_get<uint8_t>(L, 2);
-	lua_pushboolean(L, self->check_count_limit(p));
+LUA_FUNCTION(CheckCountLimit, uint8_t playerid) {
+	lua_pushboolean(L, self->check_count_limit(playerid));
 	return 1;
 }
-LUA_FUNCTION(UseCountLimit) {
-	check_param_count(L, 2);
-	auto p = lua_get<uint8_t>(L, 2);
-	auto count = lua_get<uint32_t, 1>(L, 3);
-	bool oath_only = lua_get<bool, false>(L, 4);
-	if (!oath_only || self->count_flag & EFFECT_COUNT_CODE_OATH)
-		while(count) {
-			self->dec_count(p);
-			--count;
+LUA_FUNCTION(UseCountLimit, uint8_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
+	if (!oath_only.value_or(false) || self->count_flag & EFFECT_COUNT_CODE_OATH)
+		for(auto i = count.value_or(1); i > 0; --i) {
+			self->dec_count(playerid);
 		}
 	return 0;
 }
-LUA_FUNCTION(RestoreCountLimit) {
-	check_param_count(L, 2);
-	auto p = lua_get<uint8_t>(L, 2);
-	auto count = lua_get<uint32_t, 1>(L, 3);
-	bool oath_only = lua_get<bool, false>(L, 4);
-	if(!oath_only || self->count_flag & EFFECT_COUNT_CODE_OATH)
-		while(count) {
-			self->inc_count(p);
-			--count;
+LUA_FUNCTION(RestoreCountLimit, uint8_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
+	if(!oath_only.value_or(false) || self->count_flag & EFFECT_COUNT_CODE_OATH)
+		for(auto i = count.value_or(1); i > 0; --i) {
+			self->inc_count(playerid);
 		}
 	return 0;
 }
