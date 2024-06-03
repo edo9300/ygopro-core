@@ -248,14 +248,14 @@ struct get_function_arguments<Ret(*)(Args...)> {
 template<typename Sig>
 using get_function_arguments_t = typename get_function_arguments<Sig>::type;
 
-template<typename tuple, size_t offset, size_t... indices>
+template<typename tuple, size_t tuple_offset, size_t lua_offset, size_t... indices>
 constexpr decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::index_sequence<indices...>) {
-	return std::make_tuple(get_lua<std::tuple_element_t<indices + offset, tuple>>(L, indices + 1)...);
+	return std::make_tuple(get_lua<std::tuple_element_t<indices + tuple_offset, tuple>>(L, indices + lua_offset + 1)...);
 }
 
-template<typename tuple, size_t offset>
+template<typename tuple, size_t tuple_offset, size_t lua_offset = 0>
 decltype(auto) parse_arguments_tuple(lua_State* L) {
-	return parse_helper<tuple, offset>(L, std::make_index_sequence<std::tuple_size_v<tuple> - offset>{});
+	return parse_helper<tuple, tuple_offset, lua_offset>(L, std::make_index_sequence<std::tuple_size_v<tuple> - tuple_offset>{});
 }
 
 } // namespace Detail
@@ -332,14 +332,14 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
 		using function_arguments = get_function_arguments_t<decltype(MAKE_LUA_NAME(LUA_MODULE,name))*>; \
-		static constexpr int extra_args = 3 + NEEDS_DUMMY; \
+		static constexpr int extra_args = 2 + NEEDS_DUMMY; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
 			check_param_count(L, required_args); \
 		return std::apply(MAKE_LUA_NAME(LUA_MODULE,name), \
 			std::tuple_cat( \
 				std::make_tuple(L, lua_get<LUA_CLASS*, true>(L, 1), lua_get<duel*>(L)), \
-				Detail::parse_arguments_tuple<function_arguments, 3>(L) \
+				Detail::parse_arguments_tuple<function_arguments, 3, 1>(L) \
 			) \
 		); \
 	} \
