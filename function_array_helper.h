@@ -167,7 +167,7 @@ constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 }
 
 template<typename T, std::enable_if_t<!is_optional_v<T>, int> = 0>
-inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
+inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
 	using namespace scriptlib;
 	using actual_type = T;
 	if constexpr(std::is_same_v<T, dummy>) {
@@ -179,7 +179,7 @@ inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int i
 		auto obj = lua_touserdata(L, idx);
 		if(!obj)
 			lua_error(L, "Error.");
-		auto* ret = *static_cast<lua_obj**>(obj);
+		actual_type ret = *static_cast<lua_obj**>(obj);
 		if(ret->lua_type == LuaParam::DELETED)
 			lua_error(L, "Attempting to access deleted object.");
 		return ret;
@@ -232,7 +232,7 @@ inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int i
 				return std::make_optional<actual_type>(lua_isinteger(L, idx) ? static_cast<actual_type>(lua_tointeger(L, idx)) :
 										  static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)))));
 			} else if constexpr(lua_type == LuaParam::FUNCTION) {
-				return std::make_optional<actual_type>(idx);
+				return std::make_optional<int>(idx);
 			}
 		}
 	}
@@ -259,6 +259,9 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 }
 
 } // namespace Detail
+
+using Function = int;
+
 } // namespace
 
 #define GET_LUA_FUNCTIONS_ARRAY() \
@@ -286,9 +289,10 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
+	using Function = scriptlib::function; \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
-		using function_arguments = get_function_arguments_t<decltype(MAKE_LUA_NAME(LUA_MODULE,name))*>; \
+		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
 		static constexpr auto extra_args = 2 + NEEDS_DUMMY; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
@@ -329,9 +333,10 @@ static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
+	using Function = scriptlib::function; \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
-		using function_arguments = get_function_arguments_t<decltype(MAKE_LUA_NAME(LUA_MODULE,name))*>; \
+		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
 		static constexpr int extra_args = 2 + NEEDS_DUMMY; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
@@ -364,6 +369,7 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	static constexpr luaL_Reg elem{#name,prev_element::elem.func}; \
 }
 #else
+using Function = int;
 #define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] LUA_CLASS* const self, [[maybe_unused]] duel* const pduel, __VA_ARGS__)
 #define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
