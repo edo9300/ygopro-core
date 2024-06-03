@@ -156,7 +156,7 @@ inline constexpr bool is_optional_v = is_optional<T>::value;
 template <typename Arg, typename... Args>
 constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	if constexpr(sizeof...(Args) == 0) {
-		return static_cast<int>(is_optional_v<Arg>);
+		return static_cast<int>(is_optional_v<Arg> || std::is_same_v<dummy, Arg>);
 	} else {
 		constexpr auto result = count_trailing_optionals(std::tuple<Args...>{});
 		if constexpr(result != sizeof...(Args))
