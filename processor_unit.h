@@ -488,6 +488,7 @@ struct SpellSetGroup : public Process<false> {
 	bool confirm;
 	group* ptarget;
 	effect* reason_effect;
+	card_set set_cards;
 	SpellSetGroup(uint16_t step_, uint8_t setplayer_, uint8_t toplayer_,
 						   group* ptarget_, bool confirm_, effect* reason_effect_) :
 		Process(step_), setplayer(setplayer_), toplayer(toplayer_), confirm(confirm_),

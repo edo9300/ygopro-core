@@ -2824,9 +2824,9 @@ bool field::process(Processors::SpellSetGroup& arg) {
 	auto ptarget = arg.ptarget;
 	auto confirm = arg.confirm;
 	auto reason_effect = arg.reason_effect;
+	auto& set_cards = arg.set_cards;
 	switch(arg.step) {
 	case 0: {
-		card_set* set_cards = new card_set;
 		core.operated_set.clear();
 		for(auto& target : ptarget->container) {
 			if((!(target->data.type & TYPE_FIELD) && get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON_TOFIELD) <= 0)
@@ -2836,15 +2836,14 @@ bool field::process(Processors::SpellSetGroup& arg) {
 				|| (target->is_affected_by_effect(EFFECT_CANNOT_SSET))) {
 				continue;
 			}
-			set_cards->insert(target);
+			set_cards.insert(target);
 		}
-		if(set_cards->empty()) {
-			delete set_cards;
+		if(set_cards.empty()) {
 			returns.set<int32_t>(0, 0);
 			return TRUE;
 		}
 		effect_set eset;
- 		for(auto& pcard : *set_cards) {
+ 		for(auto& pcard : set_cards) {
 			eset.clear();
 			pcard->filter_effect(EFFECT_SSET_COST, &eset);
 			for(const auto& peff : eset) {
@@ -2858,12 +2857,10 @@ bool field::process(Processors::SpellSetGroup& arg) {
 		core.set_group_set.clear();
 		core.set_group_used_zones = 0;
 		core.phase_action = true;
-		arg.ptarget = (group*)set_cards;
 		return FALSE;
 	}
 	case 1: {
-		card_set* set_cards = (card_set*)ptarget;
-		card* target = *set_cards->begin();
+		card* target = *set_cards.begin();
 		if(target->data.type & TYPE_FIELD) {
 			returns.set<int8_t>(2, 5);
 			return FALSE;
@@ -2885,17 +2882,14 @@ bool field::process(Processors::SpellSetGroup& arg) {
 		return FALSE;
 	}
 	case 2: {
-		card_set* set_cards = (card_set*)ptarget;
-		card* target = *set_cards->begin();
+		card* target = *set_cards.begin();
 		uint32_t seq = returns.at<int8_t>(2);
 		core.set_group_seq[core.set_group_pre_set.size()] = seq;
 		core.set_group_pre_set.insert(target);
 		core.set_group_used_zones |= (1 << seq);
-		set_cards->erase(target);
-		if(!set_cards->empty())
+		set_cards.erase(target);
+		if(!set_cards.empty())
 			arg.step = 0;
-		else
-			delete set_cards;
 		return FALSE;
 	}
 	case 3: {
