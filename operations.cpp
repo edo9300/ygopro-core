@@ -2893,8 +2893,7 @@ bool field::process(Processors::SpellSetGroup& arg) {
 		return FALSE;
 	}
 	case 3: {
-		card_set* set_cards = &core.set_group_pre_set;
-		card* target = *set_cards->begin();
+		card* target = *core.set_group_pre_set.begin();
 		target->enable_field_effect(false);
 		uint32_t zone{};
 		if(target->data.type & TYPE_FIELD) {
@@ -2912,8 +2911,7 @@ bool field::process(Processors::SpellSetGroup& arg) {
 		return FALSE;
 	}
 	case 4: {
-		card_set* set_cards = &core.set_group_pre_set;
-		card* target = *set_cards->begin();
+		card* target = *core.set_group_pre_set.begin();
 		target->set_status(STATUS_SET_TURN, TRUE);
 		if(target->data.type & TYPE_MONSTER) {
 			effect* peffect = target->is_affected_by_effect(EFFECT_MONSTER_SSET);
@@ -2930,8 +2928,8 @@ bool field::process(Processors::SpellSetGroup& arg) {
 		message->write<uint32_t>(target->data.code);
 		message->write(target->get_info_location());
 		core.set_group_set.insert(target);
-		set_cards->erase(target);
-		if(!set_cards->empty())
+		core.set_group_pre_set.erase(target);
+		if(!core.set_group_pre_set.empty())
 			arg.step = 2;
 		return FALSE;
 	}
