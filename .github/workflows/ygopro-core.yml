@@ -31,11 +31,11 @@ jobs:
       with:
         fetch-depth: 1
     - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
+      shell: cmd
+      run: "scripts/install-lua"
     - name: Install premake
-      shell: bash
-      run: ./scripts/install-premake5.sh
+      shell: cmd
+      run: "scripts/install-premake5"
     - name: Build
       shell: bash
       run: ./scripts/build-premake5-msvc.sh
@@ -235,11 +235,11 @@ jobs:
         username: Github
 
   Mac-os:
-    runs-on: macos-11
+    runs-on: macos-12
     env:
       DEPLOY_BRANCH: travis-core-osx
       TRAVIS_OS_NAME: macosx
-      DEVELOPER_DIR: /Applications/Xcode_11.7.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_13.1.app/Contents/Developer
       MACOSX_DEPLOYMENT_TARGET: 10.11
     steps:
     - uses: actions/checkout@v1
