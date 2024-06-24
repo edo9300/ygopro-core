@@ -31,13 +31,9 @@ if not subproject then
 	staticruntime "on"
 	startproject "ocgcoreshared"
 
-	if _OPTIONS["oldwindows"] then
-		toolset "v141_xp"
-	end
-
 	filter "system:windows"
 		defines { "WIN32", "_WIN32", "NOMINMAX" }
-		platforms {"Win32", "x64"}
+		platforms {"Win32", "x64", "arm", "arm64"}
 
 	filter "platforms:Win32"
 		architecture "x86"
@@ -45,25 +41,43 @@ if not subproject then
 	filter "platforms:x64"
 		architecture "x64"
 
+	filter "platforms:arm64"
+		architecture "ARM64"
+
+	filter "platforms:arm"
+		architecture "ARM"
+
+	filter { "action:vs*", "platforms:Win32 or x64" }
+		vectorextensions "SSE2"
+		if _OPTIONS["oldwindows"] then
+			toolset "v141_xp"
+		end
+
 	filter "action:vs*"
 		flags "MultiProcessorCompile"
-		vectorextensions "SSE2"
 
 	filter "configurations:Debug"
 		defines "_DEBUG"
 		targetdir "bin/debug"
 		runtime "Debug"
 
-	filter { "system:windows", "configurations:Debug", "architecture:*64" }
-		targetdir "bin/x64/debug"
-
 	filter "configurations:Release"
 		optimize "Size"
 		targetdir "bin/release"
 		defines "NDEBUG"
 
-	filter { "system:windows", "configurations:Release", "architecture:*64" }
-		targetdir "bin/x64/release"
+	local function set_target_dir(target,arch)
+		filter { "system:windows", "configurations:" .. target, "architecture:" .. arch }
+			targetdir("bin/" .. arch .. "/" .. target)
+	end
+
+	set_target_dir("debug","x64")
+	set_target_dir("debug","arm")
+	set_target_dir("debug","arm64")
+
+	set_target_dir("release","x64")
+	set_target_dir("release","arm")
+	set_target_dir("release","arm64")
 
 	filter { "action:not vs*", "system:windows" }
 		buildoptions { "-static-libgcc", "-static-libstdc++", "-static" }

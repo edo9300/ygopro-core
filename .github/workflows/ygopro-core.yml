@@ -11,12 +11,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [Win32, x64]
+        arch: [Win32, x64, ARM, ARM64]
         include:
           - arch: Win32
             deploy-branch: travis-core-windows
           - arch: x64
             deploy-branch: travis-core-windows-x64
+          - arch: ARM
+            deploy-branch: travis-core-windows-arm
+          - arch: ARM64
+            deploy-branch: travis-core-windows-aarch64
     runs-on: windows-2019
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
