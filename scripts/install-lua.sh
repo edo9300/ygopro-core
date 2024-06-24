@@ -2,10 +2,11 @@
 
 set -euxo pipefail
 
-curl --retry 2 --connect-timeout 30 --location --remote-header-name --remote-name https://www.lua.org/ftp/lua-5.3.6.tar.gz || \
-curl --retry 2 --connect-timeout 30 --location --remote-header-name --remote-name https://www.tecgraf.puc-rio.br/lua/mirror/ftp/lua-5.3.6.tar.gz
-mkdir -p lua
-tar xf lua-5.3.6.tar.gz --strip-components=1 -C lua
+export LUA_VERSION=5.3.6
+curl --retry 2 --connect-timeout 30 --location https://github.com/lua/lua/archive/refs/tags/v$LUA_VERSION.tar.gz -o lua-$LUA_VERSION.tar.gz
+rm -rf lua/src
+mkdir -p lua/src
+tar xf lua-$LUA_VERSION.tar.gz --strip-components=1 -C lua/src
 cd lua
 	cat <<EOT >> src/luaconf.h
 
