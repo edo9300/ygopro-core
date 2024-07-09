@@ -1161,6 +1161,16 @@ LUA_FUNCTION(GetCardEffect) {
 		interpreter::pushobject(L, peff);
 	return static_cast<int32_t>(eset.size());
 }
+LUA_FUNCTION(GetOwnEffects) {
+	effect_set eset;
+	self->get_own_effects(&eset);
+	if(eset.empty())
+		return 0;
+	luaL_checkstack(L, static_cast<int>(eset.size()), nullptr);
+	for(const auto& peff : eset)
+		interpreter::pushobject(L, peff);
+	return static_cast<int32_t>(eset.size());
+}
 LUA_FUNCTION(ResetEffect) {
 	check_param_count(L, 3);
 	auto code = lua_get<uint32_t>(L, 2);

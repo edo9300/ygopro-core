@@ -4,11 +4,12 @@
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-#include <algorithm> //std::sort, std::min
+#include <algorithm> //std::sort, std::min, std::transform
 #include <cstring> //std::memcpy
-#include <utility> //std::pair, std::make_pair, std::swap
+#include <iterator> //std::back_inserter
 #include <set>
 #include <vector>
+#include <utility> //std::pair, std::make_pair, std::swap
 #include "card.h"
 #include "duel.h"
 #include "effect.h"
@@ -3040,6 +3041,12 @@ void card::get_card_effect(uint32_t code, effect_set* eset) {
 			&& peffect->is_available() && is_affect_by_effect(peffect))
 			eset->push_back(peffect);
 	}
+}
+void card::get_own_effects(effect_set* eset) {
+	std::transform(indexer.begin(), indexer.end(), std::back_inserter(*eset), [](const auto& indexed) {
+		return indexed.first;
+	});
+	std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
 int32_t card::fusion_check(group* fusion_m, group* cg, uint32_t chkf) {
 	effect* peffect = nullptr;
