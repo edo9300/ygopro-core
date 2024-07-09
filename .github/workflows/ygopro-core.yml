@@ -193,9 +193,9 @@ jobs:
         include:
           - ndk-version: 21.4.7075529
             deploy-branch: travis-core-android
-          - docker-image: 16.1.4479499
+          - ndk-version: 16.1.4479499
             deploy-branch: travis-core-android-ndk-16
-          - docker-image: 26.1.10909125
+          - ndk-version: 26.1.10909125
             deploy-branch: travis-core-android-ndk-26
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
