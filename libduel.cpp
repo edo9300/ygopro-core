@@ -2126,7 +2126,7 @@ LUA_STATIC_FUNCTION(NegateAttack) {
 }
 LUA_STATIC_FUNCTION(ChainAttack) {
 	auto* attacker = pduel->game_field->core.attacker;
-	if(!attacker || attacker->is_affect_by_effect(pduel->game_field->core.reason_effect))
+	if(!attacker || !attacker->is_affect_by_effect(pduel->game_field->core.reason_effect))
 		return 0;
 	pduel->game_field->core.chain_attack = true;
 	pduel->game_field->core.chain_attacker_id = attacker->fieldid;
