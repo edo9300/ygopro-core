@@ -12,7 +12,7 @@ local ocgcore_config=function()
 	filter { "system:macosx", "files:processor_visit.cpp" }
 		buildoptions { "-fno-exceptions" }
 	filter {}
-		include "lua"
+		include "./lua/"
 		links { "lua" }
 		includedirs { "lua/src" }
 end
