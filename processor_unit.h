@@ -760,10 +760,16 @@ using processors = std::variant<Adjust, Turn, RefreshLoc, Startup,
 	SelectFusion, DiscardHand, DiscardDeck, SortDeck, RemoveOverlay, XyzOverlay,
 	RefreshRelay>;
 
-//Ugly hack only to ease debugging the core under visual studio it
-//splits the big variant into multiple variants of 30 types max so
-//that they can be properly displayed with the visual studio debugger
-#if (defined(_DEBUG) && defined(_MSC_VER)) || defined(PROCESSOR_VARIANT_CAP)
+/*
+* Hack to make the code compile with gcc in debug mode by having
+* shorter symbol names.
+* Also it makes it possible to properly debug the variant under
+* visual studio as it can't properly parse symbols too long in the
+* interactive debugger.
+* All the processor units are split in a variant of variants of max
+* 30 elements
+*/
+#if defined(_DEBUG) || defined(PROCESSOR_VARIANT_CAP)
 #if !defined(PROCESSOR_VARIANT_CAP) || (PROCESSOR_VARIANT_CAP + 0) == 0
 static constexpr auto MAX_VARIANT_TYPES = 30;
 #else
