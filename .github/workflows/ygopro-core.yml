@@ -271,6 +271,7 @@ jobs:
       shell: bash
       run: ./scripts/deploy.sh
     - uses: actions/upload-artifact@v4
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
         name: osx
         path: ocgcore/libocgcore.dylib
@@ -325,6 +326,7 @@ jobs:
       shell: bash
       run: ./scripts/deploy.sh
     - uses: actions/upload-artifact@v4
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
         name: osx-cctools
         path: ocgcore/libocgcore.dylib
@@ -373,6 +375,7 @@ jobs:
       shell: bash
       run: ./scripts/deploy.sh
     - uses: actions/upload-artifact@v4
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
         name: osx-aarch64
         path: ocgcore/libocgcore.dylib
@@ -427,6 +430,7 @@ jobs:
       shell: bash
       run: ./scripts/deploy.sh
     - uses: actions/upload-artifact@v4
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
         name: osx-aarch64-cctools
         path: ocgcore/libocgcore.dylib
@@ -448,6 +452,7 @@ jobs:
     runs-on: macos-latest
     env:
       DEPLOY_BRANCH: travis-core-osx-universal
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     needs: [ Mac-os, Mac-os-aarch64 ]
     steps:
     - uses: actions/checkout@v1
@@ -495,20 +500,25 @@ jobs:
     needs: [ Mac-os-cctools, Mac-os-aarch64-cctools ]
     steps:
     - uses: actions/checkout@v1
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
         fetch-depth: 1
         submodules: true
     - name: Download lipo binary
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       run: |
         wget https://github.com/edo9300/cctools-build/releases/download/preview/lipo
         chmod +x lipo
     - name: Download osx artifacts
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       uses: actions/download-artifact@v4
     - name: Merge binaries
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: |
         ./lipo -create -output libocgcore.dylib ./osx-aarch64-cctools/libocgcore.dylib ./osx-cctools/libocgcore.dylib
     - name: Move merged binary
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: |
         mkdir -p $DEPLOY_DIR && mv libocgcore.dylib $DEPLOY_DIR
@@ -541,6 +551,7 @@ jobs:
     env:
       DEPLOY_BRANCH: travis-osx-universal
       TRAVIS_OS_NAME: macosx
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     needs: [ Windows-visual-studio, Linux-musl, Android, Mac-os-universal-cctools ]
     steps:
     - name: Log Success
