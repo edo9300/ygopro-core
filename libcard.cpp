@@ -1914,7 +1914,7 @@ LUA_FUNCTION(IsCanBeLinkMaterial) {
 	card* scard = nullptr;
 	if(lua_gettop(L) >= 2)
 		scard = lua_get<card*, true>(L, 2);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 3);
+	auto playerid = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
 	lua_pushboolean(L, self->is_can_be_link_material(scard, playerid));
 	return 1;
 }
