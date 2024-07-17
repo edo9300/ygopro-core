@@ -101,6 +101,8 @@ jobs:
       run: ./scripts/build-premake5.sh
     - name: Predeploy
       shell: bash
+      env:
+        STRIP: 1
       run: ./scripts/predeploy.sh
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
