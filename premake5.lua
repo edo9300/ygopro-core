@@ -1,10 +1,13 @@
 local ocgcore_config=function()
 	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp" }
 	warnings "Extra"
-	optimize "Speed"
 	cppdialect "C++17"
 	rtti "Off"
-
+	
+	filter "configurations:Release"
+		optimize "Speed"	
+	filter "configurations:Debug"
+		optimize "Off"
 	filter "action:not vs*"
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 	filter "system:linux"
@@ -62,9 +65,8 @@ if not subproject then
 		runtime "Debug"
 
 	filter "configurations:Release"
-		optimize "Size"
-		targetdir "bin/release"
 		defines "NDEBUG"
+		targetdir "bin/release"
 
 	local function set_target_dir(target,arch)
 		filter { "system:windows", "configurations:" .. target, "architecture:" .. arch }
