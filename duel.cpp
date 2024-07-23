@@ -132,9 +132,10 @@ void duel::set_response(const void* resp, size_t len) {
 }
 // uniform integer distribution
 int32_t duel::get_next_integer(int32_t l, int32_t h) {
-	const int32_t range = h - l + 1;
-	const int32_t lim = random.max() % range;
-	int32_t n;
+	assert(l <= h);
+	const uint64_t range = int64_t(h) - int64_t(l) + 1;
+	const uint64_t lim = random.max() % range;
+	uint64_t n;
 	do {
 		n = random();
 	} while(n <= lim);
