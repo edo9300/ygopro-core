@@ -1209,7 +1209,7 @@ int32_t field::process_instant_event() {
 				newchain.flag = 0;
 			}
 		}
-		if(ev.event_code == EVENT_ADJUST || ev.event_code == EVENT_BREAK_EFFECT || ((ev.event_code & 0xf000) == EVENT_PHASE_START))
+		if(ev.event_code == EVENT_ADJUST || ev.event_code == EVENT_BREAK_EFFECT || ((ev.event_code & 0xfffff000u) == EVENT_PHASE_START))
 			continue;
 		//triggers
 		pr = effects.trigger_f_effect.equal_range(ev.event_code);
@@ -3725,7 +3725,7 @@ bool field::process(Processors::AddChain& arg) {
 		core.current_chain.push_back(clit);
 		core.current_chain.back().applied_chain_counters = check_chain_counter(peffect, clit.triggering_player, clit.chain_count);
 		// triggered events which are not caused by RaiseEvent create relation with the handler
-		if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) && (!(peffect->type & 0x2a0) || (peffect->code & EVENT_PHASE) == EVENT_PHASE)) {
+		if(!peffect->is_flag(EFFECT_FLAG_FIELD_ONLY) && (!(peffect->type & 0x2a0) || (peffect->code & 0xfffff000u) == EVENT_PHASE)) {
 			phandler->create_relation(clit);
 		}
 		peffect->effect_owner = clit.triggering_player;
@@ -4019,7 +4019,7 @@ bool field::process(Processors::SolveContinuous& arg) {
 			return TRUE;
 		}
 		core.continuous_chain.push_back(clit);
-		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START))))
+		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0xfffff000u) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START))))
 			core.conti_solving = true;
 		arg.reason_effect = core.reason_effect;
 		arg.reason_player = core.reason_player;
@@ -4056,7 +4056,7 @@ bool field::process(Processors::SolveContinuous& arg) {
 		}
 		core.continuous_chain.pop_back();
 		core.solving_continuous.pop_front();
-		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0x10030000) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START)))) {
+		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0xfffff000u) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START)))) {
 			core.conti_solving = false;
 			adjust_all();
 			return FALSE;
