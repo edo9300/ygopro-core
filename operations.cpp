@@ -4983,9 +4983,9 @@ bool field::process(Processors::MoveToField& arg) {
 				target->reset(resetflag, RESET_EVENT);
 				target->clear_card_target();
 			}
-			if(!(target->current.location & LOCATION_ONFIELD))
-				target->clear_relate_effect();
 		}
+		if(!(target->current.location & LOCATION_ONFIELD))
+			target->clear_relate_effect();
 		if(ret == 1)
 			target->current.reason &= ~REASON_TEMPORARY;
 		if((ret == 0 && location != target->current.location)
