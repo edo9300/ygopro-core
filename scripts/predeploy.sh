@@ -11,9 +11,9 @@ if [[ "$TARGET_OS" == "windows" ]]; then
 		strip $DEPLOY_DIR/ocgcore.dll
 	fi
 elif [[ "$TARGET_OS" == "android" ]]; then
-	ARCH=("armeabi-v7a" "arm64-v8a" "x86" "x86_64" )
-	OUTPUT=("libocgcorev7.so" "libocgcorev8.so" "libocgcorex86.so" "libocgcorex64.so")
-	for i in {0..3}; do
+	ARCH=("armeabi-v7a" "arm64-v8a" "x86" "x86_64" "armeabi" "mips" "mips64")
+	OUTPUT=("libocgcorev7.so" "libocgcorev8.so" "libocgcorex86.so" "libocgcorex64.so" "libocgcoreeabi.so" "libocgcoremips.so" "libocgcoremips64.so")
+	for i in {0..6}; do
 		CORE="libs/${ARCH[i]}/libocgcore.so"
 		if [[ -f "$CORE" ]]; then
 			mv $CORE "$DEPLOY_DIR/${OUTPUT[i]}"
