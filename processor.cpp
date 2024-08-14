@@ -3367,7 +3367,7 @@ bool field::process(Processors::Turn& arg) {
 		message->write<uint8_t>(turn_player);
 		message->write<uint64_t>(27);
 		if(core.new_fchain.size() || core.new_ochain.size())
-			emplace_process<Processors::PointEvent>(false, false, false);
+			emplace_process<Processors::PointEvent>(false, true, false);
 		/*if(core.set_forced_attack)
 			emplace_process<Processors::ForcedBattle>();*/
 		return FALSE;
