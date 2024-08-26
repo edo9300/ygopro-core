@@ -15,9 +15,8 @@ local ocgcore_config=function()
 	filter { "system:macosx", "files:processor_visit.cpp" }
 		buildoptions { "-fno-exceptions" }
 	filter {}
-		include "./lua/"
-		links { "lua" }
-		includedirs { "lua/src" }
+	links { "lua" }
+	includedirs { "lua/src" }
 end
 
 if not subproject then
@@ -108,6 +107,8 @@ if not subproject then
 		return calls
 	end)
 end
+
+include "./lua/"
 
 project "ocgcore"
 	kind "StaticLib"
