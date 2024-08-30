@@ -2532,7 +2532,12 @@ int32_t field::check_tribute(card* pcard, int32_t min, int32_t max, group* mg, u
 	int32_t ct = get_tofield_count(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
 	if(ct <= 0 && max <= 0)
 		return FALSE;
-	for(auto& _pcard : (static_cast<int>(ex_list.size()) >= min) ? ex_list : release_list) {
+	const auto& to_check_release_list = [&] {
+		if(ex_list.size() > 0 && ex_list.size() >= min)
+			return ex_list;
+		return release_list;
+	}();
+	for(auto& _pcard : to_check_release_list) {
 		if(_pcard->current.location == LOCATION_MZONE && _pcard->current.controler == toplayer) {
 			++s;
 			if((zone >> _pcard->current.sequence) & 1)
