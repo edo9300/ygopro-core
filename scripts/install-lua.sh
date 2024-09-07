@@ -2,13 +2,20 @@
 
 set -euxo pipefail
 
-export LUA_VERSION=5.3.6
-curl --retry 2 --connect-timeout 30 --location https://github.com/lua/lua/archive/refs/tags/v$LUA_VERSION.tar.gz -o lua-$LUA_VERSION.tar.gz
+LUA_VERSION=5.3.6
+LUA_ARCHIVE=tmp/lua-$LUA_VERSION.tar.gz
+#ensure the script is always running inside the core's root directory
+cd "$(dirname "$0")/.."
+
+mkdir -p tmp
+
+rm -rf $LUA_ARCHIVE
+curl --retry 2 --connect-timeout 30 --location https://github.com/lua/lua/archive/refs/tags/v$LUA_VERSION.tar.gz -o $LUA_ARCHIVE
 rm -rf lua/src
 mkdir -p lua/src
-tar xf lua-$LUA_VERSION.tar.gz --strip-components=1 -C lua/src
+tar xf $LUA_ARCHIVE --strip-components=1 -C lua/src
 cd lua
-	cat <<EOT >> src/luaconf.h
+cat <<EOT >> src/luaconf.h
 
 #ifdef LUA_USE_WINDOWS
 #undef LUA_USE_WINDOWS
