@@ -39,6 +39,17 @@ make -Cbuild TARGET config=CONFIG
 
 `CONFIG` can either be `debug` or `release`, on mingw the values can be instead `debug_win32`, `debug_x64`, `release_win32`, `release_x64`
 
+### Android
+You'll need to have the Android NDK installed (r16b or newer) and `ndk-build` available in your path.
+Download and set up lua, by running
+```
+# From a bash shell
+./scripts/install-lua.sh
+# For the windows command prompt
+"scripts/install-lua"
+```
+run `ndk-build`
+
 ## License
 
 EDOPro's core is free/libre and open source software licensed under the GNU Affero General Public License, version 3 or later. Please see [LICENSE](https://github.com/edo9300/ygopro-core/blob/master/LICENSE) and [COPYING](https://github.com/edo9300/ygopro-core/blob/master/COPYING) for more details.
