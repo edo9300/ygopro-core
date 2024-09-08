@@ -9,15 +9,15 @@ CD %~dp0..
 
 MKDIR tmp
 
-IF EXIST %LUA_ZIP% DEL /f /q %LUA_ZIP%
-IF EXIST %LUA_ZIP% EXIT /B 1
 IF EXIST "lua\src" RMDIR /s /q "lua\src"
 IF EXIST "lua\src" EXIT /B 1
+IF EXIST %LUA_ZIP% GOTO EXTRACT
 
 CALL "%~DP0cmd\download.bat" ^
 	https://github.com/lua/lua/archive/refs/tags/v%LUA_VERSION%.zip %LUA_ZIP%
 IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
 
+:EXTRACT
 CALL "%~DP0cmd/unzip.bat" %LUA_ZIP% lua
 IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
 REN "lua/lua-%LUA_VERSION%" src

@@ -8,6 +8,7 @@ PREMAKE_VERSION=5.0.0-beta2
 cd "$(dirname "$0")/.."
 
 mkdir -p tmp
+rm -rf tmp/premake
 
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	PREMAKE_ARCHIVE=premake-$PREMAKE_VERSION-windows.zip
@@ -21,11 +22,11 @@ fi
 
 PREMAKE_ARCHIVE_LOCATION=tmp/"$PREMAKE_ARCHIVE"
 
-rm -rf $PREMAKE_ARCHIVE_LOCATION
-curl --retry 5 --connect-timeout 30 --location --remote-header-name \
-	https://github.com/premake/premake-core/releases/download/v$PREMAKE_VERSION/$PREMAKE_ARCHIVE -o "$PREMAKE_ARCHIVE_LOCATION"
+if [ ! -f $PREMAKE_ARCHIVE_LOCATION ]; then
+	curl --retry 5 --connect-timeout 30 --location --remote-header-name \
+		https://github.com/premake/premake-core/releases/download/v$PREMAKE_VERSION/$PREMAKE_ARCHIVE -o "$PREMAKE_ARCHIVE_LOCATION"
+fi
 
-rm -rf tmp/premake
 mkdir tmp/premake
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	unzip -uo "$PREMAKE_ARCHIVE_LOCATION" -d tmp/premake

@@ -4,8 +4,40 @@ A bleeding-edge fork of [YGOPro core](https://github.com/Fluorohydride/ygopro) w
 
 This is the core logic and lua script processor of YGOPro. It maintains a state engine with an exposed API for Lua scripts. This library can be built independently of YGOPro clients and power server technologies.
 
-## Compiling
-See the [main EDOPro wiki](https://github.com/edo9300/ygopro/wiki/) for details.
+## Building
+A C++17 compliant compiler is needed (Visual Studio 2017, GCC 7, Clang 5.0.0 or any newer version)
+The project uses the lua library, compiled from source alongside the main project
+and the premake5 build system.
+
+### Visual Studio
+Double click the file `configure.bat`
+in the scripts folder, select your installed Visual Studio version and it will download the needed resources
+and generate the Visual Studio solution, which can then be found in `build/ocgcore.sln`.
+
+Pick the appropriate configuration and architecture and build the solution.
+The `ocgcore` solution to build a static library, the `ocgcoreshared` solution to build a dynamic library.
+
+### POSIX (including mingw)
+You'll need to have premake5 installed.
+To manually download premake on your system, run
+```
+./scripts/install-premake5.sh linux|windows|macosx #pass the right system according to yours
+```
+To download and set up lua, run
+```
+./scripts/install-lua.sh
+```
+Then to configure run
+```
+premake5 gmake2
+```
+To build run
+```
+make -Cbuild TARGET config=CONFIG
+```
+`TARGET` can either be `ocgcore` to build a static library or `ocgcoreshared` to build a dynamic library.
+
+`CONFIG` can either be `debug` or `release`, on mingw the values can be instead `debug_win32`, `debug_x64`, `release_win32`, `release_x64`
 
 ## License
 
