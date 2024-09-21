@@ -1423,7 +1423,8 @@ void field::dec_effect_code(uint32_t code, uint8_t flag, uint8_t hopt_index, uin
 	auto iter = count_map.find(key);
 	if(iter == count_map.end())
 		return;
-	--iter->second;
+	if(iter->second != 0)
+		--iter->second;
 }
 void field::filter_field_effect(uint32_t code, effect_set* eset, bool sort) {
 	auto rg = effects.aura_effect.equal_range(code);
