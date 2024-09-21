@@ -2534,7 +2534,7 @@ int32_t field::check_tribute(card* pcard, int32_t min, int32_t max, group* mg, u
 	if(ct <= 0 && max <= 0)
 		return FALSE;
 	const auto& to_check_release_list = [&] {
-		if(ex_list.size() > 0 && ex_list.size() >= min)
+		if(ex_list.size() > 0 && static_cast<int32_t>(ex_list.size()) >= min)
 			return ex_list;
 		return release_list;
 	}();
