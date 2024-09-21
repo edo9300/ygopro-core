@@ -4037,6 +4037,7 @@ LUA_STATIC_FUNCTION(GetCardFromCardID) {
 LUA_STATIC_FUNCTION(LoadScript) {
 	using SLS = duel::SCRIPT_LOAD_STATUS;
 	check_param_count(L, 1);
+	check_param<LuaParam::STRING>(L, 1);
 	const auto* string = lua_tolstring(L, 1, nullptr);
 	if(!string || *string == '\0')
 		lua_error(L, "Parameter 1 should be a non empty \"String\".");
