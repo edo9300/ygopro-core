@@ -10,12 +10,14 @@
 // Due to longjmp behaviour, we must build Lua as C++ to avoid UB
 #include <cstdio> //std::snprintf
 #include <list>
+#include <type_traits> //std::is_integral_v
 #include <unordered_map>
 #include <utility> //std::forward
 #include <vector>
 #include "common.h"
 #include "lua_obj.h"
 #include "ocgapi_types.h"
+#include "scriptlib.h"
 
 class card;
 class effect;
@@ -66,19 +68,16 @@ public:
 	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	bool load_card_script(uint32_t code);
 	template<LuaParam type, typename T>
-	void add_param(T* param, bool front = false) {
-		static_assert(type == LuaParam::STRING || type == LuaParam::CARD || type == LuaParam::GROUP || type == LuaParam::EFFECT,
-					  "Passed parameter type doesn't match provided LuaParam");
-		lua_param p;
-		p.ptr = param;
-		add_param(p, type, front);
-	}
-	template<LuaParam type, typename T>
 	void add_param(T param, bool front = false) {
-		static_assert(type == LuaParam::INT || type == LuaParam::FUNCTION || type == LuaParam::BOOLEAN || type == LuaParam::INDEX,
-					  "Passed parameter type doesn't match provided LuaParam");
 		lua_param p;
-		p.integer = param;
+		if constexpr(std::is_integral_v<T>) {
+			static_assert(type == LuaParam::INT || type == LuaParam::FUNCTION || type == LuaParam::BOOLEAN || type == LuaParam::INDEX,
+						  "Passed parameter type doesn't match provided LuaParam");
+			p.integer = param;
+		} else {
+			static_assert(scriptlib::get_lua_param_type<T>() == type);
+			p.ptr = param;
+		}
 		add_param(p, type, front);
 	}
 	void push_param(lua_State* L, bool is_coroutine = false);
