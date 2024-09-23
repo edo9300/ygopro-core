@@ -130,13 +130,13 @@ jobs:
         include:
           - deploy-branch: travis-core-linux-musl
             docker-image: x86_64-linux-musl
-            apicheck: 0
+            premake-flags: 
           - deploy-branch: travis-core-linux-musl-apicheck
             docker-image: x86_64-linux-musl
-            apicheck: 1
+            premake-flags: --lua-apicheck
           - deploy-branch: travis-core-linux-musl-aarch64
             docker-image: aarch64-linux-musl
-            apicheck: 0
+            premake-flags: 
     runs-on: ubuntu-latest
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
@@ -153,16 +153,16 @@ jobs:
         sudo docker run -dt --rm --name alpine -v $PWD:/core -w="/core" alpine-cmake
     - name: Install lua
       shell: bash
-      env:
-        LUA_APICHECK: ${{ matrix.apicheck }}
       run: ./scripts/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
     - name: Build
       shell: bash
+      env:
+        PREMAKE_FLAGS: ${{ matrix.premake-flags }}
       run: |
-        ./premake5 gmake2
+        ./premake5 gmake2 $PREMAKE_FLAGS
         sudo docker exec -t -w="/core" alpine make -Cbuild ocgcoreshared -j$(nproc) config=release LDFLAGS="-static -Wl,-Bstatic" &&
         sudo chown -R $USER bin
     - name: Predeploy
