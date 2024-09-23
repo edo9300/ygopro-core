@@ -7,12 +7,24 @@
 #define SCRIPTLIB_H_
 
 #include <cmath> //std::round
+#include <cstdint>
 #include <cstring> //std::memcpy
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
 #include <type_traits> //std::is_same_v, std::enable_if_t, std::invoke_result_t, std::result_of_t, std::conditional_t
 #include <utility> //std::pair
 #include "common.h"
-#include "interpreter.h"
 #include "lua_obj.h"
+
+class card;
+class effect;
+class group;
+class duel;
+
+static_assert(LUA_VERSION_NUM == 503 || LUA_VERSION_NUM == 504, "Lua 5.3 or 5.4 is required, the core won't work with other lua versions");
+static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers");
+static_assert(LUA_EXTRASPACE >= sizeof(duel*), "LUA_EXTRASPACE needs to be big enough to hold a pointer to the duel object");
 
 namespace scriptlib {
 	void push_card_lib(lua_State* L);
@@ -34,6 +46,8 @@ namespace scriptlib {
 			lua_error(L, "%d Parameters are needed.", count);
 	}
 
+	using function = struct {}*;
+
 	template<typename T, typename type>
 	using EnableIfTemplate = std::enable_if_t<std::is_same_v<T, type>, int>;
 
@@ -41,7 +55,7 @@ namespace scriptlib {
 	inline constexpr bool IsBool = std::is_same_v<T, bool>;
 
 	template<typename T>
-	inline constexpr bool IsInteger = std::is_integral_v<T> || std::is_enum_v<T>;
+	inline constexpr bool IsInteger = !IsBool<T> && (std::is_integral_v<T> || std::is_enum_v<T>);
 
 	template<typename T>
 	inline constexpr bool IsCard = std::is_same_v<T, card*>;
@@ -53,9 +67,10 @@ namespace scriptlib {
 	inline constexpr bool IsEffect = std::is_same_v<T, effect*>;
 
 	template<typename T>
-	using EnableIfIntegral = std::enable_if_t<IsInteger<T> || IsBool<T>, T>;
+	inline constexpr bool IsFunction = std::is_same_v<T, function>;
 
-	using function = struct {}*;
+	template<typename T>
+	using EnableIfIntegral = std::enable_if_t<IsInteger<T> || IsBool<T>, T>;
 
 	template<LuaParam param_type, bool retfalse = false, typename ReturnType = std::conditional_t<retfalse, bool, void>>
 	inline ReturnType check_param(lua_State* L, int32_t index, [[maybe_unused]] lua_obj** retobj = nullptr);
@@ -70,7 +85,7 @@ namespace scriptlib {
 			return LuaParam::GROUP;
 		else if constexpr(IsEffect<T>)
 			return LuaParam::EFFECT;
-		else if constexpr(std::is_same_v<T, function>)
+		else if constexpr(IsFunction<T>)
 			return LuaParam::FUNCTION;
 		else if constexpr(IsBool<T>)
 			return LuaParam::BOOLEAN;
@@ -341,5 +356,7 @@ namespace scriptlib {
 })
 
 #define yield() lua_yield(L, 0)
+
+#define ensure_luaL_stack(func,L,...) [&](){ luaL_checkstack(L, 5, nullptr); return func(L, __VA_ARGS__); }()
 
 #endif /* SCRIPTLIB_H_ */
