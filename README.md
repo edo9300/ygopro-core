@@ -9,9 +9,14 @@ A C++17 compliant compiler is needed (Visual Studio 2017, GCC 7, Clang 5.0.0 or 
 The project uses the lua library, compiled from source alongside the main project
 and the premake5 build system.
 
+Clone this repo recursively
+```
+git clone --recurse-submodules  https://github.com/edo9300/ygopro-core
+```
+
 ### Visual Studio
-Double click the file `configure.bat`
-in the scripts folder, select your installed Visual Studio version and it will download the needed resources
+Double click the file `configure.bat` in the scripts folder,
+select your installed Visual Studio version and it will download the needed resources
 and generate the Visual Studio solution, which can then be found in `build/ocgcore.sln`.
 
 Pick the appropriate configuration and architecture and build the solution.
@@ -21,15 +26,11 @@ The `ocgcore` solution to build a static library, the `ocgcoreshared` solution t
 You'll need to have premake5 installed.
 To manually download premake on your system, run
 ```
-./scripts/install-premake5.sh linux|windows|macosx #pass the right system according to yours
+./scripts/install-premake5.sh linux|windows|macosx #pass the right value according to your os
 ```
-To download and set up lua, run
+To configure the project run
 ```
-./scripts/install-lua.sh
-```
-Then to configure run
-```
-premake5 gmake2
+./premake5 gmake2
 ```
 To build run
 ```
@@ -41,14 +42,11 @@ make -Cbuild TARGET config=CONFIG
 
 ### Android
 You'll need to have the Android NDK installed (r16b or newer) and `ndk-build` available in your path.
-Download and set up lua, by running
+
+The android project needs no configuration, just run the command
 ```
-# From a bash shell
-./scripts/install-lua.sh
-# For the windows command prompt
-"scripts/install-lua"
+ndk-build
 ```
-run `ndk-build`
 
 ## License
 

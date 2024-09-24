@@ -4,7 +4,6 @@ SETLOCAL
 REM ensure the script is always running inside the core's root directory
 CD %~DP0..
 
-CALL "%~DP0install-lua.bat"
 CALL "%~DP0install-premake5.bat"
 
 :SELECT

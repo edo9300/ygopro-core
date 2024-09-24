@@ -8,12 +8,6 @@ tmp/
 .idea/
 .vs/
 .DS_Store
-lua*
-!lua*/
-lua*/*
-!lua*/Android.mk
-!lua*/luaconf-customize.h
-!lua*/premake5.lua
 *.exe
 *.pdb
 *.lib

@@ -34,9 +34,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Install lua
-      shell: cmd
-      run: "scripts/install-lua"
+        submodules: recursive
     - name: Install premake
       shell: cmd
       run: "scripts/install-premake5"
@@ -90,9 +88,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
+        submodules: recursive
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -146,14 +142,12 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+        submodules: recursive
     - name: Setup alpine docker image
       shell: bash
       run: |
         sudo docker build --build-arg target_arch=${{ matrix.docker-image }} . -t alpine-cmake -f ./scripts/Dockerfile &&
         sudo docker run -dt --rm --name alpine -v $PWD:/core -w="/core" alpine-cmake
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -198,9 +192,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
+        submodules: recursive
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -255,9 +247,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
+        submodules: recursive
     - name: Build
       shell: bash
       run: ./scripts/build-android.sh
@@ -293,14 +283,12 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+        submodules: recursive
     - name: Replace not compatible Xcode Command Line Tools
       shell: bash
       run: |
         sudo rm -rf /Library/Developer/CommandLineTools
         xcode-select --install
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -347,15 +335,13 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+        submodules: recursive
     - name: Download cctools
       run: |
         cd /opt
         wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
         tar xf cctools.tar.xz
         cd cctools/bin
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -402,9 +388,7 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
+        submodules: recursive
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -451,15 +435,13 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+        submodules: recursive
     - name: Download cctools
       run: |
         cd /opt
         wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
         tar xf cctools.tar.xz
         cd cctools/bin
-    - name: Install lua
-      shell: bash
-      run: ./scripts/install-lua.sh
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -502,7 +484,6 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-        submodules: true
     - name: Download osx artifacts
       uses: actions/download-artifact@v4
     - name: Merge binaries
@@ -547,7 +528,6 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
         fetch-depth: 1
-        submodules: true
     - name: Download lipo binary
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       run: |
