@@ -658,6 +658,7 @@ card::AtkDef card::get_atk_def() {
 	effect_set eset;
 	effect_set effects_atk_final, effects_atk_wicked, effects_atk_option;
 	effect_set effects_def_final, effects_def_wicked, effects_def_option;
+	effect_set effects_repeat_update_atk, effects_repeat_update_def;
 	if(batk < 0)
 		batk = 0;
 	if(bdef < 0)
@@ -698,8 +699,9 @@ card::AtkDef card::get_atk_def() {
 	for(const auto& peffect : eset) {
 		switch(peffect->code) {
 		case EFFECT_UPDATE_ATTACK: {
-			auto value = peffect->get_value(this);
-			if((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+			if(peffect->is_flag(EFFECT_FLAG2_REPEAT_ATK_DEF_UPDATE))
+				effects_repeat_update_atk.push_back(peffect);			
+			else if(auto value = peffect->get_value(this); (peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 				up_atk += value;
 			else
 				upc_atk += value;
@@ -723,8 +725,9 @@ card::AtkDef card::get_atk_def() {
 			}
 			break;
 		case EFFECT_UPDATE_DEFENSE: {
-			auto value = peffect->get_value(this);
-			if((peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE))
+			if(peffect->is_flag(EFFECT_FLAG2_REPEAT_ATK_DEF_UPDATE))
+				effects_repeat_update_def.push_back(peffect);
+			else if(auto value = peffect->get_value(this); (peffect->type & EFFECT_TYPE_SINGLE) && !peffect->is_flag(EFFECT_FLAG_SINGLE_RANGE))
 				up_def += value;
 			else
 				upc_def += value;
@@ -762,6 +765,12 @@ card::AtkDef card::get_atk_def() {
 			temp.attack = 0;
 		if(temp.defense < 0)
 			temp.defense = 0;
+	}
+	for(const auto& peffect : effects_repeat_update_atk) {
+		temp.attack = std::max(0, static_cast<int32_t>(temp.attack + peffect->get_value(this)));
+	}
+	for(const auto& peffect : effects_repeat_update_def) {
+		temp.defense = std::max(0, static_cast<int32_t>(temp.defense + peffect->get_value(this)));
 	}
 	for(const auto& peffect : effects_atk_final) {
 		temp.attack = std::max(0, static_cast<int32_t>(peffect->get_value(this)));
