@@ -46,8 +46,9 @@ void chain::set_triggering_state(card* pcard) {
 	triggering_state.attribute = pcard->get_attribute();
 	triggering_state.type = pcard->get_type();
 	triggering_state.race = pcard->get_race();
-	triggering_state.attack = pcard->get_attack();
-	triggering_state.defense = pcard->get_defense();
+	auto atk_def = pcard->get_atk_def();
+	triggering_state.attack = atk_def.first;
+	triggering_state.defense = atk_def.second;
 	//For the triggering archetypes:
 	auto& setcode = triggering_state.setcodes;
 	setcode.clear();

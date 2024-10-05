@@ -210,6 +210,9 @@ public:
 	void get_pre_set_card(std::set<uint16_t>& setcodes);
 	void get_summon_set_card(std::set<uint16_t>& setcodes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
 	uint32_t get_type(card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
+	using AtkDef = std::pair<int32_t, int32_t>;
+	AtkDef get_base_atk_def();
+	AtkDef get_atk_def();
 	int32_t get_base_attack();
 	int32_t get_attack();
 	int32_t get_base_defense();

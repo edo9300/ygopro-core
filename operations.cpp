@@ -4306,8 +4306,9 @@ bool field::process(Processors::SendTo& arg) {
 						pcard->previous.rank = pcard->get_rank();
 						pcard->previous.attribute = pcard->get_attribute();
 						pcard->previous.race = pcard->get_race();
-						pcard->previous.attack = pcard->get_attack();
-						pcard->previous.defense = pcard->get_defense();
+						auto atk_def = pcard->get_atk_def();
+						pcard->previous.attack = atk_def.first;
+						pcard->previous.defense = atk_def.second;
 					}
 				} else {
 					effect_set eset;

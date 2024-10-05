@@ -97,6 +97,8 @@ enum effect_flag2 : uint32_t {
 	EFFECT_FLAG2_CONTINUOUS_EQUIP   = 0x0001,
 	EFFECT_FLAG2_COF                = 0x0002,
 	EFFECT_FLAG2_CHECK_SIMULTANEOUS = 0x0004,
+	EFFECT_FLAG2_WICKED             = 0x0008,
+	EFFECT_FLAG2_OPTION             = 0x0010,
 	EFFECT_FLAG2_FORCE_ACTIVATE_LOCATION = 0x40000000,
 	EFFECT_FLAG2_MAJESTIC_MUST_COPY = 0x80000000,
 };
@@ -204,6 +206,8 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_REVERSE_UPDATE               108
 #define EFFECT_SWAP_AD                      109
 #define EFFECT_SWAP_BASE_AD                 110
+#define EFFECT_SET_BASE_ATTACK_FINAL        111
+#define EFFECT_SET_BASE_DEFENSE_FINAL       112
 #define EFFECT_ADD_CODE                     113
 #define EFFECT_CHANGE_CODE                  114
 #define EFFECT_ADD_TYPE                     115
