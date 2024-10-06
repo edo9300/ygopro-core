@@ -2111,7 +2111,7 @@ LUA_FUNCTION(AssumeProperty) {
 	check_param_count(L, 3);
 	auto assume = lua_get<uint32_t>(L, 2);
 	if ((assume < ASSUME_CODE) || (assume > ASSUME_LINKMARKER))
-		return 0;
+		lua_error(L, "Invalid ASSUME value");
 	self->assume[assume] = lua_get<uint64_t>(L, 3);
 	pduel->assumes.insert(self);
 	return 0;
