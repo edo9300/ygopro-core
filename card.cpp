@@ -633,19 +633,21 @@ card::AtkDef card::get_base_atk_def() {
 	return { batk, bdef };
 }
 card::AtkDef card::get_atk_def() {
-	//TODO: Handle both assumes being present
-	if(auto value = assume.find(ASSUME_ATTACK); value != assume.end())
-		return { value->second, 0 };
-	if(auto value = assume.find(ASSUME_DEFENSE); value != assume.end()) {
-		if(data.type & TYPE_LINK)
-			return { 0, 0 };
-		return { value->second, 0 };
+	auto has_defense = (data.type & TYPE_LINK) != 0;
+	auto assume_atk = get_assumed_property(ASSUME_ATTACK);
+	if(assume_atk && !has_defense) {
+		return { *assume_atk, 0 };
 	}
-	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER))
-		return { 0, 0 };
+	auto assume_def = has_defense ? get_assumed_property(ASSUME_DEFENSE) : std::nullopt;
+	if(assume_atk && assume_def) {
+		return { *assume_atk, *assume_def };
+	}
+	if(!(data.type & TYPE_MONSTER) && !(get_type() & TYPE_MONSTER) && !is_affected_by_effect(EFFECT_PRE_MONSTER)) {
+		return { assume_atk.value_or(0), assume_def.value_or(0) };
+	}
 	auto batk = data.attack;
 	auto bdef = data.defense;
-	if(data.type & TYPE_LINK)
+	if(!has_defense)
 		bdef = 0;
 	if(current.location != LOCATION_MZONE || get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 		return { batk, bdef };
@@ -671,7 +673,7 @@ card::AtkDef card::get_atk_def() {
 	filter_effect(EFFECT_UPDATE_ATTACK, &eset, FALSE);
 	filter_effect(EFFECT_SET_ATTACK, &eset, FALSE);
 	filter_effect(EFFECT_SET_ATTACK_FINAL, &eset, FALSE);
-	if(!(data.type & TYPE_LINK)) {
+	if(has_defense) {
 		filter_effect(EFFECT_SWAP_AD, &eset, FALSE);
 		filter_effect(EFFECT_UPDATE_DEFENSE, &eset, FALSE);
 		filter_effect(EFFECT_SET_DEFENSE, &eset, FALSE);
@@ -798,7 +800,7 @@ card::AtkDef card::get_atk_def() {
 	def = temp.defense;
 	set_max_property_val(temp.attack);
 	set_max_property_val(temp.defense);
-	return { atk, def };
+	return { assume_atk.value_or(atk), assume_def.value_or(def) };
 }
 int32_t card::get_base_attack() {
 	return get_base_atk_def().first;
