@@ -248,6 +248,9 @@ jobs:
       with:
         fetch-depth: 1
         submodules: recursive
+    - name: Setup Android NDK
+      shell: bash
+      run: ./scripts/setup-ndk.sh
     - name: Build
       shell: bash
       run: ./scripts/build-android.sh
