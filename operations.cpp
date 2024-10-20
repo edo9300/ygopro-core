@@ -568,19 +568,64 @@ bool field::process(Processors::Damage& arg) {
 			}
 		}
 		uint32_t val = amount;
+		uint32_t fixed_damage_value = amount;
+		bool double_damage = false;
+		bool half_damage = false;
+		int fixed_damage_counter = 0;
+
 		eset.clear();
 		filter_player_effect(playerid, EFFECT_CHANGE_DAMAGE, &eset);
-		for(const auto& peff : eset) {
+		for (const auto& peff : eset) {
 			pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
 			pduel->lua->add_param<LuaParam::INT>(val);
 			pduel->lua->add_param<LuaParam::INT>(reason);
 			pduel->lua->add_param<LuaParam::INT>(reason_player);
 			pduel->lua->add_param<LuaParam::CARD>(reason_card);
-			val = static_cast<uint32_t>(peff->get_value(5));
-			returns.set<uint32_t>(0, val);
-			if(val == 0)
+			auto temp_damage_value = static_cast<uint32_t>(peff->get_value(5));
+			/* Extrapolated from the battle damage calculation:
+				If multiple effects change how damage is calculated, they are applied in the following order:
+				6: damage becomes 0.
+				7: damage is halved.
+				8: damage is doubled.
+				9: damage becomes X (X being a predetermined value).
+				However, if the Damage has become 0 when applying "6" effects, the remaining effects are not applied.
+			*/
+			if (temp_damage_value == 0) {
+				returns.set<uint32_t>(0, temp_damage_value);
 				return TRUE;
+			}
+			else if (reason & REASON_EFFECT) {
+				if (temp_damage_value == DOUBLE_DAMAGE)
+					double_damage = true;
+				else if (temp_damage_value == HALF_DAMAGE)
+					half_damage = true;
+				else {
+					// If it is not cases 6, 7 or 8, it is 9:
+					fixed_damage_counter++;
+				}
+				//Update "damage becomes X" when there are multiples to keep the lowest value:
+				if (fixed_damage_counter > 1)
+					fixed_damage_value = std::min(fixed_damage_value, temp_damage_value);
+				else
+					fixed_damage_value = temp_damage_value;
+			}
 		}
+		if (reason & REASON_EFFECT) {
+			// If both double and half damage are found, they cancel out:
+			if (double_damage && half_damage) {
+				double_damage = false;
+				half_damage = false;
+			}
+			// Apply one instance of double or half damage (they do not stack):
+			if (double_damage)
+				val *= 2;
+			if (half_damage)
+				val /= 2;
+			// Apply "damage becomes X " last:
+			if (fixed_damage_counter)
+				val = fixed_damage_value;
+		}
+		returns.set<uint32_t>(0, val);
 		arg.amount = val;
 		if(is_step) {
 			arg.step = 1;
