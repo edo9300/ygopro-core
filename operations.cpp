@@ -587,7 +587,7 @@ bool field::process(Processors::Damage& arg) {
 				6: damage becomes 0.
 				7: damage is halved.
 				8: damage is doubled.
-				9: damage becomes X (X being a predetermined value).
+				9: damage becomes X (X being a predetermined value). Lowest value is applied.
 				However, if the Damage has become 0 when applying "6" effects, the remaining effects are not applied.
 			*/
 			if (temp_damage_value == 0) {
@@ -603,7 +603,7 @@ bool field::process(Processors::Damage& arg) {
 					// If it is not cases 6, 7 or 8, it is 9:
 					fixed_damage_counter++;
 				}
-				//Update "damage becomes X" when there are multiples to keep the lowest value:
+				// Update "damage becomes X" when there are multiples to keep the lowest value:
 				if (fixed_damage_counter > 1)
 					fixed_damage_value = std::min(fixed_damage_value, temp_damage_value);
 				else
@@ -621,7 +621,7 @@ bool field::process(Processors::Damage& arg) {
 				val *= 2;
 			if (half_damage)
 				val /= 2;
-			// Apply "damage becomes X " last:
+			// Apply "damage becomes X" last:
 			if (fixed_damage_counter)
 				val = fixed_damage_value;
 		}
