@@ -617,10 +617,10 @@ bool field::process(Processors::Damage& arg) {
 				half_damage = false;
 			}
 			// Apply one instance of double or half damage (they do not stack):
-			if (double_damage)
-				val *= 2;
 			if (half_damage)
 				val /= 2;
+			if (double_damage)
+				val *= 2;
 			// Apply "damage becomes X" last:
 			if (fixed_damage_counter)
 				val = fixed_damage_value;
