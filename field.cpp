@@ -1238,7 +1238,9 @@ void field::add_effect(effect* peffect, uint8_t owner_player) {
 	effect_container::iterator it;
 	if (!(peffect->type & EFFECT_TYPE_ACTIONS)) {
 		it = effects.aura_effect.emplace(peffect->code, peffect);
-		if(peffect->code == EFFECT_SPSUMMON_COUNT_LIMIT)
+		if(peffect->code == EFFECT_SELF_TOGRAVE)
+			core.global_flag |= GLOBALFLAG_SELF_TOGRAVE;
+		else if(peffect->code == EFFECT_SPSUMMON_COUNT_LIMIT)
 			effects.spsummon_count_eff.insert(peffect);
 		if(peffect->type & EFFECT_TYPE_GRANT)
 			effects.grant_effect.emplace(peffect, field_effect::gain_effects());
