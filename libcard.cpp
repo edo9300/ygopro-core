@@ -2061,6 +2061,7 @@ LUA_FUNCTION(SetHint) {
 LUA_FUNCTION(ReverseInDeck) {
 	if(self->current.location != LOCATION_DECK)
 		return 0;
+	pduel->game_field->core.global_flag |= GLOBALFLAG_DECK_REVERSE_CHECK;
 	self->current.position = POS_FACEUP_DEFENSE;
 	if(self->current.sequence == pduel->game_field->player[self->current.controler].list_main.size() - 1) {
 		auto message = pduel->new_message(MSG_DECK_TOP);

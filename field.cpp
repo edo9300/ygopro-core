@@ -1244,6 +1244,8 @@ void field::add_effect(effect* peffect, uint8_t owner_player) {
 			effects.spsummon_count_eff.insert(peffect);
 		else if(peffect->code == EFFECT_REMOVE_BRAINWASHING)
 			core.global_flag |= GLOBALFLAG_BRAINWASHING_CHECK;
+		else if(peffect->code == EFFECT_REVERSE_DECK)
+			core.global_flag |= GLOBALFLAG_DECK_REVERSE_CHECK;
 		if(peffect->type & EFFECT_TYPE_GRANT)
 			effects.grant_effect.emplace(peffect, field_effect::gain_effects());
 	} else {
