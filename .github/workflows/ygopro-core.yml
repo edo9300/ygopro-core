@@ -275,55 +275,6 @@ jobs:
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Github
 
-  Mac-os:
-    runs-on: macos-12
-    env:
-      DEPLOY_BRANCH: travis-core-osx
-      TRAVIS_OS_NAME: macosx
-      DEVELOPER_DIR: /Applications/Xcode_13.1.app/Contents/Developer
-      MACOSX_DEPLOYMENT_TARGET: 10.11
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-        submodules: recursive
-    - name: Replace not compatible Xcode Command Line Tools
-      shell: bash
-      run: |
-        sudo rm -rf /Library/Developer/CommandLineTools
-        xcode-select --install
-    - name: Install premake
-      shell: bash
-      run: ./scripts/install-premake5.sh
-    - name: Build
-      shell: bash
-      run: ./scripts/build-premake5.sh
-    - name: Predeploy
-      shell: bash
-      run: ./scripts/predeploy.sh
-    - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      shell: bash
-      run: ./scripts/deploy.sh
-    - uses: actions/upload-artifact@v4
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      with:
-        name: osx
-        path: ocgcore/libocgcore.dylib
-    - name: Log Failure
-      uses: sarisia/actions-status-discord@v1
-      if: failure()
-      with:
-        nodetail: true
-        description: |
-            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-        title: |
-                
-        color: 0xff0000
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-        username: Github
-
   Mac-os-cctools:
     runs-on: ubuntu-latest
     env:
@@ -377,53 +328,6 @@ jobs:
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Github
 
-  Mac-os-aarch64:
-    runs-on: macos-latest
-    env:
-      DEPLOY_BRANCH: travis-core-osx-aarch64
-      TRAVIS_OS_NAME: macosx
-      MACOSX_DEPLOYMENT_TARGET: 11.0
-      CXXFLAGS: -target arm64-apple-macos11
-      CFLAGS: -target arm64-apple-macos11
-      LDFLAGS: -target arm64-apple-macos11
-      SDKROOT: /Applications/Xcode_14.3.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-        submodules: recursive
-    - name: Install premake
-      shell: bash
-      run: ./scripts/install-premake5.sh
-    - name: Build
-      shell: bash
-      run: ./scripts/build-premake5.sh
-    - name: Predeploy
-      shell: bash
-      run: ./scripts/predeploy.sh
-    - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      shell: bash
-      run: ./scripts/deploy.sh
-    - uses: actions/upload-artifact@v4
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      with:
-        name: osx-aarch64
-        path: ocgcore/libocgcore.dylib
-    - name: Log Failure
-      uses: sarisia/actions-status-discord@v1
-      if: failure()
-      with:
-        nodetail: true
-        description: |
-            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-        title: |
-                
-        color: 0xff0000
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-        username: Github
-        
   Mac-os-aarch64-cctools:
     runs-on: ubuntu-latest
     env:
@@ -463,50 +367,6 @@ jobs:
       with:
         name: osx-aarch64-cctools
         path: ocgcore/libocgcore.dylib
-    - name: Log Failure
-      uses: sarisia/actions-status-discord@v1
-      if: failure()
-      with:
-        nodetail: true
-        description: |
-            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-        title: |
-                
-        color: 0xff0000
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-        username: Github
-
-  Mac-os-universal:
-    runs-on: macos-latest
-    env:
-      DEPLOY_BRANCH: travis-core-osx-universal
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-    needs: [ Mac-os, Mac-os-aarch64 ]
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-    - name: Download osx artifacts
-      uses: actions/download-artifact@v4
-    - name: Merge binaries
-      shell: bash
-      run: |
-        lipo -create -output libocgcore.dylib ./osx-aarch64/libocgcore.dylib ./osx/libocgcore.dylib
-    - name: Move merged binary
-      shell: bash
-      run: |
-        mkdir -p $DEPLOY_DIR && mv libocgcore.dylib $DEPLOY_DIR
-    - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      shell: bash
-      run: ./scripts/deploy.sh
-    - name: Delete artifacts
-      uses: geekyeggo/delete-artifact@v4
-      with:
-        name: |
-            osx-aarch64
-            osx
     - name: Log Failure
       uses: sarisia/actions-status-discord@v1
       if: failure()
