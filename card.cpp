@@ -1845,6 +1845,8 @@ int32_t card::add_effect(effect* peffect) {
 		return 0;
 	if(peffect->code == EFFECT_SELF_TOGRAVE)
 		pduel->game_field->core.global_flag |= GLOBALFLAG_SELF_TOGRAVE;
+	else if(peffect->code == EVENT_DETACH_MATERIAL)
+		pduel->game_field->core.global_flag |= GLOBALFLAG_DETACH_EVENT;
 	peffect->id = peffect->initial_id = pduel->game_field->infos.field_id++;
 	peffect->card_type = data.type;
 	if(get_status(STATUS_INITIALIZING))

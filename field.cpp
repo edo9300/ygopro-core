@@ -1242,6 +1242,8 @@ void field::add_effect(effect* peffect, uint8_t owner_player) {
 			core.global_flag |= GLOBALFLAG_SELF_TOGRAVE;
 		else if(peffect->code == EFFECT_SPSUMMON_COUNT_LIMIT)
 			effects.spsummon_count_eff.insert(peffect);
+		else if(peffect->code == EFFECT_REMOVE_BRAINWASHING)
+			core.global_flag |= GLOBALFLAG_BRAINWASHING_CHECK;
 		if(peffect->type & EFFECT_TYPE_GRANT)
 			effects.grant_effect.emplace(peffect, field_effect::gain_effects());
 	} else {
@@ -1260,6 +1262,8 @@ void field::add_effect(effect* peffect, uint8_t owner_player) {
 		else if (peffect->type & EFFECT_TYPE_CONTINUOUS)
 			it = effects.continuous_effect.emplace(peffect->code, peffect);
 	}
+	if(peffect->code == EVENT_DETACH_MATERIAL)
+		core.global_flag |= GLOBALFLAG_DETACH_EVENT;
 	effects.indexer.emplace(peffect, it);
 	if(peffect->is_flag(EFFECT_FLAG_FIELD_ONLY)) {
 		if(peffect->is_disable_related())
