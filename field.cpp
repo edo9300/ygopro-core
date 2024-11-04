@@ -2274,41 +2274,37 @@ void field::set_spsummon_counter(uint8_t playerid, bool add, bool chain) {
 		}
 	} else
 		++core.spsummon_state_count[playerid];
-	if(core.global_flag & GLOBALFLAG_SPSUMMON_COUNT) {
-		for(auto& peffect : effects.spsummon_count_eff) {
-			card* pcard = peffect->get_handler();
-			if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
-				if(add) {
-					if(peffect->is_available()) {
-						if(((playerid == pcard->current.controler) && peffect->s_range) || ((playerid != pcard->current.controler) && peffect->o_range)) {
-							++pcard->spsummon_counter[playerid];
-							if(chain)
-								++pcard->spsummon_counter_rst[playerid];
-						}
-					}
-				} else {
-					pcard->spsummon_counter[playerid] -= pcard->spsummon_counter_rst[playerid];
-					pcard->spsummon_counter_rst[playerid] = 0;
-				}
-			} else {
+	for(auto& peffect : effects.spsummon_count_eff) {
+		card* pcard = peffect->get_handler();
+		if(is_flag(DUEL_CANNOT_SUMMON_OATH_OLD)) {
+			if(add) {
 				if(peffect->is_available()) {
 					if(((playerid == pcard->current.controler) && peffect->s_range) || ((playerid != pcard->current.controler) && peffect->o_range)) {
 						++pcard->spsummon_counter[playerid];
+						if(chain)
+							++pcard->spsummon_counter_rst[playerid];
 					}
+				}
+			} else {
+				pcard->spsummon_counter[playerid] -= pcard->spsummon_counter_rst[playerid];
+				pcard->spsummon_counter_rst[playerid] = 0;
+			}
+		} else {
+			if(peffect->is_available()) {
+				if(((playerid == pcard->current.controler) && peffect->s_range) || ((playerid != pcard->current.controler) && peffect->o_range)) {
+					++pcard->spsummon_counter[playerid];
 				}
 			}
 		}
 	}
 }
 int32_t field::check_spsummon_counter(uint8_t playerid, uint8_t ct) {
-	if(core.global_flag & GLOBALFLAG_SPSUMMON_COUNT) {
-		for(auto& peffect : effects.spsummon_count_eff) {
-			card* pcard = peffect->get_handler();
-			uint16_t val = (uint16_t)peffect->value;
-			if(peffect->is_available()) {
-				if(pcard->spsummon_counter[playerid] + ct > val)
-					return FALSE;
-			}
+	for(auto& peffect : effects.spsummon_count_eff) {
+		card* pcard = peffect->get_handler();
+		uint16_t val = (uint16_t)peffect->value;
+		if(peffect->is_available()) {
+			if(pcard->spsummon_counter[playerid] + ct > val)
+				return FALSE;
 		}
 	}
 	return TRUE;

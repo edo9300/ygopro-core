@@ -3315,13 +3315,11 @@ bool field::process(Processors::Turn& arg) {
 		clear_counter(core.flipsummon_counter);
 		clear_counter(core.attack_counter);
 		clear_counter(core.chain_counter);
-		if(core.global_flag & GLOBALFLAG_SPSUMMON_COUNT) {
-			for(auto& peffect : effects.spsummon_count_eff) {
-				card* pcard = peffect->get_handler();
-				if(!peffect->is_flag(EFFECT_FLAG_NO_TURN_RESET)) {
-					pcard->spsummon_counter[0] = pcard->spsummon_counter[1] = 0;
-					pcard->spsummon_counter_rst[0] = pcard->spsummon_counter_rst[1] = 0;
-				}
+		for(auto& peffect : effects.spsummon_count_eff) {
+			card* pcard = peffect->get_handler();
+			if(!peffect->is_flag(EFFECT_FLAG_NO_TURN_RESET)) {
+				pcard->spsummon_counter[0] = pcard->spsummon_counter[1] = 0;
+				pcard->spsummon_counter_rst[0] = pcard->spsummon_counter_rst[1] = 0;
 			}
 		}
 		++infos.turn_id;
