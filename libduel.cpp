@@ -24,7 +24,7 @@ using namespace scriptlib;
 
 LUA_STATIC_FUNCTION(EnableGlobalFlag) {
 	check_param_count(L, 1);
-	pduel->game_field->core.global_flag |= lua_get<uint32_t>(L, 1);
+	// noop
 	return 0;
 }
 
