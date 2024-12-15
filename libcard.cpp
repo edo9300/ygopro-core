@@ -1447,7 +1447,8 @@ LUA_FUNCTION(IsMSetable) {
 }
 LUA_FUNCTION(IsSSetable) {
 	bool ign = lua_get<bool, false>(L, 2);
-	lua_pushboolean(L, self->is_setable_szone(pduel->game_field->core.reason_player, ign));
+	auto toplayer = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
+	lua_pushboolean(L, self->is_setable_szone(toplayer, ign));
 	return 1;
 }
 LUA_FUNCTION(IsCanBeSpecialSummoned) {
