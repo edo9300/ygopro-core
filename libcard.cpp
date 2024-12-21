@@ -94,7 +94,10 @@ LUA_FUNCTION(GetSetCard) {
 			playerid = lua_get<uint8_t>(L, 4);
 		else if (sumtype == SUMMON_TYPE_FUSION)
 			playerid = pduel->game_field->core.reason_player;
-		self->get_summon_set_card(setcodes, scard, sumtype, playerid);
+		card* reqcard = nullptr;
+		if (!lua_isnoneornil(L, 5))
+			reqcard = lua_get<card*, true>(L, 5);
+		self->get_summon_set_card(setcodes, scard, sumtype, playerid, reqcard);
 	} else {
 		self->get_set_card(setcodes);
 	}
@@ -599,6 +602,14 @@ LUA_FUNCTION(IsSummonCode) {
 	auto scard = lua_get<card*>(L, 2);
 	auto sumtype = lua_get<uint64_t>(L, 3);
 	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
+	int stack_index = 5;
+	card* reqcard = nullptr;
+	if (!lua_isnoneornil(L, 5)) {
+		if (check_param<LuaParam::CARD, true>(L, 5)) {
+			stack_index++;
+			scard = lua_get<card*, true>(L, 5);
+		}
+	}
 	effect_set eset;
 	std::set<uint32_t> codes;
 	self->filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
@@ -615,6 +626,7 @@ LUA_FUNCTION(IsSummonCode) {
 		pduel->lua->add_param<LuaParam::CARD>(scard);
 		pduel->lua->add_param<LuaParam::INT>(sumtype);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
+		pduel->lua->add_param<LuaParam::CARD>(reqcard);
 		if (!pduel->lua->check_condition(peff->operation, 3))
 			continue;
 		if (peff->code == EFFECT_ADD_CODE)
@@ -628,7 +640,7 @@ LUA_FUNCTION(IsSummonCode) {
 			codes.insert(peff->get_value(self));
 		}
 	}
-	bool found = lua_find_in_table_or_in_stack(L, 5, lua_gettop(L), [L, &codes] {
+	bool found = lua_find_in_table_or_in_stack(L, stack_index, lua_gettop(L), [L, &codes] {
 		if(lua_isnoneornil(L, -1))
 			return false;
 		uint32_t tcode = lua_get<uint32_t>(L, -1);
@@ -652,7 +664,10 @@ LUA_FUNCTION(IsSetCard) {
 			scard = lua_get<card*, true>(L, 3);
 		auto sumtype = lua_get<uint64_t, 0>(L, 4);
 		playerid = lua_get<uint8_t, PLAYER_NONE>(L, 5);
-		self->get_summon_set_card(setcodes, scard, sumtype, playerid);
+		card* reqcard = nullptr;
+		if (!lua_isnoneornil(L, 6))
+			reqcard = lua_get<card*, true>(L, 6);
+		self->get_summon_set_card(setcodes, scard, sumtype, playerid, reqcard);
 	} else
 		self->get_set_card(setcodes);
 	bool found = lua_find_in_table_or_in_stack(L, 2, 2, [L, &setcodes] {

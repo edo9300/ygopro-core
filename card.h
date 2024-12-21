@@ -200,15 +200,15 @@ public:
 	uint32_t second_code(uint32_t code);
 	uint32_t get_code();
 	uint32_t get_another_code();
-	void get_summon_code(std::set<uint32_t>& codes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
+	void get_summon_code(std::set<uint32_t>& codes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2, card* reqcard = nullptr);
 	int32_t is_set_card(uint16_t set_code);
 	int32_t is_origin_set_card(uint16_t set_code);
 	int32_t is_pre_set_card(uint16_t set_code);
-	int32_t is_summon_set_card(uint16_t set_code, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
+	int32_t is_summon_set_card(uint16_t set_code, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2, card* reqcard = nullptr);
 	void get_set_card(std::set<uint16_t>& setcodes);
 	const std::set<uint16_t>& get_origin_set_card() const { return data.setcodes; }
 	void get_pre_set_card(std::set<uint16_t>& setcodes);
-	void get_summon_set_card(std::set<uint16_t>& setcodes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
+	void get_summon_set_card(std::set<uint16_t>& setcodes, card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2, card* reqcard = nullptr);
 	uint32_t get_type(card* scard = nullptr, uint64_t sumtype = 0, uint8_t playerid = 2);
 	int32_t get_base_attack();
 	int32_t get_attack();
