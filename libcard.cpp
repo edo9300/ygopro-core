@@ -1516,21 +1516,24 @@ LUA_FUNCTION(IsAbleToRemoveAsCost) {
 }
 LUA_FUNCTION(IsReleasable) {
 	const auto reason = lua_get<uint32_t, REASON_COST>(L, 2);
-	lua_pushboolean(L, self->is_releasable_by_nonsummon(pduel->game_field->core.reason_player, reason));
+	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
+	lua_pushboolean(L, self->is_releasable_by_nonsummon(player, reason));
 	return 1;
 }
 LUA_FUNCTION(IsReleasableByEffect) {
-	auto p = pduel->game_field->core.reason_player;
 	effect* re = pduel->game_field->core.reason_effect;
-	lua_pushboolean(L, self->is_releasable_by_nonsummon(p, REASON_EFFECT) && self->is_releasable_by_effect(p, re));
+	if (!lua_isnoneornil(L, 2))
+		re = lua_get<effect*, true>(L, 2);
+	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
+	lua_pushboolean(L, self->is_releasable_by_nonsummon(player, REASON_EFFECT) && self->is_releasable_by_effect(player, re));
 	return 1;
 }
 LUA_FUNCTION(IsDiscardable) {
-	auto p = pduel->game_field->core.reason_player;
 	effect* pe = pduel->game_field->core.reason_effect;
 	auto reason = lua_get<uint32_t, REASON_COST>(L, 2);
+	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
 	if((reason != REASON_COST || !self->is_affected_by_effect(EFFECT_CANNOT_USE_AS_COST))
-	        && pduel->game_field->is_player_can_discard_hand(p, self, pe, reason))
+	        && pduel->game_field->is_player_can_discard_hand(player, self, pe, reason))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
