@@ -293,7 +293,7 @@ void card::get_summon_code(std::set<uint32_t>& codes, card* scard, uint64_t sumt
 		pduel->lua->add_param<LuaParam::INT>(sumtype);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
 		pduel->lua->add_param<LuaParam::CARD>(reqcard);
-		if (!pduel->lua->check_condition(peffect->operation, 3))
+		if (!pduel->lua->check_condition(peffect->operation, 4))
 			continue;
 		if (peffect->code == EFFECT_ADD_CODE)
 			codes.insert(peffect->get_value(this));
@@ -379,7 +379,7 @@ int32_t card::is_summon_set_card(uint16_t set_code, card* scard, uint64_t sumtyp
 		pduel->lua->add_param<LuaParam::INT>(sumtype);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
 		pduel->lua->add_param<LuaParam::CARD>(reqcard);
-		if (!pduel->lua->check_condition(peffect->operation, 3))
+		if (!pduel->lua->check_condition(peffect->operation, 4))
 			continue;
 		if (peffect->code== EFFECT_ADD_CODE)
 			codes.insert(peffect->get_value(this));
@@ -469,7 +469,7 @@ void card::get_summon_set_card(std::set<uint16_t>& setcodes, card* scard, uint64
 		pduel->lua->add_param<LuaParam::INT>(sumtype);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
 		pduel->lua->add_param<LuaParam::CARD>(reqcard);
-		if (!pduel->lua->check_condition(peffect->operation, 3))
+		if (!pduel->lua->check_condition(peffect->operation, 4))
 			continue;
 		if (peffect->code == EFFECT_ADD_CODE)
 			codes.insert(peffect->get_value(this));

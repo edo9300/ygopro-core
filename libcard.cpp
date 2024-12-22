@@ -627,7 +627,7 @@ LUA_FUNCTION(IsSummonCode) {
 		pduel->lua->add_param<LuaParam::INT>(sumtype);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
 		pduel->lua->add_param<LuaParam::CARD>(reqcard);
-		if (!pduel->lua->check_condition(peff->operation, 3))
+		if (!pduel->lua->check_condition(peff->operation, 4))
 			continue;
 		if (peff->code == EFFECT_ADD_CODE)
 			codes.insert(peff->get_value(self));
