@@ -607,7 +607,7 @@ LUA_FUNCTION(IsSummonCode) {
 	if (!lua_isnoneornil(L, 5)) {
 		if (check_param<LuaParam::CARD, true>(L, 5)) {
 			stack_index++;
-			scard = lua_get<card*, true>(L, 5);
+			reqcard = lua_get<card*, true>(L, 5);
 		}
 	}
 	effect_set eset;
