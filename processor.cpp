@@ -5205,6 +5205,7 @@ bool field::process(Processors::SelectFusion& arg) {
 		e.reason_player = playerid;
 		pduel->lua->add_param<LuaParam::GROUP>(forced_materials);
 		pduel->lua->add_param<LuaParam::INT>(chkf);
+		pduel->lua->add_param<LuaParam::EFFECT>(core.reason_effect);
 		emplace_process<Processors::ExecuteOperation>(core.select_effects[returns.at<int32_t>(0)], playerid);
 		return FALSE;
 	}
