@@ -3050,9 +3050,10 @@ LUA_STATIC_FUNCTION(Hint) {
 }
 LUA_STATIC_FUNCTION(HintSelection) {
 	check_param_count(L, 1);
+	auto [pcard, pgroup] = lua_get_card_or_group(L, 1);
 	bool selection = lua_get<bool, false>(L, 2);
 	auto message = pduel->new_message(selection ? MSG_CARD_SELECTED : MSG_BECOME_TARGET);
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 1); pcard) {
+	if(pcard) {
 		message->write<uint32_t>(1);
 		message->write(pcard->get_info_location());
 	} else {
