@@ -1122,7 +1122,7 @@ uint32_t card::get_link() {
 	return link;		
 }
 uint32_t card::get_synchro_level(card* pcard) {
-	if(data.type & TYPE_LINK)
+	if((data.type & TYPE_LINK) && !(is_affected_by_effect(EFFECT_SYNCHRO_LEVEL)))
 		return 0;
 	if(((data.type & TYPE_XYZ) || (status & STATUS_NO_LEVEL))
 		&& !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
@@ -3978,7 +3978,9 @@ int32_t card::is_can_be_fusion_material(card* fcard, uint64_t summon_type, uint8
 	return TRUE;
 }
 int32_t card::is_can_be_synchro_material(card* scard, uint8_t playerid, card* /*tuner*/) {
-	if(data.type & (TYPE_XYZ | TYPE_LINK) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+	if(data.type & (TYPE_XYZ) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
+		return FALSE;
+	if (data.type & (TYPE_LINK) && !(is_affected_by_effect(EFFECT_SYNCHRO_LEVEL)))
 		return FALSE;
 	if(!(get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & TYPE_MONSTER))
 		return FALSE;
