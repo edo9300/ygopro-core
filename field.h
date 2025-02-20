@@ -704,22 +704,6 @@ public:
 	bool process(Processors::AnnounceCard& arg);
 	bool process(Processors::AnnounceNumber& arg);
 	bool process(Processors::RockPaperScissors& arg);
-
-	template<typename... Args>
-	OCG_DuelStatus operator()(std::variant<Args...>& arg) {
-		return std::visit(*this, arg);
-	}
-
-	template<typename T>
-	OCG_DuelStatus operator()(T& arg) {
-		if(process(arg)) {
-			core.units.pop_front();
-			return OCG_DUEL_STATUS_CONTINUE;
-		} else {
-			++arg.step;
-			return Processors::NeedsAnswer<T> ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE;
-		}
-	}
 };
 
 //Location Use Reason

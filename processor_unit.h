@@ -839,7 +839,10 @@ constexpr inline void emplace_variant(std::list<processor_unit>& list, Args&&...
 #endif
 
 template<typename T>
-inline constexpr bool NeedsAnswer = T::needs_answer;
+inline constexpr bool NeedsAnswer = std::remove_reference_t<T>::needs_answer;
+
+template<typename T>
+inline constexpr bool IsProcess = std::is_base_of_v<Process<true>, std::remove_reference_t<T>> || std::is_base_of_v<Process<false>, std::remove_reference_t<T>>;
 
 }
 
