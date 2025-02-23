@@ -357,6 +357,8 @@ namespace scriptlib {
 
 #define yield() lua_yield(L, 0)
 
-#define ensure_luaL_stack(func,L,...) [&](){ luaL_checkstack(L, 5, nullptr); return func(L, __VA_ARGS__); }()
+// double macro to make MSVC happy
+#define ensure_luaL_stack_int(L,...) [&](){ luaL_checkstack(L, 5, nullptr); return __VA_ARGS__; }()
+#define ensure_luaL_stack(func,L,...) ensure_luaL_stack_int(L,func(L, __VA_ARGS__))
 
 #endif /* SCRIPTLIB_H_ */

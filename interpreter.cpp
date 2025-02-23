@@ -153,7 +153,7 @@ bool interpreter::load_script(const char* buffer, int len, const char* script_na
 	if(!buffer)
 		return false;
 	++no_action;
-	if(ensure_luaL_stack(luaL_loadbufferx, current_state, buffer, len, script_name, nullptr) != LUA_OK
+	if(ensure_luaL_stack(luaL_loadbuffer, current_state, buffer, len, script_name) != LUA_OK
 	   || lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
 		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 		lua_pop(current_state, 1);
