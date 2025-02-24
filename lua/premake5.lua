@@ -21,6 +21,7 @@ project "lua"
 				}
 	
 	includedirs { "./" }
+	exceptionhandling "Off"
 	forceincludes { "luaconf-customize.h" }
 	if _OPTIONS["lua-apicheck"] then
 		defines "LUA_EPRO_APICHECK"
