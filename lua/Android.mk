@@ -18,8 +18,7 @@ EXCLUDED_LUA_FILES := \
 FILE_LIST := $(filter-out $(EXCLUDED_LUA_FILES), $(wildcard $(LOCAL_PATH)/src/*.c))
 LOCAL_SRC_FILES := $(FILE_LIST:$(LOCAL_PATH)/%=%)
 
-LOCAL_CPPFLAGS := -fexceptions -fno-rtti -include ./luaconf-customize.h -Wno-deprecated
-LOCAL_CPP_EXTENSION := .c
+LOCAL_CFLAGS := -fno-exceptions -include ./luaconf-customize.h -Wno-deprecated
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/src
 LOCAL_THIN_ARCHIVE := true
 
