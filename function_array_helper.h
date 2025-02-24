@@ -144,7 +144,6 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
 		auto ret = MAKE_LUA_NAME(LUA_MODULE,name)(L, lua_get<duel*>(L)); \
-		Assume(!ret.valueless_by_exception()); \
 		PERFORM_VISIT(ret); \
 	} \
 	static constexpr luaL_Reg elem{#name, call}; \
