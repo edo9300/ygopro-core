@@ -16,6 +16,7 @@
 #include <utility> //std::pair
 #include "common.h"
 #include "lua_obj.h"
+#include "lua_ret.h"
 
 class card;
 class effect;
@@ -34,16 +35,17 @@ namespace scriptlib {
 	void push_debug_lib(lua_State* L);
 	void check_action_permission(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
-	inline int32_t push_return_cards(lua_State* L, bool cancelable) {
-		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
+	inline LuaRet push_return_cards([[maybe_unused]] lua_State* L, bool cancelable) {
+		return [cancelable](lua_State* L)->int32_t { return lua_yieldk(L, 0, static_cast<lua_KContext>(cancelable), push_return_cards); };
 	}
 	int32_t is_deleted_object(lua_State* L);
 
-#define lua_error(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
+#define lua_error(...) return [&](lua_State* L) -> int32_t { luaL_error(__VA_ARGS__); unreachable(); }
+#define lua_error_unsafe(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
 
 	inline void check_param_count(lua_State* L, int32_t count) {
 		if(lua_gettop(L) < count)
-			lua_error(L, "%d Parameters are needed.", count);
+			lua_error_unsafe(L, "%d Parameters are needed.", count);
 	}
 
 	using function = struct {}*;
@@ -137,7 +139,7 @@ namespace scriptlib {
 		if(auto obj = lua_touserdata(L, idx)) {
 			auto* ret = *static_cast<lua_obj**>(obj);
 			if(ret->lua_type == LuaParam::DELETED)
-				lua_error(L, "Attempting to access deleted object.");
+				lua_error_unsafe(L, "Attempting to access deleted object.");
 			return ret;
 		}
 		return nullptr;
@@ -202,7 +204,7 @@ namespace scriptlib {
 			default: break;
 			}
 		}
-		lua_error(L, R"(Parameter %d should be "Card" or "Group" but is "%s".)", idx, get_lua_type_name(L, idx));
+		lua_error_unsafe(L, R"(Parameter %d should be "Card" or "Group" but is "%s".)", idx, get_lua_type_name(L, idx));
 	}
 	//always return a string, whereas lua might return nullptr
 	inline const char* lua_get_string_or_empty(lua_State* L, int idx) {
@@ -301,7 +303,7 @@ namespace scriptlib {
 		return 1;
 	}
 	template<typename T>
-	static int32_t from_lua_ref(lua_State* L) {
+	static LuaRet from_lua_ref(lua_State* L) {
 		static_assert(IsCard<T*> || IsGroup<T*> || IsEffect<T*>);
 		auto ref = lua_get<int32_t>(L, 1);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
@@ -342,20 +344,22 @@ namespace scriptlib {
 		if constexpr(retfalse)
 			return false;
 		else
-			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_param_name<param_type>(), get_lua_type_name(L, index));
+			lua_error_unsafe(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_param_name<param_type>(), get_lua_type_name(L, index));
 	}
 }
 
-#define yieldk(...) lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int {\
-	(void)status; \
-	(void)ctx; \
-	auto pduel = lua_get<duel*>(L); \
-	(void)pduel; \
-	do __VA_ARGS__ while(0); \
-	unreachable(); \
-})
+#define yieldk(...) +[](lua_State* L)->int32_t { \
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int { \
+		(void)status; \
+		(void)ctx; \
+		auto pduel = lua_get<duel*>(L); \
+		(void)pduel; \
+		do __VA_ARGS__ while(0); \
+		unreachable(); \
+	}); \
+}
 
-#define yield() lua_yield(L, 0)
+#define yield() +[](lua_State* L)->int32_t { return lua_yield(L, 0); }
 
 // double macro to make MSVC happy
 #define ensure_luaL_stack_int(L,...) [&](){ luaL_checkstack(L, 5, nullptr); return __VA_ARGS__; }()
