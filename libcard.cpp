@@ -1229,7 +1229,7 @@ LUA_FUNCTION(GetFlagEffectLabel) {
 	check_param_count(L, 2);
 	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
 	auto rg = self->single_effect.equal_range(code);
-	auto count = std::distance(rg.first, rg.second);
+	auto count = static_cast<int32_t>(std::distance(rg.first, rg.second));
 	if(!count) {
 		lua_pushnil(L);
 		return 1;
