@@ -264,7 +264,7 @@ LUA_STATIC_FUNCTION(SpecialSummonRule) {
 	}
 	return yield();
 }
-inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset) {
+inline LuaRet spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset) {
 	check_action_permission(L);
 	check_param_count(L, 2);
 	const auto pduel = lua_get<duel*>(L);
@@ -319,7 +319,7 @@ LUA_STATIC_FUNCTION(ProcedureSummon) {
 	auto sumtype = lua_get<uint32_t>(L, 3);
 	return spsummon_rule(L, sumtype, 1);
 }
-inline int32_t spsummon_rule_group(lua_State* L, uint32_t summon_type, [[maybe_unused]] uint32_t offset) {
+inline LuaRet spsummon_rule_group(lua_State* L, uint32_t summon_type, [[maybe_unused]] uint32_t offset) {
 	check_param_count(L, 1);
 	const auto pduel = lua_get<duel*>(L);
 	const auto playerid = lua_get<uint8_t>(L, 1);
@@ -1993,7 +1993,7 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 			break;
 		}
 		default:
-			lua_error(L, "Passed invalid CHAININFO flag.");
+			lua_error_unsafe(L, "Passed invalid CHAININFO flag.");
 		}
 		return 1;
 	});
@@ -2464,7 +2464,7 @@ LUA_STATIC_FUNCTION(CheckReleaseGroup) {
 LUA_STATIC_FUNCTION(CheckReleaseGroupEx) {
 	return check_release_group(L, TRUE);
 }
-static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
+static LuaRet select_release_group(lua_State* L, uint8_t use_hand) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	auto playerid = lua_get<uint8_t>(L, 1);
@@ -3956,7 +3956,7 @@ LUA_STATIC_FUNCTION(GetActivityCount) {
 			lua_pushinteger(L, core.battle_phase_count[playerid]);
 			break;
 		default:
-			lua_error(L, "Passed invalid ACTIVITY flag.");
+			lua_error_unsafe(L, "Passed invalid ACTIVITY flag.");
 		}
 		return 1;
 	});

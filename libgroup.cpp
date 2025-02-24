@@ -27,7 +27,7 @@ using namespace scriptlib;
 void assert_readonly_group(lua_State* L, group* pgroup) {
 	if(pgroup->is_readonly != 1)
 		return;
-	lua_error(L, "attempt to modify a read only group");
+	lua_error_unsafe(L, "attempt to modify a read only group");
 }
 
 LUA_STATIC_FUNCTION(CreateGroup) {
@@ -640,11 +640,11 @@ std::tuple<group*, group*, card*> get_binary_op_group_card_parameters(lua_State*
 	auto obj1 = lua_get<lua_obj*>(L, 1);
 	auto obj2 = lua_get<lua_obj*>(L, 2);
 	if(!obj1 || !obj2)
-		lua_error(L, "At least 1 parameter should be \"Group\".");
+		lua_error_unsafe(L, "At least 1 parameter should be \"Group\".");
 	if(obj1->lua_type != LuaParam::GROUP)
 		std::swap(obj1, obj2);
 	if(obj1->lua_type != LuaParam::GROUP)
-		lua_error(L, "At least 1 parameter should be \"Group\".");
+		lua_error_unsafe(L, "At least 1 parameter should be \"Group\".");
 
 	switch(obj2->lua_type) {
 	case LuaParam::GROUP:
@@ -652,13 +652,14 @@ std::tuple<group*, group*, card*> get_binary_op_group_card_parameters(lua_State*
 	case LuaParam::CARD:
 		return { static_cast<group*>(obj1), nullptr, static_cast<card*>(obj2) };
 	default:
-		lua_error(L, "A parameter isn't \"Group\" nor \"Card\".");
+		lua_error_unsafe(L, "A parameter isn't \"Group\" nor \"Card\".");
 	}
 }
 LUA_STATIC_FUNCTION(__band) {
 	check_param_count(L, 2);
+	auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(L);
 	card_set cset;
-	if(auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(L); pcard) {
+	if(pcard) {
 		if(pgroup1->has_card(pcard)) {
 			cset.insert(pcard);
 		}
