@@ -250,18 +250,14 @@ bool parse_response_cards(ProgressiveBuffer& returns, return_card_generic<Return
 				list.push_back(select_cards[i]);
 		}
 	} else {
-		try {
-			auto size = returns.at<uint32_t>(1);
-			for(uint32_t i = 0; i < size; ++i) {
-				list.push_back(select_cards.at(
-					(type == 0) ? returns.at<uint32_t>(i + 2) :
-					(type == 1) ? returns.at<uint16_t>(i + 4) :
-					returns.at<uint8_t>(i + 8)
-				)
-				);
-			}
-		} catch(...) {
-			return false;
+		auto size = returns.at<uint32_t>(1);
+		for(uint32_t i = 0; i < size; ++i) {
+			auto idx = (type == 0) ? returns.at<uint32_t>(i + 2) :
+				(type == 1) ? returns.at<uint16_t>(i + 4) :
+				returns.at<uint8_t>(i + 8);
+			if(idx >= select_cards.size())
+				return false;
+			list.push_back(select_cards[idx]);
 		}
 	}
 	if(std::is_same_v<ReturnType, card*>) {
