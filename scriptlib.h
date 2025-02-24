@@ -9,9 +9,11 @@
 #include <cmath> //std::round
 #include <cstdint>
 #include <cstring> //std::memcpy
+extern "C" {
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
+}
 #include <type_traits> //std::is_same_v, std::enable_if_t, std::invoke_result_t, std::result_of_t, std::conditional_t
 #include <utility> //std::pair
 #include "common.h"

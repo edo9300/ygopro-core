@@ -19,6 +19,7 @@
 using namespace scriptlib;
 
 // This function will be used by a lua library built with api check
+extern "C"
 #ifdef __GNUC__
 [[gnu::used]]
 #endif
