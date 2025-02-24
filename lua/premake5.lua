@@ -31,6 +31,3 @@ project "lua"
 		optimize "Speed"	
 	filter "configurations:Debug"
 		optimize "Off"
-
-	filter { "files:**.c" }
-		compileas "C++"
