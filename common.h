@@ -12,6 +12,7 @@
 #define unreachable() __assume(0)
 #define NoInline __declspec(noinline)
 #define ForceInline __forceinline
+#define Assume(cond) __assume(cond)
 #else
 #if !defined(__forceinline)
 #define ForceInline __attribute__((always_inline)) inline
@@ -20,6 +21,7 @@
 #endif
 #define unreachable() __builtin_unreachable()
 #define NoInline __attribute__ ((noinline))
+#define Assume(cond) do { if(cond){ unreachable(); } } while(0)
 #endif
 
 #if defined(__clang_analyzer__)
