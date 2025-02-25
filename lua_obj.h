@@ -18,7 +18,11 @@ enum class LuaParam : uint8_t {
 	FUNCTION,
 	BOOLEAN,
 	INDEX,
+	NIL,
+	NONE,
+	TABLE,
 	DELETED,
+	UNKNOWN,
 };
 
 class duel;
