@@ -148,9 +148,8 @@ LUA_STATIC_FUNCTION(PreAddCounter) {
 	auto countertype = lua_get<uint16_t>(L, 2);
 	auto count = lua_get<uint16_t>(L, 3);
 	uint16_t cttype = countertype & ~COUNTER_NEED_ENABLE;
-	auto pr = pcard->counters.emplace(cttype, card::counter_map::mapped_type());
-	auto cmit = pr.first;
-	if(pr.second) {
+	auto [cmit, was_constructed] = pcard->counters.try_emplace(cttype, card::counter_map::mapped_type());
+	if(was_constructed) {
 		cmit->second[0] = 0;
 		cmit->second[1] = 0;
 	}
