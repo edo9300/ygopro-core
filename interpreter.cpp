@@ -265,6 +265,10 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			}
 			break;
 		}
+		case LuaParam::NIL:
+		case LuaParam::NONE:
+		case LuaParam::TABLE:
+		case LuaParam::UNKNOWN:
 		case LuaParam::DELETED:
 			unreachable();
 		}

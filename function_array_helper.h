@@ -285,7 +285,7 @@ inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int i
 
 template <typename FullVariant, typename Arg, typename... Args>
 constexpr FullVariant get_variant_arg_int([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx, std::variant<Arg, Args...>) {
-	auto type = get_lua_type(L, idx);
+	auto type = scriptlib::get_lua_type(L, idx);
 	if constexpr(sizeof...(Args) == 0) {
 		return get_lua<Arg>(L, idx);
 	} else {
@@ -400,7 +400,7 @@ struct get_variant_type_functor<std::variant<Args...>> {
 
 template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
 inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
-	auto type = get_lua_type(L, idx);
+	auto type = scriptlib::get_lua_type(L, idx);
 	if(!check_variant_types_functor<T>()(type)) {
 		lua_error(L, "Error");
 	}
