@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -17,8 +17,7 @@ namespace {
 
 using namespace scriptlib;
 
-LUA_STATIC_FUNCTION(CreateEffect) {
-	auto pcard = lua_get<card*, true>(L, 1);
+LUA_STATIC_FUNCTION(CreateEffect, card* pcard) {
 	effect* peffect = pduel->new_effect();
 	peffect->effect_owner = pduel->game_field->core.reason_player;
 	peffect->owner = pcard;
@@ -209,19 +208,18 @@ LUA_FUNCTION(SetCost, Function findex) {
 	self->cost = interpreter::get_function_handle(L, findex);
 	return 0;
 }
-LUA_FUNCTION(SetValue) {
-	check_param_count(L, 2);
+LUA_FUNCTION(SetValue, std::variant<Function, bool, lua_Integer> function_value) {
 	if(self->value && self->is_flag(EFFECT_FLAG_FUNC_VALUE))
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->value);
-	if (lua_isfunction(L, 2)) {
-		self->value = interpreter::get_function_handle(L, 2);
+	if(std::holds_alternative<Function>(function_value)) {
+		self->value = interpreter::get_function_handle(L, std::get<Function>(function_value));
 		self->flag[0] |= EFFECT_FLAG_FUNC_VALUE;
 	} else {
 		self->flag[0] &= ~EFFECT_FLAG_FUNC_VALUE;
-		if(lua_isboolean(L, 2))
-			self->value = lua_get<bool>(L, 2);
-		else {
-			auto value = lua_get<lua_Integer>(L, 2);
+		if(std::holds_alternative<bool>(function_value)) {
+			self->value = std::get<bool>(function_value);
+		} else {
+			auto value = std::get<lua_Integer>(function_value);
 			if(value > INT32_MAX || value < INT32_MIN) {
 				lua_pushvalue(L, 2);
 				lua_pushcclosure(L, [](lua_State* L) -> int32_t {

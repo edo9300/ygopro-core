@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -829,25 +829,20 @@ LUA_FUNCTION(IsSummonPlayer) {
 	lua_pushboolean(L, self->summon.player == player);
 	return 1;
 }
-LUA_FUNCTION(IsStatus) {
+LUA_FUNCTION(IsStatus, uint32_t tstatus) {
 	check_param_count(L, 2);
-	auto tstatus = lua_get<uint32_t>(L, 2);
 	lua_pushboolean(L, (self->status & tstatus) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsNotTuner) {
+LUA_FUNCTION(IsNotTuner, card* scard, uint8_t playerid) {
 	check_param_count(L, 3);
-	auto scard = lua_get<card*, true>(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 3);
 	lua_pushboolean(L, self->is_not_tuner(scard, playerid));
 	return 1;
 }
-LUA_FUNCTION(SetStatus) {
+LUA_FUNCTION(SetStatus, uint32_t tstatus, bool enable) {
 	check_param_count(L, 3);
 	if(self->status & STATUS_COPYING_EFFECT)
 		return 0;
-	auto tstatus = lua_get<uint32_t>(L, 2);
-	auto enable = lua_get<bool>(L, 3);
 	self->set_status(tstatus, enable);
 	return 0;
 }
@@ -866,9 +861,7 @@ LUA_FUNCTION(EnableGeminiState) {
 	self->add_effect(deffect);
 	return 0;
 }
-LUA_FUNCTION(SetTurnCounter) {
-	check_param_count(L, 2);
-	auto ct = lua_get<uint16_t>(L, 2);
+LUA_FUNCTION(SetTurnCounter, uint16_t ct) {
 	self->count_turn(ct);
 	return 0;
 }
@@ -876,12 +869,11 @@ LUA_FUNCTION(GetTurnCounter) {
 	lua_pushinteger(L, self->turn_counter);
 	return 1;
 }
-LUA_FUNCTION(SetMaterial) {
-	check_param_count(L, 2);
-	if(auto [pcard, pgroup] = lua_get_card_or_group<true>(L, 2); pcard) {
-		self->set_material({ pcard });
-	} else if(pgroup) {
-		self->set_material(pgroup->container);
+LUA_FUNCTION(SetMaterial, std::variant<std::monostate, card*, group*> card_or_group) {
+	if(std::holds_alternative<card*>(card_or_group)) {
+		self->set_material({ std::get<card*>(card_or_group) });
+	} else if(std::holds_alternative<group*>(card_or_group)) {
+		self->set_material(std::get<group*>(card_or_group)->container);
 	} else {
 		self->set_material({});
 	}
@@ -913,8 +905,7 @@ LUA_FUNCTION(GetPreviousEquipTarget) {
 	interpreter::pushobject(L, self->pre_equip_target);
 	return 1;
 }
-LUA_FUNCTION(CheckEquipTarget) {
-	auto target = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(CheckEquipTarget, card* target) {
 	if(self->is_affected_by_effect(EFFECT_EQUIP_LIMIT, target)
 		&& ((!self->is_affected_by_effect(EFFECT_OLDUNION_STATUS) || target->get_union_count() == 0)
 			&& (!self->is_affected_by_effect(EFFECT_UNION_STATUS) || target->get_old_union_count() == 0)))
@@ -923,8 +914,7 @@ LUA_FUNCTION(CheckEquipTarget) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
-LUA_FUNCTION(CheckUnionTarget) {
-	auto target = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(CheckUnionTarget, card* target) {
 	if(self->is_affected_by_effect(EFFECT_UNION_LIMIT, target)
 		&& ((!self->is_affected_by_effect(EFFECT_OLDUNION_STATUS) || target->get_union_count() == 0)
 			&& (!self->is_affected_by_effect(EFFECT_UNION_STATUS) || target->get_old_union_count() == 0)))
@@ -951,26 +941,17 @@ LUA_FUNCTION(GetOverlayTarget) {
 	interpreter::pushobject(L, self->overlay_target);
 	return 1;
 }
-LUA_FUNCTION(CheckRemoveOverlayCard) {
-	check_param_count(L, 4);
-	auto playerid = lua_get<uint8_t>(L, 2);
+LUA_FUNCTION(CheckRemoveOverlayCard, uint8_t playerid, uint16_t count, uint32_t reason) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto count = lua_get<uint16_t>(L, 3);
-	auto reason = lua_get<uint32_t>(L, 4);
 	group* pgroup = pduel->new_group(self);
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pgroup, 0, 0, count, reason));
 	return 1;
 }
-LUA_FUNCTION(RemoveOverlayCard) {
+LUA_FUNCTION(RemoveOverlayCard, uint8_t playerid, uint16_t min, uint16_t max, uint32_t reason) {
 	check_action_permission(L);
-	check_param_count(L, 5);
-	auto playerid = lua_get<uint8_t>(L, 2);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto min = lua_get<uint16_t>(L, 3);
-	auto max = lua_get<uint16_t>(L, 4);
-	auto reason = lua_get<uint32_t>(L, 5);
 	group* pgroup = pduel->new_group(self);
 	pduel->game_field->remove_overlay_card(reason, pgroup, playerid, 0, 0, min, max);
 	return yieldk({
@@ -1016,9 +997,7 @@ LUA_FUNCTION(IsDirectAttacked) {
 	lua_pushboolean(L, self->attacked_cards.findcard(nullptr));
 	return 1;
 }
-LUA_FUNCTION(SetCardTarget) {
-	check_param_count(L, 2);
-	auto ocard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(SetCardTarget, card* ocard) {
 	self->add_card_target(ocard);
 	return 0;
 }
@@ -1037,15 +1016,11 @@ LUA_FUNCTION(GetCardTargetCount) {
 	lua_pushinteger(L, self->effect_target_cards.size());
 	return 1;
 }
-LUA_FUNCTION(IsHasCardTarget) {
-	check_param_count(L, 2);
-	auto rcard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(IsHasCardTarget, card* rcard) {
 	lua_pushboolean(L, self->effect_target_cards.find(rcard) != self->effect_target_cards.end());
 	return 1;
 }
-LUA_FUNCTION(CancelCardTarget) {
-	check_param_count(L, 2);
-	auto rcard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(CancelCardTarget, card* rcard) {
 	self->cancel_card_target(rcard);
 	return 0;
 }
@@ -1522,7 +1497,7 @@ LUA_FUNCTION(IsReleasable) {
 }
 LUA_FUNCTION(IsReleasableByEffect) {
 	effect* re = pduel->game_field->core.reason_effect;
-	if (!lua_isnoneornil(L, 2))
+	if(!lua_isnoneornil(L, 2))
 		re = lua_get<effect*, true>(L, 2);
 	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
 	lua_pushboolean(L, self->is_releasable_by_nonsummon(player, REASON_EFFECT) && self->is_releasable_by_effect(player, re));
@@ -1902,22 +1877,12 @@ LUA_FUNCTION(IsCanBeXyzMaterial) {
 	lua_pushboolean(L, self->is_can_be_xyz_material(scard, playerid, reason));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeLinkMaterial) {
-	card* scard = nullptr;
-	if(lua_gettop(L) >= 2)
-		scard = lua_get<card*, true>(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_can_be_link_material(scard, playerid));
+LUA_FUNCTION(IsCanBeLinkMaterial, std::optional<card*> scard, std::optional<uint8_t> playerid) {
+	lua_pushboolean(L, self->is_can_be_link_material(scard.value_or(nullptr), playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeMaterial) {
-	check_param_count(L, 2);
-	uint64_t sumtype = lua_get<uint64_t>(L, 2);
-	card* scard = nullptr;
-	if(lua_gettop(L) >= 3)
-		scard = lua_get<card*, true>(L, 3);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
-	lua_pushboolean(L, self->is_can_be_material(scard, sumtype, playerid));
+LUA_FUNCTION(IsCanBeMaterial, uint64_t sumtype, std::optional<card*> scard, std::optional<uint8_t> playerid) {
+	lua_pushboolean(L, self->is_can_be_material(scard.value_or(nullptr), sumtype, playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
 LUA_FUNCTION(CheckFusionMaterial) {
@@ -1933,46 +1898,29 @@ LUA_FUNCTION(CheckFusionMaterial) {
 	lua_pushboolean(L, self->fusion_check(pgroup, cg, chkf));
 	return 1;
 }
-LUA_FUNCTION(CheckFusionSubstitute) {
-	check_param_count(L, 2);
-	auto fcard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(CheckFusionSubstitute, card* fcard) {
 	lua_pushboolean(L, self->check_fusion_substitute(fcard));
 	return 1;
 }
-LUA_FUNCTION(IsImmuneToEffect) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 2);
+LUA_FUNCTION(IsImmuneToEffect, effect* peffect) {
 	lua_pushboolean(L, !self->is_affect_by_effect(peffect));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeDisabledByEffect) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 2);
-	bool is_monster_effect = lua_get<bool, true>(L, 3);
-	lua_pushboolean(L, self->is_can_be_disabled_by_effect(peffect, is_monster_effect));
+LUA_FUNCTION(IsCanBeDisabledByEffect, effect* peffect, std::optional<bool> is_monster_effect) {
+	lua_pushboolean(L, self->is_can_be_disabled_by_effect(peffect, is_monster_effect.value_or(true)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeEffectTarget) {
-	effect* peffect = pduel->game_field->core.reason_effect;
-	if(lua_gettop(L) > 1)
-		peffect = lua_get<effect*, true>(L, 2);
-	lua_pushboolean(L, self->is_capable_be_effect_target(peffect, pduel->game_field->core.reason_player));
+LUA_FUNCTION(IsCanBeEffectTarget, std::optional<effect*> peffect) {
+	lua_pushboolean(L, self->is_capable_be_effect_target(peffect.value_or(pduel->game_field->core.reason_effect), pduel->game_field->core.reason_player));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeBattleTarget) {
-	check_param_count(L, 2);
-	auto bcard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(IsCanBeBattleTarget, card* bcard) {
 	lua_pushboolean(L, self->is_capable_be_battle_target(bcard));
 	return 1;
 }
-LUA_FUNCTION(AddMonsterAttribute) {
-	check_param_count(L, 2);
-	auto type = lua_get<uint32_t>(L, 2);
-	auto attribute = lua_get<uint32_t, 0>(L, 3);
-	auto race = lua_get<uint64_t, 0>(L, 4);
-	auto level = lua_get<uint32_t, 0>(L, 5);
-	auto atk = lua_get<int32_t, 0>(L, 6);
-	auto def = lua_get<int32_t, 0>(L, 7);
+LUA_FUNCTION(AddMonsterAttribute, uint32_t type, std::optional<uint32_t> attribute,
+			 std::optional<uint64_t> race, std::optional<uint32_t> level,
+			 std::optional<int32_t> atk, std::optional<int32_t> def) {
 	self->set_status(STATUS_NO_LEVEL, FALSE);
 	constexpr auto resets = RESET_TURN_SET | RESET_TOGRAVE | RESET_REMOVE | RESET_TEMP_REMOVE | RESET_TOHAND | RESET_TODECK | RESET_OVERLAY;
 	// pre-monster
@@ -1987,39 +1935,30 @@ LUA_FUNCTION(AddMonsterAttribute) {
 		self->add_effect(peffect);
 	}
 
-	auto register_property_effect = [&](auto value, auto effect_code) {
+	auto register_property_effect = [&](const auto& value, auto effect_code) {
+		if(!value.has_value())
+			return;
 		auto peffect = pduel->new_effect();
 		peffect->owner = self;
 		peffect->type = EFFECT_TYPE_SINGLE;
 		peffect->code = effect_code;
 		peffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE;
 		peffect->reset_flag = RESET_EVENT | resets;
-		peffect->value = value;
+		peffect->value = value.value();
 		self->add_effect(peffect);
 	};
-
-	if(attribute)
-		register_property_effect(attribute, EFFECT_ADD_ATTRIBUTE);
-
-	if(race)
-		register_property_effect(race, EFFECT_ADD_RACE);
-
-	if(level)
-		register_property_effect(level, EFFECT_CHANGE_LEVEL);
-
-	if(atk)
-		register_property_effect(atk, EFFECT_SET_BASE_ATTACK);
-
-	if(def)
-		register_property_effect(def, EFFECT_SET_BASE_DEFENSE);
+	register_property_effect(attribute, EFFECT_ADD_ATTRIBUTE);
+	register_property_effect(race, EFFECT_ADD_RACE);
+	register_property_effect(level, EFFECT_CHANGE_LEVEL);
+	register_property_effect(atk, EFFECT_SET_BASE_ATTACK);
+	register_property_effect(def, EFFECT_SET_BASE_DEFENSE);
 	return 0;
 }
 LUA_FUNCTION(AddMonsterAttributeComplete) {
 	return 0;
 }
-LUA_FUNCTION(CancelToGrave) {
-	bool cancel = lua_get<bool, true>(L, 2);
-	if(cancel)
+LUA_FUNCTION(CancelToGrave, std::optional<bool> cancel) {
+	if(cancel.value_or(true))
 		self->set_status(STATUS_LEAVE_CONFIRMED, FALSE);
 	else {
 		pduel->game_field->core.leave_confirmed.insert(self);
@@ -2050,12 +1989,9 @@ LUA_FUNCTION(GetAttackableTarget) {
 	lua_pushboolean(L, self->direct_attackable);
 	return 2;
 }
-LUA_FUNCTION(SetHint) {
-	check_param_count(L, 3);
-	auto type = lua_get<uint8_t>(L, 2);
-	auto value = lua_get<uint64_t>(L, 3);
+LUA_FUNCTION(SetHint, uint8_t type, uint64_t value) {
 	if(type >= CHINT_DESC_ADD)
-		return 0;
+		lua_error(L, "Passed invalid hint value");
 	auto message = pduel->new_message(MSG_CARD_HINT);
 	message->write(self->get_info_location());
 	message->write<uint8_t>(type);
