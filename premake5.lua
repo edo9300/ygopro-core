@@ -12,8 +12,8 @@ local ocgcore_config=function()
 		buildoptions { "-Wno-unused-parameter", "-pedantic" }
 	filter "system:linux"
 		linkoptions { "-Wl,--no-undefined" }
-	filter { "system:macosx", "files:processor_visit.cpp" }
-		buildoptions { "-fno-exceptions" }
+	filter { "system:macosx" }
+		defines "_LIBCPP_NO_EXCEPTIONS"
 	filter {}
 	links { "lua" }
 	includedirs { "lua/src" }
