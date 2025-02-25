@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2018-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2018-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -11,37 +11,55 @@
 
 namespace scriptlib {
 
-const char* get_lua_type_name(lua_State* L, int32_t index) {
+LuaParam get_lua_type(lua_State* L, int32_t index) {
 	switch(auto type = lua_type(L, index); type) {
 	case LUA_TFUNCTION:
-		return "Function";
+		return LuaParam::FUNCTION;
 	case LUA_TSTRING:
-		return "String";
+		return LuaParam::STRING;
 	case LUA_TNUMBER:
-		return "Int";
+		return LuaParam::INT;
 	case LUA_TBOOLEAN:
-		return "boolean";
+		return LuaParam::BOOLEAN;
 	case LUA_TTABLE:
-		return "table";
+		return LuaParam::TABLE;
 	case LUA_TNIL:
+		return LuaParam::NIL;
 	case LUA_TNONE:
-		return "nil";
+		return LuaParam::NONE;
 	case LUA_TUSERDATA:
-		if(auto* obj = lua_get<lua_obj*>(L, index); obj != nullptr) {
-			switch(obj->lua_type) {
-			case LuaParam::CARD:
-				return "Card";
-			case LuaParam::GROUP:
-				return "Group";
-			case LuaParam::EFFECT:
-				return "Effect";
-			case LuaParam::DELETED:
-				return "Deleted";
-			default:
-				unreachable();
-			}
+		if(auto* obj = *static_cast<lua_obj**>(lua_touserdata(L, index)); obj != nullptr) {
+			return obj->lua_type;
 		}
 		[[fallthrough]];
+	default:
+		return LuaParam::UNKNOWN;
+	}
+}
+
+const char* get_lua_type_name(lua_State* L, int32_t index) {
+	switch(auto type = get_lua_type(L, index); type) {
+	case LuaParam::FUNCTION:
+		return "Function";
+	case LuaParam::STRING:
+		return "String";
+	case LuaParam::INT:
+		return "Int";
+	case LuaParam::BOOLEAN:
+		return "boolean";
+	case LuaParam::TABLE:
+		return "table";
+	case LuaParam::NIL:
+	case LuaParam::NONE:
+		return "nil";
+	case LuaParam::CARD:
+		return "Card";
+	case LuaParam::GROUP:
+		return "Group";
+	case LuaParam::EFFECT:
+		return "Effect";
+	case LuaParam::DELETED:
+		return "Deleted";
 	default:
 		return "unknown";
 	}

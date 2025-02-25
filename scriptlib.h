@@ -76,6 +76,7 @@ namespace scriptlib {
 	inline ReturnType check_param(lua_State* L, int32_t index, [[maybe_unused]] lua_obj** retobj = nullptr);
 
 	const char* get_lua_type_name(lua_State* L, int32_t index);
+	LuaParam get_lua_type(lua_State* L, int32_t index);
 
 	template<typename T>
 	inline constexpr auto get_lua_param_type() {

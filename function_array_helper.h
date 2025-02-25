@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2022-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -26,10 +26,11 @@
 #include <type_traits> //std::conditional_t, std::enable_if_t, std::false_type, std::is_same_v, std::true_type
 #include <tuple>
 #include <utility> //std::index_sequence, std::make_index_sequence
+#include <variant>
 #include "common.h"
 #include "scriptlib.h"
 
-// ISO C++ prohibits calling variadic macros with no 0 arguments, but
+// ISO C++ prohibits calling variadic macros with no arguments, but
 // major compilers (GCC, MSVC and clang) have extensions always enabled
 // to support this behaviour.
 // If no such compiler is detected, fall back to a ISO C++ compliant
@@ -61,6 +62,27 @@
 #endif
 
 namespace {
+
+struct Function {
+	int value;
+	operator int() {
+		return value;
+	}
+	operator int() const {
+		return value;
+	}
+};
+
+struct Table {
+	int value;
+	operator int() {
+		return value;
+	}
+	operator int() const {
+		return value;
+	}
+};
+
 namespace Detail {
 
 template<std::size_t N>
@@ -71,7 +93,7 @@ struct LuaFunction {
 
 #if !HAS_COUNTER
 #define COUNTER_MACRO __LINE__
-static constexpr auto COUNTER_OFFSET = 0;
+[[maybe_unused]] static constexpr auto COUNTER_OFFSET = 0;
 
 template<size_t offset, size_t total, std::size_t... I>
 constexpr size_t find_prev_element(std::index_sequence<I...>) {
@@ -151,7 +173,16 @@ template <typename T>
 struct is_optional<std::optional<T>> : std::true_type {};
 
 template<typename T>
-inline constexpr bool is_optional_v = is_optional<T>::value;
+[[maybe_unused]] inline constexpr bool is_optional_v = is_optional<T>::value;
+
+template <typename T, typename Enable = void>
+struct is_variant : std::false_type {};
+
+template <typename... Args>
+struct is_variant<std::variant<Args...>> : std::true_type {};
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool is_variant_v = is_variant<T>::value;
 
 template <typename Arg, typename... Args>
 constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
@@ -166,7 +197,7 @@ constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	}
 }
 
-template<typename T, std::enable_if_t<!is_optional_v<T>, int> = 0>
+template<typename T, std::enable_if_t<!is_optional_v<T> && !is_variant_v<T>, int> = 0>
 inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
 	using namespace scriptlib;
 	using actual_type = T;
@@ -184,7 +215,12 @@ inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_u
 			lua_error(L, "Attempting to access deleted object.");
 		return ret;
 	} else {
-		constexpr auto lua_type = get_lua_param_type<actual_type>();
+		constexpr auto lua_type = [] {
+			if constexpr(std::is_same_v<Function, actual_type>)
+				return LuaParam::FUNCTION;
+			else
+				return get_lua_param_type<actual_type>();
+		}();
 		if constexpr(lua_type == LuaParam::CARD || lua_type == LuaParam::GROUP || lua_type == LuaParam::EFFECT) {
 			lua_obj* ret = nullptr;
 			check_param<lua_type>(L, idx, &ret);
@@ -198,7 +234,9 @@ inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_u
 					return static_cast<actual_type>(lua_tointeger(L, idx));
 				return static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
 			} else if constexpr(lua_type == LuaParam::FUNCTION) {
-				return idx;
+				return Function{ idx };
+			} else if constexpr(lua_type == LuaParam::TABLE) {
+				return Table{ idx };
 			}
 		}
 	}
@@ -211,15 +249,20 @@ inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int i
 	if(lua_isnoneornil(L, idx))
 		return std::nullopt;
 	if constexpr(std::is_same_v<actual_type, lua_obj*>) {
-		auto obj = lua_touserdata(L, idx);
-		if(!obj)
-			lua_error(L, "Error.");
-		auto* ret = *static_cast<lua_obj**>(obj);
-		if(ret->lua_type == LuaParam::DELETED)
-			lua_error(L, "Attempting to access deleted object.");
+		auto* ret = lua_get<lua_obj*>(L, idx);
+		if(!ret) {
+			lua_error(L, R"(Parameter %d should be "lua_object" but is "%s".)", idx, get_lua_type_name(L, idx));
+		}
 		return std::make_optional<actual_type>(ret);
 	} else {
-		constexpr auto lua_type = get_lua_param_type<actual_type>();
+		constexpr auto lua_type = [] {
+			if constexpr(std::is_same_v<Function, actual_type>)
+				return LuaParam::FUNCTION;
+			else if constexpr(std::is_same_v<Table, actual_type>)
+				return LuaParam::TABLE;
+			else
+				return get_lua_param_type<actual_type>();
+		}();
 		if constexpr(lua_type == LuaParam::CARD || lua_type == LuaParam::GROUP || lua_type == LuaParam::EFFECT) {
 			lua_obj* ret = nullptr;
 			check_param<lua_type>(L, idx, &ret);
@@ -232,10 +275,136 @@ inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int i
 				return std::make_optional<actual_type>(lua_isinteger(L, idx) ? static_cast<actual_type>(lua_tointeger(L, idx)) :
 										  static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)))));
 			} else if constexpr(lua_type == LuaParam::FUNCTION) {
-				return std::make_optional<int>(idx);
+				return std::make_optional<Function>(Function{ idx });
+			} else if constexpr(lua_type == LuaParam::TABLE) {
+				return std::make_optional<Table>(Table{ idx });
 			}
 		}
 	}
+}
+
+template <typename FullVariant, typename Arg, typename... Args>
+constexpr FullVariant get_variant_arg_int([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx, std::variant<Arg, Args...>) {
+	auto type = get_lua_type(L, idx);
+	if constexpr(sizeof...(Args) == 0) {
+		return get_lua<Arg>(L, idx);
+	} else {
+		constexpr auto result = get_variant_arg(L, idx, std::variant<Args...>{});
+	}
+}
+
+template<typename variant_t>
+struct check_variant_types_functor;
+
+template<typename... Args>
+struct check_variant_types_functor<std::variant<Args...>> {
+	constexpr bool operator()(LuaParam lua_type) {
+		using namespace scriptlib;
+		if constexpr((IsCard<Args> || ...)) {
+			if(lua_type == LuaParam::CARD)
+				return true;
+		}
+		if constexpr((IsGroup<Args> || ...)) {
+			if(lua_type == LuaParam::GROUP)
+				return true;
+		}
+		if constexpr((IsEffect<Args> || ...)) {
+			if(lua_type == LuaParam::EFFECT)
+				return true;
+		}
+		if constexpr((std::is_same_v<Function, Args> || ...)) {
+			if(lua_type == LuaParam::FUNCTION)
+				return true;
+		}
+		if constexpr((std::is_same_v<Table, Args> || ...)) {
+			if(lua_type == LuaParam::TABLE)
+				return true;
+		}
+		if constexpr((IsBool<Args> || ...)) {
+			if(lua_type == LuaParam::BOOLEAN)
+				return true;
+		}
+		if constexpr((IsInteger<Args> || ...)) {
+			if(lua_type == LuaParam::INT)
+				return true;
+		}
+		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
+			if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
+				return true;
+		}
+		return false;		
+	}
+};
+
+template<typename variant_t>
+struct get_variant_type_functor;
+
+template<typename... Args>
+struct get_variant_type_functor<std::variant<Args...>> {
+	using variant_t = std::variant<Args...>;
+	constexpr variant_t operator()(lua_State* L, int idx, LuaParam lua_type) {
+		using namespace scriptlib;
+		if constexpr((IsCard<Args> || ...)) {
+			if(lua_type == LuaParam::CARD)
+				return reinterpret_cast<card*>(lua_get<lua_obj*>(L, idx));
+		}
+		if constexpr((IsGroup<Args> || ...)) {
+			if(lua_type == LuaParam::GROUP)
+				return reinterpret_cast<group*>(lua_get<lua_obj*>(L, idx));
+		}
+		if constexpr((IsEffect<Args> || ...)) {
+			if(lua_type == LuaParam::EFFECT)
+				return reinterpret_cast<effect*>(lua_get<lua_obj*>(L, idx));
+		}
+		if constexpr((std::is_same_v<Function, Args> || ...)) {
+			if(lua_type == LuaParam::FUNCTION)
+				return Function{ idx };
+		}
+		if constexpr((std::is_same_v<Table, Args> || ...)) {
+			if(lua_type == LuaParam::TABLE)
+				return Table{ idx };
+		}
+		if constexpr((IsBool<Args> || ...)) {
+			if(lua_type == LuaParam::BOOLEAN)
+				return static_cast<bool>(lua_toboolean(L, idx));
+		}
+		if constexpr((IsInteger<Args> || ...)) {
+			if(lua_type == LuaParam::INT) {
+				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
+				if constexpr(std::is_constructible_v<variant_t, int8_t>) {
+					return static_cast<int8_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, uint8_t>) {
+					return static_cast<uint8_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, int16_t>) {
+					return static_cast<int16_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, uint16_t>) {
+					return static_cast<uint16_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, int32_t>) {
+					return static_cast<int32_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, uint32_t>) {
+					return static_cast<uint32_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, int64_t>) {
+					return static_cast<int64_t>(val);
+				} else if constexpr(std::is_constructible_v<variant_t, uint64_t>) {
+					return static_cast<uint64_t>(val);
+				}
+			}
+		}
+		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
+			if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
+				return std::monostate{};
+		}
+		unreachable();
+	}
+};
+
+template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
+inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
+	auto type = get_lua_type(L, idx);
+	if(!check_variant_types_functor<T>()(type)) {
+		lua_error(L, "Error");
+	}
+	return get_variant_type_functor<T>()(L, idx, type);
 }
 
 template<typename Sig>
@@ -259,8 +428,6 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 }
 
 } // namespace Detail
-
-using Function = int;
 
 } // namespace
 
@@ -289,7 +456,6 @@ using Function = int;
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	using Function = scriptlib::function; \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
 		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
@@ -333,7 +499,6 @@ static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	using Function = scriptlib::function; \
 	TAG_STRUCT(COUNTER) \
 	static int32_t call(lua_State* L) { \
 		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
@@ -369,11 +534,28 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	static constexpr luaL_Reg elem{#name,prev_element::elem.func}; \
 }
 #else
-using Function = int;
+struct Function {
+	int value;
+	operator int() {
+		return value;
+	}
+	operator int() const {
+		return value;
+	}
+};
+struct Table {
+	int value;
+	operator int() {
+		return value;
+	}
+	operator int() const {
+		return value;
+	}
+};
 #define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
-	([[maybe_unused]] lua_State* const L, [[maybe_unused]] LUA_CLASS* const self, [[maybe_unused]] duel* const pduel, __VA_ARGS__)
+	([[maybe_unused]] lua_State* const L, [[maybe_unused]] LUA_CLASS* const self, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
 #define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
-	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, __VA_ARGS__)
+	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define GET_LUA_FUNCTIONS_ARRAY() std::array{luaL_Reg{nullptr,nullptr}}
