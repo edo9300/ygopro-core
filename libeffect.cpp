@@ -250,7 +250,7 @@ LUA_FUNCTION(SetValue) {
 		else {
 			auto value = lua_get<lua_Integer>(L, 2);
 			if(value > INT32_MAX || value < INT32_MIN) {
-				lua_pushvalue(L, 2);
+				lua_pushinteger(L, value);
 				lua_pushcclosure(L, [](lua_State* L) -> int32_t {
 					lua_pushvalue(L, lua_upvalueindex(1));
 					return 1;
