@@ -92,7 +92,6 @@ LUA_STATIC_FUNCTION(SetPlayerInfo, uint8_t playerid, uint32_t lp, uint16_t start
 	return 0;
 }
 LUA_STATIC_FUNCTION(PreSummon, card* pcard, uint32_t summon_type, std::optional <uint8_t> summon_location, std::optional<uint8_t> summon_sequence, std::optional<bool> summon_pzone) {
-	check_param_count(L, 2);
 	pcard->summon.location = summon_location.value_or(0);
 	pcard->summon.type = summon_type;
 	pcard->summon.sequence = summon_sequence.value_or(0);
