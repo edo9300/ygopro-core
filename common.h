@@ -21,7 +21,7 @@
 #endif
 #define unreachable() __builtin_unreachable()
 #define NoInline __attribute__ ((noinline))
-#define Assume(cond) do { if(cond){ unreachable(); } } while(0)
+#define Assume(cond) do { if(!(cond)){ unreachable(); } } while(0)
 #endif
 
 #if defined(__clang_analyzer__)
