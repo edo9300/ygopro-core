@@ -234,12 +234,12 @@ LUA_FUNCTION(SetValue, std::variant<Function, bool, lua_Integer> function_value)
 	}
 	return 0;
 }
-LUA_FUNCTION(SetOperation, Function findex) {
+LUA_FUNCTION(SetOperation, std::optional<Function> findex) {
 	if(self->operation)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->operation);
 	self->operation = 0;
-	if(findex)
-		self->operation = interpreter::get_function_handle(L, findex);
+	if(findex.has_value())
+		self->operation = interpreter::get_function_handle(L, findex.value());
 	return 0;
 }
 LUA_FUNCTION(SetOwnerPlayer, uint8_t playerid) {
