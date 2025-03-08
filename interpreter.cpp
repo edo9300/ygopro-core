@@ -282,6 +282,7 @@ inline int interpreter::call_lua(lua_State* L, int nargs, int nresults) {
 		It's actually faster and simpler to push the light C function each
 		time than to store it in the global registry and retrieve it every call.
 	*/
+	luaL_checkstack(L, 1, nullptr);
 	lua_pushcfunction(L, [](lua_State* L) -> int32_t {
 		interpreter::print_stacktrace(L);
 		return 1;
