@@ -185,7 +185,7 @@ public:
 	static bool match_setcode(uint16_t set_code, uint16_t to_match) {
 		return (set_code & 0xfffu) == (to_match & 0xfffu) && (set_code & to_match) == set_code;
 	}
-	bool is_extra_deck_monster() const { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK | (is_flag(DUEL_EXTRA_DECK_RITUAL) & TYPE_RITUAL))) && !!(data.type & TYPE_MONSTER); }
+	bool is_extra_deck_monster() const { return !!(data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK | (pduel->game_field->is_flag(DUEL_EXTRA_DECK_RITUAL) ? TYPE_RITUAL : 0))) && !!(data.type & TYPE_MONSTER); }
 
 	void get_infos(uint32_t query_flag);
 	std::optional<uint64_t> get_assumed_property(uint32_t assume_type) const {
