@@ -455,6 +455,7 @@ public:
 	bool has_separate_pzone(uint8_t p) const;
 	uint32_t get_pzone_zones_flag() const;
 	uint8_t get_pzone_index(uint8_t seq, uint8_t p) const;
+	uint32_t get_extra_deck_types() const;
 
 	void add_effect(effect* peffect, uint8_t owner_player = 2);
 	void remove_effect(effect* peffect);

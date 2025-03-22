@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -803,7 +803,7 @@ int32_t field::get_forced_zones(card* pcard, uint8_t playerid, uint8_t location,
 }
 uint32_t field::get_rule_zone_fromex(int32_t playerid, card* pcard) {
 	if(is_flag(DUEL_EMZONE)) {
-		if(is_flag(DUEL_FSX_MMZONE) && pcard && pcard->is_position(POS_FACEDOWN) && (pcard->data.type & (TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ)))
+		if(is_flag(DUEL_FSX_MMZONE) && pcard && pcard->is_position(POS_FACEDOWN) && (pcard->data.type & (get_extra_deck_types() & ~TYPE_LINK)))
 			return 0x7f;
 		else
 			return get_linked_zone(playerid) | (1u << 5) | (1u << 6);
@@ -1226,6 +1226,11 @@ uint8_t field::get_pzone_index(uint8_t seq, uint8_t p) const {
 	if(is_flag(DUEL_3_COLUMNS_FIELD))// 1 and 3
 		return seq * 2 + 1;
 	return seq * 4;					 // 0 and 4
+}
+uint32_t field::get_extra_deck_types() const {
+	if(is_flag(DUEL_EXTRA_DECK_RITUAL))
+		return TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK | TYPE_RITUAL;
+	return TYPE_FUSION | TYPE_SYNCHRO | TYPE_XYZ | TYPE_LINK;
 }
 void field::add_effect(effect* peffect, uint8_t owner_player) {
 	if (!peffect->handler) {
