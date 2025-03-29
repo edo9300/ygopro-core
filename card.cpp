@@ -92,6 +92,13 @@ card::card(duel* pd) : lua_obj_helper(pd) {
 	temp.set0xff();
 	current.controler = PLAYER_NONE;
 }
+bool card::is_extra_deck_monster() const {
+	if(!(data.type & TYPE_MONSTER))
+		return false;
+	if(!(data.type & pduel->game_field->get_extra_deck_types()))
+		return false;
+	return true;
+}
 template<typename T>
 void insert_value(std::vector<uint8_t>& vec, const T& _val) {
 	T val = _val;
