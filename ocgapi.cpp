@@ -53,6 +53,8 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel ocg_duel) {
 
 OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, OCG_NewCardInfo info) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
+	if(bit::popcnt(info.loc) != 1)
+		return;
 	auto& game_field = *(pduel->game_field);
 	if(info.duelist == 0) {
 		if(game_field.is_location_useable(info.con, info.loc, info.seq)) {
@@ -129,6 +131,8 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel ocg_duel, uint8_t team, uint32_t loc
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	if(team > 1)
 		return 0;
+	if(bit::popcnt(loc) != 1)
+		return 0;
 	auto& player = pduel->game_field->player[team];
 	if(loc == LOCATION_HAND)
 		return static_cast<uint32_t>(player.list_hand.size());
@@ -165,6 +169,8 @@ ForceInline void insert_value(std::vector<uint8_t>& vec, T2 val) {
 
 OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, OCG_QueryInfo info) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
+	if(bit::popcnt(info.loc & ~LOCATION_OVERLAY) != 1)
+		return 0;
 	pduel->query_buffer.clear();
 	card* pcard = nullptr;
 	if(info.loc & LOCATION_OVERLAY) {
@@ -200,7 +206,7 @@ OCGAPI void* OCG_DuelQueryLocation(OCG_Duel ocg_duel, uint32_t* length, OCG_Quer
 		}
 	};
 	buffer.clear();
-	if(info.con <= 1u) {
+	if(info.con <= 1u && bit::popcnt(info.loc & ~LOCATION_OVERLAY) == 1) {
 		if(info.loc & LOCATION_OVERLAY) {
 			insert_value<int16_t>(buffer, 0);
 		} else {
