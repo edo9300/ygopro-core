@@ -794,14 +794,19 @@ bool field::process(Processors::PointEvent& arg) {
 		return FALSE;
 	}
 	case 8: {
-		if(!is_flag(DUEL_OBSOLETE_IGNITION) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
+		if(!(is_flag(DUEL_OCG_OBSOLETE_IGNITION) || is_flag(DUEL_TCG_FAST_EFFECT_IGNITION)) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
 			return FALSE;
 		// Obsolete ignition effect ruling
-		tevent _e;
-		if(core.current_chain.size() == 0 &&
-		   (((check_event(EVENT_SUMMON_SUCCESS, &_e) || check_event(EVENT_SPSUMMON_SUCCESS, &_e) ||
-			 check_event(EVENT_FLIP_SUMMON_SUCCESS, &_e)) && _e.reason_player == infos.turn_player)
-		   || check_event(EVENT_CHAIN_END))) {
+		auto check_events_ocg = [&] {
+			if(check_event(EVENT_CHAIN_END))
+				return true;
+			tevent _e;
+			if(!check_event(EVENT_SUMMON_SUCCESS, &_e) && !check_event(EVENT_SPSUMMON_SUCCESS, &_e) &&
+			   !check_event(EVENT_FLIP_SUMMON_SUCCESS, &_e))
+				return false;
+			return _e.reason_player == infos.turn_player;
+		};
+		if(core.current_chain.size() == 0 && (is_flag(DUEL_TCG_FAST_EFFECT_IGNITION) || check_events_ocg())) {
 			chain newchain;
 			{
 				newchain.evt.event_cards = nullptr;
@@ -818,8 +823,9 @@ bool field::process(Processors::PointEvent& arg) {
 				++eit;
 				card* phandler = peffect->get_handler();
 				newchain.evt.event_code = peffect->code;
-				if(phandler->current.location == LOCATION_MZONE && peffect->is_chainable(infos.turn_player)
-				        && peffect->is_activateable(infos.turn_player, newchain.evt)) {
+				if((is_flag(DUEL_TCG_FAST_EFFECT_IGNITION) || phandler->current.location == LOCATION_MZONE)
+				   && peffect->is_chainable(infos.turn_player)
+				   && peffect->is_activateable(infos.turn_player, newchain.evt)) {
 					newchain.chain_id = infos.field_id++;
 					newchain.triggering_effect = peffect;
 					newchain.set_triggering_state(phandler);
