@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019, Dylam De La Torre, (DyXel)
- * Copyright (c) 2019-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2019-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -20,9 +20,10 @@ OCGAPI void OCG_GetVersion(int* major, int* minor) {
 		*minor = OCG_VERSION_MINOR;
 }
 
-OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, OCG_DuelOptions options) {
+OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr) {
 	if(out_ocg_duel == nullptr)
 		return OCG_DUEL_CREATION_NO_OUTPUT;
+	auto options = *options_ptr;
 	if(options.cardReader == nullptr) {
 		*out_ocg_duel = nullptr;
 		return OCG_DUEL_CREATION_NULL_DATA_READER;
@@ -51,12 +52,14 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel ocg_duel) {
 		delete static_cast<duel*>(ocg_duel);
 }
 
-OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, OCG_NewCardInfo info) {
+OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	if(bit::popcnt(info.loc) != 1)
 		return;
 	auto& game_field = *(pduel->game_field);
-	if(info.duelist == 0) {
+	const auto& info = *info_ptr;
+	auto duelist = info.duelist;
+	if(duelist == 0) {
 		if(game_field.is_location_useable(info.con, info.loc, info.seq)) {
 			card* pcard = pduel->new_card(info.code);
 			pcard->owner = info.team;
@@ -76,18 +79,18 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, OCG_NewCardInfo info) {
 			return;
 		card* pcard = pduel->new_card(info.code);
 		auto& player = game_field.player[info.team];
-		if(info.duelist > player.extra_lists_main.size()) {
-			player.extra_lists_main.resize(info.duelist);
-			player.extra_lists_extra.resize(info.duelist);
-			player.extra_lists_hand.resize(info.duelist);
-			player.extra_extra_p_count.resize(info.duelist);
+		if(duelist > player.extra_lists_main.size()) {
+			player.extra_lists_main.resize(duelist);
+			player.extra_lists_extra.resize(duelist);
+			player.extra_lists_hand.resize(duelist);
+			player.extra_extra_p_count.resize(duelist);
 		}
-		--info.duelist;
+		--duelist;
 		pcard->current.location = static_cast<uint8_t>(info.loc);
 		pcard->owner = info.team;
 		pcard->current.controler = info.team;
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		auto& list = (info.loc == LOCATION_DECK) ? player.extra_lists_main[info.duelist] : player.extra_lists_extra[info.duelist];
+		auto& list = (info.loc == LOCATION_DECK) ? player.extra_lists_main[duelist] : player.extra_lists_extra[duelist];
 		list.push_back(pcard);
 		pcard->current.sequence = static_cast<uint32_t>(list.size() - 1);
 	}
@@ -167,7 +170,8 @@ ForceInline void insert_value(std::vector<uint8_t>& vec, T2 val) {
 	insert_value_int<T>(vec, static_cast<T>(val));
 }
 
-OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, OCG_QueryInfo info) {
+OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, const OCG_QueryInfo* info_ptr) {
+	const auto& info = *info_ptr;
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	if(bit::popcnt(info.loc & ~LOCATION_OVERLAY) != 1)
 		return 0;
@@ -193,7 +197,8 @@ OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, OCG_QueryInfo in
 	return pduel->query_buffer.data();
 }
 
-OCGAPI void* OCG_DuelQueryLocation(OCG_Duel ocg_duel, uint32_t* length, OCG_QueryInfo info) {
+OCGAPI void* OCG_DuelQueryLocation(OCG_Duel ocg_duel, uint32_t* length, const OCG_QueryInfo* info_ptr) {
+	const auto& info = *info_ptr;
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	auto& buffer = pduel->query_buffer;
 	auto populate = [&flags = info.flags, &buffer](const card_vector& list) {
