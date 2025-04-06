@@ -54,10 +54,10 @@ OCGAPI void OCG_DestroyDuel(OCG_Duel ocg_duel) {
 
 OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
-	if(bit::popcnt(info.loc) != 1)
-		return;
 	auto& game_field = *(pduel->game_field);
 	const auto& info = *info_ptr;
+	if(bit::popcnt(info.loc) != 1)
+		return;
 	auto duelist = info.duelist;
 	if(duelist == 0) {
 		if(game_field.is_location_useable(info.con, info.loc, info.seq)) {
