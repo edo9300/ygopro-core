@@ -3051,7 +3051,7 @@ LUA_STATIC_FUNCTION(Hint) {
 LUA_STATIC_FUNCTION(HintSelection) {
 	check_param_count(L, 1);
 	auto [pcard, pgroup] = lua_get_card_or_group(L, 1);
-	bool selection = lua_get<bool, false>(L, 2);
+	bool selection = lua_get<bool, true>(L, 2);
 	auto message = pduel->new_message(selection ? MSG_CARD_SELECTED : MSG_BECOME_TARGET);
 	if(pcard) {
 		message->write<uint32_t>(1);
