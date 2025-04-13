@@ -4989,7 +4989,7 @@ bool field::process(Processors::MoveToField& arg) {
 		if(ret == 1)
 			target->current.reason &= ~REASON_TEMPORARY;
 		if((ret == 0 && location != target->current.location)
-			|| (ret == 1 && target->turnid != infos.turn_id)) {
+			|| ret == 1) {
 			target->set_status(STATUS_SUMMON_TURN, FALSE);
 			target->set_status(STATUS_FLIP_SUMMON_TURN, FALSE);
 			target->set_status(STATUS_SPSUMMON_TURN, FALSE);
