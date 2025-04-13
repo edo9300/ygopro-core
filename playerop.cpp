@@ -734,6 +734,10 @@ bool field::process(Processors::SelectCounter& arg) {
 		}
 		if(count > total)
 			count = total;
+		if(core.select_cards.size() == 1) {
+			returns.set<int16_t>(0, count);
+			return TRUE;
+		}
 		auto message = pduel->new_message(MSG_SELECT_COUNTER);
 		message->write<uint8_t>(playerid);
 		message->write<uint16_t>(countertype);
