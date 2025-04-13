@@ -1619,9 +1619,9 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 		if(fcount <= 0) {
 			for(auto& pcard : core.trap_monster_adjust_set[check_player]) {
 				to_grave_set.insert(pcard);
-				arg.step = 2;
 			}
 			core.trap_monster_adjust_set[check_player].clear();
+			arg.step = 2;
 		} else if((int32_t)core.trap_monster_adjust_set[check_player].size() > fcount) {
 			uint32_t ct = (uint32_t)core.trap_monster_adjust_set[check_player].size() - fcount;
 			core.select_cards.clear();
@@ -1644,11 +1644,7 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 			to_grave_set.insert(pcard);
 			core.trap_monster_adjust_set[check_player].erase(pcard);
 		}
-		if(!oppo_selection) {
-			oppo_selection = true;
-			arg.step = 0;
-		}
-		return FALSE;
+		[[fallthrough]];
 	}
 	case 3: {
 		if(!oppo_selection) {
