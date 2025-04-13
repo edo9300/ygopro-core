@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -4668,6 +4668,19 @@ bool field::process(Processors::SendTo& arg) {
 					deffect->reset_flag = RESET_EVENT + 0x1fe0000;
 					pcard->add_effect(deffect);
 				}
+				if(core.current_chain.size()) {
+					// Added to the hand by a currently resolving effect
+					effect* deffect = pduel->new_effect();
+					deffect->owner = pcard;
+					deffect->code = 0;
+					deffect->type = EFFECT_TYPE_SINGLE;
+					deffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_CLIENT_HINT;
+					deffect->description = 225;
+					deffect->reset_flag = (RESET_EVENT | RESET_TOFIELD | RESET_LEAVE | RESET_TODECK |
+										   RESET_TOHAND | RESET_TEMP_REMOVE | RESET_REMOVE |
+										   RESET_TOGRAVE | RESET_TURN_SET | RESET_CHAIN);
+					pcard->add_effect(deffect);
+				}
 				tohand.insert(pcard);
 				raise_single_event(pcard, nullptr, EVENT_TO_HAND, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, 0, 0);
 			}
@@ -4824,6 +4837,19 @@ bool field::process(Processors::DiscardDeck& arg) {
 					deffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_CLIENT_HINT;
 					deffect->description = 67;
 					deffect->reset_flag = RESET_EVENT + 0x1fe0000;
+					pcard->add_effect(deffect);
+				}
+				if(core.current_chain.size()) {
+					// Added to the hand by a currently resolving effect
+					effect* deffect = pduel->new_effect();
+					deffect->owner = pcard;
+					deffect->code = 0;
+					deffect->type = EFFECT_TYPE_SINGLE;
+					deffect->flag[0] = EFFECT_FLAG_CANNOT_DISABLE | EFFECT_FLAG_CLIENT_HINT;
+					deffect->description = 225;
+					deffect->reset_flag = (RESET_EVENT | RESET_TOFIELD | RESET_LEAVE | RESET_TODECK |
+										   RESET_TOHAND | RESET_TEMP_REMOVE | RESET_REMOVE |
+										   RESET_TOGRAVE | RESET_TURN_SET | RESET_CHAIN);
 					pcard->add_effect(deffect);
 				}
 				tohand.insert(pcard);
