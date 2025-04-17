@@ -2160,7 +2160,7 @@ bool field::process(Processors::SummonRule& arg) {
 	case 9: {
 		uint8_t targetplayer = sumplayer;
 		uint8_t positions = POS_FACEUP_ATTACK;
-		if(is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
+		if(is_flag(DUEL_NORMAL_SUMMON_FACEUP_DEF) || is_player_affected_by_effect(sumplayer, EFFECT_DEVINE_LIGHT))
 			positions = POS_FACEUP;
 		if(summon_procedure_effect && summon_procedure_effect->is_flag(EFFECT_FLAG_SPSUM_PARAM)) {
 			positions = (uint8_t)summon_procedure_effect->s_range & POS_FACEUP;
