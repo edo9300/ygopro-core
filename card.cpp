@@ -569,7 +569,7 @@ card::AtkDef card::get_base_atk_def() {
 		return { 0,0 };
 	auto batk = data.attack;
 	auto bdef = data.defense;
-	if((data.type & TYPE_LINK) != 0)
+	if((data.type & TYPE_LINK) == 0)
 		bdef = 0;
 	if (current.location != LOCATION_MZONE || get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 		return { batk, bdef };
@@ -633,7 +633,7 @@ card::AtkDef card::get_base_atk_def() {
 	return { batk, bdef };
 }
 card::AtkDef card::get_atk_def() {
-	auto has_defense = (data.type & TYPE_LINK) != 0;
+	auto has_defense = (data.type & TYPE_LINK) == 0;
 	auto assume_atk = get_assumed_property(ASSUME_ATTACK);
 	if(assume_atk && !has_defense) {
 		return { *assume_atk, 0 };
