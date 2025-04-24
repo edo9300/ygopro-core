@@ -56,7 +56,7 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr) 
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	auto& game_field = *(pduel->game_field);
 	const auto& info = *info_ptr;
-	if(bit::popcnt(info.loc) != 1)
+	if(bit::popcnt(info.loc) > 1)
 		return;
 	auto duelist = info.duelist;
 	if(duelist == 0) {
