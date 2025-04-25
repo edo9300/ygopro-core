@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2019-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2019-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -29,13 +29,17 @@ public:
 	
 	explicit group(duel* pd) : lua_obj_helper(pd) {}
 	group(duel* pd, card* pcard) : lua_obj_helper(pd), container({ pcard }) {}
-	group(duel* pd, const card_set& cset) : lua_obj_helper(pd), container(cset) {}
-	group(duel* pd, card_set&& cset) : lua_obj_helper(pd), container(std::move(cset)) {}
+	group(duel* pd, card_set cset) : lua_obj_helper(pd), container(std::move(cset)) {}
 	group(duel* pd, group* pgroup) : group(pd, pgroup->container) {}
 	template<typename Iter>
 	group(duel* pd, const Iter begin, const Iter end) : lua_obj_helper(pd), container(begin, end) {}
 	group(duel* pd, const std::vector<card*>& vcard) : group(pd, vcard.begin(), vcard.end()) {}
-	group(duel* pd, lua_obj* pobj);
+	group(duel* pd, lua_obj* pobj) : lua_obj_helper(pd) {
+		if(pobj->lua_type == LuaParam::CARD)
+			container.insert(reinterpret_cast<card*>(pobj));
+		else if(pobj->lua_type == LuaParam::GROUP)
+			container = reinterpret_cast<group*>(pobj)->container;
+	}
 	~group() = default;
 };
 
