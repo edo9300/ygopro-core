@@ -70,7 +70,13 @@ interpreter::~interpreter() {
 }
 //creates a pointer to a lua_obj in the lua stack
 static inline lua_obj** create_object(lua_State* L) {
+#if LUA_VERSION_NUM <= 503
 	return static_cast<lua_obj**>(lua_newuserdata(L, sizeof(lua_obj*)));
+#else
+	// in lua 5.4 and later, userdata can have an arbitrary number of
+	// user values, including 0, which make the userdata use less memory
+	return static_cast<lua_obj**>(lua_newuserdatauv(L, sizeof(lua_obj*), 0));
+#endif
 }
 void interpreter::register_card(card* pcard) {
 	//create a card in by userdata
