@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -382,8 +382,11 @@ LUA_FUNCTION(CheckWithSumEqual) {
 			cv.push_back(pcard);
 	}
 	pduel->game_field->core.must_select_cards.clear();
-	for(auto& pcard : cv)
-		pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs);
+	for(auto& pcard : cv) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+			lua_error(L, "Group contains a card for which the value function returned 0.");
+		}
+	}
 	int32_t should_continue = TRUE;
 	lua_pushboolean(L, field::check_with_sum_limit_m(cv, acc, 0, min, max, mcount, &should_continue));
 	lua_pushboolean(L, should_continue);
@@ -412,8 +415,11 @@ LUA_FUNCTION(SelectWithSumEqual) {
 	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32_t mcount = static_cast<int32_t>(cv.size());
 	cv.insert(cv.end(), pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end());
-	for(auto& pcard : cv)
-		pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs);
+	for(auto& pcard : cv) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+			lua_error(L, "Group contains a card for which the value function returned 0.");
+		}
+	}
 	if(!field::check_with_sum_limit_m(cv, acc, 0, min, max, mcount, nullptr)) {
 		pduel->game_field->core.must_select_cards.clear();
 		group* empty_group = pduel->new_group();
@@ -442,8 +448,11 @@ LUA_FUNCTION(CheckWithSumGreater) {
 			cv.push_back(pcard);
 	}
 	pduel->game_field->core.must_select_cards.clear();
-	for(auto& pcard : cv)
-		pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs);
+	for(auto& pcard : cv) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+			lua_error(L, "Group contains a card for which the value function returned 0.");
+		}
+	}
 	int32_t should_continue = TRUE;
 	lua_pushboolean(L, field::check_with_sum_greater_limit_m(cv, acc, 0, 0xffff, mcount, &should_continue));
 	lua_pushboolean(L, should_continue);
@@ -466,8 +475,11 @@ LUA_FUNCTION(SelectWithSumGreater) {
 	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32_t mcount = static_cast<int32_t>(cv.size());
 	cv.insert(cv.end(), pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end());
-	for(auto& pcard : cv)
-		pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs);
+	for(auto& pcard : cv) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+			lua_error(L, "Group contains a card for which the value function returned 0.");
+		}
+	}
 	if(!field::check_with_sum_greater_limit_m(cv, acc, 0, 0xffff, mcount, nullptr)) {
 		pduel->game_field->core.must_select_cards.clear();
 		group* empty_group = pduel->new_group();
