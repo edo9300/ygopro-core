@@ -9,7 +9,6 @@ LOCAL_SRC_FILES := card.cpp \
 				duel.cpp \
 				effect.cpp \
 				field.cpp \
-				group.cpp \
 				interpreter.cpp \
 				libcard.cpp \
 				libdebug.cpp \
