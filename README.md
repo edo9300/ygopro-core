@@ -15,7 +15,7 @@ git clone --recurse-submodules  https://github.com/edo9300/ygopro-core
 ```
 
 ### Visual Studio
-Double click the file `configure.bat` in the scripts folder,
+Double click the file `generate.bat` in the scripts folder,
 select your installed Visual Studio version and it will download the needed resources
 and generate the Visual Studio solution, which can then be found in `build/ocgcore.sln`.
 
