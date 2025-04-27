@@ -6032,6 +6032,7 @@ bool field::process(Processors::TossCoin& arg) {
 			++eit;
 			auto handler_player = peffect->get_handler_player();
 			if(peffect->is_activateable(handler_player, e)) {
+				core.coin_results.resize(count);
 				solve_continuous(handler_player, peffect, e);
 				return TRUE;
 			}
@@ -6108,6 +6109,7 @@ bool field::process(Processors::TossDice& arg) {
 			++eit;
 			auto handler_player = peffect->get_handler_player();
 			if(peffect->is_activateable(handler_player, e)) {
+				core.dice_results.resize(count1 + count2);
 				solve_continuous(handler_player, peffect, e);
 				return TRUE;
 			}
