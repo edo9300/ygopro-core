@@ -4568,7 +4568,7 @@ bool field::process(Processors::SendTo& arg) {
 			param->leave_field.insert(pcard);
 		}
 		if(param->predirect->operation) {
-			tevent e;
+			tevent e{};
 			e.event_cards = targets;
 			e.event_player = pcard->current.controler;
 			e.event_value = 0;
