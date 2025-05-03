@@ -98,7 +98,7 @@ public:
 		if(groups.size() > 2000) {
 			lua->collect();
 		}
-		return std::move(pgroup);
+		return pgroup;
 	}
 	effect* new_effect();
 	void delete_card(card* pcard);
