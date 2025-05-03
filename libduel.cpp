@@ -277,18 +277,18 @@ inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset
 	owned_lua<group> must = nullptr;
 	if(auto _pcard = lua_get<card*>(L, 3 + offset)) {
 		must = pduel->new_group(_pcard);
-		must->is_readonly = TRUE;
+		must->is_readonly = true;
 	} else if(auto pgroup = lua_get<group*>(L, 3 + offset)) {
 		must = pduel->new_group(pgroup);
-		must->is_readonly = TRUE;
+		must->is_readonly = true;
 	}
 	owned_lua<group> materials = nullptr;
 	if(auto _pcard = lua_get<card*>(L, 4 + offset)) {
 		materials = pduel->new_group(_pcard);
-		materials->is_readonly = TRUE;
+		materials->is_readonly = true;
 	} else if(auto pgroup = lua_get<group*>(L, 4 + offset)) {
 		materials = pduel->new_group(pgroup);
-		materials->is_readonly = TRUE;
+		materials->is_readonly = true;
 	}
 	auto minc = lua_get<uint16_t, 0>(L, 5 + offset);
 	auto maxc = lua_get<uint16_t, 0>(L, 6 + offset);
@@ -2668,7 +2668,7 @@ LUA_STATIC_FUNCTION(SelectTarget) {
 		if(ch) {
 			if(!ch->target_cards) {
 				ch->target_cards = pduel->new_group();
-				ch->target_cards->is_readonly = TRUE;
+				ch->target_cards->is_readonly = true;
 			}
 			ch->target_cards->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
 			effect* peffect = ch->triggering_effect;
@@ -2772,7 +2772,7 @@ LUA_STATIC_FUNCTION(SetTargetCard) {
 		return 0;
 	if(!ch->target_cards) {
 		ch->target_cards = pduel->new_group();
-		ch->target_cards->is_readonly = TRUE;
+		ch->target_cards->is_readonly = true;
 	}
 	auto targets = ch->target_cards;
 	effect* peffect = ch->triggering_effect;
@@ -2852,7 +2852,7 @@ LUA_STATIC_FUNCTION(SetOperationInfo) {
 		// and the core always assume the group is exactly 2 cards
 		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2)
 			lua_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
-		opt.op_cards->is_readonly = TRUE;
+		opt.op_cards->is_readonly = true;
 	}
 	auto omit = ch->opinfos.find(cate);
 	if(omit != ch->opinfos.end() && omit->second.op_cards)
@@ -2899,7 +2899,7 @@ LUA_STATIC_FUNCTION(SetPossibleOperationInfo) {
 	optarget opt{ nullptr, count, playerid, param };
 	if(pobj && (pobj->lua_type == LuaParam::CARD || pobj->lua_type == LuaParam::GROUP)) {
 		opt.op_cards = pduel->new_group(pobj);
-		opt.op_cards->is_readonly = TRUE;
+		opt.op_cards->is_readonly = true;
 	}
 	auto omit = ch->possibleopinfos.find(cate);
 	if(omit != ch->possibleopinfos.end() && omit->second.op_cards)

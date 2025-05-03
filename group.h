@@ -20,7 +20,7 @@ class group : public lua_obj_helper<LuaParam::GROUP> {
 public:
 	card_set container;
 	card_set::iterator it;
-	uint8_t is_readonly{ 0 };
+	bool is_readonly{ false };
 	bool is_iterator_dirty{ true };
 	
 	bool has_card(card* c) const {

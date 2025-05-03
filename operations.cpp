@@ -120,7 +120,7 @@ void field::remove_overlay_card(uint32_t reason, group* pgroup, uint32_t rplayer
 }
 void field::xyz_overlay(card* target, card_set materials, bool send_materials_to_grave) {
 	auto ng = pduel->new_group(std::move(materials));
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	emplace_process<Processors::XyzOverlay>(target, ng, send_materials_to_grave);
 }
 void field::xyz_overlay(card* target, card* material, bool send_materials_to_grave) {
@@ -128,7 +128,7 @@ void field::xyz_overlay(card* target, card* material, bool send_materials_to_gra
 }
 void field::get_control(card_set targets, effect* reason_effect, uint8_t chose_player, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone) {
 	auto ng = pduel->new_group(std::move(targets));
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	emplace_process<Processors::GetControl>(reason_effect, chose_player, ng, playerid, reset_phase, reset_count, zone);
 }
 void field::get_control(card* target, effect* reason_effect, uint8_t chose_player, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count, uint32_t zone) {
@@ -136,9 +136,9 @@ void field::get_control(card* target, effect* reason_effect, uint8_t chose_playe
 }
 void field::swap_control(effect* reason_effect, uint32_t reason_player, card_set targets1, card_set targets2, uint32_t reset_phase, uint32_t reset_count) {
 	auto ng1 = pduel->new_group(std::move(targets1));
-	ng1->is_readonly = TRUE;
+	ng1->is_readonly = true;
 	auto ng2 = pduel->new_group(std::move(targets2));
-	ng2->is_readonly = TRUE;
+	ng2->is_readonly = true;
 	emplace_process<Processors::SwapControl>(reason_effect, reason_player, ng1, ng2, reset_phase, reset_count);
 }
 void field::swap_control(effect* reason_effect, uint32_t reason_player, card* pcard1, card* pcard2, uint32_t reset_phase, uint32_t reset_count) {
@@ -207,7 +207,7 @@ void field::special_summon(card_set target, uint32_t sumtype, uint8_t sumplayer,
 		pcard->spsummon_param = (playerid << 24) + (nocheck << 16) + (nolimit << 8) + pos;
 	}
 	auto pgroup = pduel->new_group(std::move(target));
-	pgroup->is_readonly = TRUE;
+	pgroup->is_readonly = true;
 	emplace_process<Processors::SpSummon>(core.reason_effect, core.reason_player, pgroup, zone);
 }
 void field::special_summon_step(card* target, uint32_t sumtype, uint8_t sumplayer, uint8_t playerid, bool nocheck, bool nolimit, uint8_t positions, uint32_t zone) {
@@ -248,7 +248,7 @@ void field::special_summon_step(card* target, uint32_t sumtype, uint8_t sumplaye
 void field::special_summon_complete(effect* reason_effect, uint8_t reason_player) {
 	auto ng = pduel->new_group(std::move(core.special_summoning));
 	core.special_summoning.clear();
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	emplace_process<Processors::SpSummon>(Step{ 1 }, reason_effect, reason_player, ng, 0);
 }
 void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence) {
@@ -280,7 +280,7 @@ void field::destroy(card_set targets, effect* reason_effect, uint32_t reason, ui
 		++cit;
 	}
 	auto ng = pduel->new_group(std::move(targets));
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	emplace_process<Processors::Destroy>(ng, reason_effect, reason, reason_player);
 }
 void field::destroy(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence) {
@@ -297,7 +297,7 @@ void field::release(card_set targets, effect* reason_effect, uint32_t reason, ui
 		pcard->sendto_param.set(pcard->owner, POS_FACEUP, LOCATION_GRAVE);
 	}
 	auto ng = pduel->new_group(std::move(targets));
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	emplace_process<Processors::Release>(ng, reason_effect, reason, reason_player);
 }
 void field::release(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player) {
@@ -331,7 +331,7 @@ void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, ui
 		pcard->sendto_param.set(p, pos, destination, sequence);
 	}
 	auto ng = pduel->new_group(std::move(targets));
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	emplace_process<Processors::SendTo>(ng, reason_effect, reason, reason_player);
 }
 void field::send_to(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence, uint8_t position, bool ignore) {
@@ -370,7 +370,7 @@ void field::move_to_field(card* target, uint8_t move_player, uint8_t playerid, u
 }
 void field::change_position(card_set targets, effect* reason_effect, uint8_t reason_player, uint8_t au, uint8_t ad, uint8_t du, uint8_t dd, uint32_t flag, bool enable) {
 	auto ng = pduel->new_group(std::move(targets));
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	for(auto& pcard : ng->container) {
 		if(pcard->current.position == POS_FACEUP_ATTACK)
 			pcard->position_param = au;
@@ -386,7 +386,7 @@ void field::change_position(card_set targets, effect* reason_effect, uint8_t rea
 }
 void field::change_position(card* target, effect* reason_effect, uint8_t reason_player, uint8_t npos, uint32_t flag, bool enable) {
 	auto ng = pduel->new_group(target);
-	ng->is_readonly = TRUE;
+	ng->is_readonly = true;
 	target->position_param = npos;
 	target->position_param |= flag;
 	emplace_process<Processors::ChangePos>(ng, reason_effect, reason_player, enable);
@@ -3966,7 +3966,7 @@ bool field::process(Processors::Destroy& arg) {
 	}
 	case 4: {
 		auto sendtargets = pduel->new_group(targets->container);
-		sendtargets->is_readonly = TRUE;
+		sendtargets->is_readonly = true;
 		for(auto& pcard : sendtargets->container) {
 			pcard->set_status(STATUS_DESTROY_CONFIRMED, FALSE);
 			uint32_t dest = pcard->sendto_param.location;
@@ -4205,7 +4205,7 @@ bool field::process(Processors::Release& arg) {
 			message->write<uint64_t>(peffect->get_handler()->data.code);
 		}
 		auto sendtargets = pduel->new_group(targets->container);
-		sendtargets->is_readonly = TRUE;
+		sendtargets->is_readonly = true;
 		operation_replace(EFFECT_SEND_REPLACE, 5, sendtargets);
 		emplace_process<Processors::SendTo>(Step{ 1 }, sendtargets, reason_effect, reason | REASON_RELEASE, reason_player);
 		return FALSE;

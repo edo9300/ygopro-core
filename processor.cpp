@@ -198,7 +198,7 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 	new_event.trigger_card = nullptr;
 	if (event_card) {
 		auto pgroup = pduel->new_group(event_card);
-		pgroup->is_readonly = TRUE;
+		pgroup->is_readonly = true;
 		new_event.event_cards = pgroup;
 	} else
 		new_event.event_cards = nullptr;
@@ -214,7 +214,7 @@ void field::raise_event(card_set event_cards, uint32_t event_code, effect* reaso
 	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = nullptr;
 	auto pgroup = pduel->new_group(std::move(event_cards));
-	pgroup->is_readonly = TRUE;
+	pgroup->is_readonly = true;
 	new_event.event_cards = pgroup;
 	new_event.event_code = event_code;
 	new_event.reason_effect = reason_effect;
@@ -229,7 +229,7 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 	new_event.trigger_card = trigger_card;
 	if (event_cards) {
 		auto pgroup = pduel->new_group(*event_cards);
-		pgroup->is_readonly = TRUE;
+		pgroup->is_readonly = true;
 		new_event.event_cards = pgroup;
 	} else
 		new_event.event_cards = nullptr;
@@ -2556,7 +2556,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		if(des.size()) {
 			auto ng = pduel->new_group();
 			ng->container.swap(des);
-			ng->is_readonly = TRUE;
+			ng->is_readonly = true;
 			emplace_process<Processors::Destroy>(Step{ 10 }, ng, nullptr, REASON_BATTLE, PLAYER_NONE);
 			arg.cards_destroyed_by_battle = ng;
 		}
@@ -4901,7 +4901,7 @@ bool field::process(Processors::Adjust& arg) {
 			core.re_adjust = true;
 			auto ng = pduel->new_group();
 			ng->container.swap(pos_adjust);
-			ng->is_readonly = TRUE;
+			ng->is_readonly = true;
 			emplace_process<Processors::ChangePos>(ng, nullptr, PLAYER_NONE, true);
 		}
 		return FALSE;
