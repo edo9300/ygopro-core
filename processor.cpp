@@ -3255,10 +3255,6 @@ bool field::process(Processors::Turn& arg) {
 	switch(arg.step) {
 	case 0: {
 		//Pre Draw
-		for(const auto& ev : core.used_event) {
-			if(ev.event_cards)
-				pduel->delete_group(ev.event_cards);
-		}
 		core.used_event.clear();
 		for(auto& peffect : core.reseted_effects) {
 			pduel->delete_effect(peffect);
@@ -4052,12 +4048,6 @@ bool field::process(Processors::SolveContinuous& arg) {
 		effect* peffect = clit.triggering_effect;
 		core.reason_effect = arg.reason_effect;
 		core.reason_player = arg.reason_player;
-		if(core.continuous_chain.back().target_cards)
-			pduel->delete_group(core.continuous_chain.back().target_cards);
-		for(auto& oit : core.continuous_chain.back().opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		core.continuous_chain.pop_back();
 		core.solving_continuous.pop_front();
 		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0xfffff000u) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START)))) {
@@ -4308,12 +4298,6 @@ bool field::process(Processors::SolveChain& arg) {
 		peffect->active_type = 0;
 		peffect->active_handler = nullptr;
 		pcard->release_relation(*cait);
-		if(cait->target_cards)
-			pduel->delete_group(cait->target_cards);
-		for(auto& oit : cait->opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		for(auto& cit : core.delayed_enable_set) {
 			if(cit->current.location == LOCATION_MZONE)
 				cit->enable_field_effect(true);
