@@ -82,8 +82,9 @@ void duel::delete_card(card* pcard) {
 }
 void duel::delete_group(group* pgroup) {
 	lua->unregister_group(pgroup);
+}
+void duel::delete_group_no_unref(group* pgroup) {
 	groups.erase(pgroup);
-	sgroups.erase(pgroup);
 	delete pgroup;
 }
 void duel::delete_effect(effect* peffect) {
@@ -102,14 +103,6 @@ void duel::generate_buffer() {
 	messages.clear();
 }
 void duel::release_script_group() {
-	for(auto& pgroup : sgroups) {
-		if(pgroup->is_readonly == 0) {
-			lua->unregister_group(pgroup);
-			groups.erase(pgroup);
-			delete pgroup;
-		}
-	}
-	sgroups.clear();
 }
 void duel::restore_assumes() {
 	for(auto& pcard : assumes)

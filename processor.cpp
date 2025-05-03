@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -197,7 +197,7 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = nullptr;
 	if (event_card) {
-		group* pgroup = pduel->new_group(event_card);
+		auto pgroup = pduel->new_group(event_card);
 		pgroup->is_readonly = TRUE;
 		new_event.event_cards = pgroup;
 	} else
@@ -213,7 +213,7 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 void field::raise_event(card_set event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
 	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = nullptr;
-	group* pgroup = pduel->new_group(std::move(event_cards));
+	auto pgroup = pduel->new_group(std::move(event_cards));
 	pgroup->is_readonly = TRUE;
 	new_event.event_cards = pgroup;
 	new_event.event_code = event_code;
@@ -228,7 +228,7 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 	auto& new_event = core.single_event.emplace_back();
 	new_event.trigger_card = trigger_card;
 	if (event_cards) {
-		group* pgroup = pduel->new_group(*event_cards);
+		auto pgroup = pduel->new_group(*event_cards);
 		pgroup->is_readonly = TRUE;
 		new_event.event_cards = pgroup;
 	} else
@@ -2554,7 +2554,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.battle_destroy_rep.clear();
 		core.desrep_chain.clear();
 		if(des.size()) {
-			group* ng = pduel->new_group();
+			auto ng = pduel->new_group();
 			ng->container.swap(des);
 			ng->is_readonly = TRUE;
 			emplace_process<Processors::Destroy>(Step{ 10 }, ng, nullptr, REASON_BATTLE, PLAYER_NONE);
@@ -2571,7 +2571,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		return FALSE;
 	}
 	case 30: {
-		group* des = arg.cards_destroyed_by_battle;
+		auto des = arg.cards_destroyed_by_battle;
 		if(des && des->container.size()) {
 			for(auto& pcard : des->container) {
 				pcard->set_status(STATUS_BATTLE_DESTROYED, TRUE);
@@ -2636,7 +2636,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		return FALSE;
 	}
 	case 33: {
-		group* des = arg.cards_destroyed_by_battle;
+		auto des = arg.cards_destroyed_by_battle;
 		if(des) {
 			for(auto cit = des->container.begin(); cit != des->container.end();) {
 				auto rm = cit++;
@@ -4899,7 +4899,7 @@ bool field::process(Processors::Adjust& arg) {
 		}
 		if(pos_adjust.size()) {
 			core.re_adjust = true;
-			group* ng = pduel->new_group();
+			auto ng = pduel->new_group();
 			ng->container.swap(pos_adjust);
 			ng->is_readonly = TRUE;
 			emplace_process<Processors::ChangePos>(ng, nullptr, PLAYER_NONE, true);

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -16,6 +16,7 @@
 #include "common.h"
 #include "group.h"
 #include "interpreter.h"
+#include "lua_obj.h"
 #include "ocgapi_types.h"
 #include "RNG/Xoshiro256.hpp"
 
@@ -66,7 +67,6 @@ public:
 	std::unordered_set<card*> cards;
 	std::unordered_set<card*> assumes;
 	std::unordered_set<group*> groups;
-	std::unordered_set<group*> sgroups;
 	std::unordered_set<effect*> effects;
 	std::unordered_set<effect*> uncopy;
 
@@ -88,17 +88,22 @@ public:
 	
 	card* new_card(uint32_t code);
 	template<typename... Args>
-	group* new_group(Args&&... args) {
-		group* pgroup = new group(this, std::forward<Args>(args)...);
-		groups.insert(pgroup);
-		if(lua->call_depth)
-			sgroups.insert(pgroup);
-		lua->register_group(pgroup);
-		return pgroup;
+	owned_lua<group> new_group(Args&&... args) {
+		auto pgroup = [&]() {
+			auto* pgroup = new group(this, std::forward<Args>(args)...);
+			groups.insert(pgroup);
+			lua->register_group(pgroup);
+			return owned_lua<group>{pgroup};
+		}();
+		if(groups.size() > 2000) {
+			lua->collect();
+		}
+		return std::move(pgroup);
 	}
 	effect* new_effect();
 	void delete_card(card* pcard);
 	void delete_group(group* pgroup);
+	void delete_group_no_unref(group* pgroup);
 	void delete_effect(effect* peffect);
 	void release_script_group();
 	void restore_assumes();

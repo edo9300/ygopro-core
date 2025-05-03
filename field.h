@@ -20,6 +20,7 @@
 #include "card.h"
 #include "common.h"
 #include "containers_fwd.h"
+#include "lua_obj.h"
 #include "processor_unit.h"
 #include "progressivebuffer.h"
 
@@ -29,7 +30,7 @@ class effect;
 
 struct tevent {
 	card* trigger_card{};
-	group* event_cards{};
+	owned_lua<group> event_cards;
 	effect* reason_effect{};
 	uint32_t event_code{};
 	uint32_t event_value{};
@@ -40,7 +41,7 @@ struct tevent {
 	bool operator< (const tevent& v) const;
 };
 struct optarget {
-	group* op_cards;
+	owned_lua<group> op_cards;
 	uint8_t op_count;
 	uint8_t op_player;
 	int32_t op_param;
@@ -69,7 +70,7 @@ struct chain {
 	uint32_t flag;
 	uint32_t event_id;
 	effect* triggering_effect;
-	group* target_cards;
+	owned_lua<group> target_cards;
 	effect* disable_reason;
 	applied_chain_counter_t* applied_chain_counters;
 	opmap opinfos;
@@ -311,8 +312,8 @@ struct processor {
 	bool set_forced_attack;
 	card* forced_attacker;
 	card* forced_attack_target;
-	group* must_use_mats;
-	group* only_use_mats;
+	owned_lua<group> must_use_mats;
+	owned_lua<group> only_use_mats;
 	int32_t forced_summon_minc;
 	int32_t forced_summon_maxc;
 	bool attack_cancelable;
