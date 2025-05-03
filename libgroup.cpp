@@ -25,7 +25,7 @@ namespace {
 using namespace scriptlib;
 
 void assert_readonly_group(lua_State* L, group* pgroup) {
-	if(pgroup->is_readonly != 1)
+	if(!pgroup->is_readonly)
 		return;
 	lua_error(L, "attempt to modify a read only group");
 }
