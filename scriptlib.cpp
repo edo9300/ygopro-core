@@ -58,11 +58,11 @@ int32_t push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
 		if(cancelable) {
 			lua_pushnil(L);
 		} else {
-			group* pgroup = pduel->new_group();
+			auto pgroup = pduel->new_group();
 			interpreter::pushobject(L, pgroup);
 		}
 	} else {
-		group* pgroup = pduel->new_group(pduel->game_field->return_cards.list);
+		auto pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 		interpreter::pushobject(L, pgroup);
 	}
 	return 1;
