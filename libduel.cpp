@@ -2854,9 +2854,6 @@ LUA_STATIC_FUNCTION(SetOperationInfo) {
 			lua_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
 		opt.op_cards->is_readonly = true;
 	}
-	auto omit = ch->opinfos.find(cate);
-	if(omit != ch->opinfos.end() && omit->second.op_cards)
-		pduel->delete_group(omit->second.op_cards);
 	ch->opinfos[cate] = std::move(opt);
 	return 0;
 }
@@ -2901,9 +2898,6 @@ LUA_STATIC_FUNCTION(SetPossibleOperationInfo) {
 		opt.op_cards = pduel->new_group(pobj);
 		opt.op_cards->is_readonly = true;
 	}
-	auto omit = ch->possibleopinfos.find(cate);
-	if(omit != ch->possibleopinfos.end() && omit->second.op_cards)
-		pduel->delete_group(omit->second.op_cards);
 	ch->possibleopinfos[cate] = std::move(opt);
 	return 0;
 }
@@ -2947,15 +2941,7 @@ LUA_STATIC_FUNCTION(ClearOperationInfo) {
 	chain* ch = pduel->game_field->get_chain(ct);
 	if(!ch)
 		return 0;
-	for(auto& oit : ch->opinfos) {
-		if(oit.second.op_cards)
-			pduel->delete_group(oit.second.op_cards);
-	}
 	ch->opinfos.clear();
-	for(auto& oit : ch->possibleopinfos) {
-		if(oit.second.op_cards)
-			pduel->delete_group(oit.second.op_cards);
-	}
 	ch->possibleopinfos.clear();
 	return 0;
 }

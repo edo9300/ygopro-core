@@ -1174,7 +1174,6 @@ bool field::process(Processors::GetControl& arg) {
 	case 7: {
 		core.operated_set = targets->container;
 		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
-		pduel->delete_group(targets);
 		return TRUE;
 	}
 	}
@@ -1327,15 +1326,11 @@ bool field::process(Processors::SwapControl& arg) {
 	case 5: {
 		core.operated_set = targets1->container;
 		returns.set<int32_t>(0, 1);
-		pduel->delete_group(targets1);
-		pduel->delete_group(targets2);
 		return TRUE;
 	}
 	case 10: {
 		core.operated_set.clear();
 		returns.set<int32_t>(0, 0);
-		pduel->delete_group(targets1);
-		pduel->delete_group(targets2);
 		return TRUE;
 	}
 	}
@@ -3077,14 +3072,8 @@ bool field::process(Processors::SpSummonRule& arg) {
 		return FALSE;
 	}
 	case 4: {
-		if(core.must_use_mats) {
-			pduel->delete_group(core.must_use_mats);
-			core.must_use_mats = nullptr;
-		}
-		if(core.only_use_mats) {
-			pduel->delete_group(core.only_use_mats);
-			core.only_use_mats = nullptr;
-		}
+		core.must_use_mats = nullptr;
+		core.only_use_mats = nullptr;
 		auto proc = arg.summon_proc_effect;
 		uint8_t targetplayer = sumplayer;
 		uint8_t positions = POS_FACEUP;
@@ -3685,7 +3674,6 @@ bool field::process(Processors::SpSummon& arg) {
 		if(targets->container.size() == 0) {
 			returns.set<int32_t>(0, 0);
 			core.operated_set.clear();
-			pduel->delete_group(targets);
 			return TRUE;
 		}
 		bool tp = false, ntp = false;
@@ -3753,7 +3741,6 @@ bool field::process(Processors::SpSummon& arg) {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
 		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
-		pduel->delete_group(targets);
 		return TRUE;
 	}
 	}
@@ -3940,7 +3927,6 @@ bool field::process(Processors::Destroy& arg) {
 		if(!targets->container.size()) {
 			returns.set<int32_t>(0, 0);
 			core.operated_set.clear();
-			pduel->delete_group(targets);
 			return TRUE;
 		}
 		card_vector cv(targets->container.begin(), targets->container.end());
@@ -3992,7 +3978,6 @@ bool field::process(Processors::Destroy& arg) {
 				++cit;
 		}
 		returns.set<int32_t>(0, static_cast<int32_t>(core.operated_set.size()));
-		pduel->delete_group(targets);
 		return TRUE;
 	}
 	case 10: {
@@ -4178,7 +4163,6 @@ bool field::process(Processors::Release& arg) {
 		if(!targets->container.size()) {
 			returns.set<int32_t>(0, 0);
 			core.operated_set.clear();
-			pduel->delete_group(targets);
 			return TRUE;
 		}
 		card_vector cv(targets->container.begin(), targets->container.end());
@@ -4217,7 +4201,6 @@ bool field::process(Processors::Release& arg) {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
 		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
-		pduel->delete_group(targets);
 		return TRUE;
 	}
 	}
@@ -4287,7 +4270,6 @@ bool field::process(Processors::SendTo& arg) {
 		if(!targets->container.size()) {
 			returns.set<int32_t>(0, 0);
 			core.operated_set.clear();
-			pduel->delete_group(targets);
 			return TRUE;
 		}
 		card_set leave_p, destroying;
@@ -4743,7 +4725,6 @@ bool field::process(Processors::SendTo& arg) {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
 		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
-		pduel->delete_group(targets);
 		return TRUE;
 	}
 	}
@@ -5360,7 +5341,6 @@ bool field::process(Processors::ChangePos& arg) {
 		core.operated_set.clear();
 		core.operated_set = targets->container;
 		returns.set<int32_t>(0, static_cast<int32_t>(targets->container.size()));
-		pduel->delete_group(targets);
 		return TRUE;
 	}
 	}
@@ -5426,12 +5406,6 @@ bool field::process(Processors::OperationReplace& arg) {
 		return FALSE;
 	}
 	case 3: {
-		if(core.continuous_chain.back().target_cards)
-			pduel->delete_group(core.continuous_chain.back().target_cards);
-		for(auto& oit : core.continuous_chain.back().opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		core.continuous_chain.pop_back();
 		core.solving_event.pop_front();
 		return TRUE;
@@ -5492,12 +5466,6 @@ bool field::process(Processors::OperationReplace& arg) {
 		return FALSE;
 	}
 	case 8: {
-		if(core.continuous_chain.back().target_cards)
-			pduel->delete_group(core.continuous_chain.back().target_cards);
-		for(auto& oit : core.continuous_chain.back().opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		core.continuous_chain.pop_back();
 		core.solving_event.pop_front();
 		return TRUE;
@@ -5606,12 +5574,6 @@ bool field::process(Processors::OperationReplace& arg) {
 		return FALSE;
 	}
 	case 16: {
-		if(core.continuous_chain.back().target_cards)
-			pduel->delete_group(core.continuous_chain.back().target_cards);
-		for(auto& oit : core.continuous_chain.back().opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		core.continuous_chain.pop_back();
 		arg.step = 14;
 		return FALSE;

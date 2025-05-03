@@ -63,7 +63,6 @@ public:
 	void register_effect(effect* peffect);
 	void unregister_effect(effect* peffect);
 	void register_group(group* pgroup);
-	void unregister_group(group* pgroup);
 	void register_obj(lua_obj* obj, const char* tablename, bool weak);
 
 	void collect();

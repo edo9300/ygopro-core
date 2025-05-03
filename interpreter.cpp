@@ -184,9 +184,6 @@ void interpreter::unregister_effect(effect* peffect) {
 void interpreter::register_group(group* pgroup) {
 	register_obj(pgroup, "Group", true);
 }
-void interpreter::unregister_group(group* pgroup) {
-	remove_object(lua_state, pgroup, pgroup);
-}
 void interpreter::register_obj(lua_obj* obj, const char* tablename, bool weak) {
 	if(!obj)
 		return;

@@ -29,11 +29,9 @@ duel::~duel() {
 	for(auto& pcard : cards)
 		delete pcard;
 	//NOTE: unregister_group could trigger garbage collection, altering the groups set
-	auto groups_copy = groups;
-	for(auto& pgroup : groups_copy) {
+	for(auto& pgroup : groups) {
 		pgroup->container.clear();
 		pgroup->is_iterator_dirty = true;
-		lua->unregister_group(pgroup);
 	}
 	for(auto& peffect : effects)
 		delete peffect;
@@ -51,11 +49,6 @@ void duel::clear() {
 	static constexpr OCG_DuelOptions default_options{ {},0,{8000,5,1},{8000,5,1} };
 	for(auto& pcard : cards)
 		delete pcard;
-	//NOTE: unregister_group could trigger garbage collection, altering the groups set
-	auto groups_copy = groups;
-	for(auto& pgroup : groups_copy) {
-		lua->unregister_group(pgroup);
-	}
 	for(auto& peffect : effects) {
 		lua->unregister_effect(peffect);
 		delete peffect;
@@ -98,9 +91,6 @@ effect* duel::new_effect() {
 void duel::delete_card(card* pcard) {
 	cards.erase(pcard);
 	delete pcard;
-}
-void duel::delete_group(group* pgroup) {
-	lua->unregister_group(pgroup);
 }
 void duel::delete_group_no_unref(group* pgroup) {
 	groups.erase(pgroup);
