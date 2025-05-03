@@ -93,6 +93,7 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_l
 		nil_out("loadfile");
 	}
 	{
+		luaL_checkstack(lua_state, 4, nullptr);
 		lua_newtable(lua_state);
 		lua_newtable(lua_state);
 		lua_pushliteral(lua_state, "__mode");
@@ -190,6 +191,7 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename, bool weak) {
 	if(!obj)
 		return;
 	if(weak) {
+		luaL_checkstack(lua_state, 1, nullptr);
 		lua_rawgeti(lua_state, LUA_REGISTRYINDEX, weak_lua_references);
 	}
 	luaL_checkstack(lua_state, 3, nullptr);
@@ -207,7 +209,16 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename, bool weak) {
 	}
 }
 void interpreter::collect() {
-	lua_gc(lua_state, LUA_GCCOLLECT, 0);
+	if(!lua_checkstack(current_state, 1)) {
+		return;
+	}
+	lua_pushcfunction(current_state, [](lua_State* L) -> int32_t {
+		lua_gc(L, LUA_GCCOLLECT, 0);
+		return 0;
+	});
+	if(lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
+		lua_pop(current_state, 1);
+	}
 }
 bool interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	if(!buffer)
@@ -703,7 +714,17 @@ void lua_obj::incr_ref() {
 void lua_obj::decr_ref() {
 	--num_ref;
 	if(num_ref == 0) {
-		luaL_unref(pduel->lua->current_state, LUA_REGISTRYINDEX, ref_handle);
+		auto* L = pduel->lua->current_state;
+		// TODO: what to do here? assert if this fails?
+		lua_checkstack(L, 2);
+		lua_pushcfunction(L, [](lua_State* L) -> int32_t {
+			ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, lua_tointeger(L, 1));
+			return 0;
+		});
+		lua_pushinteger(L, ref_handle);
+		if(lua_pcall(L, 1, 0, 0) != LUA_OK) {
+			lua_pop(L, 1);
+		}
 		ref_handle = 0;
 	}
 }
