@@ -103,6 +103,7 @@ void duel::generate_buffer() {
 	messages.clear();
 }
 void duel::release_script_group() {
+	lua->collect();
 }
 void duel::restore_assumes() {
 	for(auto& pcard : assumes)
