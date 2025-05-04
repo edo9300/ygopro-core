@@ -102,6 +102,12 @@ public:
 	T* operator-> () {
 		return obj;
 	}
+	bool operator ==(const owned_lua<T>& other) {
+		return obj == other.obj;
+	}
+	bool operator ==(const owned_lua<T>& other) const {
+		return obj == other.obj;
+	}
 	explicit operator bool() {
 		return obj != nullptr;
 	}
