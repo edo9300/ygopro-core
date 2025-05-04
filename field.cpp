@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 #include <algorithm> //std::sort, std::swap, std::find, std::find_if, std::min, std::none_of
+#include <tuple> //std::tie
 #include <utility> //std::move
 #include <vector>
 #include "card.h"
@@ -53,15 +54,12 @@ void chain::set_triggering_state(card* pcard) {
 	pcard->get_set_card(setcode);
 }
 bool tevent::operator< (const tevent& rhs) const {
-	return trigger_card < rhs.trigger_card ||
-		event_cards < rhs.event_cards ||
-		reason_effect < rhs.reason_effect ||
-		event_code < rhs.event_code ||
-		event_value < rhs.event_value ||
-		reason < rhs.reason ||
-		event_player < rhs.event_player ||
-		reason_player < rhs.reason_player ||
-		global_id < rhs.global_id;
+	return std::tie(trigger_card, event_cards, reason_effect,
+					event_code, event_value, reason,
+					event_player, reason_player, global_id) <
+		std::tie(rhs.trigger_card, rhs.event_cards, rhs.reason_effect,
+				 rhs.event_code, rhs.event_value, rhs.reason,
+				 rhs.event_player, rhs.reason_player, rhs.global_id);
 }
 field::field(duel* _pduel, const OCG_DuelOptions& options) :pduel(_pduel), player({ {options.team1, options.team2} }) {
 	core.duel_options = options.flags;
