@@ -28,7 +28,6 @@ duel::duel(const OCG_DuelOptions& options, bool& valid_lua_lib) :
 duel::~duel() {
 	for(auto& pcard : cards)
 		delete pcard;
-	//NOTE: unregister_group could trigger garbage collection, altering the groups set
 	for(auto& pgroup : groups) {
 		pgroup->container.clear();
 		pgroup->is_iterator_dirty = true;
@@ -58,9 +57,9 @@ void duel::clear() {
 	lua->collect();
 	cards.clear();
 	/*
-	 * TODO: how to properly handle groups that are still around after the field was destroyed ?
-	 * If they're still here, it means they're still living as global variables somewhere, for now we
-	 * deal with them by clearing their containers that could have been pointing to now deleted cards
+		TODO: how to properly handle groups that are still around after the field was destroyed?
+		If they're still here, it means they're still living as global variables somewhere, for now we
+		deal with them by clearing their containers that could have been pointing to now deleted cards
 	*/
 	for(auto& pgroup : groups) {
 		pgroup->container.clear();
