@@ -59,6 +59,11 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(2
 		nil_out("loadfile");
 	}
 	{
+		/*
+			Creates a table and sets a metatable to it making a table with weak keys, which
+			will then be used in place of the LUA_REGISTRYINDEX table to keep track of groups
+			when they are not owned by the core
+		*/
 		luaL_checkstack(lua_state, 4, nullptr);
 		lua_newtable(lua_state);
 		lua_newtable(lua_state);
