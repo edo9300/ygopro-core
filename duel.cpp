@@ -53,8 +53,8 @@ void duel::clear() {
 		delete peffect;
 	}
 	delete game_field;
-	//force garbage collection to clean the groups
-	lua->collect();
+	//force full garbage collection to clean the groups
+	lua->collect(true);
 	cards.clear();
 	/*
 		TODO: how to properly handle groups that are still around after the field was destroyed?

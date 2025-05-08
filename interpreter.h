@@ -65,7 +65,7 @@ public:
 	void register_group(group* pgroup);
 	void register_obj(lua_obj* obj, const char* tablename, bool weak);
 
-	void collect();
+	void collect(bool full = false);
 
 	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	bool load_card_script(uint32_t code);

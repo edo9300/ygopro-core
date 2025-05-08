@@ -210,14 +210,20 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename, bool weak) {
 		obj->ref_handle = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
 	}
 }
-void interpreter::collect() {
+void interpreter::collect(bool full) {
 	if(!lua_checkstack(current_state, 1)) {
 		return;
 	}
-	lua_pushcfunction(current_state, [](lua_State* L) -> int32_t {
+	// faster and cleaner to just have 2 separate functions than to pass upvalues
+	auto* gcfull = +[](lua_State* L) -> int32_t {
 		lua_gc(L, LUA_GCCOLLECT, 0);
 		return 0;
-	});
+	};
+	auto* gcstep = +[](lua_State* L) -> int32_t {
+		lua_gc(L, LUA_GCSTEP, 0);
+		return 0;
+	};
+	lua_pushcfunction(current_state, (full ? gcfull : gcstep));
 	if(lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
 		lua_pop(current_state, 1);
 	}
