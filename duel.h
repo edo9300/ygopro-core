@@ -102,7 +102,7 @@ public:
 	}
 	effect* new_effect();
 	void delete_card(card* pcard);
-	void delete_group_no_unref(group* pgroup);
+	void delete_group(group* pgroup);
 	void delete_effect(effect* peffect);
 	void release_script_group();
 	void restore_assumes();
