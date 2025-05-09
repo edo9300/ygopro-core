@@ -727,7 +727,7 @@ LUA_FUNCTION(__le) {
 	return 1;
 }
 LUA_FUNCTION(__gc) {
-	pduel->delete_group_no_unref(self);
+	pduel->delete_group(self);
 	return 1;
 }
 LUA_FUNCTION(IsContains) {

@@ -91,7 +91,7 @@ void duel::delete_card(card* pcard) {
 	cards.erase(pcard);
 	delete pcard;
 }
-void duel::delete_group_no_unref(group* pgroup) {
+void duel::delete_group(group* pgroup) {
 	groups.erase(pgroup);
 	delete pgroup;
 }
