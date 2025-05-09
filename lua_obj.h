@@ -7,6 +7,7 @@
 #define LUA_OBJ_H_
 
 #include <cstdint>
+#include <utility> // std::exchange
 
 enum class LuaParam : uint8_t {
 	INT = 1,
@@ -43,6 +44,15 @@ private:
 template<typename T>
 class owned_lua {
 	T* obj{};
+	owned_lua<T>& assign(T* other) {
+		if(obj) {
+			obj->decr_ref();
+		}
+		if(obj = other; obj) {
+			obj->incr_ref();
+		}
+		return *this;
+	}
 public:
 	using lua_type = T*;
 	owned_lua() = default;
@@ -51,11 +61,7 @@ public:
 			obj->incr_ref();
 		}
 	}
-	owned_lua(const owned_lua<T>& other) : obj(other.obj) {
-		if(obj) {
-			obj->incr_ref();
-		}
-	}
+	owned_lua(const owned_lua<T>& other) : owned_lua(other.obj) {}
 	owned_lua(owned_lua<T>&& other) : obj(other.obj) {
 		other.obj = nullptr;
 	}
@@ -64,58 +70,30 @@ public:
 			obj->decr_ref();
 		}
 	}
-	owned_lua<T>& operator=(const owned_lua<T>& other) {
+	owned_lua<T>& operator=(owned_lua<T>&& rhs) {
 		if(obj) {
 			obj->decr_ref();
 		}
-		if(obj = other.obj; obj) {
-			obj->incr_ref();
-		}
+		obj = std::exchange(rhs.obj, nullptr);
 		return *this;
 	}
-	owned_lua<T>& operator=(owned_lua<T>&& other) {
-		if(obj) {
-			obj->decr_ref();
-		}
-		obj = other.obj;
-		other.obj = nullptr;
-		return *this;
+	owned_lua<T>& operator=(const owned_lua<T>& rhs) {
+		return assign(rhs.obj);
 	}
 	owned_lua<T>& operator=(T* rhs) {
-		if(obj) {
-			obj->decr_ref();
-		}
-		if(obj = rhs; obj) {
-			obj->incr_ref();
-		}
-		return *this;
+		return assign(rhs);
 	}
 	operator T* () const {
-		return obj;
-	}
-	operator T* () {
 		return obj;
 	}
 	T* operator-> () const {
 		return obj;
 	}
-	T* operator-> () {
-		return obj;
-	}
-	bool operator ==(const owned_lua<T>& other) {
-		return obj == other.obj;
-	}
 	bool operator ==(const owned_lua<T>& other) const {
 		return obj == other.obj;
 	}
-	bool operator <(const owned_lua<T>& other) {
-		return obj < other.obj;
-	}
 	bool operator <(const owned_lua<T>& other) const {
 		return obj < other.obj;
-	}
-	explicit operator bool() {
-		return obj != nullptr;
 	}
 	explicit operator bool() const {
 		return obj != nullptr;
