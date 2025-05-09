@@ -104,7 +104,6 @@ public:
 	void delete_card(card* pcard);
 	void delete_group(group* pgroup);
 	void delete_effect(effect* peffect);
-	void release_script_group();
 	void restore_assumes();
 	void generate_buffer();
 	void write_buffer(const void* data, size_t size);

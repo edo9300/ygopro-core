@@ -379,7 +379,6 @@ inline int interpreter::call_lua(lua_State* L, int nargs, int nresults) {
 	--no_action;
 	--call_depth;
 	if(call_depth == 0) {
-		pduel->release_script_group();
 		pduel->restore_assumes();
 	}
 	return ret;
@@ -613,7 +612,6 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 			ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, ref);
 			--call_depth;
 			if(call_depth == 0) {
-				pduel->release_script_group();
 				pduel->restore_assumes();
 			}
 			return ret_error("recursive event trigger detected.");
@@ -642,7 +640,6 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 	ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, ref);
 	--call_depth;
 	if(call_depth == 0) {
-		pduel->release_script_group();
 		pduel->restore_assumes();
 	}
 	return (result == LUA_OK) ? COROUTINE_FINISH : COROUTINE_ERROR;
