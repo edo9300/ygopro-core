@@ -11,26 +11,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [Win32, x64, ARM, ARM64]
+        arch: [Win32, x64, ARM64]
         include:
           - arch: Win32
             deploy-branch: travis-core-windows
+            premake-flag: --oldwindows=true
           - arch: x64
             deploy-branch: travis-core-windows-x64
-          - arch: ARM
-            deploy-branch: travis-core-windows-arm
+            premake-flag: --oldwindows=true
           - arch: ARM64
             deploy-branch: travis-core-windows-aarch64
-    runs-on: windows-2019
+            premake-flag:
+    runs-on: windows-2022
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
       TRAVIS_OS_NAME: windows
       VISUAL_STUDIO_ARCH: ${{ matrix.arch }}
-      VISUAL_STUDIO_VERSION: vs2019
-      PREMAKE_FLAGS: --oldwindows=true
+      VISUAL_STUDIO_VERSION: vs2022
+      PREMAKE_FLAGS: ${{ matrix.premake-flag }}
     steps:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v2
+    - name: Install winxp components
+      if: matrix.arch == 'Win32' || matrix.arch == 'x64'
+      run: |
+              Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+              $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+              $componentsToAdd= @(
+                "Microsoft.VisualStudio.Component.VC.v141.x86.x64",
+                "Microsoft.VisualStudio.Component.WinXP"
+              )
+              [string]$workloadArgs = $componentsToAdd | ForEach-Object {" --add " +  $_}
+              $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+              # should be run twice
+              $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
     - uses: actions/checkout@v1
       with:
         ref: ${{ github.head_ref }}
