@@ -11,6 +11,7 @@
 #include <memory> //std::unique_ptr
 #include <type_traits> //std::false_type, std::true_type
 #include <variant>
+#include "lua_obj.h"
 #include "common.h"
 #include "containers_fwd.h"
 
@@ -237,10 +238,10 @@ struct BattleCommand : public Process<false> {
 	bool previous_point_event_had_any_trigger_to_resolve;
 	uint8_t reason_player;
 	effect* damage_change_effect;
-	group* cards_destroyed_by_battle;
+	owned_lua<group> cards_destroyed_by_battle;
 	card* reason_card;
 	std::multimap<effect*, card*> must_attack_map;
-	BattleCommand(uint16_t step_, group* cards_destroyed_by_battle_ = nullptr, bool forced_attack_ = false) :
+	BattleCommand(uint16_t step_, owned_lua<group> cards_destroyed_by_battle_ = nullptr, bool forced_attack_ = false) :
 		Process(step_), phase_to_change_to(0), forced_attack(forced_attack_), forced_attack_done(false), is_replaying_attack(false), attack_announce_failed(false),
 		repeat_battle_phase(false), second_battle_phase_is_optional(false),
 		previous_point_event_had_any_trigger_to_resolve(false), reason_player(PLAYER_NONE), damage_change_effect(nullptr),
@@ -251,7 +252,7 @@ struct DamageStep : public Process<false> {
 	bool new_attack;
 	card* attacker;
 	card* attack_target;
-	group* cards_destroyed_by_battle;
+	owned_lua<group> cards_destroyed_by_battle;
 	DamageStep(uint16_t step_, card* attacker_, card* attack_target_, bool new_attack_) :
 		Process(step_), backup_phase(0), new_attack(new_attack_), attacker(attacker_), attack_target(attack_target_), cards_destroyed_by_battle(nullptr) {}
 };
@@ -307,9 +308,9 @@ struct ExecuteTarget : public Process<false> {
 struct Destroy : public Process<false> {
 	uint8_t reason_player;
 	uint32_t reason;
-	group* targets;
+	owned_lua<group> targets;
 	effect* reason_effect;
-	Destroy(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
+	Destroy(uint16_t step_, owned_lua<group> targets_, effect* reason_effect_, uint32_t reason_,
 					 uint8_t reason_player_) :
 		Process(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
 		reason_effect(reason_effect_) {}
@@ -317,9 +318,9 @@ struct Destroy : public Process<false> {
 struct Release : public Process<false> {
 	uint8_t reason_player;
 	uint32_t reason;
-	group* targets;
+	owned_lua<group> targets;
 	effect* reason_effect;
-	Release(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
+	Release(uint16_t step_, owned_lua<group> targets_, effect* reason_effect_, uint32_t reason_,
 					 uint8_t reason_player_) :
 		Process(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
 		reason_effect(reason_effect_) {}
@@ -334,31 +335,31 @@ struct SendTo : public Process<false> {
 	};
 	uint8_t reason_player;
 	uint32_t reason;
-	group* targets;
+	owned_lua<group> targets;
 	effect* reason_effect;
 	std::unique_ptr<exargs> extra_args;
-	SendTo(uint16_t step_, group* targets_, effect* reason_effect_, uint32_t reason_,
+	SendTo(uint16_t step_, owned_lua<group> targets_, effect* reason_effect_, uint32_t reason_,
 					uint8_t reason_player_) :
 		Process(step_), reason_player(reason_player_), reason(reason_), targets(targets_),
 		reason_effect(reason_effect_), extra_args(nullptr) {}
 };
 struct DestroyReplace : public Process<false> {
 	bool battle;
-	group* targets;
+	owned_lua<group> targets;
 	card* target;
-	DestroyReplace(uint16_t step_, group* targets_, card* target_, bool battle_) :
+	DestroyReplace(uint16_t step_, owned_lua<group> targets_, card* target_, bool battle_) :
 		Process(step_), battle(battle_), targets(targets_), target(target_) {}
 };
 struct ReleaseReplace : public Process<false> {
-	group* targets;
+	owned_lua<group> targets;
 	card* target;
-	ReleaseReplace(uint16_t step_, group* targets_, card* target_) :
+	ReleaseReplace(uint16_t step_, owned_lua<group> targets_, card* target_) :
 		Process(step_), targets(targets_), target(target_) {}
 };
 struct SendToReplace : public Process<false> {
-	group* targets;
+	owned_lua<group> targets;
 	card* target;
-	SendToReplace(uint16_t step_, group* targets_, card* target_) :
+	SendToReplace(uint16_t step_, owned_lua<group> targets_, card* target_) :
 		Process(step_), targets(targets_), target(target_) {}
 };
 struct MoveToField : public Process<false> {
@@ -380,9 +381,9 @@ struct ChangePos : public Process<false> {
 	bool enable;
 	bool oppo_selection;
 	effect* reason_effect;
-	group* targets;
+	owned_lua<group> targets;
 	card_set to_grave_set;
-	ChangePos(uint16_t step_, group* targets_, effect* reason_effect_,
+	ChangePos(uint16_t step_, owned_lua<group> targets_, effect* reason_effect_,
 					   uint8_t reason_player_, bool enable_) :
 		Process(step_), reason_player(reason_player_), enable(enable_), oppo_selection(false),
 		reason_effect(reason_effect_), targets(targets_) {}
@@ -390,9 +391,9 @@ struct ChangePos : public Process<false> {
 struct OperationReplace : public Process<false> {
 	bool is_destroy;
 	effect* replace_effect;
-	group* targets;
+	owned_lua<group> targets;
 	card* target;
-	OperationReplace(uint16_t step_, effect* replace_effect_, group* targets_,
+	OperationReplace(uint16_t step_, effect* replace_effect_, owned_lua<group> targets_,
 							  card* target_, bool is_destroy_) :
 		Process(step_), is_destroy(is_destroy_), replace_effect(replace_effect_),
 		targets(targets_), target(target_) {}
@@ -425,7 +426,7 @@ struct SpSummonRule : public Process<false> {
 	uint32_t summon_type;
 	card* target;
 	effect* summon_proc_effect;
-	group* cards_to_summon_g;
+	owned_lua<group> cards_to_summon_g;
 	effect_set spsummon_cost_effects;
 	SpSummonRule(uint16_t step_, uint8_t sumplayer_, card* target_, uint32_t summon_type_,
 				 bool is_mid_chain_ = false, effect* summon_proc_effect_ = nullptr) :
@@ -436,9 +437,9 @@ struct SpSummon : public Process<false> {
 	uint8_t reason_player;
 	uint32_t zone;
 	effect* reason_effect;
-	group* targets;
+	owned_lua<group> targets;
 	SpSummon(uint16_t step_, effect* reason_effect_, uint8_t reason_player_,
-					  group* targets_, uint32_t zone_) :
+					  owned_lua<group> targets_, uint32_t zone_) :
 		Process(step_), reason_player(reason_player_), zone(zone_), reason_effect(reason_effect_),
 		targets(targets_) {}
 };
@@ -476,21 +477,21 @@ struct SpellSet : public Process<false> {
 };
 struct SpSummonStep : public Process<false> {
 	uint32_t zone;
-	group* targets;
+	owned_lua<group> targets;
 	card* target;
 	effect_set spsummon_cost_effects;
-	SpSummonStep(uint16_t step_, group* targets_, card* target_, uint32_t zone_) :
+	SpSummonStep(uint16_t step_, owned_lua<group> targets_, card* target_, uint32_t zone_) :
 		Process(step_), zone(zone_), targets(targets_), target(target_) {}
 };
 struct SpellSetGroup : public Process<false> {
 	uint8_t setplayer;
 	uint8_t toplayer;
 	bool confirm;
-	group* ptarget;
+	owned_lua<group> ptarget;
 	effect* reason_effect;
 	card_set set_cards;
 	SpellSetGroup(uint16_t step_, uint8_t setplayer_, uint8_t toplayer_,
-						   group* ptarget_, bool confirm_, effect* reason_effect_) :
+						   owned_lua<group> ptarget_, bool confirm_, effect* reason_effect_) :
 		Process(step_), setplayer(setplayer_), toplayer(toplayer_), confirm(confirm_),
 		ptarget(ptarget_), reason_effect(reason_effect_) {}
 };
@@ -556,9 +557,9 @@ struct GetControl : public Process<false> {
 	uint16_t reset_phase;
 	uint32_t zone;
 	effect* reason_effect;
-	group* targets;
+	owned_lua<group> targets;
 	card_set destroy_set;
-	GetControl(uint16_t step_, effect* reason_effect_, uint8_t chose_player_, group* targets_,
+	GetControl(uint16_t step_, effect* reason_effect_, uint8_t chose_player_, owned_lua<group> targets_,
 						uint8_t playerid_, uint16_t reset_phase_, uint8_t reset_count_, uint32_t zone_) :
 		Process(step_), chose_player(chose_player_), playerid(playerid_), reset_count(reset_count_),
 		reset_phase(reset_phase_), zone(zone_), reason_effect(reason_effect_), targets(targets_) {}
@@ -569,10 +570,10 @@ struct SwapControl : public Process<false> {
 	uint8_t self_selected_sequence;
 	uint16_t reset_phase;
 	effect* reason_effect;
-	group* targets1;
-	group* targets2;
+	owned_lua<group> targets1;
+	owned_lua<group> targets2;
 	SwapControl(uint16_t step_, effect* reason_effect_, uint8_t reason_player_,
-						 group* targets1_, group* targets2_, uint16_t reset_phase_, uint8_t reset_count_) :
+						 owned_lua<group> targets1_, owned_lua<group> targets2_, uint16_t reset_phase_, uint8_t reset_count_) :
 		Process(step_), reset_count(reset_count_), reason_player(reason_player_), self_selected_sequence(0),
 		reset_phase(reset_phase_), reason_effect(reason_effect_), targets1(targets1_), targets2(targets2_) {}
 };
@@ -680,11 +681,11 @@ struct RockPaperScissors : public Process<true> {
 struct SelectFusion : public Process<false> {
 	uint8_t playerid;
 	uint32_t chkf;
-	group* fusion_materials;
-	group* forced_materials;
+	owned_lua<group> fusion_materials;
+	owned_lua<group> forced_materials;
 	card* pcard;
-	SelectFusion(uint16_t step_, uint8_t playerid_, group* fusion_materials_, uint32_t chkf_,
-						  group* forced_materials_, card* pcard_) :
+	SelectFusion(uint16_t step_, uint8_t playerid_, owned_lua<group> fusion_materials_, uint32_t chkf_,
+						  owned_lua<group> forced_materials_, card* pcard_) :
 		Process(step_), playerid(playerid_), chkf(chkf_), fusion_materials(fusion_materials_),
 		forced_materials(forced_materials_), pcard(pcard_) {}
 };
@@ -722,8 +723,8 @@ struct RemoveOverlay : public Process<false> {
 	uint8_t self;
 	uint8_t oppo;
 	uint32_t reason;
-	group* pgroup;
-	RemoveOverlay(uint16_t step_, uint32_t reason_, group* pgroup_, uint8_t rplayer_,
+	owned_lua<group> pgroup;
+	RemoveOverlay(uint16_t step_, uint32_t reason_, owned_lua<group> pgroup_, uint8_t rplayer_,
 						   uint8_t self_, uint8_t oppo_, uint16_t min_, uint16_t max_) :
 		Process(step_), min(min_), max(max_), replaced_amount(0),
 		has_used_overlay_remove_replace_effect(false), rplayer(rplayer_), self(self_),
@@ -732,8 +733,8 @@ struct RemoveOverlay : public Process<false> {
 struct XyzOverlay : public Process<false> {
 	bool send_materials_to_grave;
 	card* target;
-	group* materials;
-	XyzOverlay(uint16_t step_, card* target_, group* materials_, bool send_materials_to_grave_) :
+	owned_lua<group> materials;
+	XyzOverlay(uint16_t step_, card* target_, owned_lua<group> materials_, bool send_materials_to_grave_) :
 		Process(step_), send_materials_to_grave(send_materials_to_grave_), target(target_),
 		materials(materials_) {}
 };
