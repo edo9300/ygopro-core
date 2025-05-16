@@ -28,8 +28,42 @@ void ocgcore_lua_api_check(void* state, const char* error_message) {
 	pduel->handle_message(error_message, OCG_LOG_TYPE_ERROR);
 }
 
-interpreter::interpreter(duel* pd, const OCG_DuelOptions& options): coroutines(256), deleted(pd) {
+// Explicitly check for stack unwinding to be performed when lua errors are raised.
+// This required as otherwise when errors are raised, c++ classes will not be
+// properly cleaned and memory corruption issues will arise.
+// For this we need lua to be built as c++ so that internally it'll use try/catch instead
+// of setjmp/longjmp.
+// A particular case is MSVC crt which in some versions also performs stack unwinding via the use
+// of structured exceptions, this check function will also account for that, and in that
+// case the core will still be accepted.
+static bool check_lua_stack_unwinding(lua_State* L) {
+	uint32_t flag = 0xDEADBEEF;
+	memcpy(lua_getextraspace(L), &flag, sizeof(flag));
+	lua_pushcfunction(L, [](lua_State* L)->int {
+		struct Guard {
+			lua_State* state;
+			~Guard() {
+				uint32_t new_flag = 0xFFFFFFFF;
+				memcpy(lua_getextraspace(state), &new_flag, sizeof(new_flag));
+			}
+		} _{ L };
+		luaL_error(L, "");
+		return 0;
+	});
+	if(lua_pcall(L, 0, 0, 0) != LUA_OK) {
+		lua_pop(L, 1);
+	}
+	memcpy(&flag, lua_getextraspace(L), sizeof(flag));
+	return flag == 0xFFFFFFFF;
+}
+
+interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib): coroutines(256), deleted(pd) {
 	lua_state = luaL_newstate();
+	if(!check_lua_stack_unwinding(lua_state)) {
+		valid_lua_lib = false;
+		pd->handle_message("The lua library linked with this ocgcore does not support c++'s stack unwinding", OCG_LOG_TYPE_ERROR);
+		return;
+	}
 	current_state = lua_state;
 	pduel = pd;
 	no_action = 0;

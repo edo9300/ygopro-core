@@ -40,9 +40,14 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options
 		options.cardReaderDone = [](void* /*payload*/, OCG_CardData* /*data*/) {};
 		options.payload4 = nullptr;
 	}
-	auto* duelPtr = new (std::nothrow) duel(options);
+	bool valid_lua_lib = true;
+	auto* duelPtr = new (std::nothrow) duel(options, valid_lua_lib);
 	if(duelPtr == nullptr)
 		return OCG_DUEL_CREATION_NOT_CREATED;
+	if(!valid_lua_lib) {
+		delete duelPtr;
+		return OCG_DUEL_CREATION_NOT_CREATED;
+	}
 	*out_ocg_duel = static_cast<OCG_Duel>(duelPtr);
 	return OCG_DUEL_CREATION_SUCCESS;
 }

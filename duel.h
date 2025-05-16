@@ -61,8 +61,8 @@ public:
 	};
 	std::vector<uint8_t> buff;
 	std::vector<uint8_t> query_buffer;
-	field* game_field;
-	interpreter* lua;
+	field* game_field{};
+	interpreter* lua{};
 	std::unordered_set<card*> cards;
 	std::unordered_set<card*> assumes;
 	std::unordered_set<group*> groups;
@@ -82,7 +82,7 @@ public:
 	std::unordered_map<uint32_t/* hashed string */, SCRIPT_LOAD_STATUS> loaded_scripts;
 	
 	duel() = delete;
-	explicit duel(const OCG_DuelOptions& options);
+	explicit duel(const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~duel();
 	void clear();
 	
