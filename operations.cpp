@@ -424,6 +424,10 @@ bool field::process(Processors::Draw& arg) {
 			returns.set<int32_t>(0, 0);
 			return TRUE;
 		}
+		if(count == 0) {
+			returns.set<int32_t>(0, 0);
+			return TRUE;
+		}
 		core.overdraw[playerid] = false;
 		for(uint32_t i = 0; i < count; ++i) {
 			if(player[playerid].list_main.size() == 0) {
