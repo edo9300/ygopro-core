@@ -92,6 +92,21 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_l
 		nil_out("dofile");
 		nil_out("loadfile");
 	}
+	{
+		/*
+			Creates a table and sets a metatable to it making a table with weak keys, which
+			will then be used in place of the LUA_REGISTRYINDEX table to keep track of groups
+			when they are not owned by the core
+		*/
+		luaL_checkstack(lua_state, 4, nullptr);
+		lua_newtable(lua_state);
+		lua_newtable(lua_state);
+		lua_pushliteral(lua_state, "__mode");
+		lua_pushliteral(lua_state, "v");
+		lua_rawset(lua_state, -3); // metatable._mode='v'
+		lua_setmetatable(lua_state, -2);
+		weak_lua_references = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
+	}
 	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);
@@ -152,7 +167,7 @@ static inline void remove_object(lua_State* L, lua_obj* obj, lua_obj* replacemen
 	obj->ref_handle = 0;
 }
 void interpreter::register_effect(effect* peffect) {
-	register_obj(peffect, "Effect");
+	register_obj(peffect, "Effect", false);
 }
 void interpreter::unregister_effect(effect* peffect) {
 	if (!peffect)
@@ -172,14 +187,15 @@ void interpreter::unregister_effect(effect* peffect) {
 	remove_object(lua_state, peffect, &deleted);
 }
 void interpreter::register_group(group* pgroup) {
-	register_obj(pgroup, "Group");
+	register_obj(pgroup, "Group", true);
 }
-void interpreter::unregister_group(group* pgroup) {
-	remove_object(lua_state, pgroup, &deleted);
-}
-void interpreter::register_obj(lua_obj* obj, const char* tablename) {
+void interpreter::register_obj(lua_obj* obj, const char* tablename, bool weak) {
 	if(!obj)
 		return;
+	if(weak) {
+		luaL_checkstack(lua_state, 1, nullptr);
+		lua_rawgeti(lua_state, LUA_REGISTRYINDEX, weak_lua_references);
+	}
 	luaL_checkstack(lua_state, 3, nullptr);
 	lua_obj** pobj = create_object(lua_state);
 	*pobj = obj;
@@ -187,7 +203,15 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename) {
 	lua_getglobal(lua_state, tablename);
 	lua_setmetatable(lua_state, -2);
 	//pops the lua object from the stack and takes a reference of it
-	obj->ref_handle = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
+	if(weak) {
+		obj->weak_ref_handle = ensure_luaL_stack(luaL_ref, lua_state, -2);
+		lua_pop(lua_state, 1);
+	} else {
+		obj->ref_handle = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
+	}
+}
+void interpreter::collect(bool full) {
+	lua_gc(current_state, full ? LUA_GCCOLLECT : LUA_GCSTEP, 0);
 }
 bool interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	if(!buffer)
@@ -340,7 +364,6 @@ inline int interpreter::call_lua(lua_State* L, int nargs, int nresults) {
 	--no_action;
 	--call_depth;
 	if(call_depth == 0) {
-		pduel->release_script_group();
 		pduel->restore_assumes();
 	}
 	return ret;
@@ -574,7 +597,6 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 			ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, ref);
 			--call_depth;
 			if(call_depth == 0) {
-				pduel->release_script_group();
 				pduel->restore_assumes();
 			}
 			return ret_error("recursive event trigger detected.");
@@ -603,7 +625,6 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 	ensure_luaL_stack(luaL_unref, lua_state, LUA_REGISTRYINDEX, ref);
 	--call_depth;
 	if(call_depth == 0) {
-		pduel->release_script_group();
 		pduel->restore_assumes();
 	}
 	return (result == LUA_OK) ? COROUTINE_FINISH : COROUTINE_ERROR;
@@ -611,6 +632,16 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 int32_t interpreter::clone_lua_ref(int32_t lua_ref) {
 	lua_rawgeti(current_state, LUA_REGISTRYINDEX, lua_ref);
 	return ensure_luaL_stack(luaL_ref, current_state, LUA_REGISTRYINDEX);
+}
+int32_t interpreter::strong_from_weak_ref(int32_t weak_lua_ref) {
+	push_weak_ref(current_state, weak_lua_ref);
+	return ensure_luaL_stack(luaL_ref, current_state, LUA_REGISTRYINDEX);
+}
+void interpreter::push_weak_ref(lua_State* L, int32_t weak_lua_ref) {
+	luaL_checkstack(L, 2, nullptr);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, weak_lua_references);
+	lua_rawgeti(L, -1, weak_lua_ref);
+	lua_remove(L, -2);
 }
 void* interpreter::get_ref_object(int32_t ref_handler) {
 	if(ref_handler == 0)
@@ -623,8 +654,10 @@ void* interpreter::get_ref_object(int32_t ref_handler) {
 }
 //Convert a pointer to a lua value, +1 -0
 void interpreter::pushobject(lua_State* L, lua_obj* obj) {
-	if(!obj || obj->ref_handle == 0)
+	if(!obj || (obj->ref_handle == 0 && obj->weak_ref_handle == 0))
 		lua_pushnil(L);
+	else if(obj->ref_handle == 0)
+		obj->pduel->lua->push_weak_ref(L, obj->weak_ref_handle);
 	else
 		lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
 }
@@ -659,4 +692,24 @@ void interpreter::print_stacktrace(lua_State* L) {
 	if(len > sizeof("stack traceback:"))
 		pduel->handle_message(lua_get_string_or_empty(L, -1), OCG_LOG_TYPE_FOR_DEBUG);
 	lua_pop(L, 1);
+}
+
+void lua_obj::incr_ref() {
+	if(ref_handle == 0) {
+		ref_handle = pduel->lua->strong_from_weak_ref(weak_ref_handle);
+	}
+	++num_ref;
+}
+
+void lua_obj::decr_ref() {
+	if(--num_ref == 0) {
+		auto* L = pduel->lua->current_state;
+		/*
+			"ensure_luaL_stack" is not used because that would raise a lua error
+			TODO: what to do here? assert if this fails?
+		*/
+		lua_checkstack(L, 5);
+		luaL_unref(L, LUA_REGISTRYINDEX, ref_handle);
+		ref_handle = 0;
+	}
 }

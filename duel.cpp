@@ -28,12 +28,17 @@ duel::duel(const OCG_DuelOptions& options, bool& valid_lua_lib) :
 duel::~duel() {
 	for(auto& pcard : cards)
 		delete pcard;
-	for(auto& pgroup : groups)
-		delete pgroup;
+	for(auto& pgroup : groups) {
+		pgroup->container.clear();
+		pgroup->is_iterator_dirty = true;
+	}
 	for(auto& peffect : effects)
 		delete peffect;
 	delete game_field;
 	delete lua;
+	// TODO: this should actually be an assertion as no group should outlive the lua state
+	for(auto& pgroup : groups)
+		delete pgroup;
 }
 #if defined(__GNUC__) || defined(__clang_analyzer__)
 #pragma GCC diagnostic push
@@ -43,17 +48,23 @@ void duel::clear() {
 	static constexpr OCG_DuelOptions default_options{ {},0,{8000,5,1},{8000,5,1} };
 	for(auto& pcard : cards)
 		delete pcard;
-	for(auto& pgroup : groups) {
-		lua->unregister_group(pgroup);
-		delete pgroup;
-	}
 	for(auto& peffect : effects) {
 		lua->unregister_effect(peffect);
 		delete peffect;
 	}
 	delete game_field;
+	//force full garbage collection to clean the groups
+	lua->collect(true);
 	cards.clear();
-	groups.clear();
+	/*
+		TODO: how to properly handle groups that are still around after the field was destroyed?
+		If they're still here, it means they're still living as global variables somewhere, for now we
+		deal with them by clearing their containers that could have been pointing to now deleted cards
+	*/
+	for(auto& pgroup : groups) {
+		pgroup->container.clear();
+		pgroup->is_iterator_dirty = true;
+	}
 	effects.clear();
 	game_field = new field(this, default_options);
 	game_field->temp_card = new_card(0);
@@ -81,9 +92,7 @@ void duel::delete_card(card* pcard) {
 	delete pcard;
 }
 void duel::delete_group(group* pgroup) {
-	lua->unregister_group(pgroup);
 	groups.erase(pgroup);
-	sgroups.erase(pgroup);
 	delete pgroup;
 }
 void duel::delete_effect(effect* peffect) {
@@ -100,16 +109,6 @@ void duel::generate_buffer() {
 		write_buffer(message.data.data(), size);
 	}
 	messages.clear();
-}
-void duel::release_script_group() {
-	for(auto& pgroup : sgroups) {
-		if(pgroup->is_readonly == 0) {
-			lua->unregister_group(pgroup);
-			groups.erase(pgroup);
-			delete pgroup;
-		}
-	}
-	sgroups.clear();
 }
 void duel::restore_assumes() {
 	for(auto& pcard : assumes)

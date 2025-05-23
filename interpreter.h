@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -54,6 +54,7 @@ public:
 	int32_t no_action;
 	int32_t call_depth;
 	lua_invalid deleted;
+	int weak_lua_references;
 
 	interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~interpreter();
@@ -62,8 +63,9 @@ public:
 	void register_effect(effect* peffect);
 	void unregister_effect(effect* peffect);
 	void register_group(group* pgroup);
-	void unregister_group(group* pgroup);
-	void register_obj(lua_obj* obj, const char* tablename);
+	void register_obj(lua_obj* obj, const char* tablename, bool weak);
+
+	void collect(bool full = false);
 
 	bool load_script(const char* buffer, int len = 0, const char* script_name = nullptr);
 	bool load_card_script(uint32_t code);
@@ -93,6 +95,8 @@ public:
 	bool get_function_value(int32_t f, uint32_t param_count, std::vector<lua_Integer>& result);
 	int32_t call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step);
 	int32_t clone_lua_ref(int32_t lua_ref);
+	int32_t strong_from_weak_ref(int32_t weak_lua_ref);
+	void push_weak_ref(lua_State* L, int32_t weak_lua_ref);
 	void* get_ref_object(int32_t ref_handler);
 	bool call_function(int param_count, int ret_count);
 	inline bool ret_fail(const char* message);

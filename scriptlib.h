@@ -70,6 +70,9 @@ namespace scriptlib {
 	inline constexpr bool IsFunction = std::is_same_v<T, function>;
 
 	template<typename T>
+	inline constexpr bool IsOwnedObject = std::is_same_v<T, owned_lua<group>>;
+
+	template<typename T>
 	using EnableIfIntegral = std::enable_if_t<IsInteger<T> || IsBool<T>, T>;
 
 	template<LuaParam param_type, bool retfalse = false, typename ReturnType = std::conditional_t<retfalse, bool, void>>
@@ -79,7 +82,9 @@ namespace scriptlib {
 
 	template<typename T>
 	inline constexpr auto get_lua_param_type() {
-		if constexpr(IsCard<T>)
+		if constexpr(IsOwnedObject<T>)
+			return get_lua_param_type<typename T::lua_type>();
+		else if constexpr(IsCard<T>)
 			return LuaParam::CARD;
 		else if constexpr(IsGroup<T>)
 			return LuaParam::GROUP;
@@ -187,7 +192,7 @@ namespace scriptlib {
 	}
 
 	template<bool nil_allowed = false>
-	inline std::pair<card*, group*> lua_get_card_or_group(lua_State* L, int idx) {
+	inline std::pair<card*, owned_lua<group>> lua_get_card_or_group(lua_State* L, int idx) {
 		if constexpr(nil_allowed) {
 			if(lua_isnoneornil(L, idx))
 				return { nullptr, nullptr };
@@ -198,7 +203,7 @@ namespace scriptlib {
 			case LuaParam::CARD:
 				return { reinterpret_cast<card*>(obj), nullptr };
 			case LuaParam::GROUP:
-				return{ nullptr, reinterpret_cast<group*>(obj) };
+				return{ nullptr, owned_lua<group>{reinterpret_cast<group*>(obj)} };
 			default: break;
 			}
 		}

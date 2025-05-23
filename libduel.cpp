@@ -274,21 +274,21 @@ inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto pcard = lua_get<card*, true>(L, 2);
-	group* must = nullptr;
+	owned_lua<group> must = nullptr;
 	if(auto _pcard = lua_get<card*>(L, 3 + offset)) {
 		must = pduel->new_group(_pcard);
-		must->is_readonly = TRUE;
+		must->is_readonly = true;
 	} else if(auto pgroup = lua_get<group*>(L, 3 + offset)) {
 		must = pduel->new_group(pgroup);
-		must->is_readonly = TRUE;
+		must->is_readonly = true;
 	}
-	group* materials = nullptr;
+	owned_lua<group> materials = nullptr;
 	if(auto _pcard = lua_get<card*>(L, 4 + offset)) {
 		materials = pduel->new_group(_pcard);
-		materials->is_readonly = TRUE;
+		materials->is_readonly = true;
 	} else if(auto pgroup = lua_get<group*>(L, 4 + offset)) {
 		materials = pduel->new_group(pgroup);
-		materials->is_readonly = TRUE;
+		materials->is_readonly = true;
 	}
 	auto minc = lua_get<uint16_t, 0>(L, 5 + offset);
 	auto maxc = lua_get<uint16_t, 0>(L, 6 + offset);
@@ -561,7 +561,7 @@ LUA_STATIC_FUNCTION(RemoveCards) {
 	return 0;
 }
 LUA_STATIC_FUNCTION(GetOperatedGroup) {
-	group* pgroup = pduel->new_group(pduel->game_field->core.operated_set);
+	auto pgroup = pduel->new_group(pduel->game_field->core.operated_set);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -1310,7 +1310,7 @@ LUA_STATIC_FUNCTION(DiscardHand) {
 	auto min = lua_get<uint16_t>(L, 3);
 	auto max = lua_get<uint16_t>(L, 4);
 	auto reason = lua_get<uint32_t>(L, 5);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, playerid, LOCATION_HAND, 0, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	if(pduel->game_field->core.select_cards.size() == 0) {
@@ -1804,7 +1804,7 @@ LUA_STATIC_FUNCTION(GetLinkedGroup) {
 		location2 = LOCATION_MZONE;
 	card_set cset;
 	pduel->game_field->get_linked_cards(rplayer, location1, location2, &cset);
-	group* pgroup = pduel->new_group(std::move(cset));
+	auto pgroup = pduel->new_group(std::move(cset));
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -2163,7 +2163,7 @@ LUA_STATIC_FUNCTION(GetFieldGroup) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto location1 = lua_get<uint16_t>(L, 2);
 	auto location2 = lua_get<uint16_t>(L, 3);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_field_card(playerid, location1, location2, pgroup);
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2193,7 +2193,7 @@ LUA_STATIC_FUNCTION(GetDecktopGroup) {
 	auto& main = pduel->game_field->player[playerid].list_main;
 	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
 	const auto offset = main.size() - count;
-	group* pgroup = pduel->new_group(main.begin() + offset, main.end());
+	auto pgroup = pduel->new_group(main.begin() + offset, main.end());
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -2202,7 +2202,7 @@ LUA_STATIC_FUNCTION(GetDeckbottomGroup) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto& main = pduel->game_field->player[playerid].list_main;
 	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
-	group* pgroup = pduel->new_group(main.begin(), main.begin() + count);
+	auto pgroup = pduel->new_group(main.begin(), main.begin() + count);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -2215,7 +2215,7 @@ LUA_STATIC_FUNCTION(GetExtraTopGroup) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	auto count = lua_get<uint32_t>(L, 2);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	auto cit = pduel->game_field->player[playerid].list_extra.rbegin() + pduel->game_field->player[playerid].extra_p_count;
 	for(uint32_t i = 0; i < count && cit != pduel->game_field->player[playerid].list_extra.rend(); ++i, ++cit)
 		pgroup->container.insert(*cit);
@@ -2238,7 +2238,7 @@ LUA_STATIC_FUNCTION(GetMatchingGroup) {
 	auto self = lua_get<uint8_t>(L, 2);
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2259,7 +2259,7 @@ LUA_STATIC_FUNCTION(GetMatchingGroupCount) {
 	auto self = lua_get<uint8_t>(L, 2);
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
@@ -2336,7 +2336,7 @@ LUA_STATIC_FUNCTION(SelectMatchingCard) {
 	auto location2 = lua_get<uint16_t>(L, 5);
 	auto min = lua_get<uint16_t>(L, 6);
 	auto max = lua_get<uint16_t>(L, 7);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
@@ -2395,7 +2395,7 @@ LUA_STATIC_FUNCTION(GetReleaseGroup) {
 	bool hand = lua_get<bool, false>(L, 2);
 	bool oppo = lua_get<bool, false>(L, 3);
 	const auto reason = lua_get<uint32_t, REASON_COST>(L, 4);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, hand, 0, 0, nullptr, nullptr, oppo, reason);
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2523,7 +2523,7 @@ LUA_STATIC_FUNCTION(SelectReleaseGroupEx) {
 LUA_STATIC_FUNCTION(GetTributeGroup) {
 	check_param_count(L, 1);
 	auto target = lua_get<card*, true>(L, 1);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->get_summon_release_list(target, &(pgroup->container), &(pgroup->container), &(pgroup->container));
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2599,7 +2599,7 @@ LUA_STATIC_FUNCTION(GetTargetCount) {
 	auto self = lua_get<uint8_t>(L, 2);
 	auto location1 = lua_get<uint16_t>(L, 3);
 	auto location2 = lua_get<uint16_t>(L, 4);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
@@ -2655,7 +2655,7 @@ LUA_STATIC_FUNCTION(SelectTarget) {
 	auto max = lua_get<uint16_t>(L, 7);
 	if(pduel->game_field->core.current_chain.size() == 0)
 		return 0;
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
@@ -2668,14 +2668,14 @@ LUA_STATIC_FUNCTION(SelectTarget) {
 		if(ch) {
 			if(!ch->target_cards) {
 				ch->target_cards = pduel->new_group();
-				ch->target_cards->is_readonly = TRUE;
+				ch->target_cards->is_readonly = true;
 			}
 			ch->target_cards->container.insert(pduel->game_field->return_cards.list.begin(), pduel->game_field->return_cards.list.end());
 			effect* peffect = ch->triggering_effect;
 			if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
 				interpreter::pushobject(L, ch->target_cards);
 			} else {
-				group* pret = pduel->new_group(pduel->game_field->return_cards.list);
+				auto pret = pduel->new_group(pduel->game_field->return_cards.list);
 				for(auto& pcard : pret->container) {
 					pcard->create_relation(*ch);
 					if(peffect->is_flag(EFFECT_FLAG_CARD_TARGET)) {
@@ -2698,7 +2698,7 @@ LUA_STATIC_FUNCTION(SelectFusionMaterial) {
 		return 0;
 	auto pcard = lua_get<card*, true>(L, 2);
 	auto pgroup = lua_get<group*, true>(L, 3);
-	group* forced_materials = nullptr;
+	owned_lua<group> forced_materials = nullptr;
 	if(auto pcard_ = lua_get<card*>(L, 4))
 		forced_materials = pduel->new_group(pcard_);
 	else
@@ -2706,7 +2706,7 @@ LUA_STATIC_FUNCTION(SelectFusionMaterial) {
 	auto chkf = lua_get<uint32_t, PLAYER_NONE>(L, 5);
 	pduel->game_field->emplace_process<Processors::SelectFusion>(playerid, pgroup, chkf, forced_materials, pcard);
 	return yieldk({
-		group* pgroup = pduel->new_group(pduel->game_field->core.fusion_materials);
+		auto pgroup = pduel->new_group(pduel->game_field->core.fusion_materials);
 		interpreter::pushobject(L, pgroup);
 		return 1;
 	});
@@ -2723,7 +2723,7 @@ LUA_STATIC_FUNCTION(GetRitualMaterial) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	bool check_level = lua_get<bool, true>(L, 2);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->get_ritual_material(playerid, pduel->game_field->core.reason_effect, &pgroup->container, check_level);
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2740,7 +2740,7 @@ LUA_STATIC_FUNCTION(GetFusionMaterial) {
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->get_fusion_material(playerid, &pgroup->container);
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2758,7 +2758,7 @@ LUA_STATIC_FUNCTION(SetSelectedCard) {
 	return 0;
 }
 LUA_STATIC_FUNCTION(GrabSelectedCard) {
-	group* pgroup = pduel->new_group(pduel->game_field->core.must_select_cards);
+	auto pgroup = pduel->new_group(pduel->game_field->core.must_select_cards);
 	pduel->game_field->core.must_select_cards.clear();
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -2772,9 +2772,9 @@ LUA_STATIC_FUNCTION(SetTargetCard) {
 		return 0;
 	if(!ch->target_cards) {
 		ch->target_cards = pduel->new_group();
-		ch->target_cards->is_readonly = TRUE;
+		ch->target_cards->is_readonly = true;
 	}
-	group* targets = ch->target_cards;
+	auto targets = ch->target_cards;
 	effect* peffect = ch->triggering_effect;
 	if(peffect->type & EFFECT_TYPE_CONTINUOUS) {
 		if(pcard)
@@ -2852,11 +2852,8 @@ LUA_STATIC_FUNCTION(SetOperationInfo) {
 		// and the core always assume the group is exactly 2 cards
 		if(cate == 0x200 && playerid == PLAYER_ALL && opt.op_cards->container.size() != 2)
 			lua_error(L, "Called Duel.SetOperationInfo with CATEGORY_SPECIAL_SUMMON and PLAYER_ALL but the group size wasn't exactly 2.");
-		opt.op_cards->is_readonly = TRUE;
+		opt.op_cards->is_readonly = true;
 	}
-	auto omit = ch->opinfos.find(cate);
-	if(omit != ch->opinfos.end() && omit->second.op_cards)
-		pduel->delete_group(omit->second.op_cards);
 	ch->opinfos[cate] = std::move(opt);
 	return 0;
 }
@@ -2899,11 +2896,8 @@ LUA_STATIC_FUNCTION(SetPossibleOperationInfo) {
 	optarget opt{ nullptr, count, playerid, param };
 	if(pobj && (pobj->lua_type == LuaParam::CARD || pobj->lua_type == LuaParam::GROUP)) {
 		opt.op_cards = pduel->new_group(pobj);
-		opt.op_cards->is_readonly = TRUE;
+		opt.op_cards->is_readonly = true;
 	}
-	auto omit = ch->possibleopinfos.find(cate);
-	if(omit != ch->possibleopinfos.end() && omit->second.op_cards)
-		pduel->delete_group(omit->second.op_cards);
 	ch->possibleopinfos[cate] = std::move(opt);
 	return 0;
 }
@@ -2947,15 +2941,7 @@ LUA_STATIC_FUNCTION(ClearOperationInfo) {
 	chain* ch = pduel->game_field->get_chain(ct);
 	if(!ch)
 		return 0;
-	for(auto& oit : ch->opinfos) {
-		if(oit.second.op_cards)
-			pduel->delete_group(oit.second.op_cards);
-	}
 	ch->opinfos.clear();
-	for(auto& oit : ch->possibleopinfos) {
-		if(oit.second.op_cards)
-			pduel->delete_group(oit.second.op_cards);
-	}
 	ch->possibleopinfos.clear();
 	return 0;
 }
@@ -2986,7 +2972,7 @@ LUA_STATIC_FUNCTION(GetOverlayGroup) {
 	auto self = lua_get<uint8_t>(L, 2);
 	auto oppo = lua_get<uint8_t>(L, 3);
 	group* targetsgroup = lua_get<group*>(L, 4);
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	pduel->game_field->get_overlay_group(rplayer, self, oppo, &pgroup->container, targetsgroup);
 	interpreter::pushobject(L, pgroup);
 	return 1;
