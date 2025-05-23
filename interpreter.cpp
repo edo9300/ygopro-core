@@ -720,16 +720,12 @@ void lua_obj::decr_ref() {
 	--num_ref;
 	if(num_ref == 0) {
 		auto* L = pduel->lua->current_state;
-		// TODO: what to do here? assert if this fails?
-		lua_checkstack(L, 2);
-		lua_pushcfunction(L, [](lua_State* L) -> int32_t {
-			ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, lua_tointeger(L, 1));
-			return 0;
-		});
-		lua_pushinteger(L, ref_handle);
-		if(lua_pcall(L, 1, 0, 0) != LUA_OK) {
-			lua_pop(L, 1);
-		}
+		/*
+			"ensure_luaL_stack" is not used because that would raise a lua error
+			TODO: what to do here? assert if this fails?
+		*/
+		lua_checkstack(L, 5);
+		luaL_unref(L, LUA_REGISTRYINDEX, ref_handle);
 		ref_handle = 0;
 	}
 }
