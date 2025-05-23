@@ -211,22 +211,7 @@ void interpreter::register_obj(lua_obj* obj, const char* tablename, bool weak) {
 	}
 }
 void interpreter::collect(bool full) {
-	if(!lua_checkstack(current_state, 1)) {
-		return;
-	}
-	// faster and cleaner to just have 2 separate functions than to pass upvalues
-	auto* gcfull = +[](lua_State* L) -> int32_t {
-		lua_gc(L, LUA_GCCOLLECT, 0);
-		return 0;
-	};
-	auto* gcstep = +[](lua_State* L) -> int32_t {
-		lua_gc(L, LUA_GCSTEP, 0);
-		return 0;
-	};
-	lua_pushcfunction(current_state, (full ? gcfull : gcstep));
-	if(lua_pcall(current_state, 0, 0, 0) != LUA_OK) {
-		lua_pop(current_state, 1);
-	}
+	lua_gc(current_state, full ? LUA_GCCOLLECT : LUA_GCSTEP, 0);
 }
 bool interpreter::load_script(const char* buffer, int len, const char* script_name) {
 	if(!buffer)
