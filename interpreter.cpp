@@ -702,8 +702,7 @@ void lua_obj::incr_ref() {
 }
 
 void lua_obj::decr_ref() {
-	--num_ref;
-	if(num_ref == 0) {
+	if(--num_ref == 0) {
 		auto* L = pduel->lua->current_state;
 		/*
 			"ensure_luaL_stack" is not used because that would raise a lua error

@@ -48,7 +48,8 @@ class owned_lua {
 		if(obj) {
 			obj->decr_ref();
 		}
-		if(obj = other; obj) {
+		obj = other;
+		if(obj) {
 			obj->incr_ref();
 		}
 		return *this;
