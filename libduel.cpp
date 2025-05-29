@@ -4153,6 +4153,14 @@ LUA_STATIC_FUNCTION(GetStartingHand) {
 	lua_pushinteger(L, pduel->game_field->player[playerid].start_count);
 	return 1;
 }
+LUA_STATIC_FUNCTION(GetReasonPlayer) {
+	lua_pushinteger(L, pduel->game_field->core.reason_player);
+	return 1;
+}
+LUA_STATIC_FUNCTION(GetReasonEffect) {
+	interpreter::pushobject(L, pduel->game_field->core.reason_effect);
+	return 1;
+}
 #define INFO_FUNC_FROM_CODE(lua_name,attr) \
 LUA_STATIC_FUNCTION(GetCard ##lua_name ##FromCode) { \
 	check_param_count(L, 1); \
