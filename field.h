@@ -28,15 +28,15 @@ class group;
 class effect;
 
 struct tevent {
-	card* trigger_card;
-	group* event_cards;
-	effect* reason_effect;
-	uint32_t event_code;
-	uint32_t event_value;
-	uint32_t reason;
-	uint8_t event_player;
-	uint8_t reason_player;
-	uint32_t global_id;
+	card* trigger_card{};
+	group* event_cards{};
+	effect* reason_effect{};
+	uint32_t event_code{};
+	uint32_t event_value{};
+	uint32_t reason{};
+	uint8_t event_player{};
+	uint8_t reason_player{};
+	uint32_t global_id{};
 	bool operator< (const tevent& v) const;
 };
 struct optarget {
