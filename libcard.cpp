@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -217,7 +217,7 @@ LUA_FUNCTION(IsLinkMarker) {
 LUA_FUNCTION(GetLinkedGroup) {
 	card_set cset;
 	self->get_linked_cards(&cset);
-	group* pgroup = pduel->new_group(cset);
+	auto pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -248,7 +248,7 @@ LUA_FUNCTION(GetFreeLinkedZone) {
 LUA_FUNCTION(GetMutualLinkedGroup) {
 	card_set cset;
 	self->get_mutual_linked_cards(&cset);
-	group* pgroup = pduel->new_group(cset);
+	auto pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -280,7 +280,7 @@ LUA_FUNCTION(GetColumnGroup) {
 	auto right = lua_get<uint8_t, 0>(L, 3);
 	card_set cset;
 	self->get_column_cards(&cset, left, right);
-	group* pgroup = pduel->new_group(cset);
+	auto pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -888,7 +888,7 @@ LUA_FUNCTION(SetMaterial) {
 	return 0;
 }
 LUA_FUNCTION(GetMaterial) {
-	group* pgroup = pduel->new_group(self->material_cards);
+	auto pgroup = pduel->new_group(self->material_cards);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -897,7 +897,7 @@ LUA_FUNCTION(GetMaterialCount) {
 	return 1;
 }
 LUA_FUNCTION(GetEquipGroup) {
-	group* pgroup = pduel->new_group(self->equiping_cards);
+	auto pgroup = pduel->new_group(self->equiping_cards);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -939,7 +939,7 @@ LUA_FUNCTION(GetUnionCount) {
 	return 2;
 }
 LUA_FUNCTION(GetOverlayGroup) {
-	group* pgroup = pduel->new_group(self->xyz_materials);
+	auto pgroup = pduel->new_group(self->xyz_materials);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -958,7 +958,7 @@ LUA_FUNCTION(CheckRemoveOverlayCard) {
 		return 0;
 	auto count = lua_get<uint16_t>(L, 3);
 	auto reason = lua_get<uint32_t>(L, 4);
-	group* pgroup = pduel->new_group(self);
+	auto pgroup = pduel->new_group(self);
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pgroup, 0, 0, count, reason));
 	return 1;
 }
@@ -971,7 +971,7 @@ LUA_FUNCTION(RemoveOverlayCard) {
 	auto min = lua_get<uint16_t>(L, 3);
 	auto max = lua_get<uint16_t>(L, 4);
 	auto reason = lua_get<uint32_t>(L, 5);
-	group* pgroup = pduel->new_group(self);
+	auto pgroup = pduel->new_group(self);
 	pduel->game_field->remove_overlay_card(reason, pgroup, playerid, 0, 0, min, max);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
@@ -979,7 +979,7 @@ LUA_FUNCTION(RemoveOverlayCard) {
 	});
 }
 LUA_FUNCTION(GetAttackedGroup) {
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	for(auto& cit : self->attacked_cards) {
 		if(cit.second.first)
 			pgroup->container.insert(cit.second.first);
@@ -996,7 +996,7 @@ LUA_FUNCTION(GetAttackedCount) {
 	return 1;
 }
 LUA_FUNCTION(GetBattledGroup) {
-	group* pgroup = pduel->new_group();
+	auto pgroup = pduel->new_group();
 	for(auto& cit : self->battled_cards) {
 		if(cit.second.first)
 			pgroup->container.insert(cit.second.first);
@@ -1023,7 +1023,7 @@ LUA_FUNCTION(SetCardTarget) {
 	return 0;
 }
 LUA_FUNCTION(GetCardTarget) {
-	group* pgroup = pduel->new_group(self->effect_target_cards);
+	auto pgroup = pduel->new_group(self->effect_target_cards);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -1050,7 +1050,7 @@ LUA_FUNCTION(CancelCardTarget) {
 	return 0;
 }
 LUA_FUNCTION(GetOwnerTarget) {
-	group* pgroup = pduel->new_group(self->effect_target_owner);
+	auto pgroup = pduel->new_group(self->effect_target_owner);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
@@ -1383,8 +1383,8 @@ inline int32_t spsummonable_rule(lua_State* L, uint32_t cardtype, uint32_t sumty
 	auto pcard = lua_get<card*, true>(L, 1);
 	if(!(pcard->data.type & cardtype))
 		return 0;
-	group* must = nullptr;
-	group* materials = nullptr;
+	owned_lua<group> must = nullptr;
+	owned_lua<group> materials = nullptr;
 	if(auto [pcard_, pgroup_] = lua_get_card_or_group<true>(L, 2 + offset); pcard_)
 		must = pduel->new_group(pcard_);
 	else if(pgroup_)
@@ -1921,10 +1921,10 @@ LUA_FUNCTION(IsCanBeMaterial) {
 	return 1;
 }
 LUA_FUNCTION(CheckFusionMaterial) {
-	group* pgroup = nullptr;
+	owned_lua<group> pgroup = nullptr;
 	if(lua_gettop(L) > 1 && !lua_isnoneornil(L, 2))
 		pgroup = lua_get<group*, true>(L, 2);
-	group* cg = nullptr;
+	owned_lua<group> cg = nullptr;
 	if(auto _pcard = lua_get<card*>(L, 3))
 		cg = pduel->new_group(_pcard);
 	else
@@ -2045,7 +2045,7 @@ LUA_FUNCTION(GetAttackableTarget) {
 	card_vector targets;
 	bool chain_attack = pduel->game_field->core.chain_attacker_id == self->fieldid;
 	pduel->game_field->get_attack_target(self, &targets, chain_attack);
-	group* newgroup = pduel->new_group(targets);
+	auto newgroup = pduel->new_group(targets);
 	interpreter::pushobject(L, newgroup);
 	lua_pushboolean(L, self->direct_attackable);
 	return 2;

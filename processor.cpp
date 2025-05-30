@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -197,8 +197,8 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = nullptr;
 	if (event_card) {
-		group* pgroup = pduel->new_group(event_card);
-		pgroup->is_readonly = TRUE;
+		auto pgroup = pduel->new_group(event_card);
+		pgroup->is_readonly = true;
 		new_event.event_cards = pgroup;
 	} else
 		new_event.event_cards = nullptr;
@@ -213,8 +213,8 @@ void field::raise_event(card* event_card, uint32_t event_code, effect* reason_ef
 void field::raise_event(card_set event_cards, uint32_t event_code, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t event_player, uint32_t event_value) {
 	auto& new_event = core.queue_event.emplace_back();
 	new_event.trigger_card = nullptr;
-	group* pgroup = pduel->new_group(std::move(event_cards));
-	pgroup->is_readonly = TRUE;
+	auto pgroup = pduel->new_group(std::move(event_cards));
+	pgroup->is_readonly = true;
 	new_event.event_cards = pgroup;
 	new_event.event_code = event_code;
 	new_event.reason_effect = reason_effect;
@@ -228,8 +228,8 @@ void field::raise_single_event(card* trigger_card, card_set* event_cards, uint32
 	auto& new_event = core.single_event.emplace_back();
 	new_event.trigger_card = trigger_card;
 	if (event_cards) {
-		group* pgroup = pduel->new_group(*event_cards);
-		pgroup->is_readonly = TRUE;
+		auto pgroup = pduel->new_group(*event_cards);
+		pgroup->is_readonly = true;
 		new_event.event_cards = pgroup;
 	} else
 		new_event.event_cards = nullptr;
@@ -2554,9 +2554,9 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.battle_destroy_rep.clear();
 		core.desrep_chain.clear();
 		if(des.size()) {
-			group* ng = pduel->new_group();
+			auto ng = pduel->new_group();
 			ng->container.swap(des);
-			ng->is_readonly = TRUE;
+			ng->is_readonly = true;
 			emplace_process<Processors::Destroy>(Step{ 10 }, ng, nullptr, REASON_BATTLE, PLAYER_NONE);
 			arg.cards_destroyed_by_battle = ng;
 		}
@@ -2571,7 +2571,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		return FALSE;
 	}
 	case 30: {
-		group* des = arg.cards_destroyed_by_battle;
+		auto des = arg.cards_destroyed_by_battle;
 		if(des && des->container.size()) {
 			for(auto& pcard : des->container) {
 				pcard->set_status(STATUS_BATTLE_DESTROYED, TRUE);
@@ -2636,7 +2636,7 @@ bool field::process(Processors::BattleCommand& arg) {
 		return FALSE;
 	}
 	case 33: {
-		group* des = arg.cards_destroyed_by_battle;
+		auto des = arg.cards_destroyed_by_battle;
 		if(des) {
 			for(auto cit = des->container.begin(); cit != des->container.end();) {
 				auto rm = cit++;
@@ -3255,10 +3255,6 @@ bool field::process(Processors::Turn& arg) {
 	switch(arg.step) {
 	case 0: {
 		//Pre Draw
-		for(const auto& ev : core.used_event) {
-			if(ev.event_cards)
-				pduel->delete_group(ev.event_cards);
-		}
 		core.used_event.clear();
 		for(auto& peffect : core.reseted_effects) {
 			pduel->delete_effect(peffect);
@@ -4052,12 +4048,6 @@ bool field::process(Processors::SolveContinuous& arg) {
 		effect* peffect = clit.triggering_effect;
 		core.reason_effect = arg.reason_effect;
 		core.reason_player = arg.reason_player;
-		if(core.continuous_chain.back().target_cards)
-			pduel->delete_group(core.continuous_chain.back().target_cards);
-		for(auto& oit : core.continuous_chain.back().opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		core.continuous_chain.pop_back();
 		core.solving_continuous.pop_front();
 		if(peffect->is_flag(EFFECT_FLAG_DELAY) || (!(peffect->code & 0xfffff000u) && (peffect->code & (EVENT_PHASE | EVENT_PHASE_START)))) {
@@ -4308,12 +4298,6 @@ bool field::process(Processors::SolveChain& arg) {
 		peffect->active_type = 0;
 		peffect->active_handler = nullptr;
 		pcard->release_relation(*cait);
-		if(cait->target_cards)
-			pduel->delete_group(cait->target_cards);
-		for(auto& oit : cait->opinfos) {
-			if(oit.second.op_cards)
-				pduel->delete_group(oit.second.op_cards);
-		}
 		for(auto& cit : core.delayed_enable_set) {
 			if(cit->current.location == LOCATION_MZONE)
 				cit->enable_field_effect(true);
@@ -4899,9 +4883,9 @@ bool field::process(Processors::Adjust& arg) {
 		}
 		if(pos_adjust.size()) {
 			core.re_adjust = true;
-			group* ng = pduel->new_group();
+			auto ng = pduel->new_group();
 			ng->container.swap(pos_adjust);
-			ng->is_readonly = TRUE;
+			ng->is_readonly = true;
 			emplace_process<Processors::ChangePos>(ng, nullptr, PLAYER_NONE, true);
 		}
 		return FALSE;
