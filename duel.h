@@ -95,7 +95,7 @@ public:
 			lua->register_group(pgroup);
 			return owned_lua<group>{pgroup};
 		}();
-		if(groups.size() > 2000) {
+		if(groups.size() > 2048) {
 			lua->collect();
 		}
 		return pgroup;
