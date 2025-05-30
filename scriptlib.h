@@ -70,7 +70,10 @@ namespace scriptlib {
 	inline constexpr bool IsFunction = std::is_same_v<T, function>;
 
 	template<typename T>
-	inline constexpr bool IsOwnedObject = std::is_same_v<T, owned_lua<group>>;
+	inline constexpr bool IsOwnedObject = false;
+
+	template<typename T>
+	inline constexpr bool IsOwnedObject<owned_lua<T>> = true;
 
 	template<typename T>
 	using EnableIfIntegral = std::enable_if_t<IsInteger<T> || IsBool<T>, T>;
