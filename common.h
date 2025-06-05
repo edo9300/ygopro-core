@@ -143,7 +143,7 @@
 #define RACE_GALAXY            0x80000000
 #define RACE_YOKAI             0x4000000000000000
 #define RACE_MAX               RACE_GALAXY
-#define RACE_ALL               ((~(RACE_MAX<<1))|RACE_YOKAI)
+#define RACE_ALL               (((uint64_t(RACE_MAX)<<1)-1)|RACE_YOKAI)
 
 //Reasons
 #define REASON_DESTROY     0x1
