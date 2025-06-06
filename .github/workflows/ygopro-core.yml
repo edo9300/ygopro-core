@@ -282,19 +282,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ndk-version: [21.4.7075529, 16.1.4479499, 26.1.10909125]
+        ndk-version: [21.4.7075529, 16.1.4479499, 27.2.12479018]
         include:
           - ndk-version: 21.4.7075529
             deploy-branch: travis-core-android
           - ndk-version: 16.1.4479499
             deploy-branch: travis-core-android-ndk-16
-          - ndk-version: 26.1.10909125
-            deploy-branch: travis-core-android-ndk-26
+          - ndk-version: 27.2.12479018
+            deploy-branch: travis-core-android-ndk-27
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
       NDK_VERSION: ${{ matrix.ndk-version }}
-      TRAVIS_OS_NAME: android
-      OS_NAME: linux
+      TRAVIS_OS_NAME: linux
+      TARGET_OS: android
     steps:
     - name: Install old ncurses library for ndk 16
       if: matrix.ndk-version == '16.1.4479499'
