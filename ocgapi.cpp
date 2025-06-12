@@ -40,6 +40,8 @@ OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options
 		options.cardReaderDone = [](void* /*payload*/, OCG_CardData* /*data*/) {};
 		options.payload4 = nullptr;
 	}
+	if(options.seed[0] == 0 && options.seed[1] == 0 && options.seed[2] == 0 && options.seed[3] == 0)
+		return OCG_DUEL_CREATION_NOT_CREATED;
 	bool valid_lua_lib = true;
 	auto* duelPtr = new (std::nothrow) duel(options, valid_lua_lib);
 	if(duelPtr == nullptr)
