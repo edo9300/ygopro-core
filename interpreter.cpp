@@ -38,13 +38,13 @@ void ocgcore_lua_api_check(void* state, const char* error_message) {
 // case the core will still be accepted.
 static bool check_lua_stack_unwinding(lua_State* L) {
 	uint32_t flag = 0xDEADBEEF;
-	memcpy(lua_getextraspace(L), &flag, sizeof(flag));
+	std::memcpy(lua_getextraspace(L), &flag, sizeof(flag));
 	lua_pushcfunction(L, [](lua_State* L)->int {
 		struct Guard {
 			lua_State* state;
 			~Guard() {
 				uint32_t new_flag = 0xFFFFFFFF;
-				memcpy(lua_getextraspace(state), &new_flag, sizeof(new_flag));
+				std::memcpy(lua_getextraspace(state), &new_flag, sizeof(new_flag));
 			}
 		} _{ L };
 		luaL_error(L, "");
@@ -53,7 +53,7 @@ static bool check_lua_stack_unwinding(lua_State* L) {
 	if(lua_pcall(L, 0, 0, 0) != LUA_OK) {
 		lua_pop(L, 1);
 	}
-	memcpy(&flag, lua_getextraspace(L), sizeof(flag));
+	std::memcpy(&flag, lua_getextraspace(L), sizeof(flag));
 	return flag == 0xFFFFFFFF;
 }
 
