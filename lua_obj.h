@@ -101,13 +101,13 @@ public:
 	}
 };
 
-template<LuaParam _Type>
+template<LuaParam type>
 class lua_obj_helper : public lua_obj {
-	static_assert(_Type == LuaParam::CARD || _Type == LuaParam::GROUP ||
-				  _Type == LuaParam::EFFECT || _Type == LuaParam::DELETED,
+	static_assert(type == LuaParam::CARD || type == LuaParam::GROUP ||
+				  type == LuaParam::EFFECT || type == LuaParam::DELETED,
 				  "Invalid parameter type");
 public:
-	lua_obj_helper(duel* pduel_) : lua_obj(_Type, pduel_) {}
+	lua_obj_helper(duel* pduel_) : lua_obj(type, pduel_) {}
 };
 
 #endif /* LUA_OBJ_H_ */
