@@ -1394,7 +1394,7 @@ void field::remove_oath_effect(effect* reason_effect) {
 void field::release_oath_relation(effect* reason_effect) {
 	for(auto& oeit : effects.oath)
 		if(oeit.second == reason_effect)
-			oeit.second = 0;
+			oeit.second = nullptr;
 }
 void field::reset_phase(uint32_t phase) {
 	for(auto eit = effects.pheff.begin(); eit != effects.pheff.end();) {

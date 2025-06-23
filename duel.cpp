@@ -172,7 +172,7 @@ void duel::duel_message::write(loc_info loc) {
 }
 
 card_data::card_data(const OCG_CardData& data) {
-#define COPY(val) val = data.val;
+#define COPY(val) do { val = data.val; } while(0)
 	COPY(code);
 	COPY(alias);
 	COPY(type);

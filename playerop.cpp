@@ -989,21 +989,21 @@ bool field::process(Processors::AnnounceAttribute& arg) {
 									stack.pop();\
 									stack.push(lhs op rhs);\
 								}\
-								break;\
-							}
+							}\
+							break
 #define UNARY_OP(opcode,op) case opcode: {\
 								if (stack.size() >= 1) {\
 									auto val = stack.top();\
 									stack.pop();\
 									stack.push(op val);\
 								}\
-								break;\
-							}
+							}\
+							break
 #define UNARY_OP_OP(opcode,val,op) UNARY_OP(opcode,cd.val op)
 #define GET_OP(opcode,val) case opcode: {\
 								stack.push(cd.val);\
-								break;\
-							}
+							}\
+							break
 static int32_t is_declarable(const card_data& cd, const std::vector<uint64_t>& opcodes) {
 	std::stack<int64_t> stack;
 	bool alias = false, token = false;

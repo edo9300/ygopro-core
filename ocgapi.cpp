@@ -181,7 +181,7 @@ OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, const OCG_QueryI
 	const auto& info = *info_ptr;
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	if(bit::popcnt(info.loc & ~LOCATION_OVERLAY) != 1)
-		return 0;
+		return nullptr;
 	pduel->query_buffer.clear();
 	card* pcard = nullptr;
 	if(info.loc & LOCATION_OVERLAY) {
