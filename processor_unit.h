@@ -9,7 +9,8 @@
 #include <cstdint>
 #include <map> //std::multimap
 #include <memory> //std::unique_ptr
-#include <type_traits> //std::false_type, std::true_type
+#include <type_traits> //std::is_constructible_v, std::is_base_of_v
+#include <utility> //std::make_index_sequence, std::integer_sequence, std::conditional_t
 #include <variant>
 #include "lua_obj.h"
 #include "common.h"
@@ -833,9 +834,6 @@ template<typename T, typename... Args>
 constexpr inline void emplace_variant(std::list<processor_unit>& list, Args&&... args) {
 	list.push_back(T(std::forward<Args>(args)...));
 }
-
-template<typename T>
-inline constexpr bool NeedsAnswer = std::remove_reference_t<T>::needs_answer;
 
 template<typename T>
 inline constexpr bool IsProcess = std::is_base_of_v<Process<true>, std::remove_reference_t<T>> || std::is_base_of_v<Process<false>, std::remove_reference_t<T>>;

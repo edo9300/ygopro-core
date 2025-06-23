@@ -17,7 +17,7 @@ OCG_DuelStatus field::process() {
 			return OCG_DUEL_STATUS_CONTINUE;
 		} else {
 			++arg.step;
-			return Processors::NeedsAnswer<decltype(arg)> ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE;
+			return arg.needs_answer ? OCG_DUEL_STATUS_AWAITING : OCG_DUEL_STATUS_CONTINUE;
 		}
 	};
 
