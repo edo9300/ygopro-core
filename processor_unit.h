@@ -746,9 +746,9 @@ struct RefreshRelay : public Process<false> {
 using processors = std::variant<Adjust, Turn, RefreshLoc, Startup,
 	SelectBattleCmd, SelectIdleCmd, SelectEffectYesNo, SelectYesNo,
 	SelectOption, SelectCard, SelectCardCodes, SelectUnselectCard,
-	SelectChain, SelectPlace, SelectDisField, SelectPosition,
-	SelectTributeP, SortChain, SelectCounter, SelectSum, SortCard,
-	SelectRelease, SelectTribute, QuickEffect, IdleCommand, PhaseEvent, PointEvent,
+	SelectChain, SelectPlace, SelectPosition, SelectTributeP,
+	SortChain, SelectCounter, SelectSum, SortCard, SelectRelease,
+	SelectTribute, QuickEffect, IdleCommand, PhaseEvent, PointEvent,
 	BattleCommand, DamageStep, ForcedBattle, AddChain, SolveChain, SolveContinuous,
 	ExecuteCost, ExecuteOperation, ExecuteTarget, Destroy, Release,
 	SendTo, DestroyReplace, ReleaseReplace, SendToReplace, MoveToField,
@@ -819,11 +819,6 @@ static constexpr inline auto* get_opt_variant(processor_unit& unit) {
 	}, unit);
 }
 
-template<typename T, typename... Args>
-constexpr inline void emplace_variant(std::list<processor_unit>& list, Args&&... args) {
-	T obj(std::forward<Args>(args)...);
-	list.push_back(std::move(obj));
-}
 #else
 
 using processor_unit = processors;
@@ -832,12 +827,12 @@ template<typename T>
 static constexpr inline auto* get_opt_variant(processor_unit& unit) {
 	return std::get_if<T>(&unit);
 }
+#endif
 
 template<typename T, typename... Args>
 constexpr inline void emplace_variant(std::list<processor_unit>& list, Args&&... args) {
-	list.emplace_back(std::in_place_type<T>, std::forward<Args>(args)...);
+	list.push_back(T(std::forward<Args>(args)...));
 }
-#endif
 
 template<typename T>
 inline constexpr bool NeedsAnswer = std::remove_reference_t<T>::needs_answer;
