@@ -28,8 +28,8 @@
 #undef NDEBUG
 #endif
 
-#include <cassert>
-#include <cstdint>
+#include <assert.h>
+#include <stdint.h>
 
 #define TRUE 1
 #define FALSE 0
