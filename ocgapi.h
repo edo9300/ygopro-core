@@ -26,7 +26,6 @@
 
 /*** CORE INFORMATION ***/
 OCGAPI void OCG_GetVersion(int* major, int* minor);
-/* OCGAPI void OCG_GetName(const char** name); Maybe created by git hash? */
 
 /*** DUEL CREATION AND DESTRUCTION ***/
 OCGAPI int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr);
@@ -44,5 +43,8 @@ OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel ocg_duel, uint8_t team, uint32_t loc
 OCGAPI void* OCG_DuelQuery(OCG_Duel ocg_duel, uint32_t* length, const OCG_QueryInfo* info_ptr);
 OCGAPI void* OCG_DuelQueryLocation(OCG_Duel ocg_duel, uint32_t* length, const OCG_QueryInfo* info_ptr);
 OCGAPI void* OCG_DuelQueryField(OCG_Duel ocg_duel, uint32_t* length);
+
+#undef OCGAPI
+#undef EXTERN_C
 
 #endif /* OCGAPI_H */
