@@ -426,6 +426,7 @@ public:
 	void swap_card(card* pcard1, card* pcard2);
 	void set_control(card* pcard, uint8_t playerid, uint16_t reset_phase, uint8_t reset_count);
 	card* get_field_card(uint32_t playerid, uint32_t location, uint32_t sequence);
+	int32_t is_field_location_valid(uint32_t location, uint32_t sequence);
 	int32_t is_location_useable(uint32_t playerid, uint32_t location, uint32_t sequence);
 	int32_t get_useable_count(card* pcard, uint8_t playerid, uint8_t location, uint8_t uplayer, uint32_t reason, uint32_t zone = 0xff, uint32_t* list = nullptr);
 	int32_t get_useable_count_fromex(card* pcard, uint8_t playerid, uint8_t uplayer, uint32_t zone = 0xff, uint32_t* list = nullptr);

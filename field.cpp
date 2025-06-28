@@ -588,6 +588,32 @@ card* field::get_field_card(uint32_t playerid, uint32_t location, uint32_t seque
 	}
 	return nullptr;
 }
+int32_t field::is_field_location_valid(uint32_t location, uint32_t sequence) {
+	if(location == LOCATION_EMZONE) {
+		sequence += 5;
+		location = LOCATION_MZONE;
+	}
+	if(location == LOCATION_MMZONE) {
+		location = LOCATION_MZONE;
+		sequence += 1 * is_flag(DUEL_3_COLUMNS_FIELD);
+	}
+	if(location == LOCATION_STZONE) {
+		location = LOCATION_SZONE;
+		sequence += 1 * is_flag(DUEL_3_COLUMNS_FIELD);
+	}
+	if((location & LOCATION_ONFIELD) == 0)
+		return TRUE;
+	if(location == LOCATION_MZONE) {
+		return sequence < 7;
+	} else if(location == LOCATION_SZONE) {
+		return sequence < 8;
+	} else if(location == LOCATION_FZONE) {
+		return sequence < 2;
+	} else if(location == LOCATION_PZONE) {
+		return sequence < 3;
+	}
+	return TRUE;
+}
 // return: the given slot in LOCATION_MZONE or all LOCATION_SZONE is available or not
 int32_t field::is_location_useable(uint32_t playerid, uint32_t location, uint32_t sequence) {
 	uint32_t flag = player[playerid].disabled_location | player[playerid].used_location;

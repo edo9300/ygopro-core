@@ -43,6 +43,8 @@ LUA_STATIC_FUNCTION(AddCard) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto& field = pduel->game_field;
+	if(!field->is_field_location_valid(location, sequence))
+		lua_error(L, "Passed invalid location");
 	if(field->is_location_useable(playerid, location, sequence)) {
 		card* pcard = pduel->new_card(code);
 		pcard->owner = owner;
