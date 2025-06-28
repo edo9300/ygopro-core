@@ -2605,9 +2605,12 @@ bool field::process(Processors::BattleCommand& arg) {
 		core.new_fchain.splice(core.new_fchain.begin(), core.new_fchain_b);
 		core.new_ochain.splice(core.new_ochain.begin(), core.new_ochain_b);
 		raise_single_event(core.attacker, nullptr, EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 0);
-		if(core.attack_target)
+		card_set battled_cards{ core.attacker };
+		if(core.attack_target) {
+			battled_cards.insert(core.attack_target);
 			raise_single_event(core.attack_target, nullptr, EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 1);
-		raise_event(nullptr, EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 0);
+		}
+		raise_event(std::move(battled_cards), EVENT_BATTLED, nullptr, 0, PLAYER_NONE, 0, 0);
 		process_single_event();
 		process_instant_event();
 		if(core.effect_damage_step) {
