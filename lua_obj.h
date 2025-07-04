@@ -93,6 +93,9 @@ public:
 	bool operator ==(const owned_lua<T>& other) const {
 		return obj == other.obj;
 	}
+	bool operator ==(T* other) const {
+		return obj == other;
+	}
 	bool operator <(const owned_lua<T>& other) const {
 		return obj < other.obj;
 	}
