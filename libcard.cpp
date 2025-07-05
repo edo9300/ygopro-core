@@ -15,7 +15,7 @@
 #include "scriptlib.h"
 
 #define LUA_MODULE Card
-using LUA_CLASS = card;
+#define LUA_CLASS card
 #include "function_array_helper.h"
 
 namespace {

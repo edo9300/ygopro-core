@@ -17,7 +17,7 @@
 #include "scriptlib.h"
 
 #define LUA_MODULE Group
-using LUA_CLASS = group;
+#define LUA_CLASS group
 #include "function_array_helper.h"
 
 namespace {

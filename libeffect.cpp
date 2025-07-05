@@ -10,7 +10,7 @@
 #include "scriptlib.h"
 
 #define LUA_MODULE Effect
-using LUA_CLASS = effect;
+#define LUA_CLASS effect
 #include "function_array_helper.h"
 
 namespace {
