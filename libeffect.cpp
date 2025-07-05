@@ -14,6 +14,7 @@
 #include "function_array_helper.h"
 
 namespace {
+namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
@@ -469,6 +470,7 @@ LUA_FUNCTION(RestoreCountLimit) {
 LUA_FUNCTION_EXISTING(GetLuaRef, get_lua_ref<effect>);
 LUA_FUNCTION_EXISTING(FromLuaRef, from_lua_ref<effect>);
 LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
+}
 }
 
 void scriptlib::push_effect_lib(lua_State* L) {

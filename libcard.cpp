@@ -19,6 +19,7 @@
 #include "function_array_helper.h"
 
 namespace {
+namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
@@ -2201,6 +2202,7 @@ LUA_FUNCTION(Cover) {
 LUA_FUNCTION_EXISTING(GetLuaRef, get_lua_ref<card>);
 LUA_FUNCTION_EXISTING(FromLuaRef, from_lua_ref<card>);
 LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
+}
 }
 
 void scriptlib::push_card_lib(lua_State* L) {

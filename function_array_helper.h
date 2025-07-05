@@ -32,7 +32,10 @@
 #define LUA_INLINE ForceInline
 #endif
 
+#define LUA_NAMESPACE
+
 namespace {
+namespace LUA_NAMESPACE {
 namespace Detail {
 
 template<std::size_t N>
@@ -115,6 +118,7 @@ constexpr auto make_lua_functions_array() {
 #endif
 
 } // namespace Detail
+} // namespace LUA_NAMESPACE
 } // namespace
 
 #define GET_LUA_FUNCTIONS_ARRAY() \

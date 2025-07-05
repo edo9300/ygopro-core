@@ -21,6 +21,7 @@
 #include "function_array_helper.h"
 
 namespace {
+namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
@@ -799,6 +800,7 @@ LUA_FUNCTION(GetBinClassCount) {
 LUA_FUNCTION_EXISTING(GetLuaRef, get_lua_ref<group>);
 LUA_FUNCTION_EXISTING(FromLuaRef, from_lua_ref<group>);
 LUA_FUNCTION_EXISTING(IsDeleted, is_deleted_object);
+}
 }
 
 void scriptlib::push_group_lib(lua_State* L) {

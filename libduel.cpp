@@ -19,6 +19,7 @@
 #include "function_array_helper.h"
 
 namespace {
+namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
@@ -4179,6 +4180,7 @@ LUA_STATIC_FUNCTION(GetCardSetcodeFromCode) {
 	for(auto& setcode : data.setcodes)
 		lua_pushinteger(L, setcode);
 	return static_cast<int32_t>(data.setcodes.size());
+}
 }
 }
 
