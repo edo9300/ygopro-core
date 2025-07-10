@@ -439,6 +439,8 @@ void card::get_set_card(std::set<uint16_t>& setcodes) {
 	effect_set eset;
 	filter_effect(EFFECT_ADD_SETCODE, &eset);
 	for(auto& eff : eset) {
+		if(eff->operation)
+			continue;
 		uint32_t value = eff->get_value(this);
 		for(; value > 0; value >>= 16)
 			setcodes.insert(value & 0xffff);
