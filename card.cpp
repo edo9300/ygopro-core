@@ -373,64 +373,6 @@ int32_t card::is_pre_set_card(uint16_t set_code) {
 	}
 	return FALSE;
 }
-int32_t card::is_summon_set_card(uint16_t set_code, card* scard, uint64_t sumtype, uint8_t playerid) {
-	effect_set eset;
-	std::set<uint32_t> codes;
-	bool changed = false;
-	filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
-	filter_effect(EFFECT_REMOVE_CODE, &eset, FALSE);
-	filter_effect(EFFECT_CHANGE_CODE, &eset);
-	for(const auto& peffect : eset) {
-		if (!peffect->operation)
-			continue;
-		pduel->lua->add_param<LuaParam::CARD>(scard);
-		pduel->lua->add_param<LuaParam::INT>(sumtype);
-		pduel->lua->add_param<LuaParam::INT>(playerid);
-		if (!pduel->lua->check_condition(peffect->operation, 3))
-			continue;
-		if (peffect->code== EFFECT_ADD_CODE)
-			codes.insert(peffect->get_value(this));
-		else if (peffect->code == EFFECT_REMOVE_CODE) {
-			auto cit = codes.find(peffect->get_value(this));
-			if (cit != codes.end())
-				codes.erase(cit);
-		} else {
-			codes.clear();
-			codes.insert(peffect->get_value(this));
-			changed = true;
-		}
-	}
-	std::set<uint16_t> setcodes;
-	for (uint32_t code : codes) {
-		const auto& sets = pduel->read_card(code).setcodes;
-		if(sets.size())
-			setcodes.insert(sets.begin(), sets.end());
-	}
-	eset.clear();
-	filter_effect(EFFECT_ADD_SETCODE, &eset, FALSE);
-	filter_effect(EFFECT_CHANGE_SETCODE, &eset);
-	for(const auto& peffect : eset) {
-		if (!peffect->operation)
-			continue;
-		pduel->lua->add_param<LuaParam::CARD>(scard);
-		pduel->lua->add_param<LuaParam::INT>(sumtype);
-		pduel->lua->add_param<LuaParam::INT>(playerid);
-		if (!pduel->lua->check_condition(peffect->operation, 3))
-			continue;
-		uint32_t setcode = peffect->get_value(this);
-		if (peffect->code == EFFECT_CHANGE_SETCODE) {
-			setcodes.clear();
-			changed = true;
-		}
-		setcodes.insert(setcode & 0xffff);
-	}
-	if (!changed && is_set_card(set_code))
-		return TRUE;
-	for (uint16_t setcode : setcodes)
-		if(match_setcode(set_code, setcode))
-			return TRUE;
-	return FALSE;
-}
 void card::get_set_card(std::set<uint16_t>& setcodes) {
 	uint32_t code = get_code();
 	const auto& og_setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
