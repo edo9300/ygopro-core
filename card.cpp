@@ -1412,12 +1412,12 @@ uint32_t card::get_linked_zone(bool free) {
 			}
 		}
 		for(int i = 0; i < 8; ++i) {
-			if(!pduel->game_field->is_location_useable(1 - current.controler, LOCATION_MZONE, i + 16)) {
+			if(!pduel->game_field->is_location_useable(1 - current.controler, LOCATION_MZONE, i)) {
 				zones &= ~(1u << (i + 16));
 			}
 		}
 		for(int i = 0; i < 8; ++i) {
-			if(!pduel->game_field->is_location_useable(1 - current.controler, LOCATION_SZONE, i + 16)) {
+			if(!pduel->game_field->is_location_useable(1 - current.controler, LOCATION_SZONE, i)) {
 				zones &= ~(1u << (i + 24));
 			}
 		}
