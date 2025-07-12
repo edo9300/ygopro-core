@@ -55,6 +55,7 @@ public:
 	int32_t call_depth;
 	lua_invalid deleted;
 	int weak_lua_references;
+	int loaded_scripts_table;
 
 	interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~interpreter();

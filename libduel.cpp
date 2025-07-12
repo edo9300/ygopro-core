@@ -4023,36 +4023,43 @@ LUA_STATIC_FUNCTION(GetCardFromCardID) {
 	return 0;
 }
 LUA_STATIC_FUNCTION(LoadScript) {
-	using SLS = duel::SCRIPT_LOAD_STATUS;
 	check_param_count(L, 1);
 	check_param<LuaParam::STRING>(L, 1);
-	const auto* string = lua_tolstring(L, 1, nullptr);
-	if(!string || *string == '\0')
+	size_t len;
+	const auto* string = lua_tolstring(L, 1, &len);
+	if(len == 0)
 		lua_error(L, "Parameter 1 should be a non empty \"String\".");
-	{
-		auto start = string;
-		do {
-			if(*start == '/' || *start == '\\')
-				lua_error(L, "Passed script name containing a path separator");
-		} while(*start++);
+	if(auto begin = string, end = string + len;
+		std::find_if(begin, end, [](auto ch) {
+		   return ch == '/' || ch == '\\';
+		}) != end) {
+		lua_error(L, "Passed script name containing a path separator");
 	}
 	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
-		auto hash = [](const char* str)->uint32_t {
-			uint32_t hash = 5381, c;
-			while((c = *str++) != 0)
-				hash = (((hash << 5) + hash) + c) & 0xffffffff; /* hash * 33 + c */
-			return hash;
-		}(string);
-		auto& load_status = pduel->loaded_scripts[hash];
-		if(load_status == SLS::LOADING)
-			lua_error(L, "Recursive script loading detected.");
-		else if(load_status != SLS::NOT_LOADED)
-			lua_pushboolean(L, load_status == SLS::LOAD_SUCCEDED);
-		else {
-			load_status = SLS::LOADING;
+		enum SCRIPT_LOAD_STATUS {
+			LOAD_SUCCEDED,
+			LOAD_FAILED,
+			LOADING,
+		};
+		lua_rawgeti(L, LUA_REGISTRYINDEX, pduel->lua->loaded_scripts_table);
+		auto table_index = lua_absindex(L, -1);
+		lua_pushvalue(L, 1);
+		lua_gettable(L, table_index);
+		if(lua_isnil(L, -1)) {
+			auto set_load_status = [&](auto load_status) {
+				lua_pushvalue(L, 1);
+				lua_pushinteger(L, load_status);
+				lua_settable(L, table_index);
+			};
+			set_load_status(LOADING);
 			auto res = pduel->read_script(string);
 			lua_pushboolean(L, res);
-			load_status = res ? SLS::LOAD_SUCCEDED : SLS::LOAD_FAILED;
+			set_load_status(res ? LOAD_SUCCEDED : LOAD_FAILED);
+		} else {
+			auto load_status = lua_tointeger(L, -1);
+			if(load_status == LOADING)
+				lua_error(L, "Recursive script loading detected.");
+			lua_pushboolean(L, load_status == LOAD_SUCCEDED);
 		}
 		return 1;
 	}

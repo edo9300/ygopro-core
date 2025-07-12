@@ -107,6 +107,10 @@ interpreter::interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_l
 		lua_setmetatable(lua_state, -2);
 		weak_lua_references = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
 	}
+	{
+		lua_newtable(lua_state);
+		loaded_scripts_table = ensure_luaL_stack(luaL_ref, lua_state, LUA_REGISTRYINDEX);
+	}
 	// Open all card scripting libs
 	scriptlib::push_card_lib(lua_state);
 	scriptlib::push_effect_lib(lua_state);
