@@ -3138,7 +3138,11 @@ bool field::process(Processors::SpSummonRule& arg) {
 		core.phase_action = true;
 		target->current.reason_effect = arg.summon_proc_effect;
 		auto message = pduel->new_message(MSG_SPSUMMONING);
-		message->write<uint32_t>(target->data.code);
+		if((target->current.position & POS_FACEDOWN) == 0) {
+			message->write<uint32_t>(target->data.code);
+		} else {
+			message->write<uint32_t>(0);
+		}
 		message->write(target->get_info_location());
 		return FALSE;
 	}
@@ -3351,7 +3355,11 @@ bool field::process(Processors::SpSummonRule& arg) {
 		auto pgroup = arg.cards_to_summon_g;
 		card* pcard = *pgroup->it++;
 		auto message = pduel->new_message(MSG_SPSUMMONING);
-		message->write<uint32_t>(pcard->data.code);
+		if((pcard->current.position & POS_FACEDOWN) == 0) {
+			message->write<uint32_t>(pcard->data.code);
+		} else {
+			message->write<uint32_t>(0);
+		}
 		message->write(pcard->get_info_location());
 		set_control(pcard, pcard->current.controler, 0, 0);
 		pcard->set_status(STATUS_SPSUMMON_STEP, TRUE);
@@ -3612,7 +3620,11 @@ bool field::process(Processors::SpSummonStep& arg) {
 	}
 	case 2: {
 		auto message = pduel->new_message(MSG_SPSUMMONING);
-		message->write<uint32_t>(target->data.code);
+		if((target->current.position & POS_FACEDOWN) == 0) {
+			message->write<uint32_t>(target->data.code);
+		} else {
+			message->write<uint32_t>(0);
+		}
 		message->write(target->get_info_location());
 		return FALSE;
 	}
