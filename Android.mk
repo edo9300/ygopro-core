@@ -26,6 +26,7 @@ LOCAL_CFLAGS   := -pedantic -Wextra -fvisibility=hidden -DOCGCORE_EXPORT_FUNCTIO
 LOCAL_CPPFLAGS := -fexceptions -fno-rtti
 ifeq ($(TARGET_ARCH_ABI), arm64-v8a)
 LOCAL_LDFLAGS += "-Wl,-z,max-page-size=16384"
+LOCAL_LDFLAGS += "-Wl,-z,common-page-size=16384"
 endif
 LOCAL_STATIC_LIBRARIES += liblua
 
