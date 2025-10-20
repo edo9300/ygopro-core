@@ -2023,7 +2023,8 @@ bool field::process(Processors::BattleCommand& arg) {
 			return count;
 		}();
 
-		if((atype == 3 && differentMustAttackMonsterEffects != 1) || is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS)) {
+		auto patrician = is_player_affected_by_effect(infos.turn_player, EFFECT_PATRICIAN_OF_DARKNESS) != nullptr;
+		if(patrician || (atype == 3 && differentMustAttackMonsterEffects != 1)) {
 			if(core.select_cards.size() == 1)
 				return_cards.list.push_back(core.select_cards.front());
 			else {
@@ -2035,7 +2036,7 @@ bool field::process(Processors::BattleCommand& arg) {
 				message->write<uint8_t>(1 - infos.turn_player);
 				message->write<uint64_t>(549);
 				emplace_process<Processors::SelectCard>(1 - infos.turn_player, false, 1, 1);
-				if(atype == 3 && arg.must_attack_map.size() != differentMustAttackMonsterEffects) {
+				if(!patrician && atype == 3 && arg.must_attack_map.size() != differentMustAttackMonsterEffects) {
 					arg.step = 15;
 					return FALSE;
 				}
