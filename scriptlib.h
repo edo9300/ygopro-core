@@ -219,76 +219,83 @@ namespace scriptlib {
 		return (!str || retlen == 0) ? "" : str;
 	}
 
-	template<typename T>
-	inline void lua_table_iterate(lua_State* L, int idx, T&& func) {
-		lua_pushnil(L);
-		while(lua_next(L, idx) != 0) {
-			func();
+	inline int lua_table_get_length(lua_State* L, int table_index) {
+		lua_pushstring(L, "n");
+		auto is_int = lua_rawget(L, table_index) == LUA_TNUMBER;
+		if(is_int) {
+			auto ret = lua_tointeger(L, -1);
 			lua_pop(L, 1);
+			return ret;
 		}
+		auto ret = static_cast<int>(lua_rawlen(L, table_index));
+		lua_pop(L, 1);
+		return ret;
 	}
 
-#if (!defined(_LIBCPP_VERSION) || _LIBCPP_VERSION >= 7000) && \
-	((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-	template<typename T, typename... Arg>
-	using FunctionResult = std::invoke_result_t<T, Arg...>;
-#else
+#if (!defined(_MSVC_LANG) && __cplusplus < 201703L) || (defined(_MSVC_LANG) && _MSVC_LANG < 201703L)
 	template<typename T, typename... Arg>
 	using FunctionResult = std::result_of_t<T(Arg...)>;
+#elif defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 7000
+	template <class T, class... Args>
+	using FunctionResult = typename std::__invoke_of<T, Args...>::type;
+#else
+	template<typename T, typename... Arg>
+	using FunctionResult = std::invoke_result_t<T, Arg...>;
 #endif
 
-	template<typename T, typename T2>
-	using EnableOnReturn = std::enable_if_t<std::is_same<FunctionResult<T>, T2>::value, int>;
+	template<typename F, typename T>
+	inline constexpr bool FunctionReturns = std::is_same_v<FunctionResult<F>, T>;
 
-	template<typename T, EnableOnReturn<T, void> = 0>
-	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
-		if(lua_istable(L, idx))
-			return lua_table_iterate(L, idx, func);
-		for(; idx <= max; ++idx) {
-			lua_pushvalue(L, idx);
-			func();
+	template<typename T>
+	inline void lua_table_iterate(lua_State* L, int idx, T&& func) {
+		auto table_index = lua_absindex(L, idx);
+		auto len = lua_table_get_length(L, table_index);
+		for(int i = 1; i <= len; ++i) {
+			lua_rawgeti(L, table_index, i);
+			if constexpr(FunctionReturns<T, void>) {
+				func();
+			} else {
+				const auto pushed_amount = func();
+				if(pushed_amount != 0) {
+					//Move the table value retrieved earlier to the top of the stack so that it
+					//can be popped afterwards
+					lua_rotate(L, -(pushed_amount + 1), -1);
+				}
+			}
 			lua_pop(L, 1);
 		}
 	}
 
-	template<typename T, EnableOnReturn<T, int> = 0>
+	template<typename T>
 	inline void lua_iterate_table_or_stack(lua_State* L, int idx, int max, T&& func) {
 		if(lua_istable(L, idx)) {
-			lua_pushnil(L);
-			while(lua_next(L, idx) != 0) {
-				const auto pushed_amount = func();
-				if(pushed_amount != 0) {
-					//if values are pushed, we need to fix the stack so that the values pushed are
-					//put below the key/pair used to iterate the current table
-					lua_remove(L, -(pushed_amount + 1));
-					lua_rotate(L, -(pushed_amount + 1), pushed_amount);
+			lua_table_iterate(L, idx, func);
+		} else {
+			for(; idx <= max; ++idx) {
+				lua_pushvalue(L, idx);
+				if constexpr(FunctionReturns<T, void>) {
+					func();
+				} else {
+					const auto pushed_amount = func();
+					if(pushed_amount != 0)
+						lua_rotate(L, -(pushed_amount + 1), -1);
 				}
-				else
-					lua_pop(L, 1);
-			}
-			return;
-		}
-		for(; idx <= max; ++idx) {
-			lua_pushvalue(L, idx);
-			const auto pushed_amount = func();
-			if(pushed_amount != 0)
-				lua_remove(L, -(pushed_amount + 1));
-			else
 				lua_pop(L, 1);
+			}
 		}
 	}
 
 	template<typename T>
 	inline bool lua_find_in_table_or_in_stack(lua_State* L, int idx, int max, T&& func) {
-		static_assert(std::is_same_v<FunctionResult<T>, bool>, "Callback function must return bool");
+		static_assert(FunctionReturns<T, bool>, "Callback function must return bool");
 		if(lua_istable(L, idx)) {
-			lua_pushnil(L);
-			while(lua_next(L, idx) != 0) {
+			auto table_index = lua_absindex(L, idx);
+			auto len = lua_table_get_length(L, table_index);
+			for(int i = 1; i <= len; ++i) {
+				lua_rawgeti(L, table_index, i);
 				const auto element_found = func();
 				lua_pop(L, 1);
 				if(element_found) {
-					//pops table key from the stack
-					lua_pop(L, 1);
 					return true;
 				}
 			}
