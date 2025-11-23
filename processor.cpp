@@ -794,7 +794,7 @@ bool field::process(Processors::PointEvent& arg) {
 		return FALSE;
 	}
 	case 8: {
-		if(!(is_flag(DUEL_OCG_OBSOLETE_IGNITION) || is_flag(DUEL_TCG_FAST_EFFECT_IGNITION)) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
+		if(skip_freechain || !(is_flag(DUEL_OCG_OBSOLETE_IGNITION) || is_flag(DUEL_TCG_FAST_EFFECT_IGNITION)) || (infos.phase != PHASE_MAIN1 && infos.phase != PHASE_MAIN2))
 			return FALSE;
 		// Obsolete ignition effect ruling
 		auto check_events_ocg = [&] {
