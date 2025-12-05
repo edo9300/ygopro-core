@@ -322,57 +322,6 @@ void card::get_summon_code(std::set<uint32_t>& codes, card* scard, uint64_t sumt
 			codes.insert(code);
 	}
 }
-int32_t card::is_set_card(uint16_t set_code) {
-	uint32_t code = get_code();
-	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {
-		if(match_setcode(set_code, setcode))
-			return TRUE;
-	}
-	//add set code
-	effect_set eset;
-	filter_effect(EFFECT_ADD_SETCODE, &eset);
-	for(const auto& peffect : eset) {
-		uint16_t value = static_cast<uint16_t>(peffect->get_value(this));
-		if (match_setcode(set_code, value))
-			return TRUE;
-	}
-	//another code
-	uint32_t code2 = get_another_code();
-	if (code2 == 0)
-		return FALSE;
-	for(auto& setcode : pduel->read_card(code2).setcodes) {
-		if(match_setcode(set_code, setcode))
-			return TRUE;
-	}
-	return FALSE;
-}
-int32_t card::is_origin_set_card(uint16_t set_code) {
-	for (auto& setcode : data.setcodes) {
-		if(match_setcode(set_code, setcode))
-			return TRUE;
-	}
-	return FALSE;
-}
-int32_t card::is_pre_set_card(uint16_t set_code) {
-	uint32_t code = previous.code;
-	for(auto& setcode : (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes) {
-		if (match_setcode(set_code, setcode))
-			return TRUE;
-	}
-	//add set code
-	for(auto& setcode : previous.setcodes) {
-		if(match_setcode(set_code, setcode))
-			return TRUE;
-	}
-	//another code
-	if(previous.code2 == 0)
-		return FALSE;
-	for(auto& setcode : pduel->read_card(previous.code2).setcodes) {
-		if(match_setcode(set_code, setcode))
-			return TRUE;
-	}
-	return FALSE;
-}
 void card::get_set_card(std::set<uint16_t>& setcodes) {
 	uint32_t code = get_code();
 	const auto& og_setcodes = (code != data.code) ? pduel->read_card(code).setcodes : data.setcodes;
