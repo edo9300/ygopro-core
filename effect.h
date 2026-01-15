@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -43,7 +43,6 @@ public:
 	uint32_t initial_id{};
 	uint32_t reset_flag{};
 	uint32_t count_code{};
-	uint32_t category{};
 	uint32_t hint_timing[2]{};
 	uint32_t card_type{};
 	uint32_t active_type{};
@@ -53,6 +52,7 @@ public:
 	int32_t target{};
 	int32_t value{};
 	int32_t operation{};
+	uint64_t category{};
 	card* owner{ nullptr };
 	card* handler{ nullptr };
 	card* active_handler{};

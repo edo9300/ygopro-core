@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -195,7 +195,7 @@ LUA_FUNCTION(SetLabelObject) {
 }
 LUA_FUNCTION(SetCategory) {
 	check_param_count(L, 2);
-	auto v = lua_get<uint32_t>(L, 2);
+	auto v = lua_get<uint64_t>(L, 2);
 	self->category = v;
 	return 0;
 }
@@ -403,7 +403,7 @@ LUA_FUNCTION(IsHasProperty) {
 }
 LUA_FUNCTION(IsHasCategory) {
 	check_param_count(L, 2);
-	lua_pushboolean(L, (self->category & lua_get<uint32_t>(L, 2)) != 0);
+	lua_pushboolean(L, (self->category & lua_get<uint64_t>(L, 2)) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsHasType) {

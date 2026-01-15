@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -47,7 +47,7 @@ struct optarget {
 	int32_t op_param;
 };
 struct chain {
-	using opmap = std::unordered_map<uint32_t, optarget>;
+	using opmap = std::unordered_map<uint64_t, optarget>;
 	using applied_chain_counter_t = std::vector<uint32_t>;
 	card_state triggering_state;
 	tevent evt;
