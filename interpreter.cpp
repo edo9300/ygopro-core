@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -661,7 +661,7 @@ void interpreter::pushobject(lua_State* L, lua_obj* obj) {
 	if(!obj || (obj->ref_handle == 0 && obj->weak_ref_handle == 0))
 		lua_pushnil(L);
 	else if(obj->ref_handle == 0)
-		obj->pduel->lua->push_weak_ref(L, obj->weak_ref_handle);
+		lua_get<duel*>(L)->lua->push_weak_ref(L, obj->weak_ref_handle);
 	else
 		lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
 }
