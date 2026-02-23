@@ -53,10 +53,10 @@ constexpr auto get_lua_functions() {
 	}();
 	std::array<luaL_Reg, lua_symbols.size()+1> ret_array{};
 	int i = 0;
-    template for (constexpr auto M : lua_symbols) {
+    template for (constexpr auto M : define_static_array(lua_symbols)) {
 		constexpr auto identifier = identifier_of(M).substr(std::string_view{LUA_PREFIX}.size());
 		if constexpr(is_function(M)) {
-			constexpr auto annotations = define_static_array(annotations_of(M, ^^aliases));
+			constexpr auto annotations = define_static_array(annotations_of_with_type(M, ^^aliases));
 			static_assert(annotations.size() <= 1);
 			if constexpr(annotations.size() == 1) {
 				constexpr auto annotation = extract<aliases>(annotations[0]);
