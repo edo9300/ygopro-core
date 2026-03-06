@@ -4386,8 +4386,8 @@ bool field::process(Processors::SendTo& arg) {
 	case 4: {
 		arg.extra_args = std::make_unique<Processors::SendTo::exargs>();
 		auto& param = arg.extra_args;
-		param->show_decktop[0] = false;
-		param->show_decktop[1] = false;
+		param->check_decktop_visibility[0] = false;
+		param->check_decktop_visibility[1] = false;
 		param->cv.assign(targets->container.begin(), targets->container.end());
 		if(param->cv.size() > 1)
 			std::sort(param->cv.begin(), param->cv.end(), card::card_operation_sort);
@@ -4504,8 +4504,8 @@ bool field::process(Processors::SendTo& arg) {
 			message->write(pcard->get_info_location());
 			message->write<uint32_t>(pcard->current.reason);
 		}
-		if((core.deck_reversed && pcard->current.location == LOCATION_DECK) || (pcard->current.position == POS_FACEUP_DEFENSE))
-			param->show_decktop[control_player] = true;
+		if(pcard->current.location == LOCATION_DECK && (core.deck_reversed || (pcard->current.position == POS_FACEUP_DEFENSE)))
+			param->check_decktop_visibility[control_player] = true;
 		pcard->set_status(STATUS_LEAVE_CONFIRMED, FALSE);
 		if(pcard->status & (STATUS_SUMMON_DISABLED | STATUS_ACTIVATE_DISABLED)) {
 			pcard->set_status(STATUS_SUMMON_DISABLED | STATUS_ACTIVATE_DISABLED, FALSE);
@@ -4579,22 +4579,23 @@ bool field::process(Processors::SendTo& arg) {
 	case 9: {
 		auto& param = arg.extra_args;
 		if(core.global_flag & GLOBALFLAG_DECK_REVERSE_CHECK) {
-			if(param->show_decktop[0]) {
-				card* ptop = *player[0].list_main.rbegin();
+			auto check_decktop = [&](uint8_t playerid) {
+				if(!param->check_decktop_visibility[playerid])
+					return;
+				const auto& deck = player[playerid].list_main;
+				if(deck.empty())
+					return;
+				auto* ptop = deck.back();
+				if(!core.deck_reversed && ptop->current.position != POS_FACEUP_DEFENSE)
+					return;
 				auto message = pduel->new_message(MSG_DECK_TOP);
-				message->write<uint8_t>(0);
+				message->write<uint8_t>(playerid);
 				message->write<uint32_t>(0);
 				message->write<uint32_t>(ptop->data.code);
 				message->write<uint32_t>(ptop->current.position);
-			}
-			if(param->show_decktop[1]) {
-				card* ptop = *player[1].list_main.rbegin();
-				auto message = pduel->new_message(MSG_DECK_TOP);
-				message->write<uint8_t>(1);
-				message->write<uint32_t>(0);
-				message->write<uint32_t>(ptop->data.code);
-				message->write<uint32_t>(ptop->current.position);
-			}
+			};
+			check_decktop(0);
+			check_decktop(1);
 		}
 		for(auto& pcard : targets->container) {
 			if(!(pcard->data.type & TYPE_TOKEN))

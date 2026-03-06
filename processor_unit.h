@@ -329,7 +329,7 @@ struct Release : public Process<false> {
 struct SendTo : public Process<false> {
 	struct exargs {
 		card_set leave_field, leave_grave, detach;
-		bool show_decktop[2];
+		bool check_decktop_visibility[2];
 		card_vector cv;
 		card_vector::iterator cvit;
 		effect* predirect;
