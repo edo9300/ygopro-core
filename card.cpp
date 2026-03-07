@@ -132,10 +132,6 @@ void card::get_infos(uint32_t query_flag) {
 	CHECK_AND_INSERT(QUERY_BASE_DEFENSE, get_base_defense());
 	CHECK_AND_INSERT(QUERY_REASON, current.reason);
 	CHECK_AND_INSERT(QUERY_COVER, cover);
-	uint32_t query_status = status;
-	if(single_effect.count(FLAG_MAXIMUM_CENTER | 0x10000000))
-		query_status |= STATUS_MAXIMUM_CENTER;
-
 	if(query_flag & QUERY_REASON_CARD) {
 		insert_value<uint16_t>(pduel->query_buffer, sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint64_t));
 		insert_value<uint32_t>(pduel->query_buffer, QUERY_REASON_CARD);
@@ -191,7 +187,7 @@ void card::get_infos(uint32_t query_flag) {
 			insert_value<uint32_t>(pduel->query_buffer, cmit.first + ((cmit.second[0] + cmit.second[1]) << 16));
 	}
 	CHECK_AND_INSERT_T(QUERY_OWNER, owner, uint8_t);
-	CHECK_AND_INSERT(QUERY_STATUS, query_status);
+	CHECK_AND_INSERT(QUERY_STATUS, status);
 	CHECK_AND_INSERT_T(QUERY_IS_PUBLIC, (is_position(POS_FACEUP) || is_related_to_chains() || (current.location == LOCATION_HAND && is_affected_by_effect(EFFECT_PUBLIC))) ? 1 : 0, uint8_t);
 	CHECK_AND_INSERT(QUERY_LSCALE, get_lscale());
 	CHECK_AND_INSERT(QUERY_RSCALE, get_rscale());
@@ -1727,6 +1723,8 @@ int32_t card::add_effect(effect* peffect) {
 			}
 		}
 		eit = single_effect.emplace(peffect->code, peffect);
+		if(peffect->code == (FLAG_MAXIMUM_CENTER | 0x10000000))
+			set_status(STATUS_MAXIMUM_CENTER, TRUE);
 	} else if (peffect->type & EFFECT_TYPE_EQUIP) {
 		eit = equip_effect.emplace(peffect->code, peffect);
 		if (equiping_target)
@@ -1818,6 +1816,8 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 	card_set check_target = { this };
 	if (peffect->type & EFFECT_TYPE_SINGLE) {
 		single_effect.erase(it);
+		if(peffect->code == (FLAG_MAXIMUM_CENTER | 0x10000000) && !single_effect.count(peffect->code))
+			set_status(STATUS_MAXIMUM_CENTER, FALSE);
 	} else if (peffect->type & EFFECT_TYPE_EQUIP) {
 		equip_effect.erase(it);
 		if (equiping_target)
@@ -4007,18 +4007,17 @@ bool card::recreate(uint32_t code) {
 }
 
 int32_t card::is_maximum_summonable(uint8_t playerid) {
-	if(!(data.type & TYPE_MONSTER))
+	if(!(data.type & TYPE_MAXIMUM))
 		return FALSE;
 	effect_set eset;
 	filter_spsummon_procedure(playerid, &eset, 0);
-	filter_spsummon_procedure_g(playerid, &eset);
 	int32_t max_count = 0;
 	int32_t non_max_count = 0;
 	for(const auto& peff : eset) {
 		std::vector<lua_Integer> retval;
 		peff->get_value(this, 0, retval);
 		uint32_t sumtype = retval.size() > 0 ? static_cast<uint32_t>(retval[0]) : 0;
-		if((sumtype & SUMMON_TYPE_MAXIMUM) == SUMMON_TYPE_MAXIMUM)
+		if(sumtype == SUMMON_TYPE_MAXIMUM)
 			max_count++;
 		else
 			non_max_count++;

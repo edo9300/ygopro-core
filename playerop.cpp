@@ -80,14 +80,14 @@ bool field::process(Processors::SelectIdleCmd& arg) {
 			message->write<uint32_t>(pcard->current.sequence);
 		}
 		//idle spsummon
-                message->write<uint32_t>(core.spsummonable_cards.size());
-                for(auto& pcard : core.spsummonable_cards) {
-                        message->write<uint32_t>(pcard->data.code);
-                        message->write<uint8_t>(pcard->current.controler);
-                        message->write<uint8_t>(pcard->current.location);
-                        message->write<uint32_t>(pcard->current.sequence);
-                        message->write<uint8_t>(pcard->is_maximum_summonable(playerid) ? 1 : 0);
-                }
+		message->write<uint32_t>(core.spsummonable_cards.size());
+		for(auto& pcard : core.spsummonable_cards) {
+			message->write<uint32_t>(pcard->data.code);
+			message->write<uint8_t>(pcard->current.controler);
+			message->write<uint8_t>(pcard->current.location);
+			message->write<uint32_t>(pcard->current.sequence);
+			message->write<uint8_t>(pcard->is_maximum_summonable(playerid) ? 1 : 0);
+		}
 		//idle pos change
 		message->write<uint32_t>(core.repositionable_cards.size());
 		for(auto& pcard : core.repositionable_cards) {
