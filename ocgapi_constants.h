@@ -323,10 +323,6 @@
 #define CHINT_DESC_ADD    6
 #define CHINT_DESC_REMOVE 7
 
-/* Maximum Summon Flags */
-#define FLAG_MAXIMUM_CENTER 170000000
-#define FLAG_MAXIMUM_SIDE   170000001
-
 /* Player Hints */
 #define PHINT_DESC_ADD    6
 #define PHINT_DESC_REMOVE 7
