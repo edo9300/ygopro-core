@@ -2750,8 +2750,11 @@ int32_t field::is_player_can_summon(uint32_t sumtype, uint8_t playerid, card* pc
 	eset.clear();
 	filter_player_effect(playerid, EFFECT_FORCE_NORMAL_SUMMON_POSITION, &eset);
 	uint8_t sumpos = POS_FACEUP_ATTACK;
-	if(is_flag(DUEL_NORMAL_SUMMON_FACEUP_DEF) || is_player_affected_by_effect(playerid, EFFECT_DEVINE_LIGHT))
+	if(is_flag(DUEL_NORMAL_SUMMON_FACEUP_DEF)
+	   || is_player_affected_by_effect(playerid, EFFECT_NORMAL_SUMMON_FACEUP_DEFENSE)
+	   || is_player_affected_by_effect(playerid, EFFECT_DEVINE_LIGHT)) {
 		sumpos = POS_FACEUP;
+	}
 	for(auto& eff : eset) {
 		if(eff->target) {
 			pduel->lua->add_param<LuaParam::EFFECT>(eff);
