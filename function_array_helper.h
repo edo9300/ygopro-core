@@ -9,6 +9,10 @@
 #define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
 #define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
 
+// in clang 22, the usage of the __COUNTER__ macro is now diagnosed as c2y extension and a warning is raised
+#if (defined(__clang__) && __clang_major__ >= 22)
+#pragma GCC diagnostic ignored "-Wc2y-extensions"
+#endif
 // if subsequent calls to __COUNTER__ don't produce consecutive integers, that macro is broken
 #if !defined(__COUNTER__) || (__COUNTER__ + 0 != __COUNTER__ - 1)
 #define HAS_COUNTER 0
