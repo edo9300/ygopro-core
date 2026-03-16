@@ -185,6 +185,71 @@ jobs:
         avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
         username: Github
 
+  Windows-mingw-llvm:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [win32, x64, arm, arm64]
+        include:
+          - arch: win32
+            flavour: i686
+            deploy-branch: travis-core-windows-mingw-llvm
+          - arch: x64
+            flavour: x86_64
+            deploy-branch: travis-core-windows-mingw-llvm-x64
+          - arch: arm
+            flavour: armv7
+            deploy-branch: travis-core-windows-mingw-llvm-arm
+          - arch: arm64
+            flavour: aarch64
+            deploy-branch: travis-core-windows-mingw-llvm-arm64
+    runs-on: ubuntu-latest
+    container: mstorsjo/llvm-mingw:latest
+    env:
+      DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
+      TRAVIS_OS_NAME: linux
+      TARGET_OS: windows
+      STRIP_BIN: llvm-strip
+      BUILD_CONFIG: ${{ format('release_{0}', matrix.arch) }}
+      AR: ${{ format('{0}-w64-mingw32-ar', matrix.flavour) }}
+      CC: ${{ format('{0}-w64-mingw32-cc', matrix.flavour) }}
+      CXX: ${{ format('{0}-w64-mingw32-c++', matrix.flavour) }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        ref: ${{ github.head_ref }}
+        repository: ${{github.event.pull_request.head.repo.full_name}}
+        fetch-depth: 1
+        submodules: recursive
+    - name: Install premake
+      shell: bash
+      run: ./scripts/install-premake5.sh
+    - name: Build
+      shell: bash
+      run: ./scripts/build-premake5.sh
+    - name: Predeploy
+      shell: bash
+      env:
+        STRIP: 1
+      run: ./scripts/predeploy.sh
+    - name: Deploy
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      shell: bash
+      run: ./scripts/deploy.sh
+    - name: Log Failure
+      uses: sarisia/actions-status-discord@v1
+      if: failure()
+      with:
+        nodetail: true
+        description: |
+            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
+        title: |
+                
+        color: 0xff0000
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+        username: Github
+
   Linux-musl:
     strategy:
       fail-fast: false
@@ -516,7 +581,7 @@ jobs:
       DEPLOY_BRANCH: travis-osx-universal
       TRAVIS_OS_NAME: macosx
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-    needs: [ Windows-visual-studio, Linux-musl, Android, Mac-os-universal-cctools ]
+    needs: [ Windows-mingw-crtdll, Linux-musl, Android, Mac-os-universal-cctools ]
     steps:
     - name: Log Success
       uses: sarisia/actions-status-discord@v1

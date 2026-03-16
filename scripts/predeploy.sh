@@ -2,13 +2,14 @@
 
 set -euxo pipefail
 TARGET_OS=${TARGET_OS:-$TRAVIS_OS_NAME}
+STRIP_BIN="${STRIP_BIN:-strip}"
 
 mkdir -p $DEPLOY_DIR
 if [[ "$TARGET_OS" == "windows" ]]; then
 	shopt -s globstar
 	mv bin/**/ocgcore.dll $DEPLOY_DIR
 	if [[ "${STRIP:-0}" == "1" ]]; then
-		strip $DEPLOY_DIR/ocgcore.dll
+		$STRIP_BIN $DEPLOY_DIR/ocgcore.dll
 	fi
 elif [[ "$TARGET_OS" == "android" ]]; then
 	ARCH=("armeabi-v7a" "arm64-v8a" "x86" "x86_64" "armeabi" "mips" "mips64" "riscv64")
