@@ -15,5 +15,10 @@ else
     PROCS=$(nproc)
 fi
 
+MAKE_FLAGS=""
+if [[ -n "${EXTRA_CFLAGS:-""}" ]]; then
+	MAKE_FLAGS="CFLAGS=${EXTRA_CFLAGS} CPPFLAGS=${EXTRA_CFLAGS}"
+fi
+
 ./premake5 gmake2 $PREMAKE_FLAGS
-make -Cbuild ocgcoreshared -j$PROCS config=$BUILD_CONFIG
+make $MAKE_FLAGS -Cbuild ocgcoreshared -j$PROCS config=$BUILD_CONFIG
