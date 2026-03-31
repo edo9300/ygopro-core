@@ -1882,7 +1882,7 @@ LUA_FUNCTION(IsCanBeSynchroMaterial) {
 		scard = lua_get<card*, true>(L, 2);
 	if(lua_gettop(L) >= 3 && !lua_isnoneornil(L, 3))
 		tuner = lua_get<card*, true>(L, 3);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
+	auto playerid = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	lua_pushboolean(L, self->is_can_be_synchro_material(scard, playerid, tuner));
 	return 1;
 }
@@ -1917,7 +1917,7 @@ LUA_FUNCTION(IsCanBeMaterial) {
 	card* scard = nullptr;
 	if(lua_gettop(L) >= 3)
 		scard = lua_get<card*, true>(L, 3);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
+	auto playerid = lua_get<uint8_t>(L, 4, pduel->game_field->core.reason_player);
 	lua_pushboolean(L, self->is_can_be_material(scard, sumtype, playerid));
 	return 1;
 }
