@@ -122,6 +122,7 @@ namespace scriptlib {
 			return "Deleted";
 		else if constexpr(param == LuaParam::NIL)
 			return "nil";
+		unreachable();
 	}
 
 	template<typename T, EnableIfTemplate<T, duel*> = 0>
