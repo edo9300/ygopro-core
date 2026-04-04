@@ -67,6 +67,9 @@ namespace scriptlib {
 	inline constexpr bool IsEffect = std::is_same_v<T, effect*>;
 
 	template<typename T>
+	inline constexpr bool IsLuaObj = std::is_same_v<T, lua_obj*>;
+
+	template<typename T>
 	inline constexpr bool IsFunction = std::is_same_v<T, function>;
 
 	template<typename T>
@@ -122,6 +125,8 @@ namespace scriptlib {
 			return "Deleted";
 		else if constexpr(param == LuaParam::NIL)
 			return "nil";
+		else if constexpr(param == LuaParam::TABLE)
+			return "table";
 		unreachable();
 	}
 
