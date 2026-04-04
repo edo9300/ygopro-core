@@ -38,10 +38,9 @@
 // major compilers (GCC, MSVC and clang) have extensions always enabled
 // to support this behaviour.
 // If no such compiler is detected, fall back to a ISO C++ compliant
-// implementation a bit more costly depending on the optimization levels
-// of the compiler
+// implementation using macro overloading
 #if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
-#define NEEDS_DUMMY 0
+#define NEEDS_VARIADIC_OVERLOADING 0
 // under pedantic, variadic macros with 0 arguments are treated as warning
 // clang allows disabling that warning explicitly, gcc doesn't, so the only
 // solution is to mark this header as system header, so that those warnings
@@ -52,7 +51,7 @@
 #pragma GCC system_header
 #endif
 #else
-#define NEEDS_DUMMY 1
+#define NEEDS_VARIADIC_OVERLOADING 1
 #endif
 
 // Works around MSVC preprocessor bugs
@@ -171,8 +170,6 @@ constexpr auto make_lua_functions_array() {
 
 #endif
 
-using dummy = struct {}*;
-
 template <typename T, typename Enable = void>
 struct is_optional : std::false_type {};
 
@@ -194,7 +191,7 @@ template<typename T>
 template <typename Arg, typename... Args>
 constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	if constexpr(sizeof...(Args) == 0) {
-		return static_cast<int>(is_optional_v<Arg> || std::is_same_v<dummy, Arg>);
+		return static_cast<int>(is_optional_v<Arg>);
 	} else {
 		constexpr auto result = count_trailing_optionals(std::tuple<Args...>{});
 		if constexpr(result != sizeof...(Args))
@@ -208,9 +205,7 @@ template<typename T, std::enable_if_t<!is_optional_v<T> && !is_variant_v<T>, int
 inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
 	using namespace scriptlib;
 	using actual_type = T;
-	if constexpr(std::is_same_v<T, dummy>) {
-		return nullptr;
-	} else if constexpr(std::is_same_v<actual_type, lua_obj*>) {
+	if constexpr(std::is_same_v<actual_type, lua_obj*>) {
 		if(lua_isnoneornil(L, idx)) {
 			lua_error(L, "Error.");
 		}
@@ -441,11 +436,28 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 #define GET_LUA_FUNCTIONS_ARRAY() \
 	LUA_NAMESPACE::Detail::make_lua_functions_array<COUNTER_MACRO>()
 
-#if NEEDS_DUMMY
+#if NEEDS_VARIADIC_OVERLOADING
 
-#define LUA_STATIC_FUNCTION(...) EXPAND(LUA_STATIC_FUNCTION_INT1(__VA_ARGS__, [[maybe_unused]] Detail::dummy))
+#define __NARG__(...)  __NARG_I_(__VA_ARGS__, __RSEQ_N())
+#define __NARG_I_(...) EXPAND(__ARG_N(__VA_ARGS__))
+#define __ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, N, ...) N
+#define __RSEQ_N() VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, 1, 0
 
-#define LUA_STATIC_FUNCTION_INT1(name, ...) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
+#define _VFUNC_(name, n) name##n
+#define _VFUNC(name, n)  _VFUNC_(name, n)
+#define DISPATCH(name, ...) EXPAND(_VFUNC(name, __NARG__(__VA_ARGS__))( __VA_ARGS__ ))
+
+#endif
+
+#if NEEDS_VARIADIC_OVERLOADING
+
+#define LUA_STATIC_FUNCTION(...) EXPAND(DISPATCH(LUA_STATIC_FUNCTION_INT, __VA_ARGS__))
+
+#define LUA_STATIC_FUNCTION_INT1(name) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
+		[[maybe_unused]] lua_State* const L, \
+		[[maybe_unused]] duel* const pduel)
+
+#define LUA_STATIC_FUNCTION_INTVAR(name, ...) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
 		[[maybe_unused]] lua_State* const L, \
 		[[maybe_unused]] duel* const pduel, \
 		__VA_ARGS__)
@@ -481,15 +493,21 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 }; \
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 
-#if NEEDS_DUMMY
+#if NEEDS_VARIADIC_OVERLOADING
 
-#define LUA_FUNCTION(...) EXPAND(LUA_FUNCTION_INT1(__VA_ARGS__, [[maybe_unused]] Detail::dummy))
+#define LUA_FUNCTION(...) EXPAND(DISPATCH(LUA_FUNCTION_INT, __VA_ARGS__))
 
-#define LUA_FUNCTION_INT1(name, ...) LUA_FUNCTION_INT(name, COUNTER_MACRO, \
+#define LUA_FUNCTION_INT1(name) LUA_FUNCTION_INT(name, COUNTER_MACRO, \
+		[[maybe_unused]] lua_State* const L, \
+		[[maybe_unused]] LUA_CLASS* const self, \
+		[[maybe_unused]] duel* const pduel)
+
+#define LUA_FUNCTION_INTVAR(name, ...) LUA_FUNCTION_INT(name, COUNTER_MACRO, \
 		[[maybe_unused]] lua_State* const L, \
 		[[maybe_unused]] LUA_CLASS* const self, \
 		[[maybe_unused]] duel* const pduel, \
 		__VA_ARGS__)
+
 #else
 
 #define LUA_FUNCTION(...) EXPAND(LUA_FUNCTION_INT1(__VA_ARGS__))
