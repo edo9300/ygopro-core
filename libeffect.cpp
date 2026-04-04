@@ -162,18 +162,13 @@ LUA_FUNCTION(SetLabel) {
 	});
 	return 0;
 }
-LUA_FUNCTION(SetLabelObject) {
+LUA_FUNCTION(SetLabelObject, [[maybe_unused]] std::variant<lua_obj*, Table> obj) {
 	check_param_count(L, 2);
 	if(self->label_object)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->label_object);
 	self->label_object = 0;
-	if(lua_isnoneornil(L, 2))
-		return 0;
-	if(lua_get<lua_obj*>(L, 2) != nullptr || lua_istable(L, 2)) {
-		lua_pushvalue(L, 2);
-		self->label_object = ensure_luaL_stack(luaL_ref, L, LUA_REGISTRYINDEX);
-	} else
-		lua_error(L, "Parameter 2 should be \"Card\" or \"Effect\" or \"Group\" or \"table\".");
+	lua_pushvalue(L, 2);
+	self->label_object = ensure_luaL_stack(luaL_ref, L, LUA_REGISTRYINDEX);
 	return 0;
 }
 LUA_FUNCTION(SetCategory, uint64_t category) {
