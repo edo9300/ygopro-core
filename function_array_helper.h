@@ -191,16 +191,26 @@ struct is_variant<std::variant<Args...>> : std::true_type {};
 template<typename T>
 [[maybe_unused]] inline constexpr bool is_variant_v = is_variant<T>::value;
 
+template<typename VARIANT_T, typename T>
+struct is_variant_member : public std::false_type {};
+
+template<typename T, typename... Args>
+struct is_variant_member<std::variant<Args...>, T>
+	: public std::disjunction<std::is_same<T, Args>...> {};
+
+template<typename variant, typename T>
+[[maybe_unused]] inline constexpr bool is_variant_member_v = is_variant_member<variant, T>::value;
+
 template <typename Arg, typename... Args>
 constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	if constexpr(sizeof...(Args) == 0) {
-		return static_cast<int>(is_optional_v<Arg>);
+		return static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, std::monostate>));
 	} else {
 		constexpr auto result = count_trailing_optionals(std::tuple<Args...>{});
 		if constexpr(result != sizeof...(Args))
 			return result;
 		else
-			return result + static_cast<int>(is_optional_v<Arg>);
+			return result + static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, std::monostate>));
 	}
 }
 
