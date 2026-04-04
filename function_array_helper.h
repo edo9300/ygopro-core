@@ -209,12 +209,10 @@ inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_u
 	using namespace scriptlib;
 	using actual_type = T;
 	if constexpr(std::is_same_v<actual_type, lua_obj*>) {
-		if(lua_isnoneornil(L, idx)) {
-			lua_error(L, "Error.");
-		}
 		auto obj = lua_touserdata(L, idx);
-		if(!obj)
-			lua_error(L, "Error.");
+		if(!obj) {
+			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
+		}
 		actual_type ret = *static_cast<lua_obj**>(obj);
 		if(ret->lua_type == LuaParam::DELETED)
 			lua_error(L, "Attempting to access deleted object.");
