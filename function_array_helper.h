@@ -93,7 +93,6 @@ namespace Detail {
 
 template<std::size_t N>
 struct LuaFunction {
-	using function_arguments = std::tuple<>;
 	static constexpr luaL_Reg elem{ nullptr, nullptr };
 	static constexpr bool initialized{ false };
 };
@@ -126,8 +125,7 @@ using previous_element_t = LuaFunction<find_prev_element<counter, amount>(std::m
 
 #define TAG_STRUCT(COUNTER,...) \
 	static constexpr bool initialized{ true }; \
-	using prev_element = previous_element_t<COUNTER>; \
-	using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
+	using prev_element = previous_element_t<COUNTER>;
 
 template<typename T, typename Arr>
 constexpr auto populate_array([[maybe_unused]] Arr& arr, [[maybe_unused]] size_t idx) {
@@ -158,8 +156,7 @@ static constexpr auto COUNTER_OFFSET = __COUNTER__ + 1;
 					to a compilation error when since the value would underflow, work around that */ \
 				Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET - (1 * COUNTER != Detail::COUNTER_OFFSET)>, \
 				void \
-		>; \
-	using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
+		>;
 
 template<std::size_t... I>
 constexpr auto make_lua_functions_array_int(std::index_sequence<I...> seq) {
@@ -550,24 +547,32 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 		## __VA_ARGS__)
 #endif
 
+template<auto* function_ptr>
+static int32_t call_lua_function(lua_State* L) {
+	using namespace scriptlib;
+	using function_arguments = Detail::get_function_arguments_t<decltype(function_ptr)>;
+	static constexpr auto extra_args = 2;
+	if constexpr(std::tuple_size_v<function_arguments> == extra_args) {
+		return function_ptr(L, lua_get<duel*>(L));
+	} else {
+		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - Detail::count_trailing_optionals(function_arguments{})) - extra_args;
+		if constexpr(required_args > 0)
+			check_param_count(L, required_args);
+		return std::apply(function_ptr,
+		  std::tuple_cat(
+			  std::make_tuple(L, lua_get<duel*>(L)),
+			  Detail::parse_arguments_tuple<function_arguments, extra_args>(L)
+		  )
+		);
+	}
+}
+
 #define LUA_STATIC_FUNCTION_INT(name, COUNTER, ...) \
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT(COUNTER, __VA_ARGS__) \
-	static int32_t call(lua_State* L) { \
-		static constexpr auto extra_args = 2; \
-		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
-		if constexpr(required_args > 0) \
-			check_param_count(L, required_args); \
-		return std::apply(MAKE_LUA_NAME(LUA_MODULE,name), \
-			std::tuple_cat( \
-				std::make_tuple(L, lua_get<duel*>(L)), \
-				Detail::parse_arguments_tuple<function_arguments, 2>(L) \
-			) \
-		); \
-	} \
-	static constexpr luaL_Reg elem{#name, call}; \
+	static constexpr luaL_Reg elem{#name, call_lua_function<&MAKE_LUA_NAME(LUA_MODULE, name)>}; \
 }; \
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 
