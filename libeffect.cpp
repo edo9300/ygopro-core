@@ -91,7 +91,6 @@ LUA_FUNCTION(SetAbsoluteRange, uint8_t playerid, uint16_t self_range, uint16_t o
 	return 0;
 }
 LUA_FUNCTION(SetCountLimit, uint8_t count, std::variant<std::monostate, uint32_t, Table> code_variant, std::optional<uint8_t> flag_opt) {
-	check_param_count(L, 2);
 	if(count == 0)
 		lua_error(L, "The count must not be 0");
 	uint8_t hopt_index = 0;
@@ -163,7 +162,6 @@ LUA_FUNCTION(SetLabel) {
 	return 0;
 }
 LUA_FUNCTION(SetLabelObject, [[maybe_unused]] std::variant<lua_obj*, Table> obj) {
-	check_param_count(L, 2);
 	if(self->label_object)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->label_object);
 	self->label_object = 0;
