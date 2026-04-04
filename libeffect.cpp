@@ -90,24 +90,24 @@ LUA_FUNCTION(SetAbsoluteRange, uint8_t playerid, uint16_t self_range, uint16_t o
 	self->flag[0] |= EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
 }
-LUA_FUNCTION(SetCountLimit) {
+LUA_FUNCTION(SetCountLimit, uint8_t count, std::variant<std::monostate, uint32_t, Table> code_variant, std::optional<uint8_t> flag_opt) {
 	check_param_count(L, 2);
-	auto count = lua_get<uint8_t>(L, 2);
 	if(count == 0)
 		lua_error(L, "The count must not be 0");
 	uint8_t hopt_index = 0;
 	uint32_t code = 0;
-	if(lua_istable(L, 3)) {
+	if(const auto* table = std::get_if<Table>(&code_variant); table) {
 		auto top = lua_gettop(L);
-		lua_rawgeti(L, 3, 1);
+		lua_rawgeti(L, *table, 1);
 		code = lua_get<uint32_t>(L, -1);
-		if(code != 0 && lua_rawgeti(L, 3, 2) != LUA_TNIL) {
+		if(code != 0 && lua_rawgeti(L, *table, 2) != LUA_TNIL) {
 			hopt_index = lua_get<uint8_t>(L, -1);
 		}
 		lua_settop(L, top);
-	} else
-		code = lua_get<uint32_t, 0>(L, 3);
-	uint8_t flag = lua_get<uint8_t, 0>(L, 4);
+	} else if(const auto* code_ptr = std::get_if<uint32_t>(&code_variant); code_ptr) {
+		code = *code_ptr;
+	}
+	uint8_t flag = flag_opt.value_or(0);
 	if((flag & EFFECT_COUNT_CODE_CHAIN) != 0 && code == 0)
 		flag |= EFFECT_COUNT_CODE_SINGLE;
 	if((flag & (EFFECT_COUNT_CODE_DUEL | EFFECT_COUNT_CODE_CHAIN)) == (EFFECT_COUNT_CODE_DUEL | EFFECT_COUNT_CODE_CHAIN))
