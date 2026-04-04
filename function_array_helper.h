@@ -445,7 +445,8 @@ struct get_variant_names_functor<std::variant<Args...>> {
 
 template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
 inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
-	auto type = scriptlib::get_lua_type(L, idx);
+	using namespace scriptlib;
+	auto type = get_lua_type(L, idx);
 	if(!check_variant_types_functor<T>()(type)) {
 		constexpr auto types_string = get_variant_names_functor<T>()();
 		static_assert(types_string.back() == '\0');
