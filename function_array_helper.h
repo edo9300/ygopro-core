@@ -93,6 +93,7 @@ namespace Detail {
 
 template<std::size_t N>
 struct LuaFunction {
+	using function_arguments = std::tuple<>;
 	static constexpr luaL_Reg elem{ nullptr, nullptr };
 	static constexpr bool initialized{ false };
 };
@@ -123,9 +124,10 @@ constexpr auto count() {
 template <size_t counter, size_t amount = std::min<size_t>(counter, 200) - 1>
 using previous_element_t = LuaFunction<find_prev_element<counter, amount>(std::make_index_sequence<amount>())>;
 
-#define TAG_STRUCT(COUNTER) \
+#define TAG_STRUCT(COUNTER,...) \
 	static constexpr bool initialized{ true }; \
 	using prev_element = previous_element_t<COUNTER>; \
+	using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
 
 template<typename T, typename Arr>
 constexpr auto populate_array([[maybe_unused]] Arr& arr, [[maybe_unused]] size_t idx) {
@@ -149,14 +151,15 @@ constexpr auto make_lua_functions_array() {
 
 #define COUNTER_MACRO __COUNTER__
 static constexpr auto COUNTER_OFFSET = __COUNTER__ + 1;
-#define TAG_STRUCT(COUNTER) \
+#define TAG_STRUCT(COUNTER,...) \
 	using prev_element = std::conditional_t< \
 		COUNTER != Detail::COUNTER_OFFSET, \
 				/* "COUNTER - Detail::COUNTER_OFFSET - 1" is always evaluated, even if the condition is false, leading \
 					to a compilation error when since the value would underflow, work around that */ \
 				Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET - (1 * COUNTER != Detail::COUNTER_OFFSET)>, \
 				void \
-		>;
+		>; \
+	using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
 
 template<std::size_t... I>
 constexpr auto make_lua_functions_array_int(std::index_sequence<I...> seq) {
@@ -475,9 +478,8 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER) \
+	TAG_STRUCT(COUNTER, __VA_ARGS__) \
 	static int32_t call(lua_State* L) { \
-		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
 		static constexpr auto extra_args = 2; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
@@ -524,9 +526,8 @@ static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER) \
+	TAG_STRUCT(COUNTER, __VA_ARGS__) \
 	static int32_t call(lua_State* L) { \
-		using function_arguments = get_function_arguments_t<int32_t(*)(__VA_ARGS__)>; \
 		static constexpr int extra_args = 2; \
 		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - count_trailing_optionals(function_arguments{})) - extra_args; \
 		if constexpr(required_args > 0) \
