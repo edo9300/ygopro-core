@@ -293,15 +293,15 @@ template<typename... Args>
 struct check_variant_types_functor<std::variant<Args...>> {
 	constexpr bool operator()(LuaParam lua_type) {
 		using namespace scriptlib;
-		if constexpr((IsCard<Args> || ...)) {
+		if constexpr((IsCard<Args> || ...) || (IsLuaObj<Args> || ...)) {
 			if(lua_type == LuaParam::CARD)
 				return true;
 		}
-		if constexpr((IsGroup<Args> || ...)) {
+		if constexpr((IsGroup<Args> || ...) || (IsLuaObj<Args> || ...)) {
 			if(lua_type == LuaParam::GROUP)
 				return true;
 		}
-		if constexpr((IsEffect<Args> || ...)) {
+		if constexpr((IsEffect<Args> || ...) || (IsLuaObj<Args> || ...)) {
 			if(lua_type == LuaParam::EFFECT)
 				return true;
 		}
@@ -348,6 +348,10 @@ struct get_variant_type_functor<std::variant<Args...>> {
 		if constexpr((IsEffect<Args> || ...)) {
 			if(lua_type == LuaParam::EFFECT)
 				return reinterpret_cast<effect*>(lua_get<lua_obj*>(L, idx));
+		}
+		if constexpr((IsLuaObj<Args> || ...)) {
+			if(lua_type == LuaParam::CARD || lua_type == LuaParam::EFFECT || lua_type == LuaParam::GROUP)
+				return lua_get<lua_obj*>(L, idx);
 		}
 		if constexpr((std::is_same_v<Function, Args> || ...)) {
 			if(lua_type == LuaParam::FUNCTION)
@@ -413,13 +417,13 @@ struct get_variant_names_functor<std::variant<Args...>> {
 			}
 			*it++ = '"';
 		};
-		if constexpr((IsCard<Args> || ...)) {
+		if constexpr((IsCard<Args> || ...) || (IsLuaObj<Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::CARD>());
 		}
-		if constexpr((IsGroup<Args> || ...)) {
+		if constexpr((IsGroup<Args> || ...) || (IsLuaObj<Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::GROUP>());
 		}
-		if constexpr((IsEffect<Args> || ...)) {
+		if constexpr((IsEffect<Args> || ...) || (IsLuaObj<Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::EFFECT>());
 		}
 		if constexpr((std::is_same_v<Function, Args> || ...)) {
