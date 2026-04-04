@@ -62,30 +62,29 @@ LUA_FUNCTION(Clear) {
 	interpreter::pushobject(L, self);
 	return 1;
 }
-LUA_FUNCTION(AddCard) {
-	check_param_count(L, 2);
+LUA_FUNCTION(AddCard, std::variant<card*, group*> card_or_group) {
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 2); pcard)
-		self->container.insert(pcard);
-	else
+	if(const auto* const* ppgroup = std::get_if<group*>(&card_or_group); ppgroup) {
+		auto* pgroup = *ppgroup;
 		self->container.insert(pgroup->container.begin(), pgroup->container.end());
+	} else
+		self->container.insert(*std::get_if<card*>(&card_or_group));
 	interpreter::pushobject(L, self);
 	return 1;
 }
 LUA_FUNCTION_ALIAS(Merge);
-LUA_FUNCTION(RemoveCard) {
-	check_param_count(L, 2);
+LUA_FUNCTION(RemoveCard, std::variant<card*, group*> card_or_group) {
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 2); pcard)
-		self->container.erase(pcard);
-	else {
+	if(const auto* const* ppgroup = std::get_if<group*>(&card_or_group); ppgroup) {
+		auto* pgroup = *ppgroup;
 		if(self == pgroup)
 			lua_error(L, "Attempting to remove a group from itself");
 		for(auto& _pcard : pgroup->container)
 			self->container.erase(_pcard);
-	}
+	} else
+		self->container.erase(*std::get_if<card*>(&card_or_group));
 	interpreter::pushobject(L, self);
 	return 1;
 }
@@ -107,9 +106,7 @@ LUA_FUNCTION(GetFirst) {
 		lua_pushnil(L);
 	return 1;
 }
-LUA_FUNCTION(TakeatPos) {
-	check_param_count(L, 2);
-	auto pos = lua_get<size_t>(L, 2);
+LUA_FUNCTION(TakeatPos, size_t pos) {
 	if(pos >= self->container.size())
 		lua_pushnil(L);
 	else {
@@ -687,15 +684,14 @@ LUA_STATIC_FUNCTION(__add) {
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
-LUA_FUNCTION(__sub) {
-	check_param_count(L, 2);
-	auto [pcard, pgroup] = lua_get_card_or_group(L, 2);
+LUA_FUNCTION(__sub, std::variant<card*, group*> card_or_group) {
 	auto newgroup = pduel->new_group(self);
-	if(pgroup) {
-		for(auto& _pcard : pgroup->container)
-			newgroup->container.erase(_pcard);
+	if(const auto* const* ppgroup = std::get_if<group*>(&card_or_group); ppgroup) {
+		auto* pgroup = *ppgroup;
+		for(auto& pcard : pgroup->container)
+			newgroup->container.erase(pcard);
 	} else
-		newgroup->container.erase(pcard);
+		newgroup->container.erase(*std::get_if<card*>(&card_or_group));
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
@@ -703,37 +699,27 @@ LUA_FUNCTION(__len) {
 	lua_pushinteger(L, self->container.size());
 	return 1;
 }
-LUA_FUNCTION(__eq) {
-	check_param_count(L, 2);
-	auto sgroup = lua_get<group*, true>(L, 2);
-	lua_pushboolean(L, self->container.size() == sgroup->container.size());
+LUA_FUNCTION(__eq, group* other) {
+	lua_pushboolean(L, self->container.size() == other->container.size());
 	return 1;
 }
-LUA_FUNCTION(Equal) {
-	check_param_count(L, 2);
-	auto sgroup = lua_get<group*, true>(L, 2);
-	lua_pushboolean(L, self->container == sgroup->container);
+LUA_FUNCTION(Equal, group* other) {
+	lua_pushboolean(L, self->container == other->container);
 	return 1;
 }
-LUA_FUNCTION(__lt) {
-	check_param_count(L, 2);
-	auto sgroup = lua_get<group*, true>(L, 2);
-	lua_pushboolean(L, self->container.size() < sgroup->container.size());
+LUA_FUNCTION(__lt, group* other) {
+	lua_pushboolean(L, self->container.size() < other->container.size());
 	return 1;
 }
-LUA_FUNCTION(__le) {
-	check_param_count(L, 2);
-	auto sgroup = lua_get<group*, true>(L, 2);
-	lua_pushboolean(L, self->container.size() <= sgroup->container.size());
+LUA_FUNCTION(__le, group* other) {
+	lua_pushboolean(L, self->container.size() <= other->container.size());
 	return 1;
 }
 LUA_FUNCTION(__gc) {
 	pduel->delete_group(self);
 	return 1;
 }
-LUA_FUNCTION(IsContains) {
-	check_param_count(L, 2);
-	auto pcard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(IsContains, card* pcard) {
 	lua_pushboolean(L, self->has_card(pcard));
 	return 1;
 }
@@ -776,9 +762,7 @@ LUA_FUNCTION(Split) {
 	interpreter::pushobject(L, pduel->new_group(std::move(notmatching)));
 	return 2;
 }
-LUA_FUNCTION(Includes) {
-	check_param_count(L, 2);
-	auto pgroup2 = lua_get<group*, true>(L, 2);
+LUA_FUNCTION(Includes, group* pgroup2) {
 	int res = TRUE;
 	if(self->container.size() < pgroup2->container.size())
 		res = FALSE;
