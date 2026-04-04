@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -120,6 +120,8 @@ namespace scriptlib {
 			return "boolean";
 		else if constexpr(param == LuaParam::DELETED)
 			return "Deleted";
+		else if constexpr(param == LuaParam::NIL)
+			return "nil";
 	}
 
 	template<typename T, EnableIfTemplate<T, duel*> = 0>
