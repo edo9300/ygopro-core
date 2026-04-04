@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2022-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -126,7 +126,7 @@ constexpr auto make_lua_functions_array() {
 } // namespace
 
 #define GET_LUA_FUNCTIONS_ARRAY() \
-	Detail::make_lua_functions_array<COUNTER_MACRO>()
+	LUA_NAMESPACE::Detail::make_lua_functions_array<COUNTER_MACRO>()
 
 #define LUA_STATIC_FUNCTION(name) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO)
 
