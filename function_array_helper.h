@@ -393,11 +393,63 @@ struct get_variant_type_functor<std::variant<Args...>> {
 	}
 };
 
+template<typename variant_t>
+struct get_variant_names_functor;
+
+template<typename... Args>
+struct get_variant_names_functor<std::variant<Args...>> {
+	constexpr std::array<char, 128> operator()() {
+		using namespace scriptlib;
+		std::array<char, 128> ret{};
+		auto it = ret.begin();
+		bool is_first = true;
+		auto copy_string = [&](const char* string) {
+			if(!is_first) {
+				*it++ = ',';
+				*it++ = ' ';
+			}
+			is_first = false;
+			*it++ = '"';
+			while(*string) {
+				*it++ = *string++;
+			}
+			*it++ = '"';
+		};
+		if constexpr((IsCard<Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::CARD>());
+		}
+		if constexpr((IsGroup<Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::GROUP>());
+		}
+		if constexpr((IsEffect<Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::EFFECT>());
+		}
+		if constexpr((std::is_same_v<Function, Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::FUNCTION>());
+		}
+		if constexpr((std::is_same_v<Table, Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::TABLE>());
+		}
+		if constexpr((IsBool<Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::BOOLEAN>());
+		}
+		if constexpr((IsInteger<Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::INT>());
+		}
+		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::NIL>());
+		}
+		return ret;
+	}
+};
+
 template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
 inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
 	auto type = scriptlib::get_lua_type(L, idx);
 	if(!check_variant_types_functor<T>()(type)) {
-		lua_error(L, "Error");
+		constexpr auto types_string = get_variant_names_functor<T>()();
+		static_assert(types_string.back() == '\0');
+		lua_error(L, R"(Parameter %d should be one of %s but is "%s".)", idx, types_string.data(), get_lua_type_name(L, idx));
 	}
 	return get_variant_type_functor<T>()(L, idx, type);
 }
