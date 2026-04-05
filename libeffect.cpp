@@ -90,7 +90,7 @@ LUA_FUNCTION(SetAbsoluteRange, uint8_t playerid, uint16_t self_range, uint16_t o
 	self->flag[0] |= EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
 }
-LUA_FUNCTION(SetCountLimit, uint8_t count, std::variant<std::monostate, uint32_t, Table> code_variant, std::optional<uint8_t> flag_opt) {
+LUA_FUNCTION(SetCountLimit, uint8_t count, std::variant<Nil, uint32_t, Table> code_variant, std::optional<uint8_t> flag_opt) {
 	if(count == 0)
 		lua_error(L, "The count must not be 0");
 	uint8_t hopt_index = 0;
