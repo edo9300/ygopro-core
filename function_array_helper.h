@@ -373,25 +373,15 @@ struct get_variant_type_functor<std::variant<Args...>> {
 				return static_cast<bool>(lua_toboolean(L, idx));
 		}
 		if constexpr((IsInteger<Args> || ...)) {
+			static_assert((IsInteger<Args> + ...) <= 1, "Variant must have at most 1 integer type");
 			if(lua_type == LuaParam::INT) {
+				constexpr auto int_index = [] {
+					int i = 0;
+					return ((IsInteger<Args> * i++) + ...);
+				}();
+				using integer_type = std::tuple_element_t<int_index, std::tuple<Args...>>;
 				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
-				if constexpr(std::is_constructible_v<variant_t, int8_t>) {
-					return static_cast<int8_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, uint8_t>) {
-					return static_cast<uint8_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, int16_t>) {
-					return static_cast<int16_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, uint16_t>) {
-					return static_cast<uint16_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, int32_t>) {
-					return static_cast<int32_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, uint32_t>) {
-					return static_cast<uint32_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, int64_t>) {
-					return static_cast<int64_t>(val);
-				} else if constexpr(std::is_constructible_v<variant_t, uint64_t>) {
-					return static_cast<uint64_t>(val);
-				}
+				return static_cast<integer_type>(val);
 			}
 		}
 		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
