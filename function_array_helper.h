@@ -211,59 +211,36 @@ constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	}
 }
 
-template<typename T, std::enable_if_t<!is_optional_v<T> && !is_variant_v<T>, int> = 0>
-inline constexpr decltype(auto) get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
-	using namespace scriptlib;
-	using actual_type = T;
-	if constexpr(std::is_same_v<actual_type, lua_obj*>) {
-		auto obj = lua_touserdata(L, idx);
-		if(!obj) {
-			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
-		}
-		actual_type ret = *static_cast<lua_obj**>(obj);
-		if(ret->lua_type == LuaParam::DELETED)
-			lua_error(L, "Attempting to access deleted object.");
-		return ret;
-	} else {
-		constexpr auto lua_type = [] {
-			if constexpr(std::is_same_v<Function, actual_type>)
-				return LuaParam::FUNCTION;
-			else
-				return get_lua_param_type<actual_type>();
-		}();
-		if constexpr(lua_type == LuaParam::CARD || lua_type == LuaParam::GROUP || lua_type == LuaParam::EFFECT) {
-			lua_obj* ret = nullptr;
-			check_param<lua_type>(L, idx, &ret);
-			return reinterpret_cast<actual_type>(ret);
-		} else {
-			check_param<lua_type>(L, idx);
-			if constexpr(lua_type == LuaParam::BOOLEAN) {
-				return static_cast<bool>(lua_toboolean(L, idx));
-			} else if constexpr(lua_type == LuaParam::INT) {
-				if(lua_isinteger(L, idx))
-					return static_cast<actual_type>(lua_tointeger(L, idx));
-				return static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx))));
-			} else if constexpr(lua_type == LuaParam::FUNCTION) {
-				return Function{ idx };
-			} else if constexpr(lua_type == LuaParam::TABLE) {
-				return Table{ idx };
-			}
-		}
-	}
-}
-
-template<typename T, std::enable_if_t<is_optional_v<T>, int> = 0>
+template<typename T, std::enable_if_t<!is_variant_v<T>, int> = 0>
 inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
 	using namespace scriptlib;
-	using actual_type = typename T::value_type;
-	if(lua_isnoneornil(L, idx))
-		return std::nullopt;
+	// we need to not have type::value_type be evaluated if the type isn't an optional
+	auto _ = [](auto a) {
+		using type = decltype(a);
+		if constexpr(is_optional_v<type>) {
+			return typename type::value_type{};
+		} else {
+			return type{};
+		}
+	};
+	using actual_type = FunctionResult<decltype(_), T>;
+	if constexpr(is_optional_v<T>) {
+		if(lua_isnoneornil(L, idx))
+			return std::nullopt;
+	}
+	auto return_value = [](auto val) {
+		if constexpr(is_optional_v<T>) {
+			return std::make_optional<actual_type>(val);
+		} else {
+			return static_cast<actual_type>(val);
+		}
+	};
 	if constexpr(std::is_same_v<actual_type, lua_obj*>) {
 		auto* ret = lua_get<lua_obj*>(L, idx);
 		if(!ret) {
-			lua_error(L, R"(Parameter %d should be "lua_object" but is "%s".)", idx, get_lua_type_name(L, idx));
+			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
 		}
-		return std::make_optional<actual_type>(ret);
+		return return_value(ret);
 	} else {
 		constexpr auto lua_type = [] {
 			if constexpr(std::is_same_v<Function, actual_type>)
@@ -276,18 +253,19 @@ inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int i
 		if constexpr(lua_type == LuaParam::CARD || lua_type == LuaParam::GROUP || lua_type == LuaParam::EFFECT) {
 			lua_obj* ret = nullptr;
 			check_param<lua_type>(L, idx, &ret);
-			return std::make_optional<actual_type>(reinterpret_cast<actual_type>(ret));
+			return return_value(reinterpret_cast<actual_type>(ret));
 		} else {
 			check_param<lua_type>(L, idx);
 			if constexpr(lua_type == LuaParam::BOOLEAN) {
-				return std::make_optional<actual_type>(static_cast<bool>(lua_toboolean(L, idx)));
+				return return_value(static_cast<bool>(lua_toboolean(L, idx)));
 			} else if constexpr(lua_type == LuaParam::INT) {
-				return std::make_optional<actual_type>(lua_isinteger(L, idx) ? static_cast<actual_type>(lua_tointeger(L, idx)) :
-										  static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)))));
+				if(lua_isinteger(L, idx))
+					return return_value(static_cast<actual_type>(lua_tointeger(L, idx)));
+				return return_value(static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)))));
 			} else if constexpr(lua_type == LuaParam::FUNCTION) {
-				return std::make_optional<Function>(Function{ idx });
+				return return_value(Function{ idx });
 			} else if constexpr(lua_type == LuaParam::TABLE) {
-				return std::make_optional<Table>(Table{ idx });
+				return return_value(Table{ idx });
 			}
 		}
 	}
