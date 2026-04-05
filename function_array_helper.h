@@ -6,65 +6,34 @@
 #ifndef FUNCTION_ARRAY_HELPER_H
 #define FUNCTION_ARRAY_HELPER_H
 
-#define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
-#define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
-
-// in clang 22, the usage of the __COUNTER__ macro is now diagnosed as c2y extension and a warning is raised
-#if (defined(__clang__) && __clang_major__ >= 22)
-#pragma GCC diagnostic ignored "-Wc2y-extensions"
-#endif
-// __COUNTER__ is a nonstandard extension, check if it's present and properly working,
-// if that's not the case, fall back to an ISO C++ implementation using the standard
-// __LINE__ preprocessor macro to do the lua function magic
-#if !defined(__COUNTER__) || (__COUNTER__ + 0 != __COUNTER__ - 1)
-#define HAS_COUNTER 0
-#else
-#define HAS_COUNTER 1
-#endif
-
-#if !defined(__INTELLISENSE__) || !HAS_COUNTER
-#include <array>
-#include <cmath> //std::round
-#include <lauxlib.h>
-#include <optional>
-#include <type_traits> //std::conditional_t, std::enable_if_t, std::false_type, std::is_same_v, std::true_type
-#include <tuple>
-#include <utility> //std::index_sequence, std::make_index_sequence
-#include <variant>
-#include "common.h"
 #include "scriptlib.h"
 
-// ISO C++ prohibits calling variadic macros with no arguments, but
-// major compilers (GCC, MSVC and clang) have extensions always enabled
-// to support this behaviour.
-// If no such compiler is detected, fall back to a ISO C++ compliant
-// implementation using macro overloading
-#if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)
-#define NEEDS_VARIADIC_OVERLOADING 0
-// under pedantic, variadic macros with 0 arguments are treated as warning
-// clang allows disabling that warning explicitly, gcc doesn't, so the only
-// solution is to mark this header as system header, so that those warnings
-// aren't diagnosed
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-#elif defined(__GNUC__)
-#pragma GCC system_header
-#endif
-#else
-#define NEEDS_VARIADIC_OVERLOADING 1
-#endif
+#include <meta>
+#include <string_view>
 
-// Works around MSVC preprocessor bugs
-#define EXPAND( x ) x
+#define LUA_NAMESPACE lua_functions
 
-// use forceinline only in release builds
-#if defined(_DEBUG) || (!defined(_MSC_VER) && !defined(__OPTIMIZE__))
-#define LUA_INLINE NoInline
-#else
-#define LUA_INLINE ForceInline
-#endif
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
 
-#define LUA_NAMESPACE
+#define MAKE_LUA_MODULE_IMPL(module) c_lua_##module##_
+#define MAKE_LUA_MODULE(module) MAKE_LUA_MODULE_IMPL(module)
+
+#define LUA_PREFIX STR(MAKE_LUA_MODULE(LUA_MODULE))
+
+#define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
+#define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
+#define LUA_FUNCTION(name, ...) [[maybe_unused]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+	([[maybe_unused]] lua_State* const L, \
+		[[maybe_unused]] duel* const pduel, [[maybe_unused]] LUA_CLASS* const self __VA_OPT__(,) __VA_ARGS__)
+
+#define LUA_STATIC_FUNCTION(name, ...) [[maybe_unused]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel __VA_OPT__(,) __VA_ARGS__)
+
+#define LUA_FUNCTION_ALIAS(name) [[maybe_unused]] static lua_alias MAKE_LUA_NAME(LUA_MODULE,name)
+
+#define LUA_FUNCTION_EXISTING(name,...) [[maybe_unused]] [[=aliases(__VA_ARGS__)]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+	([[maybe_unused]] lua_State* const L)
 
 namespace {
 namespace LUA_NAMESPACE {
@@ -92,85 +61,6 @@ struct Table {
 using Nil = struct {}*;
 
 namespace Detail {
-
-template<std::size_t N>
-struct LuaFunction {
-	static constexpr luaL_Reg elem{ nullptr, nullptr };
-	static constexpr bool initialized{ false };
-};
-
-#if !HAS_COUNTER
-#define COUNTER_MACRO __LINE__
-[[maybe_unused]] static constexpr auto COUNTER_OFFSET = 0;
-
-template<size_t offset, size_t total, std::size_t... I>
-constexpr size_t find_prev_element(std::index_sequence<I...>) {
-	constexpr auto index_to_check = offset - (total - sizeof...(I)) - 1;
-	if constexpr(LuaFunction<index_to_check>::initialized)
-		return index_to_check;
-	else if constexpr(sizeof...(I) <= 1)
-		return 0;
-	else
-		return find_prev_element<offset, total>(std::make_index_sequence<sizeof...(I) - 1>());
-}
-
-template<typename T>
-constexpr auto count() {
-	if constexpr(T::initialized)
-		return 1 + count<typename T::prev_element>();
-	else
-		return 0;
-}
-
-template <size_t counter, size_t amount = std::min<size_t>(counter, 200) - 1>
-using previous_element_t = LuaFunction<find_prev_element<counter, amount>(std::make_index_sequence<amount>())>;
-
-#define TAG_STRUCT(COUNTER,...) \
-	static constexpr bool initialized{ true }; \
-	using prev_element = previous_element_t<COUNTER>;
-
-template<typename T, typename Arr>
-constexpr auto populate_array([[maybe_unused]] Arr& arr, [[maybe_unused]] size_t idx) {
-	if constexpr(T::initialized) {
-		arr[idx] = T::elem;
-		populate_array<typename T::prev_element>(arr, --idx);
-	}
-}
-
-template<size_t counter>
-constexpr auto make_lua_functions_array() {
-	using last_elem = previous_element_t<counter>;
-	constexpr auto total = count<last_elem>();
-	std::array<luaL_Reg, total + 1> arr{};
-	populate_array<last_elem>(arr, arr.size() - 2);
-	arr[total] = { nullptr, nullptr };
-	return arr;
-}
-
-#else
-
-#define COUNTER_MACRO __COUNTER__
-static constexpr auto COUNTER_OFFSET = __COUNTER__ + 1;
-#define TAG_STRUCT(COUNTER,...) \
-	using prev_element = std::conditional_t< \
-		COUNTER != Detail::COUNTER_OFFSET, \
-				/* "COUNTER - Detail::COUNTER_OFFSET - 1" is always evaluated, even if the condition is false, leading \
-					to a compilation error when since the value would underflow, work around that */ \
-				Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET - (1 * COUNTER != Detail::COUNTER_OFFSET)>, \
-				void \
-		>;
-
-template<std::size_t... I>
-constexpr auto make_lua_functions_array_int(std::index_sequence<I...> seq) {
-	return std::array<luaL_Reg, seq.size() + 1>{LuaFunction<I>::elem..., luaL_Reg{ nullptr, nullptr }};
-}
-
-template<std::size_t counter>
-constexpr auto make_lua_functions_array() {
-	return make_lua_functions_array_int(std::make_index_sequence<counter - COUNTER_OFFSET>());
-}
-
-#endif
 
 template <typename T, typename Enable = void>
 struct is_optional : std::false_type {};
@@ -214,7 +104,7 @@ constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 }
 
 template<typename T, std::enable_if_t<!is_variant_v<T>, int> = 0>
-inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
+inline constexpr T get_lua(lua_State* L, int idx) {
 	using namespace scriptlib;
 	// we need to not have type::value_type be evaluated if the type isn't an optional
 	auto _ = [](auto a) {
@@ -358,7 +248,7 @@ struct get_variant_type_functor<std::variant<Args...>> {
 				return static_cast<bool>(lua_toboolean(L, idx));
 		}
 		if constexpr((IsInteger<Args> || ...)) {
-			static_assert((IsInteger<Args> + ...) <= 1, "Variant must have at most 1 integer type");
+			static_assert((IsInteger<Args> +...) <= 1, "Variant must have at most 1 integer type");
 			if(lua_type == LuaParam::INT) {
 				constexpr auto int_index = [] {
 					int i = 0;
@@ -431,7 +321,7 @@ struct get_variant_names_functor<std::variant<Args...>> {
 };
 
 template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
-inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
+inline constexpr T get_lua(lua_State* L, int idx) {
 	using namespace scriptlib;
 	auto type = get_lua_type(L, idx);
 	if(!check_variant_types_functor<T>()(type)) {
@@ -449,6 +339,10 @@ template<typename Ret, typename... Args>
 struct get_function_arguments<Ret(*)(Args...)> {
 	using type = std::tuple<Args...>;
 };
+template<typename Ret, typename... Args>
+struct get_function_arguments<Ret(*const)(Args...)> {
+	using type = std::tuple<Args...>;
+};
 template<typename Sig>
 using get_function_arguments_t = typename get_function_arguments<Sig>::type;
 
@@ -464,137 +358,73 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 
 } // namespace Detail
 } // namespace LUA_NAMESPACE
-} // namespace
 
-#define GET_LUA_FUNCTIONS_ARRAY() \
-	LUA_NAMESPACE::Detail::make_lua_functions_array<COUNTER_MACRO>()
+struct aliases { lua_CFunction field; };
 
-#if NEEDS_VARIADIC_OVERLOADING
-
-#define __NARG__(...)  __NARG_I_(__VA_ARGS__, __RSEQ_N())
-#define __NARG_I_(...) EXPAND(__ARG_N(__VA_ARGS__))
-#define __ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, N, ...) N
-#define __RSEQ_N() VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, 1, 0
-
-#define _VFUNC_(name, n) name##n
-#define _VFUNC(name, n)  _VFUNC_(name, n)
-#define DISPATCH(name, ...) EXPAND(_VFUNC(name, __NARG__(__VA_ARGS__))( __VA_ARGS__ ))
-
-#endif
-
-#if NEEDS_VARIADIC_OVERLOADING
-
-#define LUA_STATIC_FUNCTION(...) EXPAND(DISPATCH(LUA_STATIC_FUNCTION_INT, __VA_ARGS__))
-
-#define LUA_STATIC_FUNCTION_INT1(name) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
-		[[maybe_unused]] lua_State* const L, \
-		[[maybe_unused]] duel* const pduel)
-
-#define LUA_STATIC_FUNCTION_INTVAR(name, ...) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
-		[[maybe_unused]] lua_State* const L, \
-		[[maybe_unused]] duel* const pduel, \
-		__VA_ARGS__)
-
-#define LUA_FUNCTION(...) EXPAND(DISPATCH(LUA_FUNCTION_INT, __VA_ARGS__))
-
-#define LUA_FUNCTION_INT1(name) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
-		[[maybe_unused]] lua_State* const L, \
-		[[maybe_unused]] duel* const pduel, \
-		[[maybe_unused]] LUA_CLASS* const self)
-
-#define LUA_FUNCTION_INTVAR(name, ...) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
-		[[maybe_unused]] lua_State* const L, \
-		[[maybe_unused]] duel* const pduel, \
-		[[maybe_unused]] LUA_CLASS* const self, \
-		__VA_ARGS__)
-#else
-
-#define LUA_STATIC_FUNCTION(...) EXPAND(LUA_STATIC_FUNCTION_INT1(__VA_ARGS__))
-
-#define LUA_STATIC_FUNCTION_INT1(name, ...) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
-		[[maybe_unused]] lua_State* const L, \
-		[[maybe_unused]] duel* const pduel, \
-		## __VA_ARGS__)
-
-#define LUA_FUNCTION(...) EXPAND(LUA_FUNCTION_INT1(__VA_ARGS__))
-
-#define LUA_FUNCTION_INT1(name, ...) LUA_STATIC_FUNCTION_INT(name, COUNTER_MACRO, \
-		[[maybe_unused]] lua_State* const L, \
-		[[maybe_unused]] duel* const pduel, \
-		[[maybe_unused]] LUA_CLASS* const self, \
-		## __VA_ARGS__)
-#endif
-
-template<auto* function_ptr>
-static int32_t call_lua_function(lua_State* L) {
-	using namespace scriptlib;
-	using function_arguments = Detail::get_function_arguments_t<decltype(function_ptr)>;
-	static constexpr auto extra_args = 2;
-	if constexpr(std::tuple_size_v<function_arguments> == extra_args) {
-		return function_ptr(L, lua_get<duel*>(L));
-	} else {
-		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - Detail::count_trailing_optionals(function_arguments{})) - extra_args;
-		if constexpr(required_args > 0)
-			check_param_count(L, required_args);
-		return std::apply(function_ptr,
-		  std::tuple_cat(
-			  std::make_tuple(L, lua_get<duel*>(L)),
-			  Detail::parse_arguments_tuple<function_arguments, extra_args>(L)
-		  )
-		);
-	}
+struct lua_alias { };
+template<std::meta::info Namespace>
+constexpr auto get_lua_functions() {
+	constexpr auto lua_symbols = [] {
+		constexpr auto ctx = std::meta::access_context::current();
+		std::vector<std::meta::info> res;
+		template for (constexpr auto M : define_static_array(members_of(Namespace, ctx))) {
+			if constexpr(identifier_of(M).starts_with(LUA_PREFIX)) {
+				res.push_back(M);
+			}
+		}
+		return define_static_array(res);
+	}();
+	std::array<luaL_Reg, lua_symbols.size()+1> ret_array{};
+	int i = 0;
+    template for (constexpr auto M : define_static_array(lua_symbols)) {
+		constexpr auto identifier = identifier_of(M).substr(std::string_view{LUA_PREFIX}.size());
+		if constexpr(is_function(M)) {
+			constexpr auto annotations = define_static_array(annotations_of_with_type(M, ^^aliases));
+			static_assert(annotations.size() <= 1);
+			if constexpr(annotations.size() == 1) {
+				constexpr auto annotation = extract<aliases>(annotations[0]);
+				static_assert(annotation.field != nullptr);
+				ret_array[i] = luaL_Reg{identifier.data(), annotation.field};
+			} else {
+				static constexpr auto func_ptr = [:M:];
+				static constexpr auto parameters = define_static_array(parameters_of(M));
+				static constexpr auto num_of_parameters = parameters.size();
+				ret_array[i] = luaL_Reg{identifier.data(), [](lua_State* L) -> int {
+					using namespace scriptlib;
+					if constexpr(num_of_parameters == 2) {
+						return func_ptr(L, lua_get<duel*>(L));
+					} else {
+						using function_arguments = LUA_NAMESPACE::Detail::get_function_arguments_t<decltype(func_ptr)>;
+						static constexpr auto extra_args = 2;
+						static constexpr int required_args = (static_cast<int>(num_of_parameters) - LUA_NAMESPACE::Detail::count_trailing_optionals(function_arguments{})) - extra_args;
+						if constexpr(required_args > 0)
+							check_param_count(L, required_args);
+						return std::apply(func_ptr,
+							std::tuple_cat(
+								std::make_tuple(L, lua_get<duel*>(L)),
+								LUA_NAMESPACE::Detail::parse_arguments_tuple<function_arguments, extra_args>(L)
+							)
+						);
+					}
+				}};
+			}
+		} else if constexpr(is_variable(M)) {
+			static_assert(type_of(M) == ^^lua_alias);
+			ret_array[i] = luaL_Reg{identifier.data(), ret_array[i - 1].func};
+		}
+		i++;
+    }
+	ret_array[i] = {nullptr,nullptr};
+	return ret_array;
+}
 }
 
-#define LUA_STATIC_FUNCTION_INT(name, COUNTER, ...) \
-static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
-template<> \
-struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER, __VA_ARGS__) \
-	static constexpr luaL_Reg elem{#name, call_lua_function<&MAKE_LUA_NAME(LUA_MODULE, name)>}; \
-}; \
-static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
+#undef LUA_PREFIX
+#undef STR
+#undef STR_HELPER
+#undef MAKE_LUA_MODULE_IMPL
+#undef MAKE_LUA_MODULE
 
-#define LUA_FUNCTION_EXISTING(name,...) LUA_FUNCTION_EXISTING_INT(name, COUNTER_MACRO, __VA_ARGS__)
-#define LUA_FUNCTION_EXISTING_INT(name, COUNTER, ...) \
-template<> \
-struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER) \
-	static constexpr luaL_Reg elem{#name,__VA_ARGS__}; \
-}
+#define GET_LUA_FUNCTIONS_ARRAY() get_lua_functions<^^LUA_NAMESPACE>()
 
-#define LUA_FUNCTION_ALIAS(name) LUA_FUNCTION_ALIAS_INT(name, COUNTER_MACRO)
-#define LUA_FUNCTION_ALIAS_INT(name, COUNTER) \
-template<> \
-struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER) \
-	static constexpr luaL_Reg elem{#name,prev_element::elem.func}; \
-}
-#else
-struct Function {
-	int value;
-	operator int() {
-		return value;
-	}
-	operator int() const {
-		return value;
-	}
-};
-struct Table {
-	int value;
-	operator int() {
-		return value;
-	}
-	operator int() const {
-		return value;
-	}
-};
-using Nil = struct {}*;
-#define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
-	([[maybe_unused]] lua_State* const L, [[maybe_unused]] LUA_CLASS* const self, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
-#define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
-	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
-#define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
-#define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
-#define GET_LUA_FUNCTIONS_ARRAY() std::array{luaL_Reg{nullptr,nullptr}}
-#endif // __INTELLISENSE__
 #endif // FUNCTION_ARRAY_HELPER_H
