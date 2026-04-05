@@ -870,7 +870,7 @@ LUA_FUNCTION(GetTurnCounter) {
 	lua_pushinteger(L, self->turn_counter);
 	return 1;
 }
-LUA_FUNCTION(SetMaterial, std::variant<std::monostate, card*, group*> card_or_group) {
+LUA_FUNCTION(SetMaterial, std::variant<Nil, card*, group*> card_or_group) {
 	if(std::holds_alternative<card*>(card_or_group)) {
 		self->set_material({ std::get<card*>(card_or_group) });
 	} else if(std::holds_alternative<group*>(card_or_group)) {
