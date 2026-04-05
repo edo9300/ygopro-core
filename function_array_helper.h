@@ -89,6 +89,8 @@ struct Table {
 	}
 };
 
+using Nil = struct {}*;
+
 namespace Detail {
 
 template<std::size_t N>
@@ -201,13 +203,13 @@ template<typename variant, typename T>
 template <typename Arg, typename... Args>
 constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	if constexpr(sizeof...(Args) == 0) {
-		return static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, std::monostate>));
+		return static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>));
 	} else {
 		constexpr auto result = count_trailing_optionals(std::tuple<Args...>{});
 		if constexpr(result != sizeof...(Args))
 			return result;
 		else
-			return result + static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, std::monostate>));
+			return result + static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>));
 	}
 }
 
@@ -306,7 +308,7 @@ struct check_variant_types_functor<std::variant<Args...>> {
 			if(lua_type == LuaParam::INT)
 				return true;
 		}
-		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
+		if constexpr((std::is_same_v<Nil, Args> || ...)) {
 			if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
 				return true;
 		}
@@ -362,9 +364,9 @@ struct get_variant_type_functor<std::variant<Args...>> {
 				return static_cast<integer_type>(val);
 			}
 		}
-		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
+		if constexpr((std::is_same_v<Nil, Args> || ...)) {
 			if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
-				return std::monostate{};
+				return Nil{};
 		}
 		unreachable();
 	}
@@ -413,7 +415,7 @@ struct get_variant_names_functor<std::variant<Args...>> {
 		if constexpr((IsInteger<Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::INT>());
 		}
-		if constexpr((std::is_same_v<std::monostate, Args> || ...)) {
+		if constexpr((std::is_same_v<Nil, Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::NIL>());
 		}
 		return ret;
@@ -578,6 +580,7 @@ struct Table {
 		return value;
 	}
 };
+using Nil = struct {}*;
 #define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] LUA_CLASS* const self, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
 #define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
