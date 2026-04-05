@@ -322,7 +322,12 @@ struct get_variant_type_functor;
 template<typename... Args>
 struct get_variant_type_functor<std::variant<Args...>> {
 	using variant_t = std::variant<Args...>;
+	template<typename T>
+	static inline constexpr bool is_handled_variant_type = scriptlib::IsCard<T> || scriptlib::IsGroup<T> ||
+		scriptlib::IsEffect<T> || scriptlib::IsLuaObj<T> || std::is_same_v<Function, T> ||
+		std::is_same_v<Table, T> || scriptlib::IsBool<T> || scriptlib::IsInteger<T> || std::is_same_v<Nil, T>;
 	constexpr variant_t operator()(lua_State* L, int idx, LuaParam lua_type) {
+		static_assert(((is_handled_variant_type<Args> * 1) +...) == std::variant_size_v<variant_t>, "Unhandled variant type passed");
 		using namespace scriptlib;
 		if constexpr((IsCard<Args> || ...)) {
 			if(lua_type == LuaParam::CARD)
