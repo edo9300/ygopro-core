@@ -362,7 +362,10 @@ struct get_variant_type_functor<std::variant<Args...>> {
 			if(lua_type == LuaParam::INT) {
 				constexpr auto int_index = [] {
 					int i = 0;
-					return ((IsInteger<Args> * i++) + ...);
+					int elem = 0;
+					// do this comma operator spam to avoid sequence point warnings
+					((!IsInteger<Args> || (elem = i), ++i), ...);
+					return elem;
 				}();
 				using integer_type = std::tuple_element_t<int_index, std::tuple<Args...>>;
 				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
