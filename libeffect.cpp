@@ -199,15 +199,15 @@ LUA_FUNCTION(SetCost, Function findex) {
 LUA_FUNCTION(SetValue, std::variant<Function, bool, lua_Integer> function_value) {
 	if(self->value && self->is_flag(EFFECT_FLAG_FUNC_VALUE))
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->value);
-	if(std::holds_alternative<Function>(function_value)) {
-		self->value = interpreter::get_function_handle(L, std::get<Function>(function_value));
+	if(auto* pfunction = std::get_if<Function>(&function_value); pfunction) {
+		self->value = interpreter::get_function_handle(L, *pfunction);
 		self->flag[0] |= EFFECT_FLAG_FUNC_VALUE;
 	} else {
 		self->flag[0] &= ~EFFECT_FLAG_FUNC_VALUE;
-		if(std::holds_alternative<bool>(function_value)) {
-			self->value = std::get<bool>(function_value);
+		if(auto* pbool = std::get_if<bool>(&function_value); pbool) {
+			self->value = *pbool;
 		} else {
-			auto value = std::get<lua_Integer>(function_value);
+			auto value = *std::get_if<lua_Integer>(&function_value);
 			if(value > INT32_MAX || value < INT32_MIN) {
 				lua_pushinteger(L, value);
 				lua_pushcclosure(L, [](lua_State* L) -> int32_t {
