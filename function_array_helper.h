@@ -9,9 +9,12 @@
 #define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
 #define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
 
-// in clang 22, the usage of the __COUNTER__ macro is now diagnosed as c2y extension and a warning is raised
-#if (defined(__clang__) && __clang_major__ >= 22)
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wunused-const-variable"
+#if __clang_major__ >= 22
+ // in clang 22, the usage of the __COUNTER__ macro is now diagnosed as c2y extension and a warning is raised
 #pragma GCC diagnostic ignored "-Wc2y-extensions"
+#endif
 #endif
 // __COUNTER__ is a nonstandard extension, check if it's present and properly working,
 // if that's not the case, fall back to an ISO C++ implementation using the standard
@@ -493,10 +496,6 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 #define _VFUNC_(name, n) name##n
 #define _VFUNC(name, n)  _VFUNC_(name, n)
 #define DISPATCH(name, ...) EXPAND(_VFUNC(name, __NARG__(__VA_ARGS__))( __VA_ARGS__ ))
-
-#endif
-
-#if NEEDS_VARIADIC_OVERLOADING
 
 #define LUA_STATIC_FUNCTION(...) EXPAND(DISPATCH(LUA_STATIC_FUNCTION_INT, __VA_ARGS__))
 
