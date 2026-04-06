@@ -509,22 +509,18 @@ LUA_STATIC_FUNCTION(GetOperatedGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsCanAddCounter) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(IsCanAddCounter, uint8_t playerid) {
 	if(playerid != 0 && playerid != 1) {
-		lua_pushboolean(L, 0);
-		return 1;
+		return 0;
 	}
-	if(lua_gettop(L) == 1)
-		lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_PLACE_COUNTER));
-	else {
-		check_param_count(L, 4);
-		auto countertype = lua_get<uint16_t>(L, 2);
-		auto count = lua_get<uint32_t>(L, 3);
-		auto pcard = lua_get<card*, true>(L, 4);
-		lua_pushboolean(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
+	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_PLACE_COUNTER));
+	return 1;
+}
+LUA_STATIC_FUNCTION(IsCanAddCounter, uint8_t playerid, uint16_t countertype, uint32_t count, card* pcard) {
+	if(playerid != 0 && playerid != 1) {
+		return 0;
 	}
+	lua_pushboolean(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
 	return 1;
 }
 LUA_STATIC_FUNCTION(RemoveCounter, uint8_t rplayer, uint8_t self, uint8_t oppo,
