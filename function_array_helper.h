@@ -619,7 +619,7 @@ struct Table {
 };
 using Nil = struct {}*;
 #define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
-	([[maybe_unused]] lua_State* const L, [[maybe_unused]] LUA_CLASS* const self, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
+	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, [[maybe_unused]] LUA_CLASS* const self, ##__VA_ARGS__)
 #define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
