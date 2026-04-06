@@ -27,6 +27,7 @@
 #include <cmath> //std::round
 #include <lauxlib.h>
 #include <optional>
+#include <string_view>
 #include <type_traits> //std::conditional_t, std::enable_if_t, std::false_type, std::is_same_v, std::true_type
 #include <tuple>
 #include <utility> //std::index_sequence, std::make_index_sequence
@@ -97,7 +98,19 @@ template<std::size_t N>
 struct LuaFunction {
 	static constexpr luaL_Reg elem{ nullptr, nullptr };
 	static constexpr bool initialized{ false };
+	[[maybe_unused]] static constexpr size_t max_number_of_arguments{ 0 };
+	static constexpr const char* lua_name = "";
 };
+
+#define TAG_STRUCT(name, COUNTER, ...) \
+	static constexpr const char* lua_name = #name; \
+	[[maybe_unused]] static constexpr size_t max_number_of_arguments = std::tuple_size_v<Detail::get_function_arguments_t<void(*)(__VA_ARGS__)>> - 2; \
+	TAG_STRUCT_IMPL(COUNTER)
+
+#define TAG_STRUCT_NO_ARGS(name, COUNTER) \
+	static constexpr const char* lua_name = #name; \
+	[[maybe_unused]] static constexpr size_t max_number_of_arguments = 0; \
+	TAG_STRUCT_IMPL(COUNTER)
 
 #if !HAS_COUNTER
 #define COUNTER_MACRO __LINE__
@@ -125,7 +138,7 @@ constexpr auto count() {
 template <size_t counter, size_t amount = std::min<size_t>(counter, 200) - 1>
 using previous_element_t = LuaFunction<find_prev_element<counter, amount>(std::make_index_sequence<amount>())>;
 
-#define TAG_STRUCT(COUNTER,...) \
+#define TAG_STRUCT_IMPL(COUNTER) \
 	static constexpr bool initialized{ true }; \
 	using prev_element = previous_element_t<COUNTER>;
 
@@ -151,13 +164,14 @@ constexpr auto make_lua_functions_array() {
 
 #define COUNTER_MACRO __COUNTER__
 static constexpr auto COUNTER_OFFSET = __COUNTER__ + 1;
-#define TAG_STRUCT(COUNTER,...) \
+#define TAG_STRUCT_IMPL(COUNTER) \
 	using prev_element = std::conditional_t< \
 		COUNTER != Detail::COUNTER_OFFSET, \
 				/* "COUNTER - Detail::COUNTER_OFFSET - 1" is always evaluated, even if the condition is false, leading \
 					to a compilation error when since the value would underflow, work around that */ \
 				Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET - (1 * COUNTER != Detail::COUNTER_OFFSET)>, \
-				void \
+				/* we instantiate a high specialization so that it's not picked up when iterating but it's still valid to pass around */ \
+				Detail::LuaFunction<0xFFFFFF> \
 		>;
 
 template<std::size_t... I>
@@ -214,7 +228,7 @@ constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 }
 
 template<typename T, std::enable_if_t<!is_variant_v<T>, int> = 0>
-inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
+inline constexpr T get_lua(lua_State* L, int idx) {
 	using namespace scriptlib;
 	// we need to not have type::value_type be evaluated if the type isn't an optional
 	auto _ = [](auto a) {
@@ -327,7 +341,7 @@ struct get_variant_type_functor<std::variant<Args...>> {
 		scriptlib::IsEffect<T> || scriptlib::IsLuaObj<T> || std::is_same_v<Function, T> ||
 		std::is_same_v<Table, T> || scriptlib::IsBool<T> || scriptlib::IsInteger<T> || std::is_same_v<Nil, T>;
 	constexpr variant_t operator()(lua_State* L, int idx, LuaParam lua_type) {
-		static_assert(((is_handled_variant_type<Args> * 1) +...) == std::variant_size_v<variant_t>, "Unhandled variant type passed");
+		static_assert(((is_handled_variant_type<Args> * 1) + ...) == std::variant_size_v<variant_t>, "Unhandled variant type passed");
 		using namespace scriptlib;
 		if constexpr((IsCard<Args> || ...)) {
 			if(lua_type == LuaParam::CARD)
@@ -431,7 +445,7 @@ struct get_variant_names_functor<std::variant<Args...>> {
 };
 
 template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
-inline constexpr T get_lua([[maybe_unused]] lua_State* L, [[maybe_unused]] int idx) {
+inline constexpr T get_lua(lua_State* L, int idx) {
 	using namespace scriptlib;
 	auto type = get_lua_type(L, idx);
 	if(!check_variant_types_functor<T>()(type)) {
@@ -525,21 +539,31 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 		## __VA_ARGS__)
 #endif
 
-template<auto* function_ptr>
+template<auto* function_ptr, bool is_overload, typename previous_element>
 static int32_t call_lua_function(lua_State* L) {
 	using namespace scriptlib;
 	using function_arguments = Detail::get_function_arguments_t<decltype(function_ptr)>;
-	static constexpr auto extra_args = 2;
-	if constexpr(std::tuple_size_v<function_arguments> == extra_args) {
+	static constexpr auto nonlua_args_num = 2;
+	static constexpr auto max_number_of_arguments = std::tuple_size_v<function_arguments> - nonlua_args_num;
+	if constexpr(is_overload) {
+		static_assert(max_number_of_arguments != previous_element::max_number_of_arguments,
+					  "Cannot have overloaded functions take the same number of arguments");
+		static_assert(max_number_of_arguments > previous_element::max_number_of_arguments,
+					  "Overloaded functions must be declared in order from the one with less arguments to the one with most");
+		auto argnum = lua_gettop(L);
+		if(argnum <= previous_element::max_number_of_arguments)
+			return previous_element::elem.func(L);
+	}
+	if constexpr(max_number_of_arguments == 0) {
 		return function_ptr(L, lua_get<duel*>(L));
 	} else {
-		static constexpr int required_args = (static_cast<int>(std::tuple_size_v<function_arguments>) - Detail::count_trailing_optionals(function_arguments{})) - extra_args;
+		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals(function_arguments{});
 		if constexpr(required_args > 0)
 			check_param_count(L, required_args);
 		return std::apply(function_ptr,
 		  std::tuple_cat(
 			  std::make_tuple(L, lua_get<duel*>(L)),
-			  Detail::parse_arguments_tuple<function_arguments, extra_args>(L)
+			  Detail::parse_arguments_tuple<function_arguments, nonlua_args_num>(L)
 		  )
 		);
 	}
@@ -549,8 +573,13 @@ static int32_t call_lua_function(lua_State* L) {
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER, __VA_ARGS__) \
-	static constexpr luaL_Reg elem{#name, call_lua_function<&MAKE_LUA_NAME(LUA_MODULE, name)>}; \
+	TAG_STRUCT(name, COUNTER, __VA_ARGS__) \
+	using lua_function_typedef = int32_t(*)(__VA_ARGS__); \
+	static constexpr luaL_Reg elem{lua_name, call_lua_function< \
+					/* pick the right overload */ \
+					static_cast<lua_function_typedef>(&MAKE_LUA_NAME(LUA_MODULE, name)), \
+					std::string_view{lua_name} == std::string_view{prev_element::lua_name}, \
+					prev_element>}; \
 }; \
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 
@@ -558,7 +587,7 @@ static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 #define LUA_FUNCTION_EXISTING_INT(name, COUNTER, ...) \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER) \
+	TAG_STRUCT_NO_ARGS(name, COUNTER) \
 	static constexpr luaL_Reg elem{#name,__VA_ARGS__}; \
 }
 
@@ -566,8 +595,8 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 #define LUA_FUNCTION_ALIAS_INT(name, COUNTER) \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
-	TAG_STRUCT(COUNTER) \
-	static constexpr luaL_Reg elem{#name,prev_element::elem.func}; \
+	TAG_STRUCT_NO_ARGS(name, COUNTER) \
+	static constexpr luaL_Reg elem{lua_name,prev_element::elem.func}; \
 }
 #else
 struct Function {
