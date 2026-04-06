@@ -345,6 +345,9 @@ namespace scriptlib {
 		} else if constexpr(param_type == LuaParam::FUNCTION) {
 			if(lua_type(L, index) == LUA_TFUNCTION)
 				return static_cast<ReturnType>(true);
+		} else if constexpr(param_type == LuaParam::TABLE) {
+			if(lua_type(L, index) == LUA_TTABLE)
+				return static_cast<ReturnType>(true);
 		} else if constexpr(param_type == LuaParam::STRING) {
 			if(lua_type(L, index) == LUA_TSTRING)
 				return static_cast<ReturnType>(true);
