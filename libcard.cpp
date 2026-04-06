@@ -871,10 +871,10 @@ LUA_FUNCTION(GetTurnCounter) {
 	return 1;
 }
 LUA_FUNCTION(SetMaterial, std::variant<Nil, card*, group*> card_or_group) {
-	if(std::holds_alternative<card*>(card_or_group)) {
-		self->set_material({ std::get<card*>(card_or_group) });
-	} else if(std::holds_alternative<group*>(card_or_group)) {
-		self->set_material(std::get<group*>(card_or_group)->container);
+	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard) {
+		self->set_material({ *ppcard });
+	} else if(auto* ppgroup = std::get_if<group*>(&card_or_group); ppgroup) {
+		self->set_material((*ppgroup)->container);
 	} else {
 		self->set_material({});
 	}
