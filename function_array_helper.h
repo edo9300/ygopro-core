@@ -368,7 +368,7 @@ constexpr auto get_lua_functions() {
 		constexpr auto ctx = std::meta::access_context::current();
 		std::vector<std::meta::info> res;
 		template for (constexpr auto M : define_static_array(members_of(Namespace, ctx))) {
-			if constexpr(identifier_of(M).starts_with(LUA_PREFIX)) {
+			if constexpr(has_identifier(M) && identifier_of(M).starts_with(LUA_PREFIX)) {
 				res.push_back(M);
 			}
 		}
