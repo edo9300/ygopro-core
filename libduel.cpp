@@ -155,10 +155,10 @@ LUA_STATIC_FUNCTION(Destroy, std::variant<card*, group*> card_or_group, uint32_t
 	auto destroy = [&, field = pduel->game_field](auto& obj) {
 		field->destroy(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), PLAYER_NONE, dest.value_or(LOCATION_GRAVE), 0);
 	};
-	if(std::holds_alternative<card*>(card_or_group))
-		destroy(std::get<card*>(card_or_group));
-	else if(std::holds_alternative<group*>(card_or_group))
-		destroy(std::get<group*>(card_or_group)->container);
+	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		destroy(*ppcard);
+	else
+		destroy((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -170,10 +170,10 @@ LUA_STATIC_FUNCTION(Remove, std::variant<card*, group*> card_or_group, std::opti
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), playerid.value_or(PLAYER_NONE), LOCATION_REMOVED, 0, pos.value_or(0));
 	};
-	if(std::holds_alternative<card*>(card_or_group))
-		sendto(std::get<card*>(card_or_group));
-	else if(std::holds_alternative<group*>(card_or_group))
-		sendto(std::get<group*>(card_or_group)->container);
+	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		sendto(*ppcard);
+	else
+		sendto((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -185,10 +185,10 @@ LUA_STATIC_FUNCTION(SendtoGrave, std::variant<card*, group*> card_or_group, uint
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), playerid.value_or(PLAYER_NONE), LOCATION_GRAVE, 0, POS_FACEUP);
 	};
-	if(std::holds_alternative<card*>(card_or_group))
-		sendto(std::get<card*>(card_or_group));
-	else if(std::holds_alternative<group*>(card_or_group))
-		sendto(std::get<group*>(card_or_group)->container);
+	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		sendto(*ppcard);
+	else
+		sendto((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -321,11 +321,11 @@ LUA_STATIC_FUNCTION(SSet, uint8_t playerid, std::variant<card*, group*> card_or_
 	check_action_permission(L);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	group* pgroup = nullptr;
-	if(std::holds_alternative<card*>(card_or_group)) {
-		pgroup = pduel->new_group(std::get<card*>(card_or_group));
-	} else if(std::holds_alternative<group*>(card_or_group)) {
-		pgroup = std::get<group*>(card_or_group);
+	owned_lua<group> pgroup = nullptr;
+	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard) {
+		pgroup = pduel->new_group(*ppcard);
+	} else {
+		pgroup = *std::get_if<group*>(&card_or_group);
 		if(pgroup->container.empty()) {
 			lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 			return 1;
@@ -360,10 +360,10 @@ LUA_STATIC_FUNCTION(SpecialSummon, std::variant<card*, group*> card_or_group, ui
 	auto spsummon = [&](card_set obj) {
 		pduel->game_field->special_summon(std::move(obj), sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone.value_or(0xff));
 	};
-	if(std::holds_alternative<card*>(card_or_group)) {
-		spsummon({ std::get<card*>(card_or_group) });
-	} else if(std::holds_alternative<group*>(card_or_group)) {
-		spsummon(std::get<group*>(card_or_group)->container);
+	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard) {
+		spsummon({ *ppcard });
+	} else {
+		spsummon((*std::get_if<group*>(&card_or_group))->container);
 	}
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
@@ -404,10 +404,10 @@ LUA_STATIC_FUNCTION(SendtoHand, std::variant<card*, group*> card_or_group, std::
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), actual_playerid, LOCATION_HAND, 0, POS_FACEUP);
 	};
-	if(std::holds_alternative<card*>(card_or_group))
-		sendto(std::get<card*>(card_or_group));
-	else if(std::holds_alternative<group*>(card_or_group))
-		sendto(std::get<group*>(card_or_group)->container);
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		sendto(*ppcard);
+	else
+		sendto((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -424,10 +424,10 @@ LUA_STATIC_FUNCTION(SendtoDeck, std::variant<card*, group*> card_or_group, std::
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player),
 					   actual_playerid, location, static_cast<uint32_t>(sequence), POS_FACEUP);
 	};
-	if(std::holds_alternative<card*>(card_or_group))
-		sendto(std::get<card*>(card_or_group));
-	else if(std::holds_alternative<group*>(card_or_group))
-		sendto(std::get<group*>(card_or_group)->container);
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		sendto(*ppcard);
+	else
+		sendto((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -442,10 +442,10 @@ LUA_STATIC_FUNCTION(SendtoExtraP, std::variant<card*, group*> card_or_group, std
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), actual_playerid, LOCATION_EXTRA, 0, POS_FACEUP);
 	};
-	if(std::holds_alternative<card*>(card_or_group))
-		sendto(std::get<card*>(card_or_group));
-	else if(std::holds_alternative<group*>(card_or_group))
-		sendto(std::get<group*>(card_or_group)->container);
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		sendto(*ppcard);
+	else
+		sendto((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
