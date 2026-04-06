@@ -451,30 +451,30 @@ LUA_STATIC_FUNCTION(SendtoExtraP, std::variant<card*, group*> card_or_group, std
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(Sendto) {
+LUA_STATIC_FUNCTION(Sendto, std::variant<card*, group*> card_or_group, uint16_t location, uint32_t reason,
+					std::optional<uint8_t> position, std::optional<uint8_t> playerid, std::optional<uint32_t> sequence,
+					std::optional<uint8_t> reason_player) {
 	check_action_permission(L);
-	check_param_count(L, 3);
-	auto location = lua_get<uint16_t>(L, 2);
-	auto reason = lua_get<uint32_t>(L, 3);
-	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 4);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 5);
-	if(playerid > PLAYER_NONE)
+	auto actual_playerid = playerid.value_or(PLAYER_NONE);
+	if(actual_playerid > PLAYER_NONE)
 		return 0;
-	auto sequence = lua_get<uint32_t, 0>(L, 6);
-	const auto reasonplayer = lua_get<uint8_t>(L, 7, pduel->game_field->core.reason_player);
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 1); pcard)
-		pduel->game_field->send_to(pcard, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, pos, TRUE);
+	auto sendto = [&, field = pduel->game_field](auto& obj) {
+		field->send_to(obj, field->core.reason_effect, reason, reason_player.value_or(field->core.reason_player),
+					   actual_playerid, location, sequence.value_or(0), position.value_or(POS_FACEUP), TRUE);
+	};
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		sendto(*ppcard);
 	else
-		pduel->game_field->send_to(pgroup->container, pduel->game_field->core.reason_effect, reason, reasonplayer, playerid, location, sequence, pos, TRUE);
+		sendto((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(RemoveCards) {
+LUA_STATIC_FUNCTION(RemoveCards, std::variant<card*, group*> card_or_group) {
 	check_action_permission(L);
-	check_param_count(L, 1);
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 1); pcard) {
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard) {
+		auto* pcard = *ppcard;
 		auto message = pduel->new_message(MSG_REMOVE_CARDS);
 		message->write<uint32_t>(1);
 		message->write(pcard->get_info_location());
@@ -482,6 +482,7 @@ LUA_STATIC_FUNCTION(RemoveCards) {
 		pcard->cancel_field_effect();
 		pduel->game_field->remove_card(pcard);
 	} else {
+		auto* pgroup = *std::get_if<group*>(&card_or_group);
 		auto message = pduel->new_message(MSG_REMOVE_CARDS);
 		auto tot = pgroup->container.size();
 		auto cur = std::min<size_t>(tot, 255);
@@ -526,60 +527,43 @@ LUA_STATIC_FUNCTION(IsCanAddCounter) {
 	}
 	return 1;
 }
-LUA_STATIC_FUNCTION(RemoveCounter) {
+LUA_STATIC_FUNCTION(RemoveCounter, uint8_t rplayer, uint8_t self, uint8_t oppo,
+					uint16_t counter_type, uint32_t count, uint32_t reason) {
 	check_action_permission(L);
-	check_param_count(L, 6);
-	auto rplayer = lua_get<uint8_t>(L, 1);
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto oppo = lua_get<uint8_t>(L, 3);
-	auto countertype = lua_get<uint16_t>(L, 4);
-	auto count = lua_get<uint32_t>(L, 5);
-	auto reason = lua_get<uint32_t>(L, 6);
-	pduel->game_field->remove_counter(reason, nullptr, rplayer, self, oppo, countertype, count);
+	pduel->game_field->remove_counter(reason, nullptr, rplayer, self, oppo, counter_type, count);
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(IsCanRemoveCounter) {
-	check_param_count(L, 6);
-	auto rplayer = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(IsCanRemoveCounter, uint8_t rplayer, uint8_t self, uint8_t oppo,
+					uint16_t counter_type, uint32_t count, uint32_t reason) {
 	if(rplayer != 0 && rplayer != 1)
 		return 0;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto oppo = lua_get<uint8_t>(L, 3);
-	auto countertype = lua_get<uint16_t>(L, 4);
-	auto count = lua_get<uint32_t>(L, 5);
-	auto reason = lua_get<uint32_t>(L, 6);
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove_counter(rplayer, nullptr, self, oppo, countertype, count, reason));
+	lua_pushboolean(L, pduel->game_field->is_player_can_remove_counter(rplayer, nullptr, self, oppo, counter_type, count, reason));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetCounter) {
-	check_param_count(L, 4);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetCounter, uint8_t playerid, uint8_t self, uint8_t oppo, uint16_t counter_type) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto oppo = lua_get<uint8_t>(L, 3);
-	auto countertype = lua_get<uint16_t>(L, 4);
-	lua_pushinteger(L, pduel->game_field->get_field_counter(playerid, self, oppo, countertype));
+	lua_pushinteger(L, pduel->game_field->get_field_counter(playerid, self, oppo, counter_type));
 	return 1;
 }
-LUA_STATIC_FUNCTION(ChangePosition) {
+LUA_STATIC_FUNCTION(ChangePosition, std::variant<card*, group*> card_or_group, uint8_t au, std::optional<uint8_t> ad,
+					std::optional<uint8_t> du, std::optional<uint8_t> dd, std::optional<bool> no_flip) {
 	check_action_permission(L);
-	check_param_count(L, 2);
-	auto au = lua_get<uint8_t>(L, 2);
-	auto ad = lua_get<uint8_t>(L, 3, au);
-	auto du = lua_get<uint8_t>(L, 4, au);
-	auto dd = lua_get<uint8_t>(L, 5, au);
-	uint32_t flag = 0;
-	if(lua_get<bool, false>(L, 6)) flag |= NO_FLIP_EFFECT;
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 1); pcard) {
-		pduel->game_field->change_position(card_set{ pcard }, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
-	} else
-		pduel->game_field->change_position(pgroup->container, pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, au, ad, du, dd, flag, TRUE);
+	auto change_pos = [&, field = pduel->game_field](card_set container) {
+		uint32_t flag = 0;
+		if(no_flip.value_or(false)) flag |= NO_FLIP_EFFECT;
+		field->change_position(std::move(container), field->core.reason_effect, field->core.reason_player,
+							   au, ad.value_or(au), du.value_or(au), dd.value_or(au), flag, TRUE);
+	};
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		change_pos({ *ppcard });
+	else
+		change_pos((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
