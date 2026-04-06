@@ -98,18 +98,18 @@ template<std::size_t N>
 struct LuaFunction {
 	static constexpr luaL_Reg elem{ nullptr, nullptr };
 	static constexpr bool initialized{ false };
-	[[maybe_unused]] static constexpr size_t max_number_of_arguments{ 0 };
+	static constexpr size_t max_number_of_arguments{ 0 };
 	static constexpr const char* lua_name = "";
 };
 
 #define TAG_STRUCT(name, COUNTER, ...) \
 	static constexpr const char* lua_name = #name; \
-	[[maybe_unused]] static constexpr size_t max_number_of_arguments = std::tuple_size_v<Detail::get_function_arguments_t<void(*)(__VA_ARGS__)>> - 2; \
+	static constexpr size_t max_number_of_arguments = std::tuple_size_v<Detail::get_function_arguments_t<void(*)(__VA_ARGS__)>> - 2; \
 	TAG_STRUCT_IMPL(COUNTER)
 
 #define TAG_STRUCT_NO_ARGS(name, COUNTER) \
 	static constexpr const char* lua_name = #name; \
-	[[maybe_unused]] static constexpr size_t max_number_of_arguments = 0; \
+	static constexpr size_t max_number_of_arguments = 0; \
 	TAG_STRUCT_IMPL(COUNTER)
 
 #if !HAS_COUNTER
@@ -539,7 +539,7 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 		## __VA_ARGS__)
 #endif
 
-template<auto* function_ptr, bool is_overload, typename previous_element>
+template<auto* function_ptr, bool is_overload, typename previous_element, auto* prev_function_ptr>
 static int32_t call_lua_function(lua_State* L) {
 	using namespace scriptlib;
 	using function_arguments = Detail::get_function_arguments_t<decltype(function_ptr)>;
@@ -551,8 +551,8 @@ static int32_t call_lua_function(lua_State* L) {
 		static_assert(max_number_of_arguments > previous_element::max_number_of_arguments,
 					  "Overloaded functions must be declared in order from the one with less arguments to the one with most");
 		auto argnum = lua_gettop(L);
-		if(argnum <= previous_element::max_number_of_arguments)
-			return previous_element::elem.func(L);
+		if(argnum <= static_cast<int>(previous_element::max_number_of_arguments))
+			return prev_function_ptr(L);
 	}
 	if constexpr(max_number_of_arguments == 0) {
 		return function_ptr(L, lua_get<duel*>(L));
@@ -579,7 +579,7 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 					/* pick the right overload */ \
 					static_cast<lua_function_typedef>(&MAKE_LUA_NAME(LUA_MODULE, name)), \
 					std::string_view{lua_name} == std::string_view{prev_element::lua_name}, \
-					prev_element>}; \
+					prev_element, prev_element::elem.func>}; \
 }; \
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 
