@@ -1035,11 +1035,11 @@ LUA_STATIC_FUNCTION(RDComplete) {
 	pduel->game_field->core.subunits.splice(pduel->game_field->core.subunits.end(), pduel->game_field->core.recover_damage_reserve);
 	return yield();
 }
-LUA_STATIC_FUNCTION(Equip, uint8_t playerid, card* equip_card, card* target, std::optional<bool> up, std::optional<bool> step) {
+LUA_STATIC_FUNCTION(Equip, uint8_t playerid, card* equip_card, card* target, std::optional<bool> flip_faceup, std::optional<bool> step) {
 	check_action_permission(L);
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	pduel->game_field->equip(playerid, equip_card, target, up.value_or(true), step.value_or(false));
+	pduel->game_field->equip(playerid, equip_card, target, flip_faceup.value_or(true), step.value_or(false));
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
