@@ -30,6 +30,12 @@ jobs:
       VISUAL_STUDIO_VERSION: vs2022
       PREMAKE_FLAGS: ${{ matrix.premake-flag }}
     steps:
+    - uses: actions/checkout@v1
+      with:
+        ref: ${{ github.head_ref }}
+        repository: ${{github.event.pull_request.head.repo.full_name}}
+        fetch-depth: 1
+        submodules: recursive
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v3
     - name: Install winxp components
@@ -45,12 +51,6 @@ jobs:
               $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
               # should be run twice
               $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
-    - uses: actions/checkout@v1
-      with:
-        ref: ${{ github.head_ref }}
-        repository: ${{github.event.pull_request.head.repo.full_name}}
-        fetch-depth: 1
-        submodules: recursive
     - name: Install premake
       shell: cmd
       run: "scripts/install-premake5"
