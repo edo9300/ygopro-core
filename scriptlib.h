@@ -228,13 +228,15 @@ namespace scriptlib {
 		}
 	}
 
-#if (!defined(_LIBCPP_VERSION) || _LIBCPP_VERSION >= 7000) && \
-	((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
-	template<typename T, typename... Arg>
-	using FunctionResult = std::invoke_result_t<T, Arg...>;
-#else
+#if (!defined(_MSVC_LANG) && __cplusplus < 201703L) || (defined(_MSVC_LANG) && _MSVC_LANG < 201703L)
 	template<typename T, typename... Arg>
 	using FunctionResult = std::result_of_t<T(Arg...)>;
+#elif defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 7000
+	template <class T, class... Args>
+	using FunctionResult = typename std::__invoke_of<T, Args...>::type;
+#else
+	template<typename T, typename... Arg>
+	using FunctionResult = std::invoke_result_t<T, Arg...>;
 #endif
 
 	template<typename T, typename T2>
