@@ -189,7 +189,7 @@ constexpr auto make_lua_functions_array() {
 
 #endif
 
-template <typename T, typename Enable = void>
+template <typename T>
 struct is_optional : std::false_type {};
 
 template <typename T>
@@ -198,7 +198,7 @@ struct is_optional<std::optional<T>> : std::true_type {};
 template<typename T>
 [[maybe_unused]] inline constexpr bool is_optional_v = is_optional<T>::value;
 
-template <typename T, typename Enable = void>
+template <typename T>
 struct is_variant : std::false_type {};
 
 template <typename... Args>
