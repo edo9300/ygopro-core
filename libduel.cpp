@@ -1106,12 +1106,7 @@ LUA_STATIC_FUNCTION(SwapControl) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(CheckLPCost) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto cost = lua_get<uint32_t>(L, 2);
+LUA_STATIC_FUNCTION(CheckLPCost, playerid_t playerid, uint32_t cost) {
 	lua_pushboolean(L, pduel->game_field->check_lp_cost(playerid, cost));
 	return 1;
 }
