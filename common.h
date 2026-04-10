@@ -71,6 +71,8 @@ struct RangedInteger {
 	static constexpr IntType min_value = min_value_;
 	static constexpr IntType max_value = max_value_;
 	IntType value;
+	RangedInteger() = default;
+	RangedInteger(IntType v) : value(v) {}
 	operator IntType() {
 		return value;
 	}
