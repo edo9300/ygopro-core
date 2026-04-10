@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2009-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -64,6 +64,29 @@ enum ActivityType : uint8_t {
 	ACTIVITY_BATTLE_PHASE = 6,
 	ACTIVITY_CHAIN = 7,
 };
+
+template<typename IntType, auto min_value_, auto max_value_>
+struct RangedInteger {
+	using value_type = IntType;
+	static constexpr IntType min_value = min_value_;
+	static constexpr IntType max_value = max_value_;
+	IntType value;
+	operator IntType() {
+		return value;
+	}
+	operator IntType() const {
+		return value;
+	}
+};
+
+template <typename T>
+struct is_ranged_integer : std::false_type {};
+
+template <typename T, auto min, auto max>
+struct is_ranged_integer<RangedInteger<T, min, max>> : std::true_type {};
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool is_ranged_integer_v = is_ranged_integer<T>::value;
 
 
 #endif /* COMMON_H_ */
