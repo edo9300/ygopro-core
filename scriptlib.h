@@ -48,6 +48,8 @@ namespace scriptlib {
 
 	using playerid_t = RangedInteger<uint8_t, 0, 1>;
 
+	using playerid_none_t = RangedInteger<uint8_t, 0, 2>;
+
 	using function = struct {}*;
 
 	template<typename T, typename type>
