@@ -107,7 +107,7 @@ struct LuaFunction {
 
 #define TAG_STRUCT(name, COUNTER, ...) \
 	static constexpr const char* lua_name = #name; \
-	static constexpr size_t max_number_of_arguments = std::tuple_size_v<Detail::get_function_arguments_t<void(*)(__VA_ARGS__)>> - 2; \
+	static constexpr size_t max_number_of_arguments = std::tuple_size_v<Detail::get_lua_function_arguments_t<void(*)(__VA_ARGS__)>>; \
 	TAG_STRUCT_IMPL(COUNTER)
 
 #define TAG_STRUCT_NO_ARGS(name, COUNTER) \
@@ -488,23 +488,30 @@ inline constexpr T get_lua(lua_State* L, int idx) {
 }
 
 template<typename Sig>
-struct get_function_arguments;
+struct get_lua_function_arguments;
 
-template<typename Ret, typename... Args>
-struct get_function_arguments<Ret(*)(Args...)> {
+template<typename Ret, typename Arg1, typename Arg2, typename... Args>
+struct get_lua_function_arguments<Ret(*)(Arg1, Arg2, Args...)> {
 	using type = std::tuple<Args...>;
 };
 template<typename Sig>
-using get_function_arguments_t = typename get_function_arguments<Sig>::type;
+using get_lua_function_arguments_t = typename get_lua_function_arguments<Sig>::type;
 
-template<typename tuple, size_t tuple_offset, size_t lua_offset, size_t... indices>
-constexpr decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::index_sequence<indices...>) {
-	return std::make_tuple(get_lua<std::tuple_element_t<indices + tuple_offset, tuple>>(L, indices + lua_offset + 1)...);
+template<typename tuple, size_t... indices>
+static inline decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::index_sequence<indices...>) {
+	// Visual Studio 2017 crashes when using make_tuple with a RangedInteger as last parameter, work around that
+#ifdef _MSC_VER
+	tuple t;
+	((std::get<indices>(t) = get_lua<std::tuple_element_t<indices, tuple>>(L, indices + 1)), ...);
+	return t;
+#else
+	return std::make_tuple(get_lua<std::tuple_element_t<indices, tuple>>(L, indices + 1)...);
+#endif
 }
 
-template<typename tuple, size_t tuple_offset, size_t lua_offset = 0>
-decltype(auto) parse_arguments_tuple(lua_State* L) {
-	return parse_helper<tuple, tuple_offset, lua_offset>(L, std::make_index_sequence<std::tuple_size_v<tuple> - tuple_offset>{});
+template<typename tuple>
+static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
+	return parse_helper<tuple>(L, std::make_index_sequence<std::tuple_size_v<tuple>>{});
 }
 
 } // namespace Detail
@@ -569,9 +576,8 @@ decltype(auto) parse_arguments_tuple(lua_State* L) {
 template<auto* function_ptr, bool is_overload, typename previous_element, auto* prev_function_ptr>
 static int32_t call_lua_function(lua_State* L) {
 	using namespace scriptlib;
-	using function_arguments = Detail::get_function_arguments_t<decltype(function_ptr)>;
-	static constexpr auto nonlua_args_num = 2;
-	static constexpr auto max_number_of_arguments = std::tuple_size_v<function_arguments> - nonlua_args_num;
+	using lua_function_arguments = Detail::get_lua_function_arguments_t<decltype(function_ptr)>;
+	static constexpr auto max_number_of_arguments = std::tuple_size_v<lua_function_arguments>;
 	if constexpr(is_overload) {
 		static_assert(max_number_of_arguments != previous_element::max_number_of_arguments,
 					  "Cannot have overloaded functions take the same number of arguments");
@@ -584,13 +590,13 @@ static int32_t call_lua_function(lua_State* L) {
 	if constexpr(max_number_of_arguments == 0) {
 		return function_ptr(L, lua_get<duel*>(L));
 	} else {
-		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals<function_arguments>();
+		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals<lua_function_arguments>();
 		if constexpr(required_args > 0)
 			check_param_count(L, required_args);
 		return std::apply(function_ptr,
 		  std::tuple_cat(
 			  std::make_tuple(L, lua_get<duel*>(L)),
-			  Detail::parse_arguments_tuple<function_arguments, nonlua_args_num>(L)
+			  Detail::parse_arguments_tuple<lua_function_arguments>(L)
 		  )
 		);
 	}
