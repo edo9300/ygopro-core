@@ -230,6 +230,26 @@ constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
 	}
 }
 
+template<typename RangedInt>
+static inline RangedInt check_ranged_int(lua_State* L, int idx, lua_Integer value) {
+	using base_int_type = typename RangedInt::value_type;
+	static constexpr auto min = RangedInt::min_value;
+	static constexpr auto max = RangedInt::max_value;
+	if constexpr(std::is_unsigned_v<base_int_type>) {
+		auto unsigned_val = static_cast<lua_Unsigned>(value);
+		if(unsigned_val > max || unsigned_val < min) {
+			lua_error(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
+					  static_cast<lua_Unsigned>(min), static_cast<lua_Unsigned>(max), unsigned_val);
+		}
+	} else {
+		if(value > max || value < min) {
+			lua_error(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
+					  static_cast<lua_Integer>(min), static_cast<lua_Integer>(max), value);
+		}
+	}
+	return { static_cast<base_int_type>(value) };
+}
+
 template<typename T, std::enable_if_t<!is_variant_v<T>, int> = 0>
 inline constexpr T get_lua(lua_State* L, int idx) {
 	using namespace scriptlib;
@@ -278,9 +298,12 @@ inline constexpr T get_lua(lua_State* L, int idx) {
 			if constexpr(lua_type == LuaParam::BOOLEAN) {
 				return return_value(static_cast<bool>(lua_toboolean(L, idx)));
 			} else if constexpr(lua_type == LuaParam::INT) {
-				if(lua_isinteger(L, idx))
-					return return_value(static_cast<actual_type>(lua_tointeger(L, idx)));
-				return return_value(static_cast<actual_type>(static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)))));
+				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
+				if constexpr(is_ranged_integer_v<actual_type>) {
+					return return_value(check_ranged_int<actual_type>(L, idx, val));
+				} else {
+					return return_value(static_cast<actual_type>(val));
+				}
 			} else if constexpr(lua_type == LuaParam::FUNCTION) {
 				return return_value(Function{ idx });
 			} else if constexpr(lua_type == LuaParam::TABLE) {
@@ -386,7 +409,11 @@ struct get_variant_type_functor<std::variant<Args...>> {
 				}();
 				using integer_type = std::tuple_element_t<int_index, std::tuple<Args...>>;
 				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
-				return static_cast<integer_type>(val);
+				if constexpr(is_ranged_integer_v<integer_type>) {
+					return check_ranged_int<integer_type>(L, idx, val);
+				} else {
+					return static_cast<integer_type>(val);
+				}
 			}
 		}
 		if constexpr((std::is_same_v<Nil, Args> || ...)) {
