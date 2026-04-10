@@ -79,7 +79,7 @@ LUA_FUNCTION(SetTargetRange, uint16_t self_range, uint16_t oppo_range) {
 	self->flag[0] &= ~EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
 }
-LUA_FUNCTION(SetAbsoluteRange, uint8_t playerid, uint16_t self_range, uint16_t oppo_range) {
+LUA_FUNCTION(SetAbsoluteRange, playerid_t playerid, uint16_t self_range, uint16_t oppo_range) {
 	if(playerid == 0) {
 		self->s_range = self_range;
 		self->o_range = oppo_range;
@@ -230,9 +230,7 @@ LUA_FUNCTION(SetOperation, std::optional<Function> findex) {
 		self->operation = interpreter::get_function_handle(L, findex.value());
 	return 0;
 }
-LUA_FUNCTION(SetOwnerPlayer, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_FUNCTION(SetOwnerPlayer, playerid_t playerid) {
 	self->effect_owner = playerid;
 	return 0;
 }
@@ -367,7 +365,7 @@ LUA_FUNCTION(IsHasType, uint16_t type) {
 	lua_pushboolean(L, (self->type & type) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsActivatable, uint8_t playerid, std::optional<bool> ignore_location, std::optional<bool> ignore_target) {
+LUA_FUNCTION(IsActivatable, playerid_t playerid, std::optional<bool> ignore_location, std::optional<bool> ignore_target) {
 	lua_pushboolean(L, self->is_activateable(playerid, pduel->game_field->nil_event, 0, 0, ignore_target.value_or(false), ignore_location.value_or(false)));
 	return 1;
 }
@@ -383,18 +381,18 @@ LUA_FUNCTION(GetActivateSequence) {
 	lua_pushinteger(L, self->active_sequence);
 	return 1;
 }
-LUA_FUNCTION(CheckCountLimit, uint8_t playerid) {
+LUA_FUNCTION(CheckCountLimit, playerid_t playerid) {
 	lua_pushboolean(L, self->check_count_limit(playerid));
 	return 1;
 }
-LUA_FUNCTION(UseCountLimit, uint8_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
+LUA_FUNCTION(UseCountLimit, playerid_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
 	if (!oath_only.value_or(false) || self->count_flag & EFFECT_COUNT_CODE_OATH)
 		for(auto i = count.value_or(1); i > 0; --i) {
 			self->dec_count(playerid);
 		}
 	return 0;
 }
-LUA_FUNCTION(RestoreCountLimit, uint8_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
+LUA_FUNCTION(RestoreCountLimit, playerid_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
 	if(!oath_only.value_or(false) || self->count_flag & EFFECT_COUNT_CODE_OATH)
 		for(auto i = count.value_or(1); i > 0; --i) {
 			self->inc_count(playerid);
