@@ -217,16 +217,17 @@ struct is_variant_member<std::variant<Args...>, T>
 template<typename variant, typename T>
 [[maybe_unused]] inline constexpr bool is_variant_member_v = is_variant_member<variant, T>::value;
 
-template <typename Arg, typename... Args>
-constexpr auto count_trailing_optionals(std::tuple<Arg, Args...>) {
-	if constexpr(sizeof...(Args) == 0) {
-		return static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>));
+template <typename Tuple, size_t idx = std::tuple_size_v<Tuple>>
+constexpr auto count_trailing_optionals() {
+	if constexpr(idx == 0) {
+		return 0;
 	} else {
-		constexpr auto result = count_trailing_optionals(std::tuple<Args...>{});
-		if constexpr(result != sizeof...(Args))
-			return result;
-		else
-			return result + static_cast<int>(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>));
+		using Arg = std::tuple_element_t<idx - 1, Tuple>;
+		if constexpr(!(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>))) {
+			return 0;
+		} else {
+			return 1 + count_trailing_optionals<Tuple, idx - 1>();
+		}
 	}
 }
 
@@ -583,7 +584,7 @@ static int32_t call_lua_function(lua_State* L) {
 	if constexpr(max_number_of_arguments == 0) {
 		return function_ptr(L, lua_get<duel*>(L));
 	} else {
-		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals(function_arguments{});
+		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals<function_arguments>();
 		if constexpr(required_args > 0)
 			check_param_count(L, required_args);
 		return std::apply(function_ptr,
