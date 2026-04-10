@@ -1069,37 +1069,42 @@ LUA_STATIC_FUNCTION(EquipComplete) {
 	field->process_instant_event();
 	return yield();
 }
-LUA_STATIC_FUNCTION(GetControl) {
+LUA_STATIC_FUNCTION(GetControl, std::variant<card*, group*> card_or_group, playerid_t playerid, std::optional<uint16_t> reset_phase,
+					std::optional<uint8_t> reset_count, std::optional<uint32_t> zone, std::optional<uint8_t> choose_player) {
 	check_action_permission(L);
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	uint16_t reset_phase = lua_get<uint16_t, 0>(L, 3) & 0x3ff;
-	auto reset_count = lua_get<uint8_t, 0>(L, 4);
-	auto zone = lua_get<uint32_t, 0xff>(L, 5);
-	auto chose_player = lua_get<uint8_t>(L, 6, pduel->game_field->core.reason_player);
-	if(auto [pcard, pgroup] = lua_get_card_or_group(L, 1); pcard)
-		pduel->game_field->get_control(pcard, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
+	auto get_control = [&, field = pduel->game_field](auto& obj) {
+		field->get_control(obj, field->core.reason_effect, choose_player.value_or(field->core.reason_player), playerid,
+						   reset_phase.value_or(0) & 0x3ff, reset_count.value_or(0), zone.value_or(0xff));
+	};
+	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
+		get_control(*ppcard);
 	else
-		pduel->game_field->get_control(pgroup->container, pduel->game_field->core.reason_effect, chose_player, playerid, reset_phase, reset_count, zone);
+		get_control((*std::get_if<group*>(&card_or_group))->container);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SwapControl) {
+LUA_STATIC_FUNCTION(SwapControl, std::variant<card*, group*> card_or_group, std::variant<card*, group*> card_or_group2,
+					std::optional<uint16_t> reset_phase, std::optional<uint8_t> reset_count) {
 	check_action_permission(L);
-	check_param_count(L, 2);
-	uint16_t reset_phase = lua_get<uint16_t, 0>(L, 3) & 0x3ff;
-	auto reset_count = lua_get<uint8_t, 0>(L, 4);
-	auto& field = *pduel->game_field;
-	if(auto [pcard1, pgroup1] = lua_get_card_or_group(L, 1); pcard1) {
-		auto pcard2 = lua_get<card*, true>(L, 2);
-		field.swap_control(field.core.reason_effect, field.core.reason_player, pcard1, pcard2, reset_phase, reset_count);
+	auto swap = [&, field = pduel->game_field](auto& obj1, auto& obj2) {
+		field->swap_control(field->core.reason_effect, field->core.reason_player, obj1, obj2,
+							reset_phase.value_or(0) & 0x3ff, reset_count.value_or(0));
+	};
+	if(auto* ppcard1 = std::get_if<card*>(&card_or_group); ppcard1) {
+		auto* ppcard2 = std::get_if<card*>(&card_or_group2);
+		if(!ppcard2) {
+			lua_error(L, "Parameter 1 was Card but parameter 2 was Group");
+		}
+		swap(*ppcard1, *ppcard2);
 	} else {
-		auto pgroup2 = lua_get<group*, true>(L, 2);
-		field.swap_control(field.core.reason_effect, field.core.reason_player, pgroup1->container, pgroup2->container, reset_phase, reset_count);
+		auto* ppgroup2 = std::get_if<group*>(&card_or_group2);
+		if(!ppgroup2) {
+			lua_error(L, "Parameter 1 was Group but parameter 2 was Card");
+		}
+		auto* pgroup1 = *std::get_if<group*>(&card_or_group);
+		swap(pgroup1->container, (*ppgroup2)->container);
 	}
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
