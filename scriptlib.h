@@ -46,6 +46,8 @@ namespace scriptlib {
 			lua_error(L, "%d Parameters are needed.", count);
 	}
 
+	using playerid_t = RangedInteger<uint8_t, 0, 1>;
+
 	using function = struct {}*;
 
 	template<typename T, typename type>
@@ -55,7 +57,7 @@ namespace scriptlib {
 	inline constexpr bool IsBool = std::is_same_v<T, bool>;
 
 	template<typename T>
-	inline constexpr bool IsInteger = !IsBool<T> && (std::is_integral_v<T> || std::is_enum_v<T>);
+	inline constexpr bool IsInteger = !IsBool<T> && (std::is_integral_v<T> || std::is_enum_v<T> || is_ranged_integer_v<T>);
 
 	template<typename T>
 	inline constexpr bool IsCard = std::is_same_v<T, card*>;
