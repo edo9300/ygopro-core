@@ -28,16 +28,12 @@ LUA_STATIC_FUNCTION(EnableGlobalFlag, [[maybe_unused]] uint32_t flag_to_enable) 
 	return 0;
 }
 
-LUA_STATIC_FUNCTION(GetLP, uint8_t p) {
-	if(p != 0 && p != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetLP, playerid_t p) {
 	lua_pushinteger(L, pduel->game_field->player[p].lp);
 	return 1;
 }
-LUA_STATIC_FUNCTION(SetLP, int8_t p, int32_t lp) {
+LUA_STATIC_FUNCTION(SetLP, playerid_t p, int32_t lp) {
 	if(lp < 0) lp = 0;
-	if(p != 0 && p != 1)
-		return 0;
 	pduel->game_field->player[p].lp = lp;
 	auto message = pduel->new_message(MSG_LPUPDATE);
 	message->write<uint8_t>(p);
@@ -48,35 +44,27 @@ LUA_STATIC_FUNCTION(GetTurnPlayer) {
 	lua_pushinteger(L, pduel->game_field->infos.turn_player);
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsTurnPlayer, uint8_t playerid) {
+LUA_STATIC_FUNCTION(IsTurnPlayer, playerid_t playerid) {
 	lua_pushboolean(L, pduel->game_field->infos.turn_player == playerid);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetTurnCount, std::optional<uint8_t> playerid) {
-	if(playerid.has_value()) {
-		auto actual_playerid = *playerid;
-		if(actual_playerid != 0 && actual_playerid != 1)
-			return 0;
-		lua_pushinteger(L, pduel->game_field->infos.turn_id_by_player[actual_playerid]);
-	} else
-		lua_pushinteger(L, pduel->game_field->infos.turn_id);
+LUA_STATIC_FUNCTION(GetTurnCount) {
+	lua_pushinteger(L, pduel->game_field->infos.turn_id);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetDrawCount, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetTurnCount, playerid_t playerid) {
+	lua_pushinteger(L, pduel->game_field->infos.turn_id_by_player[playerid]);
+	return 1;
+}
+LUA_STATIC_FUNCTION(GetDrawCount, playerid_t playerid) {
 	lua_pushinteger(L, pduel->game_field->get_draw_count(playerid));
 	return 1;
 }
-LUA_STATIC_FUNCTION(RegisterEffect, effect* peffect, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(RegisterEffect, effect* peffect, playerid_t playerid) {
 	pduel->game_field->add_effect(peffect, playerid);
 	return 0;
 }
-LUA_STATIC_FUNCTION(RegisterFlagEffect, uint8_t playerid, uint32_t code, uint32_t reset, uint32_t flag, uint32_t count, std::optional<uint32_t> lab) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(RegisterFlagEffect, playerid_t playerid, uint32_t code, uint32_t reset, uint32_t flag, uint32_t count, std::optional<uint32_t> lab) {
 	code = (code & 0xfffffffu) | 0x10000000u;
 	if(count == 0)
 		count = 1;
@@ -98,18 +86,14 @@ LUA_STATIC_FUNCTION(RegisterFlagEffect, uint8_t playerid, uint32_t code, uint32_
 	interpreter::pushobject(L, peffect);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFlagEffect, uint8_t playerid, uint32_t code) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetFlagEffect, playerid_t playerid, uint32_t code) {
 	code = (code & 0xfffffffu) | 0x10000000u;
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
 	lua_pushinteger(L, eset.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(ResetFlagEffect, uint8_t playerid, uint32_t code) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(ResetFlagEffect, playerid_t playerid, uint32_t code) {
 	code = (code & 0xfffffffu) | 0x10000000u;
 	auto pr = pduel->game_field->effects.aura_effect.equal_range(code);
 	for(; pr.first != pr.second; ) {
@@ -120,9 +104,7 @@ LUA_STATIC_FUNCTION(ResetFlagEffect, uint8_t playerid, uint32_t code) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(SetFlagEffectLabel, uint8_t playerid, uint32_t code, int32_t lab) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(SetFlagEffectLabel, playerid_t playerid, uint32_t code, int32_t lab) {
 	code = (code & 0xfffffffu) | 0x10000000u;
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
@@ -135,9 +117,7 @@ LUA_STATIC_FUNCTION(SetFlagEffectLabel, uint8_t playerid, uint32_t code, int32_t
 	}
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFlagEffectLabel, uint8_t playerid, uint32_t code) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetFlagEffectLabel, playerid_t playerid, uint32_t code) {
 	code = (code & 0xfffffffu) | 0x10000000u;
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
@@ -150,7 +130,7 @@ LUA_STATIC_FUNCTION(GetFlagEffectLabel, uint8_t playerid, uint32_t code) {
 		lua_pushinteger(L, eff->label.size() ? eff->label[0] : 0);
 	return static_cast<int32_t>(eset.size());
 }
-LUA_STATIC_FUNCTION(Destroy, std::variant<card*, group*> card_or_group, uint32_t reason, std::optional<uint16_t> dest, std::optional<uint8_t> reasonplayer) {
+LUA_STATIC_FUNCTION(Destroy, std::variant<card*, group*> card_or_group, uint32_t reason, std::optional<uint16_t> dest, std::optional<playerid_none_t> reasonplayer) {
 	check_action_permission(L);
 	auto destroy = [&, field = pduel->game_field](auto& obj) {
 		field->destroy(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), PLAYER_NONE, dest.value_or(LOCATION_GRAVE), 0);
@@ -165,7 +145,7 @@ LUA_STATIC_FUNCTION(Destroy, std::variant<card*, group*> card_or_group, uint32_t
 	});
 }
 LUA_STATIC_FUNCTION(Remove, std::variant<card*, group*> card_or_group, std::optional<uint8_t> pos,
-					uint32_t reason, std::optional<uint8_t> playerid, std::optional<uint8_t> reasonplayer) {
+					uint32_t reason, std::optional<playerid_none_t> playerid, std::optional<playerid_none_t> reasonplayer) {
 	check_action_permission(L);
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), playerid.value_or(PLAYER_NONE), LOCATION_REMOVED, 0, pos.value_or(0));
@@ -180,7 +160,7 @@ LUA_STATIC_FUNCTION(Remove, std::variant<card*, group*> card_or_group, std::opti
 	});
 }
 LUA_STATIC_FUNCTION(SendtoGrave, std::variant<card*, group*> card_or_group, uint32_t reason,
-					std::optional<uint8_t> playerid, std::optional<uint8_t> reasonplayer) {
+					std::optional<playerid_none_t> playerid, std::optional<playerid_none_t> reasonplayer) {
 	check_action_permission(L);
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), playerid.value_or(PLAYER_NONE), LOCATION_GRAVE, 0, POS_FACEUP);
@@ -194,12 +174,10 @@ LUA_STATIC_FUNCTION(SendtoGrave, std::variant<card*, group*> card_or_group, uint
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(Summon, uint8_t playerid, card* pcard, bool ignore_count, std::optional<effect*> peffect,
+LUA_STATIC_FUNCTION(Summon, playerid_t playerid, card* pcard, bool ignore_count, std::optional<effect*> peffect,
 					std::optional<uint8_t> min_tribute, std::optional<uint32_t> zone) {
 	check_action_permission(L);
 	if(pduel->game_field->core.effect_damage_step)
-		return 0;
-	if(playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->summon(playerid, pcard, peffect.value_or(nullptr), ignore_count, min_tribute.value_or(0), zone.value_or(0x1f));
@@ -210,11 +188,9 @@ LUA_STATIC_FUNCTION(Summon, uint8_t playerid, card* pcard, bool ignore_count, st
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(SpecialSummonRule, uint8_t playerid, card* pcard, std::optional<uint32_t> sumtype) {
+LUA_STATIC_FUNCTION(SpecialSummonRule, playerid_t playerid, card* pcard, std::optional<uint32_t> sumtype) {
 	check_action_permission(L);
 	if(pduel->game_field->core.effect_damage_step)
-		return 0;
-	if(playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule(playerid, pcard, sumtype.value_or(0));
@@ -301,12 +277,10 @@ LUA_STATIC_FUNCTION(ProcedureSummonGroup) {
 	auto sumtype = lua_get<uint32_t>(L, 2);
 	return spsummon_rule_group(L, sumtype, 1);
 }
-LUA_STATIC_FUNCTION(MSet, uint8_t playerid, card* pcard, bool ignore_count, std::optional<effect*> peffect,
+LUA_STATIC_FUNCTION(MSet, playerid_t playerid, card* pcard, bool ignore_count, std::optional<effect*> peffect,
 					std::optional<uint8_t> min_tribute, std::optional<uint32_t> zone) {
 	check_action_permission(L);
 	if(pduel->game_field->core.effect_damage_step)
-		return 0;
-	if(playerid != 0 && playerid != 1)
 		return 0;
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->mset(playerid, pcard, peffect.value_or(nullptr), ignore_count, min_tribute.value_or(0), zone.value_or(0x1f));
@@ -317,10 +291,8 @@ LUA_STATIC_FUNCTION(MSet, uint8_t playerid, card* pcard, bool ignore_count, std:
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(SSet, uint8_t playerid, std::variant<card*, group*> card_or_group, std::optional<uint8_t> toplayer, std::optional<bool> confirm) {
+LUA_STATIC_FUNCTION(SSet, playerid_t playerid, std::variant<card*, group*> card_or_group, std::optional<playerid_t> toplayer, std::optional<bool> confirm) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	owned_lua<group> pgroup = nullptr;
 	if(auto* ppcard = std::get_if<card*>(&card_or_group); ppcard) {
 		pgroup = pduel->new_group(*ppcard);
@@ -332,19 +304,14 @@ LUA_STATIC_FUNCTION(SSet, uint8_t playerid, std::variant<card*, group*> card_or_
 		}
 	}
 	auto actual_toplayer = toplayer.value_or(playerid);
-	if(actual_toplayer > 1)
-		actual_toplayer = playerid;
 	pduel->game_field->emplace_process<Processors::SpellSetGroup>(playerid, actual_toplayer, pgroup, confirm.value_or(true), pduel->game_field->core.reason_effect);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(CreateToken, uint8_t playerid, uint32_t code) {
+LUA_STATIC_FUNCTION(CreateToken, playerid_t playerid, uint32_t code) {
 	check_action_permission(L);
-	if(playerid > 1) {
-		return 0;
-	}
 	card* pcard = pduel->new_card(code);
 	pcard->owner = playerid;
 	pcard->current.location = 0;
@@ -352,11 +319,9 @@ LUA_STATIC_FUNCTION(CreateToken, uint8_t playerid, uint32_t code) {
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_STATIC_FUNCTION(SpecialSummon, std::variant<card*, group*> card_or_group, uint32_t sumtype, uint8_t sumplayer, uint8_t playerid,
+LUA_STATIC_FUNCTION(SpecialSummon, std::variant<card*, group*> card_or_group, uint32_t sumtype, playerid_t sumplayer, playerid_t playerid,
 					bool nocheck, bool nolimit, uint8_t positions, std::optional<uint32_t> zone) {
 	check_action_permission(L);
-	if(sumplayer > 1)
-		return 0;
 	auto spsummon = [&](card_set obj) {
 		pduel->game_field->special_summon(std::move(obj), sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone.value_or(0xff));
 	};
@@ -370,11 +335,9 @@ LUA_STATIC_FUNCTION(SpecialSummon, std::variant<card*, group*> card_or_group, ui
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SpecialSummonStep, card* pcard, uint32_t sumtype, uint8_t sumplayer,
-					uint8_t playerid, bool nocheck, bool nolimit, uint8_t positions, std::optional<uint32_t> zone) {
+LUA_STATIC_FUNCTION(SpecialSummonStep, card* pcard, uint32_t sumtype, playerid_t sumplayer,
+					playerid_t playerid, bool nocheck, bool nolimit, uint8_t positions, std::optional<uint32_t> zone) {
 	check_action_permission(L);
-	if(sumplayer > 1)
-		return 0;
 	pduel->game_field->special_summon_step(pcard, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone.value_or(0xff));
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
@@ -395,14 +358,12 @@ LUA_STATIC_FUNCTION(SpecialSummonComplete) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SendtoHand, std::variant<card*, group*> card_or_group, std::optional<uint8_t> playerid,
-					uint32_t reason, std::optional<uint8_t> reasonplayer) {
+LUA_STATIC_FUNCTION(SendtoHand, std::variant<card*, group*> card_or_group, std::optional<playerid_none_t> playerid,
+					uint32_t reason, std::optional<playerid_none_t> reasonplayer) {
 	check_action_permission(L);
-	auto actual_playerid = playerid.value_or(PLAYER_NONE);
-	if(actual_playerid > PLAYER_NONE)
-		return 0;
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
-		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), actual_playerid, LOCATION_HAND, 0, POS_FACEUP);
+		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player),
+					   playerid.value_or(PLAYER_NONE), LOCATION_HAND, 0, POS_FACEUP);
 	};
 	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
 		sendto(*ppcard);
@@ -413,16 +374,13 @@ LUA_STATIC_FUNCTION(SendtoHand, std::variant<card*, group*> card_or_group, std::
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SendtoDeck, std::variant<card*, group*> card_or_group, std::optional<uint8_t> playerid,
-					int32_t sequence, uint32_t reason, std::optional<uint8_t> reasonplayer) {
+LUA_STATIC_FUNCTION(SendtoDeck, std::variant<card*, group*> card_or_group, std::optional<playerid_none_t> playerid,
+					int32_t sequence, uint32_t reason, std::optional<playerid_none_t> reasonplayer) {
 	check_action_permission(L);
-	auto actual_playerid = playerid.value_or(PLAYER_NONE);
-	if(actual_playerid > PLAYER_NONE)
-		return 0;
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		uint16_t location = (sequence == -2) ? 0 : LOCATION_DECK;
 		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player),
-					   actual_playerid, location, static_cast<uint32_t>(sequence), POS_FACEUP);
+					   playerid.value_or(PLAYER_NONE), location, static_cast<uint32_t>(sequence), POS_FACEUP);
 	};
 	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
 		sendto(*ppcard);
@@ -433,14 +391,12 @@ LUA_STATIC_FUNCTION(SendtoDeck, std::variant<card*, group*> card_or_group, std::
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SendtoExtraP, std::variant<card*, group*> card_or_group, std::optional<uint8_t> playerid,
-					uint32_t reason, std::optional<uint8_t> reasonplayer) {
+LUA_STATIC_FUNCTION(SendtoExtraP, std::variant<card*, group*> card_or_group, std::optional<playerid_none_t> playerid,
+					uint32_t reason, std::optional<playerid_none_t> reasonplayer) {
 	check_action_permission(L);
-	auto actual_playerid = playerid.value_or(PLAYER_NONE);
-	if(actual_playerid > PLAYER_NONE)
-		return 0;
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
-		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player), actual_playerid, LOCATION_EXTRA, 0, POS_FACEUP);
+		field->send_to(obj, field->core.reason_effect, reason, reasonplayer.value_or(field->core.reason_player),
+					   playerid.value_or(PLAYER_NONE), LOCATION_EXTRA, 0, POS_FACEUP);
 	};
 	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
 		sendto(*ppcard);
@@ -452,15 +408,12 @@ LUA_STATIC_FUNCTION(SendtoExtraP, std::variant<card*, group*> card_or_group, std
 	});
 }
 LUA_STATIC_FUNCTION(Sendto, std::variant<card*, group*> card_or_group, uint16_t location, uint32_t reason,
-					std::optional<uint8_t> position, std::optional<uint8_t> playerid, std::optional<uint32_t> sequence,
-					std::optional<uint8_t> reason_player) {
+					std::optional<uint8_t> position, std::optional<playerid_none_t> playerid, std::optional<uint32_t> sequence,
+					std::optional<playerid_none_t> reason_player) {
 	check_action_permission(L);
-	auto actual_playerid = playerid.value_or(PLAYER_NONE);
-	if(actual_playerid > PLAYER_NONE)
-		return 0;
 	auto sendto = [&, field = pduel->game_field](auto& obj) {
 		field->send_to(obj, field->core.reason_effect, reason, reason_player.value_or(field->core.reason_player),
-					   actual_playerid, location, sequence.value_or(0), position.value_or(POS_FACEUP), TRUE);
+					   playerid.value_or(PLAYER_NONE), location, sequence.value_or(0), position.value_or(POS_FACEUP), TRUE);
 	};
 	if(auto ppcard = std::get_if<card*>(&card_or_group); ppcard)
 		sendto(*ppcard);
@@ -509,41 +462,29 @@ LUA_STATIC_FUNCTION(GetOperatedGroup) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsCanAddCounter, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1) {
-		return 0;
-	}
+LUA_STATIC_FUNCTION(IsCanAddCounter, playerid_t playerid) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_PLACE_COUNTER));
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsCanAddCounter, uint8_t playerid, uint16_t countertype, uint32_t count, card* pcard) {
-	if(playerid != 0 && playerid != 1) {
-		return 0;
-	}
+LUA_STATIC_FUNCTION(IsCanAddCounter, playerid_t playerid, uint16_t countertype, uint32_t count, card* pcard) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
 	return 1;
 }
-LUA_STATIC_FUNCTION(RemoveCounter, uint8_t rplayer, uint8_t self, uint8_t oppo,
+LUA_STATIC_FUNCTION(RemoveCounter, playerid_t rplayer, uint8_t self, uint8_t oppo,
 					uint16_t counter_type, uint32_t count, uint32_t reason) {
 	check_action_permission(L);
-	if(rplayer != 0 && rplayer != 1)
-		return 0;
 	pduel->game_field->remove_counter(reason, nullptr, rplayer, self, oppo, counter_type, count);
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(IsCanRemoveCounter, uint8_t rplayer, uint8_t self, uint8_t oppo,
+LUA_STATIC_FUNCTION(IsCanRemoveCounter, playerid_t rplayer, uint8_t self, uint8_t oppo,
 					uint16_t counter_type, uint32_t count, uint32_t reason) {
-	if(rplayer != 0 && rplayer != 1)
-		return 0;
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_counter(rplayer, nullptr, self, oppo, counter_type, count, reason));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetCounter, uint8_t playerid, uint8_t self, uint8_t oppo, uint16_t counter_type) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetCounter, playerid_t playerid, uint8_t self, uint8_t oppo, uint16_t counter_type) {
 	lua_pushinteger(L, pduel->game_field->get_field_counter(playerid, self, oppo, counter_type));
 	return 1;
 }
@@ -565,7 +506,7 @@ LUA_STATIC_FUNCTION(ChangePosition, std::variant<card*, group*> card_or_group, u
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(Release, std::variant<card*, group*> card_or_group, uint32_t reason, std::optional<uint8_t> reason_player) {
+LUA_STATIC_FUNCTION(Release, std::variant<card*, group*> card_or_group, uint32_t reason, std::optional<playerid_none_t> reason_player) {
 	check_action_permission(L);
 	auto release = [&, field = pduel->game_field](auto& obj) {
 		field->release(obj, pduel->game_field->core.reason_effect, reason, reason_player.value_or(pduel->game_field->core.reason_player));
@@ -579,10 +520,8 @@ LUA_STATIC_FUNCTION(Release, std::variant<card*, group*> card_or_group, uint32_t
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(MoveToField, card* pcard, uint8_t move_player, uint8_t playerid, uint16_t destination, uint8_t positions, bool enable, std::optional<uint32_t> zone) {
+LUA_STATIC_FUNCTION(MoveToField, card* pcard, playerid_t move_player, playerid_t playerid, uint16_t destination, uint8_t positions, bool enable, std::optional<uint32_t> zone) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	pcard->enable_field_effect(false);
 	pduel->game_field->adjust_instant();
 	pduel->game_field->move_to_field(pcard, move_player, playerid, destination, positions, enable, 0, zone.value_or(0xff));
@@ -696,9 +635,7 @@ LUA_STATIC_FUNCTION(SetChainLimitTillChainEnd, Function f) {
 	pduel->game_field->core.chain_limit_p.emplace_back(f, pduel->game_field->core.reason_player);
 	return 0;
 }
-LUA_STATIC_FUNCTION(GetChainMaterial, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetChainMaterial, playerid_t playerid) {
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, EFFECT_CHAIN_MATERIAL, &eset);
 	if(!eset.size())
@@ -706,9 +643,7 @@ LUA_STATIC_FUNCTION(GetChainMaterial, uint8_t playerid) {
 	interpreter::pushobject(L, eset[0]);
 	return 1;
 }
-LUA_STATIC_FUNCTION(ConfirmDecktop, uint8_t playerid, uint32_t count) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(ConfirmDecktop, playerid_t playerid, uint32_t count) {
 	const auto& player = pduel->game_field->player[playerid];
 	const auto& list_main = player.list_main;
 	if(count >= list_main.size())
@@ -735,9 +670,7 @@ LUA_STATIC_FUNCTION(ConfirmDecktop, uint8_t playerid, uint32_t count) {
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(ConfirmExtratop, uint8_t playerid, uint32_t count) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(ConfirmExtratop, playerid_t playerid, uint32_t count) {
 	const auto& player = pduel->game_field->player[playerid];
 	const auto& list_extra = player.list_extra;
 	const uint32_t max_count = static_cast<uint32_t>(list_extra.size()) - player.extra_p_count;
@@ -754,9 +687,7 @@ LUA_STATIC_FUNCTION(ConfirmExtratop, uint8_t playerid, uint32_t count) {
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(ConfirmCards, uint8_t playerid, std::variant<card*, group*> card_or_group) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(ConfirmCards, playerid_t playerid, std::variant<card*, group*> card_or_group) {
 	auto ppgroup = std::get_if<group*>(&card_or_group);
 	if(ppgroup && (*ppgroup)->container.empty())
 		return 0;
@@ -807,24 +738,16 @@ LUA_STATIC_FUNCTION(ConfirmCards, uint8_t playerid, std::variant<card*, group*> 
 	field.process_instant_event();
 	return yield();
 }
-LUA_STATIC_FUNCTION(SortDecktop, uint8_t sort_player, uint8_t target_player, uint8_t count) {
+LUA_STATIC_FUNCTION(SortDecktop, playerid_t sort_player, playerid_t target_player, RangedInteger<uint8_t, 0, 64> count) {
 	check_action_permission(L);
-	if(sort_player != 0 && sort_player != 1)
-		return 0;
-	if(target_player != 0 && target_player != 1)
-		return 0;
-	if(count < 1 || count > 64)
+	if(count < 1)
 		return 0;
 	pduel->game_field->emplace_process<Processors::SortDeck>(sort_player, target_player, count, false);
 	return yield();
 }
-LUA_STATIC_FUNCTION(SortDeckbottom, uint8_t sort_player, uint8_t target_player, uint8_t count) {
+LUA_STATIC_FUNCTION(SortDeckbottom, playerid_t sort_player, playerid_t target_player, RangedInteger<uint8_t, 0, 64> count) {
 	check_action_permission(L);
-	if(sort_player != 0 && sort_player != 1)
-		return 0;
-	if(target_player != 0 && target_player != 1)
-		return 0;
-	if(count < 1 || count > 64)
+	if(count < 1)
 		return 0;
 	pduel->game_field->emplace_process<Processors::SortDeck>(sort_player, target_player, count, true);
 	return yield();
@@ -902,7 +825,7 @@ LUA_STATIC_FUNCTION(IsEnvironment, uint32_t code, std::optional<uint8_t> playeri
 	auto actual_playerid = playerid.value_or(PLAYER_ALL);
 	auto actual_loc = loc.value_or(LOCATION_FZONE + LOCATION_ONFIELD);
 	if(actual_playerid != 0 && actual_playerid != 1 && actual_playerid != PLAYER_ALL)
-		return 0;
+		lua_error(L, "Invalid playerid passed, allowed values are 0, 1, 3");
 	auto RetTrue = [L] {
 		lua_pushboolean(L, TRUE);
 		return 1;
@@ -961,9 +884,7 @@ LUA_STATIC_FUNCTION(IsEnvironment, uint32_t code, std::optional<uint8_t> playeri
 	lua_pushboolean(L, FALSE);
 	return 1;
 }
-LUA_STATIC_FUNCTION(Win, uint8_t playerid, uint32_t reason) {
-	if (playerid != 0 && playerid != 1 && playerid != 2)
-		return 0;
+LUA_STATIC_FUNCTION(Win, playerid_none_t playerid, uint32_t reason) {
 	if (playerid == 0) {
 		if (pduel->game_field->is_player_affected_by_effect(1, EFFECT_CANNOT_LOSE_EFFECT))
 			return 0;
@@ -989,43 +910,33 @@ LUA_STATIC_FUNCTION(Win, uint8_t playerid, uint32_t reason) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(Draw, uint8_t playerid, uint32_t count, uint32_t reason) {
+LUA_STATIC_FUNCTION(Draw, playerid_t playerid, uint32_t count, uint32_t reason) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	pduel->game_field->draw(pduel->game_field->core.reason_effect, reason, pduel->game_field->core.reason_player, playerid, count);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(Damage, uint8_t playerid, int64_t amount, uint32_t reason, std::optional<bool> is_step, std::optional<uint8_t> reason_player) {
+LUA_STATIC_FUNCTION(Damage, playerid_t playerid, int64_t amount, uint32_t reason, std::optional<bool> is_step, std::optional<playerid_none_t> reason_player) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	uint32_t actual_amount = 0;
 	if(amount > 0)
 		actual_amount = static_cast<uint32_t>(amount);
-	auto actual_reason_player = reason_player.value_or(pduel->game_field->core.reason_player);
-	if (actual_reason_player > PLAYER_NONE)
-		actual_reason_player = pduel->game_field->core.reason_player;
-	pduel->game_field->damage(pduel->game_field->core.reason_effect, reason, actual_reason_player, nullptr, playerid, actual_amount, is_step.value_or(false));
+	pduel->game_field->damage(pduel->game_field->core.reason_effect, reason,
+							  reason_player.value_or(pduel->game_field->core.reason_player), nullptr, playerid, actual_amount, is_step.value_or(false));
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<uint32_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(Recover, uint8_t playerid, int64_t amount, uint32_t reason, std::optional<bool> is_step, std::optional<uint8_t> reason_player) {
+LUA_STATIC_FUNCTION(Recover, playerid_t playerid, int64_t amount, uint32_t reason, std::optional<bool> is_step, std::optional<playerid_none_t> reason_player) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	uint32_t actual_amount = 0;
 	if(amount > 0)
 		actual_amount = static_cast<uint32_t>(amount);
-	auto actual_reason_player = reason_player.value_or(pduel->game_field->core.reason_player);
-	if(actual_reason_player > PLAYER_NONE)
-		actual_reason_player = pduel->game_field->core.reason_player;
-	pduel->game_field->recover(pduel->game_field->core.reason_effect, reason, actual_reason_player, playerid, actual_amount, is_step.value_or(false));
+	pduel->game_field->recover(pduel->game_field->core.reason_effect, reason,
+							   reason_player.value_or(pduel->game_field->core.reason_player), playerid, actual_amount, is_step.value_or(false));
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<uint32_t>(0));
 		return 1;
@@ -1035,10 +946,8 @@ LUA_STATIC_FUNCTION(RDComplete) {
 	pduel->game_field->core.subunits.splice(pduel->game_field->core.subunits.end(), pduel->game_field->core.recover_damage_reserve);
 	return yield();
 }
-LUA_STATIC_FUNCTION(Equip, uint8_t playerid, card* equip_card, card* target, std::optional<bool> flip_faceup, std::optional<bool> step) {
+LUA_STATIC_FUNCTION(Equip, playerid_t playerid, card* equip_card, card* target, std::optional<bool> flip_faceup, std::optional<bool> step) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	pduel->game_field->equip(playerid, equip_card, target, flip_faceup.value_or(true), step.value_or(false));
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
@@ -3769,7 +3678,7 @@ LUA_STATIC_FUNCTION(AddCustomActivityCounter) {
 	counter_map.emplace(counter_id, processor::action_value_t{ counter_filter, { 0, 0 } });
 	return 0;
 }
-LUA_STATIC_FUNCTION(GetCustomActivityCount, uint32_t counter_id, uint8_t playerid, ActivityType activity_type) {
+LUA_STATIC_FUNCTION(GetCustomActivityCount, uint32_t counter_id, playerid_t playerid, ActivityType activity_type) {
 	if(activity_type == ACTIVITY_BATTLE_PHASE || activity_type > ACTIVITY_CHAIN || activity_type == 0)
 		lua_error(L, "Passed invalid ACTIVITY counter.");
 	auto& counter_map = pduel->game_field->core.get_counter_map(activity_type);
@@ -3781,9 +3690,7 @@ LUA_STATIC_FUNCTION(GetCustomActivityCount, uint32_t counter_id, uint8_t playeri
 	return 1;
 }
 
-LUA_STATIC_FUNCTION(GetBattledCount, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetBattledCount, playerid_t playerid) {
 	lua_pushinteger(L, pduel->game_field->core.battled_count[playerid]);
 	return 1;
 }
@@ -3863,23 +3770,17 @@ LUA_STATIC_FUNCTION(LoadScript) {
 	lua_setglobal(L, "edopro_exports");
 	return 2;
 }
-LUA_STATIC_FUNCTION(TagSwap, uint8_t playerid) {
+LUA_STATIC_FUNCTION(TagSwap, playerid_t playerid) {
 	check_action_permission(L);
-	if (playerid != 0 && playerid != 1)
-		return 0;
 	pduel->game_field->tag_swap(playerid);
 	return yield();
 }
-LUA_STATIC_FUNCTION(GetPlayersCount, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetPlayersCount, playerid_t playerid) {
 	lua_pushinteger(L, pduel->game_field->get_player_count(playerid));
 	return 1;
 }
-LUA_STATIC_FUNCTION(SwapDeckAndGrave, uint8_t playerid) {
+LUA_STATIC_FUNCTION(SwapDeckAndGrave, playerid_t playerid) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	pduel->game_field->swap_deck_and_grave(playerid);
 	return 0;
 }
@@ -3927,9 +3828,7 @@ LUA_STATIC_FUNCTION(MajesticCopy) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(GetStartingHand, uint8_t playerid) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetStartingHand, playerid_t playerid) {
 	lua_pushinteger(L, pduel->game_field->player[playerid].start_count);
 	return 1;
 }
