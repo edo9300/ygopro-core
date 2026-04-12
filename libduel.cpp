@@ -628,11 +628,11 @@ LUA_STATIC_FUNCTION(Activate, effect* peffect) {
 	return 0;
 }
 LUA_STATIC_FUNCTION(SetChainLimit, Function f) {
-	pduel->game_field->core.chain_limit.emplace_back(f, pduel->game_field->core.reason_player);
+	pduel->game_field->core.chain_limit.emplace_back(interpreter::get_function_handle(L, f), pduel->game_field->core.reason_player);
 	return 0;
 }
 LUA_STATIC_FUNCTION(SetChainLimitTillChainEnd, Function f) {
-	pduel->game_field->core.chain_limit_p.emplace_back(f, pduel->game_field->core.reason_player);
+	pduel->game_field->core.chain_limit_p.emplace_back(interpreter::get_function_handle(L, f), pduel->game_field->core.reason_player);
 	return 0;
 }
 LUA_STATIC_FUNCTION(GetChainMaterial, playerid_t playerid) {
