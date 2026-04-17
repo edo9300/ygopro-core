@@ -1363,8 +1363,10 @@ LUA_STATIC_FUNCTION(ShuffleSetCard) {
 	auto pgroup = lua_get<group*, true>(L, 1);
 	if(pgroup->container.size() <= 0)
 		return 0;
-	card* ms[7];
-	uint8_t seq[7];
+	if(pgroup->container.size() > 5)
+		return 0;
+	card* ms[5];
+	uint8_t seq[5];
 	auto it = pgroup->container.begin();
 	uint8_t ct = 0;
 	ms[ct] = *it;
@@ -1404,9 +1406,11 @@ LUA_STATIC_FUNCTION(ShuffleSetCard) {
 	auto message = pduel->new_message(MSG_SHUFFLE_SET_CARD);
 	message->write<uint8_t>(loc);
 	message->write<uint8_t>(ct);
+	for(auto* pcard : pgroup->container) {
+		message->write(pcard->get_info_location());
+	}
 	for(uint32_t i = 0; i < ct; ++i) {
 		card* pcard = ms[i];
-		message->write(pcard->get_info_location());
 		list[seq[i]] = pcard;
 		pcard->current.sequence = seq[i];
 		field->raise_single_event(pcard, nullptr, EVENT_MOVE, pcard->current.reason_effect, pcard->current.reason, pcard->current.reason_player, tp, 0);
@@ -1414,9 +1418,9 @@ LUA_STATIC_FUNCTION(ShuffleSetCard) {
 	field->raise_event(pgroup->container, EVENT_MOVE, field->core.reason_effect, 0, field->core.reason_player, tp, 0);
 	field->process_single_event();
 	field->process_instant_event();
-	for(uint32_t i = 0; i < ct; ++i) {
-		if(ms[i]->xyz_materials.size()) {
-			message->write(ms[i]->get_info_location());
+	for(auto* pcard : pgroup->container) {
+		if(pcard->xyz_materials.size()) {
+			message->write(pcard->get_info_location());
 		} else {
 			message->write(loc_info{});
 		}
