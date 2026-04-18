@@ -188,7 +188,13 @@ void card::get_infos(uint32_t query_flag) {
 	}
 	CHECK_AND_INSERT_T(QUERY_OWNER, owner, uint8_t);
 	CHECK_AND_INSERT(QUERY_STATUS, status);
-	CHECK_AND_INSERT_T(QUERY_IS_PUBLIC, (is_position(POS_FACEUP) || is_related_to_chains() || (current.is_location(LOCATION_HAND | LOCATION_ONFIELD) && is_affected_by_effect(EFFECT_PUBLIC))) ? 1 : 0, uint8_t);
+	// HACK: to remove once the servers are updated to send this flag
+	if(true /* query_flag & QUERY_IS_PUBLIC */) {
+		insert_value<uint16_t>(pduel->query_buffer, sizeof(uint32_t) + sizeof(uint8_t));
+		insert_value<uint32_t>(pduel->query_buffer, QUERY_IS_PUBLIC);
+		auto is_public = (is_position(POS_FACEUP) || is_related_to_chains() || (current.is_location(LOCATION_HAND | LOCATION_ONFIELD) && is_affected_by_effect(EFFECT_PUBLIC)));
+		insert_value<uint8_t>(pduel->query_buffer, is_public ? 1 : 0);
+	}
 	CHECK_AND_INSERT(QUERY_LSCALE, get_lscale());
 	CHECK_AND_INSERT(QUERY_RSCALE, get_rscale());
 	if(query_flag & QUERY_LINK) {
