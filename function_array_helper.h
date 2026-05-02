@@ -207,6 +207,15 @@ struct is_variant<std::variant<Args...>> : std::true_type {};
 template<typename T>
 [[maybe_unused]] inline constexpr bool is_variant_v = is_variant<T>::value;
 
+template <typename T>
+struct is_string_view : std::false_type {};
+
+template <>
+struct is_string_view<std::string_view> : std::true_type {};
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool is_string_view_v = is_string_view<T>::value;
+
 template<typename VARIANT_T, typename T>
 struct is_variant_member : public std::false_type {};
 
@@ -287,6 +296,8 @@ inline constexpr T get_lua(lua_State* L, int idx) {
 				return LuaParam::FUNCTION;
 			else if constexpr(std::is_same_v<Table, actual_type>)
 				return LuaParam::TABLE;
+			else if constexpr(is_string_view_v<actual_type>)
+				return LuaParam::STRING;
 			else
 				return get_lua_param_type<actual_type>();
 		}();
@@ -309,6 +320,10 @@ inline constexpr T get_lua(lua_State* L, int idx) {
 				return return_value(Function{ idx });
 			} else if constexpr(lua_type == LuaParam::TABLE) {
 				return return_value(Table{ idx });
+			} else if constexpr(lua_type == LuaParam::STRING) {
+				size_t len{};
+				const auto* str = lua_tolstring(L, idx, &len);
+				return return_value(std::string_view{ str, len });
 			}
 		}
 	}
@@ -347,6 +362,10 @@ struct check_variant_types_functor<std::variant<Args...>> {
 		}
 		if constexpr((IsInteger<Args> || ...)) {
 			if(lua_type == LuaParam::INT)
+				return true;
+		}
+		if constexpr((is_string_view_v<Args> || ...)) {
+			if(lua_type == LuaParam::STRING)
 				return true;
 		}
 		if constexpr((std::is_same_v<Nil, Args> || ...)) {
@@ -415,6 +434,13 @@ struct get_variant_type_functor<std::variant<Args...>> {
 				} else {
 					return static_cast<integer_type>(val);
 				}
+			}
+		}
+		if constexpr((is_string_view_v<Args> || ...)) {
+			if(lua_type == LuaParam::STRING) {
+				size_t len{};
+				const auto* str = lua_tolstring(L, idx, &len);
+				return std::string_view{ str, len };
 			}
 		}
 		if constexpr((std::is_same_v<Nil, Args> || ...)) {
@@ -632,6 +658,7 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	static constexpr luaL_Reg elem{lua_name,prev_element::elem.func}; \
 }
 #else
+#include <string_view>
 struct Function {
 	int value;
 	operator int() {
