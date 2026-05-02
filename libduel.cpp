@@ -3723,20 +3723,13 @@ LUA_STATIC_FUNCTION(GetCardFromCardID, uint32_t id) {
 	}
 	return 0;
 }
-LUA_STATIC_FUNCTION(LoadScript) {
-	check_param_count(L, 1);
-	check_param<LuaParam::STRING>(L, 1);
-	size_t len;
-	const auto* string = lua_tolstring(L, 1, &len);
-	if(len == 0)
+LUA_STATIC_FUNCTION(LoadScript, std::string_view string, std::optional<bool> check_cache) {
+	if(string.empty())
 		lua_error(L, "Parameter 1 should be a non empty \"String\".");
-	if(auto begin = string, end = string + len;
-		std::find_if(begin, end, [](auto ch) {
-		   return ch == '/' || ch == '\\';
-		}) != end) {
+	if(string.find_first_of(R"(/\)") != std::string_view::npos) {
 		lua_error(L, "Passed script name containing a path separator");
 	}
-	if(/*auto check_cache = */lua_get<bool, true>(L, 2)) {
+	if(check_cache.value_or(true)) {
 		enum SCRIPT_LOAD_STATUS {
 			LOAD_SUCCEDED,
 			LOAD_FAILED,
@@ -3744,6 +3737,7 @@ LUA_STATIC_FUNCTION(LoadScript) {
 		};
 		lua_rawgeti(L, LUA_REGISTRYINDEX, pduel->lua->loaded_scripts_table);
 		auto table_index = lua_absindex(L, -1);
+		// push a copy of the string which is the first argument
 		lua_pushvalue(L, 1);
 		lua_gettable(L, table_index);
 		if(lua_isnil(L, -1)) {
@@ -3753,7 +3747,7 @@ LUA_STATIC_FUNCTION(LoadScript) {
 				lua_settable(L, table_index);
 			};
 			set_load_status(LOADING);
-			auto res = pduel->read_script(string);
+			auto res = pduel->read_script(string.data());
 			lua_pushboolean(L, res);
 			set_load_status(res ? LOAD_SUCCEDED : LOAD_FAILED);
 		} else {
@@ -3764,7 +3758,7 @@ LUA_STATIC_FUNCTION(LoadScript) {
 		}
 		return 1;
 	}
-	lua_pushboolean(L, pduel->read_script(string));
+	lua_pushboolean(L, pduel->read_script(string.data()));
 	lua_getglobal(L, "edopro_exports");
 	lua_pushnil(L);
 	lua_setglobal(L, "edopro_exports");
@@ -3784,19 +3778,7 @@ LUA_STATIC_FUNCTION(SwapDeckAndGrave, playerid_t playerid) {
 	pduel->game_field->swap_deck_and_grave(playerid);
 	return 0;
 }
-LUA_STATIC_FUNCTION(MajesticCopy) {
-	check_param_count(L, 2);
-	auto pcard = lua_get<card*, true>(L, 1);
-	auto ccard = lua_get<card*, true>(L, 2);
-	uint32_t resv = 0;
-	uint16_t resc = 0;
-	if(check_param<LuaParam::INT, true>(L, 3)) {
-		resv = lua_get<uint32_t>(L, 3);
-		resc = lua_get<uint16_t, 1>(L, 4);
-	} else {
-		resv = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
-		resc = 0x1;
-	}
+static int32_t majestic_copy(card* pcard, card* ccard, uint32_t resv, uint16_t resc) {
 	if(resv & (RESET_PHASE) && !(resv & (RESET_SELF_TURN | RESET_OPPO_TURN)))
 		resv |= (RESET_SELF_TURN | RESET_OPPO_TURN);
 	for(auto eit = ccard->single_effect.begin(); eit != ccard->field_effect.end(); ++eit) {
@@ -3806,7 +3788,7 @@ LUA_STATIC_FUNCTION(MajesticCopy) {
 				break;
 		}
 		effect* peffect = eit->second;
-		if (!(peffect->type & 0x7c) && !peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) continue;
+		if(!(peffect->type & 0x7c) && !peffect->is_flag(EFFECT_FLAG2_MAJESTIC_MUST_COPY)) continue;
 		if(!peffect->is_flag(EFFECT_FLAG_INITIAL)) continue;
 		effect* ceffect = peffect->clone(true);
 		ceffect->owner = pcard;
@@ -3827,6 +3809,14 @@ LUA_STATIC_FUNCTION(MajesticCopy) {
 		pcard->add_effect(ceffect);
 	}
 	return 0;
+}
+LUA_STATIC_FUNCTION(MajesticCopy, card* pcard, card* ccard) {
+	uint32_t resv = RESET_EVENT + 0x1fe0000 + RESET_PHASE + PHASE_END + RESET_SELF_TURN + RESET_OPPO_TURN;
+	uint16_t resc = 0x1;
+	return majestic_copy(pcard, ccard, resv, resc);
+}
+LUA_STATIC_FUNCTION(MajesticCopy, card* pcard, card* ccard, uint32_t resv, std::optional<uint16_t> resc) {
+	return majestic_copy(pcard, ccard, resv, resc.value_or(1));
 }
 LUA_STATIC_FUNCTION(GetStartingHand, playerid_t playerid) {
 	lua_pushinteger(L, pduel->game_field->player[playerid].start_count);
