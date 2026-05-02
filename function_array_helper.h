@@ -31,12 +31,13 @@
 #include <lauxlib.h>
 #include <optional>
 #include <string_view>
-#include <type_traits> //std::conditional_t, std::enable_if_t, std::false_type, std::is_same_v, std::true_type
+#include <type_traits> //std::conditional_t, std::enable_if_t, std::is_same_v
 #include <tuple>
 #include <utility> //std::index_sequence, std::make_index_sequence
 #include <variant>
 #include "common.h"
 #include "scriptlib.h"
+#include "type_traits_utilities.h"
 
 // ISO C++ prohibits calling variadic macros with no arguments, but
 // major compilers (GCC, MSVC and clang) have extensions always enabled
@@ -188,43 +189,6 @@ constexpr auto make_lua_functions_array() {
 }
 
 #endif
-
-template <typename T>
-struct is_optional : std::false_type {};
-
-template <typename T>
-struct is_optional<std::optional<T>> : std::true_type {};
-
-template<typename T>
-[[maybe_unused]] inline constexpr bool is_optional_v = is_optional<T>::value;
-
-template <typename T>
-struct is_variant : std::false_type {};
-
-template <typename... Args>
-struct is_variant<std::variant<Args...>> : std::true_type {};
-
-template<typename T>
-[[maybe_unused]] inline constexpr bool is_variant_v = is_variant<T>::value;
-
-template <typename T>
-struct is_string_view : std::false_type {};
-
-template <>
-struct is_string_view<std::string_view> : std::true_type {};
-
-template<typename T>
-[[maybe_unused]] inline constexpr bool is_string_view_v = is_string_view<T>::value;
-
-template<typename VARIANT_T, typename T>
-struct is_variant_member : public std::false_type {};
-
-template<typename T, typename... Args>
-struct is_variant_member<std::variant<Args...>, T>
-	: public std::disjunction<std::is_same<T, Args>...> {};
-
-template<typename variant, typename T>
-[[maybe_unused]] inline constexpr bool is_variant_member_v = is_variant_member<variant, T>::value;
 
 template <typename Tuple, size_t idx = std::tuple_size_v<Tuple>>
 constexpr auto count_trailing_optionals() {
