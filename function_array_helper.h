@@ -494,6 +494,9 @@ struct get_variant_names_functor<std::variant<Args...>> {
 		if constexpr((IsInteger<Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::INT>());
 		}
+		if constexpr((is_string_view_v<Args> || ...)) {
+			copy_string(get_lua_param_name<LuaParam::STRING>());
+		}
 		if constexpr((std::is_same_v<Nil, Args> || ...)) {
 			copy_string(get_lua_param_name<LuaParam::NIL>());
 		}
