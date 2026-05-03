@@ -518,8 +518,8 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 
 #define __NARG__(...)  __NARG_I_(__VA_ARGS__, __RSEQ_N())
 #define __NARG_I_(...) EXPAND(__ARG_N(__VA_ARGS__))
-#define __ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, N, ...) N
-#define __RSEQ_N() VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, 1, 0
+#define __ARG_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, N, ...) N
+#define __RSEQ_N() VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, VAR, 1, 0
 
 #define _VFUNC_(name, n) name##n
 #define _VFUNC(name, n)  _VFUNC_(name, n)
