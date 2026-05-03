@@ -3699,7 +3699,7 @@ LUA_STATIC_FUNCTION(IsPlayerCanFlipSummon) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster) {
-	check_param_count(L, 9);
+	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
 	if(playerid != 0 && playerid != 1) {
 		lua_pushboolean(L, 0);
