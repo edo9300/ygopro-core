@@ -72,13 +72,14 @@ public:
 	bool load_card_script(uint32_t code);
 	template<LuaParam type, typename T>
 	void add_param(T param, bool front = false) {
+		using namespace scriptlib;
 		lua_param p;
-		if constexpr(std::is_integral_v<T>) {
+		if constexpr(IsBool<T> || IsInteger<T>) {
 			static_assert(type == LuaParam::INT || type == LuaParam::FUNCTION || type == LuaParam::BOOLEAN || type == LuaParam::INDEX,
 						  "Passed parameter type doesn't match provided LuaParam");
 			p.integer = param;
 		} else {
-			static_assert(scriptlib::get_lua_param_type<T>() == type);
+			static_assert(get_lua_param_type<T>() == type);
 			p.ptr = param;
 		}
 		add_param(p, type, front);
