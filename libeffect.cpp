@@ -161,10 +161,12 @@ LUA_FUNCTION(SetLabel) {
 	});
 	return 0;
 }
-LUA_FUNCTION(SetLabelObject, [[maybe_unused]] std::variant<lua_obj*, Table> obj) {
+LUA_FUNCTION(SetLabelObject, [[maybe_unused]] std::variant<Nil, lua_obj*, Table> obj) {
 	if(self->label_object)
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->label_object);
 	self->label_object = 0;
+	if(std::holds_alternative<Nil>(obj))
+		return 0;
 	lua_pushvalue(L, 2);
 	self->label_object = ensure_luaL_stack(luaL_ref, L, LUA_REGISTRYINDEX);
 	return 0;
