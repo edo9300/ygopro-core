@@ -3730,15 +3730,13 @@ LUA_STATIC_FUNCTION(IsAbleToEnterBP) {
 	lua_pushboolean(L, pduel->game_field->is_able_to_enter_bp());
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetRandomNumber) {
-	check_param_count(L, 1);
-	int32_t min = 0;
-	int32_t max = 1;
-	if (lua_gettop(L) > 1) {
-		min = lua_get<uint32_t>(L, 1);
-		max = lua_get<uint32_t>(L, 2);
-	} else
-		max = lua_get<uint32_t>(L, 1);
+LUA_STATIC_FUNCTION(GetRandomNumber, uint32_t max) {
+	lua_pushinteger(L, pduel->get_next_integer(0, max));
+	return 1;
+}
+LUA_STATIC_FUNCTION(GetRandomNumber, uint32_t min, uint32_t max) {
+	if(min > max)
+		lua_error(L, "min value (%I) is greater than max value (%I)", static_cast<lua_Integer>(min), static_cast<lua_Integer>(max));
 	lua_pushinteger(L, pduel->get_next_integer(min, max));
 	return 1;
 }
