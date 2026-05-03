@@ -942,17 +942,13 @@ LUA_FUNCTION(GetOverlayTarget) {
 	interpreter::pushobject(L, self->overlay_target);
 	return 1;
 }
-LUA_FUNCTION(CheckRemoveOverlayCard, uint8_t playerid, uint16_t count, uint32_t reason) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_FUNCTION(CheckRemoveOverlayCard, playerid_t playerid, uint16_t count, uint32_t reason) {
 	auto pgroup = pduel->new_group(self);
 	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(playerid, pgroup, 0, 0, count, reason));
 	return 1;
 }
-LUA_FUNCTION(RemoveOverlayCard, uint8_t playerid, uint16_t min, uint16_t max, uint32_t reason) {
+LUA_FUNCTION(RemoveOverlayCard, playerid_t playerid, uint16_t min, uint16_t max, uint32_t reason) {
 	check_action_permission(L);
-	if(playerid != 0 && playerid != 1)
-		return 0;
 	auto pgroup = pduel->new_group(self);
 	pduel->game_field->remove_overlay_card(reason, pgroup, playerid, 0, 0, min, max);
 	return yieldk({
