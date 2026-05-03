@@ -3121,10 +3121,8 @@ LUA_STATIC_FUNCTION(AnnounceCard) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(AnnounceType) {
+LUA_STATIC_FUNCTION(AnnounceType, playerid_t playerid) {
 	check_action_permission(L);
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
 	pduel->game_field->core.select_options.clear();
 	pduel->game_field->core.select_options.push_back(70);
 	pduel->game_field->core.select_options.push_back(71);
@@ -3140,10 +3138,9 @@ LUA_STATIC_FUNCTION(AnnounceType) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(AnnounceNumber) {
+LUA_STATIC_FUNCTION(AnnounceNumber, playerid_t playerid/*, ...*/) {
 	check_action_permission(L);
 	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
 	pduel->game_field->core.select_options.clear();
 	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [L, &select_options = pduel->game_field->core.select_options] {
 		select_options.push_back(lua_get<uint64_t>(L, -1));
@@ -3155,15 +3152,12 @@ LUA_STATIC_FUNCTION(AnnounceNumber) {
 		return 2;
 	});
 }
-LUA_STATIC_FUNCTION(AnnounceCoin) {
+LUA_STATIC_FUNCTION(AnnounceCoin, playerid_t playerid, std::optional<uint64_t> desc, [[maybe_unused]] std::optional<bool> show_selection_hint) {
 	check_action_permission(L);
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto desc = lua_get<uint64_t, 552>(L, 2);
 	auto message = pduel->new_message(MSG_HINT);
 	message->write<uint8_t>(HINT_SELECTMSG);
 	message->write<uint8_t>(playerid);
-	message->write<uint64_t>(desc);
+	message->write<uint64_t>(desc.value_or(552));
 	pduel->game_field->core.select_options.clear();
 	pduel->game_field->core.select_options.push_back(60);
 	pduel->game_field->core.select_options.push_back(61);
@@ -3180,15 +3174,8 @@ LUA_STATIC_FUNCTION(AnnounceCoin) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(TossCoin) {
+LUA_STATIC_FUNCTION(TossCoin, playerid_t playerid, RangedInteger<uint8_t, 0, 5> count) {
 	check_action_permission(L);
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto count = lua_get<uint8_t>(L, 2);
-	if((playerid != 0 && playerid != 1) || count <= 0)
-		return 0;
-	if(count > 5)
-		count = 5;
 	pduel->game_field->emplace_process<Processors::TossCoin>(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, count);
 	return yieldk({
 		const auto& coin_results = pduel->game_field->core.coin_results;
@@ -3198,15 +3185,9 @@ LUA_STATIC_FUNCTION(TossCoin) {
 		return static_cast<int32_t>(coin_results.size());
 	});
 }
-LUA_STATIC_FUNCTION(TossDice) {
+LUA_STATIC_FUNCTION(TossDice, playerid_t playerid, uint8_t count_self, std::optional<uint8_t> count_oppo) {
 	check_action_permission(L);
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto count1 = lua_get<uint8_t>(L, 2);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto count2 = lua_get<uint8_t, 0>(L, 3);
-	pduel->game_field->emplace_process<Processors::TossDice>(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, count1, count2);
+	pduel->game_field->emplace_process<Processors::TossDice>(pduel->game_field->core.reason_effect, pduel->game_field->core.reason_player, playerid, count_self, count_oppo.value_or(0));
 	return yieldk({
 		const auto& dice_results = pduel->game_field->core.dice_results;
 		luaL_checkstack(L, static_cast<int>(dice_results.size()), nullptr);
@@ -3215,9 +3196,8 @@ LUA_STATIC_FUNCTION(TossDice) {
 		return static_cast<int32_t>(dice_results.size());
 	});
 }
-LUA_STATIC_FUNCTION(RockPaperScissors) {
-	uint8_t repeat = lua_get<bool, true>(L, 1);
-	pduel->game_field->emplace_process<Processors::RockPaperScissors>(repeat);
+LUA_STATIC_FUNCTION(RockPaperScissors, std::optional<bool> repeat) {
+	pduel->game_field->emplace_process<Processors::RockPaperScissors>(repeat.value_or(true));
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -3253,9 +3233,7 @@ LUA_STATIC_FUNCTION(SetDiceResult) {
 		dice_results[i] = lua_get<uint8_t>(L, static_cast<int>(i + 1));
 	return 0;
 }
-LUA_STATIC_FUNCTION(IsDuelType) {
-	check_param_count(L, 1);
-	auto duel_type = lua_get<uint64_t>(L, 1);
+LUA_STATIC_FUNCTION(IsDuelType, uint64_t duel_type) {
 	lua_pushboolean(L, pduel->game_field->is_flag(duel_type));
 	return 1;
 }
@@ -3263,28 +3241,14 @@ LUA_STATIC_FUNCTION(GetDuelType) {
 	lua_pushinteger(L, pduel->game_field->core.duel_options);
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsPlayerAffectedByEffect) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1) {
-		lua_pushnil(L);
-		return 1;
-	}
-	auto code = lua_get<uint32_t>(L, 2);
+LUA_STATIC_FUNCTION(IsPlayerAffectedByEffect, playerid_t playerid, uint32_t code) {
 	effect* peffect = pduel->game_field->is_player_affected_by_effect(playerid, code);
 	interpreter::pushobject(L, peffect);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetPlayerEffect) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1) {
-		lua_pushnil(L);
-		return 1;
-	}
-	auto code = lua_get<uint32_t, 0>(L, 2);
+LUA_STATIC_FUNCTION(GetPlayerEffect, playerid_t playerid, std::optional<uint32_t> code) {
 	effect_set eset;
-	pduel->game_field->get_player_effect(playerid, code, &eset);
+	pduel->game_field->get_player_effect(playerid, code.value_or(0), &eset);
 	if(eset.empty()) {
 		lua_pushnil(L);
 		return 1;
