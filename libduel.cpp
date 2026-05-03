@@ -1545,9 +1545,7 @@ LUA_STATIC_FUNCTION(GetLocationCountFromEx) {
 	}
 	return 2;
 }
-LUA_STATIC_FUNCTION(GetUsableMZoneCount, uint8_t playerid, std::optional<uint8_t> uplayer) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetUsableMZoneCount, playerid_t playerid, std::optional<uint8_t> uplayer) {
 	auto actual_uplayer = uplayer.value_or(pduel->game_field->core.reason_player);
 	uint32_t zone = 0xff;
 	uint32_t flag1, flag2;
@@ -1598,18 +1596,14 @@ LUA_STATIC_FUNCTION(GetFreeLinkedZone, uint8_t playerid) {
 	lua_pushinteger(L, pduel->game_field->get_linked_zone(playerid, true));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFieldCard, uint8_t playerid, uint16_t location, uint32_t sequence) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(GetFieldCard, playerid_t playerid, uint16_t location, uint32_t sequence) {
 	card* pcard = pduel->game_field->get_field_card(playerid, location, sequence);
 	if(!pcard || pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP))
 		return 0;
 	interpreter::pushobject(L, pcard);
 	return 1;
 }
-LUA_STATIC_FUNCTION(CheckLocation, uint8_t playerid, uint16_t location, uint32_t sequence) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(CheckLocation, playerid_t playerid, uint16_t location, uint32_t sequence) {
 	lua_pushboolean(L, pduel->game_field->is_location_useable(playerid, location, sequence));
 	return 1;
 }
@@ -1797,9 +1791,7 @@ LUA_STATIC_FUNCTION(IsPhase, uint16_t phase) {
 	lua_pushboolean(L, pduel->game_field->infos.phase == phase);
 	return 1;
 }
-LUA_STATIC_FUNCTION(SkipPhase, uint8_t playerid, uint16_t phase, uint32_t reset, uint16_t count, std::optional<uint32_t> value) {
-	if(playerid != 0 && playerid != 1)
-		return 0;
+LUA_STATIC_FUNCTION(SkipPhase, playerid_t playerid, uint16_t phase, uint32_t reset, uint16_t count, std::optional<uint32_t> value) {
 	if(count <= 0)
 		count = 1;
 	int32_t code = 0;
