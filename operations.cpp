@@ -1556,7 +1556,7 @@ bool field::process(Processors::SelfDestroy& arg) {
 			pcard->temp.reason_player = pcard->current.reason_player;
 			pcard->current.reason_effect = peffect;
 			pcard->current.reason_player = peffect->get_handler_player();
-			destroy(pcard, nullptr, REASON_EFFECT, PLAYER_SELFDES);
+			destroy(pcard, peffect, REASON_EFFECT, PLAYER_SELFDES);
 		}
 		core.self_destroy_set.erase(it);
 		arg.step = Processors::restart;
