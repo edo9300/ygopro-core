@@ -690,6 +690,11 @@ int32_t interpreter::get_function_handle(lua_State* L, int32_t index) {
 
 void interpreter::print_stacktrace(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
+#if LUA_VERSION_NUM < 505
+	// in lua 5.4 (and likely in 5.3 as well) luaL_traceback requires more than the 5 stack slots documented
+	// and doesn't automatically increase the stack to fit its needs
+	luaL_checkstack(L, 10, nullptr);
+#endif
 	ensure_luaL_stack(luaL_traceback, L, L, nullptr, 1);
 	auto len = lua_rawlen(L, -1);
 	/*checks for an empty stack*/
