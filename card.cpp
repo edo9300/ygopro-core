@@ -1729,6 +1729,8 @@ int32_t card::add_effect(effect* peffect) {
 			}
 		}
 		eit = single_effect.emplace(peffect->code, peffect);
+		if(peffect->code == (FLAG_MAXIMUM_CENTER | 0x10000000))
+			set_status(STATUS_MAXIMUM_CENTER, TRUE);
 	} else if (peffect->type & EFFECT_TYPE_EQUIP) {
 		eit = equip_effect.emplace(peffect->code, peffect);
 		if (equiping_target)
@@ -1820,6 +1822,8 @@ void card::remove_effect(effect* peffect, effect_container::iterator it) {
 	card_set check_target = { this };
 	if (peffect->type & EFFECT_TYPE_SINGLE) {
 		single_effect.erase(it);
+		if(peffect->code == (FLAG_MAXIMUM_CENTER | 0x10000000) && !single_effect.count(peffect->code))
+			set_status(STATUS_MAXIMUM_CENTER, FALSE);
 	} else if (peffect->type & EFFECT_TYPE_EQUIP) {
 		equip_effect.erase(it);
 		if (equiping_target)
@@ -4006,4 +4010,23 @@ bool card::recreate(uint32_t code) {
 		return false;
 	data = pduel->read_card(code);
 	return true;
+}
+
+int32_t card::is_maximum_summonable(uint8_t playerid) {
+	if(!(data.type & TYPE_MAXIMUM))
+		return FALSE;
+	effect_set eset;
+	filter_spsummon_procedure(playerid, &eset, 0);
+	int32_t max_count = 0;
+	int32_t non_max_count = 0;
+	for(const auto& peff : eset) {
+		std::vector<lua_Integer> retval;
+		peff->get_value(this, 0, retval);
+		uint32_t sumtype = retval.size() > 0 ? static_cast<uint32_t>(retval[0]) : 0;
+		if(sumtype == SUMMON_TYPE_MAXIMUM)
+			max_count++;
+		else
+			non_max_count++;
+	}
+	return (max_count > 0 && non_max_count == 0);
 }
