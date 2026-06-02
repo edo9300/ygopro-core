@@ -4124,7 +4124,7 @@ bool field::process(Processors::Destroy& arg) {
 bool field::process(Processors::ReleaseReplace& arg) {
 	auto targets = arg.targets;
 	auto target = arg.target;
-	if(!(target->current.location & (LOCATION_ONFIELD | LOCATION_HAND))) {
+	if(target->current.location & (LOCATION_GRAVE | LOCATION_REMOVED)) {
 		target->current.reason = target->temp.reason;
 		target->current.reason_effect = target->temp.reason_effect;
 		target->current.reason_player = target->temp.reason_player;
@@ -4184,7 +4184,7 @@ bool field::process(Processors::Release& arg) {
 		if(cv.size() > 1)
 			std::sort(cv.begin(), cv.end(), card::card_operation_sort);
 		for (auto& pcard : cv) {
-			if(!(pcard->current.location & (LOCATION_ONFIELD | LOCATION_HAND))) {
+			if(pcard->current.location & (LOCATION_GRAVE | LOCATION_REMOVED)) {
 				pcard->current.reason = pcard->temp.reason;
 				pcard->current.reason_effect = pcard->temp.reason_effect;
 				pcard->current.reason_player = pcard->temp.reason_player;
