@@ -3805,7 +3805,8 @@ LUA_STATIC_FUNCTION(IsPlayerCanSendtoGrave) {
 	else {
 		check_param_count(L, 2);
 		auto pcard = lua_get<card*, true>(L, 2);
-		lua_pushboolean(L, pduel->game_field->is_player_can_send_to_grave(playerid, pcard));
+		auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 3);
+		lua_pushboolean(L, pduel->game_field->is_player_can_send_to_grave(playerid, pcard, reason));
 	}
 	return 1;
 }

@@ -341,7 +341,7 @@ public:
 	int32_t is_releasable_by_summon(uint8_t playerid, card* pcard);
 	int32_t is_releasable_by_nonsummon(uint8_t playerid, uint32_t reason);
 	int32_t is_releasable_by_effect(uint8_t playerid, effect* peffect);
-	int32_t is_capable_send_to_grave(uint8_t playerid);
+	int32_t is_capable_send_to_grave(uint8_t playerid, uint32_t reason);
 	int32_t is_capable_send_to_hand(uint8_t playerid);
 	int32_t is_capable_send_to_deck(uint8_t playerid);
 	int32_t is_capable_send_to_extra(uint8_t playerid);

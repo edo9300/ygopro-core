@@ -540,7 +540,7 @@ public:
 	int32_t is_player_can_place_counter(uint8_t playerid, card* pcard, uint16_t countertype, uint16_t count);
 	int32_t is_player_can_remove_counter(uint8_t playerid, card* pcard, uint8_t self, uint8_t oppo, uint16_t countertype, uint16_t count, uint32_t reason);
 	int32_t is_player_can_remove_overlay_card(uint8_t playerid, group* pcard, uint8_t self, uint8_t oppo, uint16_t count, uint32_t reason);
-	int32_t is_player_can_send_to_grave(uint8_t playerid, card* pcard);
+	int32_t is_player_can_send_to_grave(uint8_t playerid, card* pcard, uint32_t reason);
 	int32_t is_player_can_send_to_hand(uint8_t playerid, card* pcard);
 	int32_t is_player_can_send_to_deck(uint8_t playerid, card* pcard);
 	int32_t is_player_can_remove(uint8_t playerid, card* pcard, uint32_t reason);

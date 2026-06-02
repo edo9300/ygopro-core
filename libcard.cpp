@@ -1479,7 +1479,8 @@ LUA_FUNCTION(IsAbleToExtra) {
 	return 1;
 }
 LUA_FUNCTION(IsAbleToGrave) {
-	lua_pushboolean(L, self->is_capable_send_to_grave(pduel->game_field->core.reason_player));
+	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 2);
+	lua_pushboolean(L, self->is_capable_send_to_grave(pduel->game_field->core.reason_player, reason));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToRemove) {

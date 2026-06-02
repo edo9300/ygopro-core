@@ -2976,7 +2976,7 @@ int32_t field::is_player_can_remove_overlay_card(uint8_t playerid, group* pgroup
 	}
 	return FALSE;
 }
-int32_t field::is_player_can_send_to_grave(uint8_t playerid, card* pcard) {
+int32_t field::is_player_can_send_to_grave(uint8_t playerid, card* pcard, uint32_t reason) {
 	effect_set eset;
 	filter_player_effect(playerid, EFFECT_CANNOT_TO_GRAVE, &eset);
 	for(const auto& peff : eset) {
@@ -2985,7 +2985,8 @@ int32_t field::is_player_can_send_to_grave(uint8_t playerid, card* pcard) {
 		pduel->lua->add_param<LuaParam::EFFECT>(peff);
 		pduel->lua->add_param<LuaParam::CARD>(pcard);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
-		if (pduel->lua->check_condition(peff->target, 3))
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		if (pduel->lua->check_condition(peff->target, 4))
 			return FALSE;
 	}
 	return TRUE;

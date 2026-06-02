@@ -2210,7 +2210,7 @@ int32_t card::destination_redirect(uint8_t destination, uint32_t reason) {
 			return redirect;
 		if((redirect & LOCATION_REMOVED) && !is_affected_by_effect(EFFECT_CANNOT_REMOVE) && pduel->game_field->is_player_can_remove(peff->get_handler_player(), this, REASON_EFFECT))
 			return redirect;
-		if((redirect & LOCATION_GRAVE) && !is_affected_by_effect(EFFECT_CANNOT_TO_GRAVE) && pduel->game_field->is_player_can_send_to_grave(peff->get_handler_player(), this))
+		if((redirect & LOCATION_GRAVE) && !is_affected_by_effect(EFFECT_CANNOT_TO_GRAVE) && pduel->game_field->is_player_can_send_to_grave(peff->get_handler_player(), this, REASON_EFFECT))
 			return redirect;
 	}
 	return 0;
@@ -3605,10 +3605,10 @@ int32_t card::is_releasable_by_effect(uint8_t playerid, effect* peffect) {
 	}
 	return TRUE;
 }
-int32_t card::is_capable_send_to_grave(uint8_t playerid) {
+int32_t card::is_capable_send_to_grave(uint8_t playerid, uint32_t reason) {
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_GRAVE))
 		return FALSE;
-	if(!pduel->game_field->is_player_can_send_to_grave(playerid, this))
+	if(!pduel->game_field->is_player_can_send_to_grave(playerid, this, reason))
 		return FALSE;
 	return TRUE;
 }
@@ -3658,7 +3658,7 @@ int32_t card::is_capable_cost_to_grave(uint8_t playerid) {
 		return FALSE;
 	if(is_affected_by_effect(EFFECT_CANNOT_TO_GRAVE_AS_COST))
 		return FALSE;
-	if(!is_capable_send_to_grave(playerid))
+	if(!is_capable_send_to_grave(playerid, REASON_COST))
 		return FALSE;
 	auto op_param = sendto_param;
 	sendto_param.location = dest;
