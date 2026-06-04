@@ -1936,6 +1936,15 @@ LUA_STATIC_FUNCTION(GetChainInfo) {
 		case CHAININFO::TRIGGERING_RANK:
 			lua_pushinteger(L, ch->triggering_state.rank);
 			break;
+		case CHAININFO::TRIGGERING_LSCALE:
+			lua_pushinteger(L, ch->triggering_state.lscale);
+			break;
+		case CHAININFO::TRIGGERING_RSCALE:
+			lua_pushinteger(L, ch->triggering_state.rscale);
+			break;
+		case CHAININFO::TRIGGERING_LINK:
+			lua_pushinteger(L, ch->triggering_state.link);
+			break;
 		case CHAININFO::TRIGGERING_ATTRIBUTE:
 			lua_pushinteger(L, ch->triggering_state.attribute);
 			break;

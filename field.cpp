@@ -43,6 +43,9 @@ void chain::set_triggering_state(card* pcard) {
 	triggering_state.code2 = pcard->get_another_code();
 	triggering_state.level = pcard->get_level();
 	triggering_state.rank = pcard->get_rank();
+	triggering_state.link = pcard->get_link();
+	triggering_state.lscale = pcard->get_lscale();
+	triggering_state.rscale = pcard->get_rscale();
 	triggering_state.attribute = pcard->get_attribute();
 	triggering_state.type = pcard->get_type();
 	triggering_state.race = pcard->get_race();
