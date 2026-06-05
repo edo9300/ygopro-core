@@ -14,6 +14,7 @@
 #include <lualib.h>
 #include <type_traits> //std::is_same_v, std::enable_if_t, std::invoke_result_t, std::result_of_t, std::conditional_t
 #include <utility> //std::pair
+#include <variant>
 #include "common.h"
 #include "lua_obj.h"
 
@@ -369,6 +370,16 @@ namespace scriptlib {
 			return false;
 		else
 			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_param_name<param_type>(), get_lua_type_name(L, index));
+	}
+
+	template<typename ...Args>
+	inline std::pair<card*, owned_lua<group>> expand_to_card_or_group(const std::variant<Args...>& v) {
+		if(auto* ppcard = std::get_if<card*>(&v); ppcard) {
+			return { *ppcard, nullptr };
+		} else if(auto* ppgroup = std::get_if<group*>(&v); ppgroup) {
+			return { nullptr, *ppgroup };
+		}
+		return { nullptr, nullptr };
 	}
 }
 
