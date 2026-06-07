@@ -2746,7 +2746,8 @@ LUA_STATIC_FUNCTION(ReleaseRitualMaterial) {
 	check_action_permission(L);
 	check_param_count(L, 1);
 	auto pgroup = lua_get<group*, true>(L, 1);
-	pduel->game_field->ritual_release(pgroup->container);
+	auto release_deck = lua_get<bool, false>(L, 2);
+	pduel->game_field->ritual_release(pgroup->container, release_deck);
 	return yield();
 }
 LUA_STATIC_FUNCTION(GetFusionMaterial) {
