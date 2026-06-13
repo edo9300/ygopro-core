@@ -839,7 +839,15 @@ LUA_STATIC_FUNCTION(ConfirmDecktop) {
 		message->write<uint8_t>(pcard->current.location);
 		message->write<uint32_t>(pcard->current.sequence);
 	}
-	return yield();
+	return yieldk({
+		auto playerid = lua_get<uint8_t>(L, 1);
+		auto& main = pduel->game_field->player[playerid].list_main;
+		const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
+		const auto offset = main.size() - count;
+		auto pgroup = pduel->new_group(main.begin() + offset, main.end());
+		interpreter::pushobject(L, pgroup);
+		return 1;
+	});
 }
 LUA_STATIC_FUNCTION(ConfirmExtratop) {
 	check_param_count(L, 2);
@@ -861,7 +869,16 @@ LUA_STATIC_FUNCTION(ConfirmExtratop) {
 		message->write<uint8_t>(pcard->current.location);
 		message->write<uint32_t>(pcard->current.sequence);
 	}
-	return yield();
+	return yieldk({
+		auto playerid = lua_get<uint8_t>(L, 1);
+		const auto& player = pduel->game_field->player[playerid];
+		auto& extra = player.list_extra;
+		const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), extra.size() - player.extra_p_count);
+		auto begin = extra.rbegin() + player.extra_p_count;
+		auto pgroup = pduel->new_group(begin, begin + count);
+		interpreter::pushobject(L, pgroup);
+		return 1;
+	});
 }
 LUA_STATIC_FUNCTION(ConfirmCards) {
 	check_param_count(L, 2);
@@ -2228,11 +2245,11 @@ LUA_STATIC_FUNCTION(GetDeckbottomGroup) {
 LUA_STATIC_FUNCTION(GetExtraTopGroup) {
 	check_param_count(L, 2);
 	auto playerid = lua_get<uint8_t>(L, 1);
-	auto count = lua_get<uint32_t>(L, 2);
-	auto pgroup = pduel->new_group();
-	auto cit = pduel->game_field->player[playerid].list_extra.rbegin() + pduel->game_field->player[playerid].extra_p_count;
-	for(uint32_t i = 0; i < count && cit != pduel->game_field->player[playerid].list_extra.rend(); ++i, ++cit)
-		pgroup->container.insert(*cit);
+	const auto& player = pduel->game_field->player[playerid];
+	auto& extra = player.list_extra;
+	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), extra.size() - player.extra_p_count);
+	auto begin = extra.rbegin() + player.extra_p_count;
+	auto pgroup = pduel->new_group(begin, begin + count);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
