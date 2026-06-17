@@ -49,7 +49,9 @@ namespace scriptlib {
 
 	using playerid_t = RangedInteger<uint8_t, 0, 1>;
 
-	using playerid_none_t = RangedInteger<uint8_t, 0, 2>;
+	using playerid_none_t = RangedInteger<uint8_t, 0, PLAYER_NONE>;
+
+	using playerid_all_t = RangedInteger<uint8_t, 0, PLAYER_ALL>;
 
 	using function = struct {}*;
 

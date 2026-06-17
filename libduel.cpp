@@ -1793,10 +1793,9 @@ LUA_STATIC_FUNCTION(Readjust) {
 	pduel->game_field->core.re_adjust = true;
 	return 0;
 }
-LUA_STATIC_FUNCTION(AdjustInstantly) {
-	if(lua_gettop(L) > 0) {
-		auto pcard = lua_get<card*, true>(L, 1);
-		pcard->filter_disable_related_cards();
+LUA_STATIC_FUNCTION(AdjustInstantly, std::optional<card*> adjust_card) {
+	if(adjust_card.has_value()) {
+		adjust_card.value()->filter_disable_related_cards();
 	}
 	pduel->game_field->adjust_instant();
 	return 0;
@@ -1806,11 +1805,7 @@ LUA_STATIC_FUNCTION(AdjustInstantly) {
  * \param playerid, location1, location2
  * \return Group
  */
-LUA_STATIC_FUNCTION(GetFieldGroup) {
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto location1 = lua_get<uint16_t>(L, 2);
-	auto location2 = lua_get<uint16_t>(L, 3);
+LUA_STATIC_FUNCTION(GetFieldGroup, playerid_t playerid, uint16_t location1, uint16_t location2) {
 	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_field_card(playerid, location1, location2, pgroup);
 	interpreter::pushobject(L, pgroup);
@@ -1821,11 +1816,7 @@ LUA_STATIC_FUNCTION(GetFieldGroup) {
  * \param playerid, location1, location2
  * \return Integer
  */
-LUA_STATIC_FUNCTION(GetFieldGroupCount) {
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto location1 = lua_get<uint16_t>(L, 2);
-	auto location2 = lua_get<uint16_t>(L, 3);
+LUA_STATIC_FUNCTION(GetFieldGroupCount, playerid_t playerid, uint16_t location1, uint16_t location2) {
 	uint32_t count = pduel->game_field->filter_field_card(playerid, location1, location2, nullptr);
 	lua_pushinteger(L, count);
 	return 1;
@@ -1835,21 +1826,17 @@ LUA_STATIC_FUNCTION(GetFieldGroupCount) {
  * \param playerid, count
  * \return Group
  */
-LUA_STATIC_FUNCTION(GetDecktopGroup) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetDecktopGroup, playerid_t playerid, uint32_t amount) {
 	auto& main = pduel->game_field->player[playerid].list_main;
-	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
+	const auto count = std::min<size_t>(amount, main.size());
 	const auto offset = main.size() - count;
 	auto pgroup = pduel->new_group(main.begin() + offset, main.end());
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetDeckbottomGroup) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetDeckbottomGroup, playerid_t playerid, uint32_t amount) {
 	auto& main = pduel->game_field->player[playerid].list_main;
-	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
+	const auto count = std::min<size_t>(amount, main.size());
 	auto pgroup = pduel->new_group(main.begin(), main.begin() + count);
 	interpreter::pushobject(L, pgroup);
 	return 1;
@@ -1859,12 +1846,10 @@ LUA_STATIC_FUNCTION(GetDeckbottomGroup) {
  * \param playerid, count
  * \return Group
  */
-LUA_STATIC_FUNCTION(GetExtraTopGroup) {
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
+LUA_STATIC_FUNCTION(GetExtraTopGroup, playerid_t playerid, uint32_t amount) {
 	const auto& player = pduel->game_field->player[playerid];
 	auto& extra = player.list_extra;
-	const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), extra.size() - player.extra_p_count);
+	const auto count = std::min<size_t>(amount, extra.size() - player.extra_p_count);
 	auto begin = extra.rbegin() + player.extra_p_count;
 	auto pgroup = pduel->new_group(begin, begin + count);
 	interpreter::pushobject(L, pgroup);
@@ -2168,9 +2153,7 @@ LUA_STATIC_FUNCTION(SelectReleaseGroupEx) {
 * \param targetcard
 * \return Group
 */
-LUA_STATIC_FUNCTION(GetTributeGroup) {
-	check_param_count(L, 1);
-	auto target = lua_get<card*, true>(L, 1);
+LUA_STATIC_FUNCTION(GetTributeGroup, card* target) {
 	auto pgroup = pduel->new_group();
 	pduel->game_field->get_summon_release_list(target, &(pgroup->container), &(pgroup->container), &(pgroup->container));
 	interpreter::pushobject(L, pgroup);
@@ -2181,55 +2164,33 @@ LUA_STATIC_FUNCTION(GetTributeGroup) {
 * \param targetcard
 * \return Integer
 */
-LUA_STATIC_FUNCTION(GetTributeCount) {
-	check_param_count(L, 1);
-	auto target = lua_get<card*, true>(L, 1);
-	group* mg = nullptr;
-	if(!lua_isnoneornil(L, 2))
-		mg = lua_get<group*, true>(L, 2);
-	bool ex = lua_get<bool, false>(L, 3);
-	lua_pushinteger(L, pduel->game_field->get_summon_release_list(target, nullptr, nullptr, nullptr, mg, ex));
+LUA_STATIC_FUNCTION(GetTributeCount, card* target, std::optional<group*> material_group, std::optional<bool> include_opponent) {
+	lua_pushinteger(L, pduel->game_field->get_summon_release_list(target, nullptr, nullptr, nullptr, material_group.value_or(nullptr), include_opponent.value_or(false)));
 	return 1;
 }
-LUA_STATIC_FUNCTION(CheckTribute) {
-	check_param_count(L, 2);
-	auto target = lua_get<card*, true>(L, 1);
-	auto min = lua_get<uint16_t>(L, 2);
-	auto max = lua_get<uint16_t>(L, 3, min);
-	group* mg = nullptr;
-	if(!lua_isnoneornil(L, 4))
-		mg = lua_get<group*, true>(L, 4);
-	auto toplayer = lua_get<uint8_t>(L, 5, target->current.controler);
-	auto zone = lua_get<uint32_t, 0x1f>(L, 6);
-	lua_pushboolean(L, pduel->game_field->check_tribute(target, min, max, mg, toplayer, zone));
+LUA_STATIC_FUNCTION(CheckTribute, card* target, uint16_t min, std::optional<uint16_t> max, std::optional<group*> material_group, std::optional<playerid_t> toplayer, std::optional<uint32_t> summon_zone) {
+	lua_pushboolean(L, pduel->game_field->check_tribute(target, min, max.value_or(min),
+														material_group.value_or(nullptr),
+														toplayer.value_or(target->current.controler),
+														summon_zone.value_or(0x1f)));
 	return 1;
 }
-LUA_STATIC_FUNCTION(SelectTribute) {
+LUA_STATIC_FUNCTION(SelectTribute, playerid_t playerid, card* target, uint16_t min, uint16_t max,
+					std::optional<group*> material_group, std::optional<playerid_t> toplayer,
+					std::optional<uint32_t> summon_zone, std::optional<bool> cancelable) {
 	check_action_permission(L);
-	check_param_count(L, 4);
-	auto target = lua_get<card*, true>(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto min = lua_get<uint16_t>(L, 3);
-	auto max = lua_get<uint16_t>(L, 4);
-	group* mg = nullptr;
-	if(!lua_isnoneornil(L, 5))
-		mg = lua_get<group*, true>(L, 5);
-	auto toplayer = lua_get<uint8_t>(L, 6, playerid);
-	if(toplayer != 0 && toplayer != 1)
-		return 0;
-	uint32_t ex = FALSE;
-	if(toplayer != playerid)
-		ex = TRUE;
-	auto zone = lua_get<uint32_t, 0x1f>(L, 7);
-	auto cancelable = lua_get<bool, false>(L, 8);
-	pduel->game_field->core.release_cards.clear();
-	pduel->game_field->core.release_cards_ex.clear();
-	pduel->game_field->core.release_cards_ex_oneof.clear();
-	pduel->game_field->get_summon_release_list(target, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, mg, ex);
-	pduel->game_field->select_tribute_cards(nullptr, playerid, cancelable, min, max, toplayer, zone);
-	return push_return_cards(L, cancelable);
+	auto real_toplayer = toplayer.value_or(playerid);
+	bool ex = real_toplayer != playerid;
+
+	auto& field = pduel->game_field;
+	auto& core = field->core;
+	core.release_cards.clear();
+	core.release_cards_ex.clear();
+	core.release_cards_ex_oneof.clear();
+
+	field->get_summon_release_list(target, &core.release_cards, &core.release_cards_ex, &core.release_cards_ex_oneof, material_group.value_or(nullptr), ex);
+	field->select_tribute_cards(nullptr, playerid, cancelable.value_or(false), min, max, real_toplayer, summon_zone.value_or(0x1f));
+	return push_return_cards(L, cancelable.value_or(false));
 }
 /**
 * \brief Duel.GetTargetCount
