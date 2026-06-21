@@ -46,6 +46,9 @@
 #define LOCATION_DECKSHF	0x20001		//Return to deck and shuffle
 
 //
+#define PLAYER_EITHER  4
+
+//
 #define COIN_HEADS  1
 #define COIN_TAILS  0
 
