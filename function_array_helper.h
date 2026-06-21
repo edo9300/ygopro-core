@@ -76,6 +76,8 @@ namespace LUA_NAMESPACE {
 
 struct Function {
 	int value;
+	Function() = default;
+	Function(int v) : value(v) {}
 	operator int() {
 		return value;
 	}
@@ -86,6 +88,8 @@ struct Function {
 
 struct Table {
 	int value;
+	Table() = default;
+	Table(int v) : value(v) {}
 	operator int() {
 		return value;
 	}
@@ -628,6 +632,8 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 #include <string_view>
 struct Function {
 	int value;
+	Function() = default;
+	Function(int v) : value(v) {}
 	operator int() {
 		return value;
 	}
@@ -637,6 +643,8 @@ struct Function {
 };
 struct Table {
 	int value;
+	Table() = default;
+	Table(int v) : value(v) {}
 	operator int() {
 		return value;
 	}
