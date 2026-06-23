@@ -327,6 +327,7 @@ public:
 	int32_t get_set_tribute_count();
 	int32_t is_can_be_flip_summoned(uint8_t playerid);
 	int32_t is_special_summonable(uint8_t playerid, uint32_t summon_type);
+	int32_t is_maximum_summonable(uint8_t playerid);
 	int32_t is_can_be_special_summoned(effect* reason_effect, uint32_t sumtype, uint8_t sumpos, uint8_t sumplayer, uint8_t toplayer, uint8_t nocheck, uint8_t nolimit, uint32_t zone);
 	int32_t is_setable_mzone(uint8_t playerid, uint8_t ignore_count, effect* peffect, uint8_t min_tribute, uint32_t zone = 0x1f);
 	int32_t is_setable_szone(uint8_t playerid, uint8_t ignore_fd = 0);
@@ -379,6 +380,7 @@ public:
 #define SUMMON_TYPE_XYZ      0x49000000
 #define SUMMON_TYPE_PENDULUM 0x4a000000
 #define SUMMON_TYPE_LINK     0x4c000000
+#define SUMMON_TYPE_MAXIMUM  0x4e000000
 //Counter
 #define COUNTER_WITHOUT_PERMIT 0x1000
 #define COUNTER_NEED_ENABLE    0x2000
