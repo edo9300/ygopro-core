@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -16,8 +16,10 @@ duel::duel(const OCG_DuelOptions& options, bool& valid_lua_lib) :
 	random({ options.seed[0], options.seed[1], options.seed[2], options.seed[3] }),
 	read_card_callback(options.cardReader), read_script_callback(options.scriptReader),
 	handle_message_callback(options.logHandler), read_card_done_callback(options.cardReaderDone),
+	exist_cards_to_declare_callback(options.existCardsToDeclare),
 	read_card_payload(options.payload1), read_script_payload(options.payload2),
-	handle_message_payload(options.payload3), read_card_done_payload(options.payload4)
+	handle_message_payload(options.payload3), read_card_done_payload(options.payload4),
+	exist_cards_to_declare_payload(options.payload5)
 {
 	lua = new interpreter(this, options, valid_lua_lib);
 	if(!valid_lua_lib)
