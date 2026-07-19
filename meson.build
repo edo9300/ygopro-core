@@ -23,6 +23,7 @@ ocgcore_src = files([
 	'libduel.cpp',
 	'libeffect.cpp',
 	'libgroup.cpp',
+	'multiplayer.cpp',
 	'ocgapi.cpp',
 	'operations.cpp',
 	'playerop.cpp',

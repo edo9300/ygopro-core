@@ -21,6 +21,7 @@
 #include "common.h"
 #include "containers_fwd.h"
 #include "processor_unit.h"
+#include "multiplayer.h"
 #include "progressivebuffer.h"
 
 class duel;
@@ -397,6 +398,7 @@ class field {
 public:
 	duel* pduel;
 	std::array<player_info,2> player;
+	MultiplayerState multiplayer;
 	card* temp_card;
 	field_info infos;
 	//lpcost cost[2];

@@ -16,6 +16,7 @@ LOCAL_SRC_FILES := card.cpp \
 				libduel.cpp \
 				libeffect.cpp \
 				libgroup.cpp \
+				multiplayer.cpp \
 				ocgapi.cpp \
 				operations.cpp \
 				playerop.cpp \
@@ -34,4 +35,3 @@ include $(BUILD_SHARED_LIBRARY)
 
 $(call import-add-path,$(LOCAL_PATH))
 $(call import-module,lua)
-

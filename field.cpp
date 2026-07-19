@@ -58,6 +58,10 @@ bool tevent::operator< (const tevent& v) const {
 }
 field::field(duel* _pduel, const OCG_DuelOptions& options) :pduel(_pduel), player({ {options.team1, options.team2} }) {
 	core.duel_options = options.flags;
+	if(options.flags & DUEL_BATTLE_ROYALE)
+		multiplayer.configure(MultiplayerMode::BATTLE_ROYALE);
+	else if(options.flags & DUEL_3_V_1)
+		multiplayer.configure(MultiplayerMode::THREE_V_ONE);
 	nil_event.event_code = 0;
 	nil_event.event_cards = nullptr;
 	nil_event.event_player = PLAYER_NONE;
