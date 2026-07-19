@@ -70,6 +70,15 @@ field::field(duel* _pduel, const OCG_DuelOptions& options) :pduel(_pduel), playe
 	nil_event.reason_effect = nullptr;
 	nil_event.reason_player = PLAYER_NONE;
 }
+bool field::eliminate_multiplayer_player(uint8_t playerid, PlayerEliminationReason reason) {
+	if(!multiplayer.eliminate(playerid, reason))
+		return false;
+	auto message = pduel->new_message(MSG_PLAYER_ELIMINATED);
+	message->write<uint8_t>(playerid);
+	message->write<uint8_t>(static_cast<uint8_t>(reason));
+	message->write<uint8_t>(multiplayer.active_mask());
+	return true;
+}
 void field::reload_field_info() {
 	auto message = pduel->new_message(MSG_RELOAD_FIELD);
 	message->write<uint32_t>(core.duel_options);

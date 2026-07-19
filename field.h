@@ -419,6 +419,7 @@ public:
 	explicit field(duel* pduel, const OCG_DuelOptions& options);
 	~field() = default;
 	void reload_field_info();
+	bool eliminate_multiplayer_player(uint8_t playerid, PlayerEliminationReason reason);
 
 	void add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, bool pzone = false);
 	void remove_card(card* pcard);
