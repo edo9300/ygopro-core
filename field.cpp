@@ -71,13 +71,29 @@ field::field(duel* _pduel, const OCG_DuelOptions& options) :pduel(_pduel), playe
 	nil_event.reason_player = PLAYER_NONE;
 }
 bool field::eliminate_multiplayer_player(uint8_t playerid, PlayerEliminationReason reason) {
-	if(!multiplayer.eliminate(playerid, reason))
+	if(playerid >= MultiplayerState::MAX_PLAYERS)
 		return false;
-	auto message = pduel->new_message(MSG_PLAYER_ELIMINATED);
-	message->write<uint8_t>(playerid);
-	message->write<uint8_t>(static_cast<uint8_t>(reason));
-	message->write<uint8_t>(multiplayer.active_mask());
-	return true;
+	auto reasons = std::array<PlayerEliminationReason, MultiplayerState::MAX_PLAYERS>{
+		PlayerEliminationReason::LP,
+		PlayerEliminationReason::LP,
+		PlayerEliminationReason::LP,
+		PlayerEliminationReason::LP
+	};
+	reasons[playerid] = reason;
+	return eliminate_multiplayer_players(static_cast<uint8_t>(1u << playerid), reasons) != 0;
+}
+uint8_t field::eliminate_multiplayer_players(uint8_t player_mask,
+		const std::array<PlayerEliminationReason, MultiplayerState::MAX_PLAYERS>& reasons) {
+	const auto eliminated = multiplayer.eliminate_many(player_mask, reasons);
+	for(uint8_t playerid = 0; playerid < MultiplayerState::MAX_PLAYERS; ++playerid) {
+		if(!(eliminated & (1u << playerid)))
+			continue;
+		auto message = pduel->new_message(MSG_PLAYER_ELIMINATED);
+		message->write<uint8_t>(playerid);
+		message->write<uint8_t>(static_cast<uint8_t>(reasons[playerid]));
+		message->write<uint8_t>(multiplayer.active_mask());
+	}
+	return eliminated;
 }
 void field::reload_field_info() {
 	auto message = pduel->new_message(MSG_RELOAD_FIELD);
@@ -1135,6 +1151,11 @@ void field::tag_swap(uint8_t playerid) {
 	}
 	std::swap(player[playerid].list_extra, player[playerid].extra_lists_extra[player[playerid].tag_index]);
 	std::swap(player[playerid].extra_p_count, player[playerid].extra_extra_p_count[player[playerid].tag_index]);
+	if(multiplayer.enabled()) {
+		std::swap(player[playerid].current_duelist, player[playerid].extra_duelist_ids[player[playerid].tag_index]);
+		if(multiplayer.mode() == MultiplayerMode::BATTLE_ROYALE)
+			std::swap(player[playerid].lp, player[playerid].extra_lps[player[playerid].tag_index]);
+	}
 	for(auto& pcard : player[playerid].list_extra) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
@@ -1158,6 +1179,25 @@ void field::tag_swap(uint8_t playerid) {
 		message->write<uint32_t>(pcard->current.position);
 	}
 	player[playerid].tag_index = (player[playerid].tag_index + 1) % player[playerid].extra_lists_main.size();
+	if(multiplayer.mode() == MultiplayerMode::BATTLE_ROYALE) {
+		message = pduel->new_message(MSG_LPUPDATE);
+		message->write<uint8_t>(playerid);
+		message->write<uint32_t>(player[playerid].lp);
+	}
+}
+bool field::tag_swap_to(uint8_t playerid, uint8_t duelist) {
+	if(playerid > 1)
+		return false;
+	if(player[playerid].current_duelist == duelist)
+		return true;
+	for(uint32_t index = 0; index < player[playerid].extra_duelist_ids.size(); ++index) {
+		if(player[playerid].extra_duelist_ids[index] != duelist)
+			continue;
+		player[playerid].tag_index = index;
+		tag_swap(playerid);
+		return player[playerid].current_duelist == duelist;
+	}
+	return false;
 }
 bool field::relay_check(uint8_t playerid) {
 	if (player[playerid].exchanges >= player[playerid].extra_lists_main.size())

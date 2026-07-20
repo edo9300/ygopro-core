@@ -80,10 +80,15 @@ OCGAPI void OCG_DuelNewCard(OCG_Duel ocg_duel, const OCG_NewCardInfo* info_ptr) 
 		card* pcard = pduel->new_card(info.code);
 		auto& player = game_field.player[info.team];
 		if(duelist > player.extra_lists_main.size()) {
+			const auto previous_size = player.extra_lists_main.size();
 			player.extra_lists_main.resize(duelist);
 			player.extra_lists_extra.resize(duelist);
 			player.extra_lists_hand.resize(duelist);
 			player.extra_extra_p_count.resize(duelist);
+			player.extra_duelist_ids.resize(duelist);
+			player.extra_lps.resize(duelist, player.start_lp);
+			for(auto index = previous_size; index < duelist; ++index)
+				player.extra_duelist_ids[index] = static_cast<uint8_t>(index + 1);
 		}
 		--duelist;
 		pcard->current.location = static_cast<uint8_t>(info.loc);

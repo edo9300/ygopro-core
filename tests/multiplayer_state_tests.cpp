@@ -19,6 +19,15 @@ void test_battle_royale_turn_order_and_skip() {
 	expect(state.next_active_player(2) == 1, "B1 must pass to A2");
 	expect(state.next_active_player(1) == 3, "A2 must pass to B2");
 	expect(state.next_active_player(3) == 0, "B2 must pass to A1");
+	expect(state.current_player() == 0, "Battle Royale must start with A1");
+	expect(state.advance_turn() == 2, "the logical turn must advance from A1 to B1");
+	expect(state.advance_turn() == 1, "the logical turn must advance from B1 to A2");
+	expect(state.field_side_of(0) == 0 && state.field_side_of(1) == 0,
+		"A1 and A2 must use field side 0");
+	expect(state.field_side_of(2) == 1 && state.field_side_of(3) == 1,
+		"B1 and B2 must use field side 1");
+	expect(state.logical_player(1, 0) == 2 && state.logical_player(1, 1) == 3,
+		"Battle Royale side-1 duelist mapping must be stable");
 
 	expect(state.eliminate(2, PlayerEliminationReason::LP), "player 2 should be eliminated");
 	expect(state.active_mask() == 0x0b, "eliminating player 2 must produce active mask 0x0B");
@@ -47,6 +56,10 @@ void test_three_vs_one_team_winner() {
 	expect(state.team_of(0) == 0, "player 0 must be the solo team");
 	expect(state.team_of(1) == 1 && state.team_of(2) == 1 && state.team_of(3) == 1,
 		"players 1, 2 and 3 must share the opposing team");
+	expect(state.field_side_of(0) == 0 && state.field_side_of(1) == 1,
+		"the solo player and opposing team must use different field sides");
+	expect(state.duelist_index_of(3) == 2 && state.logical_player(1, 2) == 3,
+		"3 vs 1 duelist mapping must preserve player 3");
 	expect(state.eliminate(1, PlayerEliminationReason::LP), "first team member elimination must succeed");
 	expect(!state.has_winner(), "one eliminated team member must not end 3 vs 1");
 	expect(state.eliminate(2, PlayerEliminationReason::LP), "second team member elimination must succeed");
@@ -73,6 +86,22 @@ void test_disabled_state_is_inert() {
 	expect(!state.eliminate(0, PlayerEliminationReason::LP),
 		"the disabled state must reject eliminations");
 }
+
+void test_simultaneous_elimination_draw() {
+	MultiplayerState state;
+	state.configure(MultiplayerMode::BATTLE_ROYALE);
+	auto reasons = std::array<PlayerEliminationReason, MultiplayerState::MAX_PLAYERS>{
+		PlayerEliminationReason::LP,
+		PlayerEliminationReason::LP,
+		PlayerEliminationReason::DECK,
+		PlayerEliminationReason::LP
+	};
+	expect(state.eliminate_many(0x0f, reasons) == 0x0f,
+		"a simultaneous elimination must remove every active player");
+	expect(state.is_draw(), "zero active players must be represented as a draw");
+	expect(state.is_finished(), "a draw must finish the multiplayer duel");
+	expect(!state.has_winner(), "a simultaneous draw must not invent a winner");
+}
 }
 
 int main() {
@@ -80,6 +109,7 @@ int main() {
 	test_battle_royale_multi_elimination();
 	test_three_vs_one_team_winner();
 	test_disabled_state_is_inert();
+	test_simultaneous_elimination_draw();
 	std::cout << "All multiplayer state tests passed.\n";
 	return 0;
 }

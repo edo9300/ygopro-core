@@ -3331,9 +3331,16 @@ bool field::process(Processors::Turn& arg) {
 		++infos.turn_id;
 		++infos.turn_id_by_player[turn_player];
 		infos.turn_player = turn_player;
+		if(multiplayer.enabled()) {
+			const auto logical_player = multiplayer.current_player();
+			tag_swap_to(turn_player, multiplayer.duelist_index_of(logical_player));
+			auto logical_message = pduel->new_message(MSG_MULTIPLAYER_NEW_TURN);
+			logical_message->write<uint8_t>(logical_player);
+			logical_message->write<uint8_t>(multiplayer.active_mask());
+		}
 		auto message = pduel->new_message(MSG_NEW_TURN);
 		message->write<uint8_t>(turn_player);
-		if(!is_flag(DUEL_RELAY) && infos.turn_id != 1)
+		if(!multiplayer.enabled() && !is_flag(DUEL_RELAY) && infos.turn_id != 1)
 			tag_swap(turn_player);
 		if(is_player_affected_by_effect(infos.turn_player, EFFECT_SKIP_TURN)) {
 			arg.step = 18;
@@ -3617,7 +3624,12 @@ bool field::process(Processors::Turn& arg) {
 		core.quick_f_chain.clear();
 		core.delayed_quick_tmp.clear();
 		arg.step = Processors::restart;
-		arg.turn_player = 1 - arg.turn_player;
+		if(multiplayer.enabled()) {
+			const auto logical_player = multiplayer.advance_turn();
+			arg.turn_player = multiplayer.field_side_of(logical_player);
+		} else {
+			arg.turn_player = 1 - arg.turn_player;
+		}
 		return FALSE;
 	}
 	}
@@ -4666,6 +4678,71 @@ bool field::process(Processors::Adjust& arg) {
 	}
 	case 1: {
 		//win check(deck=0 or lp=0)
+		if(!core.force_turn_end && multiplayer.enabled()) {
+			uint8_t elimination_mask = 0;
+			bool lost_by_lp = false;
+			bool lost_by_deck = false;
+			auto reasons = std::array<PlayerEliminationReason, MultiplayerState::MAX_PLAYERS>{
+				PlayerEliminationReason::LP,
+				PlayerEliminationReason::LP,
+				PlayerEliminationReason::LP,
+				PlayerEliminationReason::LP
+			};
+			for(uint8_t side = 0; side < 2; ++side) {
+				const bool lp_loss = player[side].lp <= 0
+					&& !is_player_affected_by_effect(side, EFFECT_CANNOT_LOSE_LP);
+				const bool deck_loss = core.overdraw[side]
+					&& !is_player_affected_by_effect(side, EFFECT_CANNOT_LOSE_DECK);
+				if(!lp_loss && !deck_loss)
+					continue;
+				const auto reason = lp_loss ? PlayerEliminationReason::LP : PlayerEliminationReason::DECK;
+				lost_by_lp |= lp_loss;
+				lost_by_deck |= deck_loss;
+				if(multiplayer.mode() == MultiplayerMode::THREE_V_ONE) {
+					const uint8_t team_mask = side == 0 ? 0x01 : 0x0e;
+					elimination_mask |= team_mask;
+					for(uint8_t logical_player = 0; logical_player < MultiplayerState::MAX_PLAYERS; ++logical_player) {
+						if(team_mask & (1u << logical_player))
+							reasons[logical_player] = reason;
+					}
+				} else {
+					const auto logical_player = multiplayer.logical_player(side, player[side].current_duelist);
+					if(logical_player < MultiplayerState::MAX_PLAYERS) {
+						elimination_mask |= static_cast<uint8_t>(1u << logical_player);
+						reasons[logical_player] = reason;
+					}
+				}
+			}
+
+			const auto eliminated = eliminate_multiplayer_players(elimination_mask, reasons);
+			core.overdraw[0] = core.overdraw[1] = false;
+			if(multiplayer.is_finished()) {
+				uint8_t winner = PLAYER_NONE;
+				if(multiplayer.has_winner()) {
+					winner = multiplayer.mode() == MultiplayerMode::THREE_V_ONE
+						? multiplayer.winner_team()
+						: multiplayer.field_side_of(multiplayer.winner_player());
+				}
+				auto message = pduel->new_message(MSG_WIN);
+				message->write<uint8_t>(winner);
+				message->write<uint8_t>(lost_by_lp ? 1 : (lost_by_deck ? 2 : 0));
+				core.win_player = 5;
+				core.win_reason = 0;
+			} else {
+				const auto current_player = multiplayer.current_player();
+				if(current_player < MultiplayerState::MAX_PLAYERS
+						&& (eliminated & (1u << current_player)))
+					core.force_turn_end = true;
+			}
+			if(core.win_player != 5) {
+				auto message = pduel->new_message(MSG_WIN);
+				message->write<uint8_t>(core.win_player);
+				message->write<uint8_t>(core.win_reason);
+				core.win_player = 5;
+				core.win_reason = 0;
+			}
+			return FALSE;
+		}
 		if(!core.force_turn_end){
 			uint32_t winp = 5, rea = 1;
 			if (player[0].lp <= 0 && player[1].lp > 0 && !is_player_affected_by_effect(0, EFFECT_CANNOT_LOSE_LP)) {

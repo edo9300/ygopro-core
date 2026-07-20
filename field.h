@@ -89,6 +89,7 @@ struct player_info {
 	uint32_t extra_p_count{ 0 };
 	uint32_t exchanges{ 0 };
 	uint32_t tag_index{ 0 };
+	uint8_t current_duelist{ 0 };
 	bool recharge{ false };
 	card_vector list_mzone;
 	card_vector list_szone;
@@ -101,6 +102,8 @@ struct player_info {
 	std::vector<card_vector> extra_lists_hand;
 	std::vector<card_vector> extra_lists_extra;
 	std::vector<uint32_t> extra_extra_p_count;
+	std::vector<uint8_t> extra_duelist_ids;
+	std::vector<int32_t> extra_lps;
 	player_info(const OCG_Player& team) :
 		lp(team.startingLP), start_lp(team.startingLP),
 		start_count(team.startingDrawCount), draw_count(team.drawCountPerTurn) {
@@ -420,6 +423,8 @@ public:
 	~field() = default;
 	void reload_field_info();
 	bool eliminate_multiplayer_player(uint8_t playerid, PlayerEliminationReason reason);
+	uint8_t eliminate_multiplayer_players(uint8_t player_mask,
+		const std::array<PlayerEliminationReason, MultiplayerState::MAX_PLAYERS>& reasons);
 
 	void add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t sequence, bool pzone = false);
 	void remove_card(card* pcard);
@@ -451,6 +456,7 @@ public:
 	void reverse_deck(uint8_t playerid);
 	int get_player_count(uint8_t playerid);
 	void tag_swap(uint8_t playerid);
+	bool tag_swap_to(uint8_t playerid, uint8_t duelist);
 	bool relay_check(uint8_t playerid);
 	void next_player(uint8_t playerid);
 

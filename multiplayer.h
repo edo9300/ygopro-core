@@ -38,12 +38,21 @@ public:
 	uint8_t active_count() const;
 	bool is_active(uint8_t player) const;
 	uint8_t team_of(uint8_t player) const;
+	uint8_t field_side_of(uint8_t player) const;
+	uint8_t duelist_index_of(uint8_t player) const;
+	uint8_t logical_player(uint8_t field_side, uint8_t duelist_index) const;
+	uint8_t current_player() const;
+	uint8_t advance_turn();
 	uint8_t next_active_player(uint8_t player) const;
 
 	bool eliminate(uint8_t player, PlayerEliminationReason reason);
+	uint8_t eliminate_many(uint8_t player_mask,
+		const std::array<PlayerEliminationReason, MAX_PLAYERS>& player_reasons);
 	PlayerEliminationReason elimination_reason(uint8_t player) const;
 
 	bool has_winner() const;
+	bool is_draw() const;
+	bool is_finished() const;
 	uint8_t winner_player() const;
 	uint8_t winner_team() const;
 
@@ -64,6 +73,7 @@ private:
 	};
 	uint8_t winning_player{ NO_PLAYER };
 	uint8_t winning_team{ NO_TEAM };
+	uint8_t turn_player{ NO_PLAYER };
 };
 
 #endif // MULTIPLAYER_H

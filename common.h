@@ -342,6 +342,7 @@
 #define MSG_CUSTOM_MSG           180
 #define MSG_REMOVE_CARDS         190
 #define MSG_PLAYER_ELIMINATED     191
+#define MSG_MULTIPLAYER_NEW_TURN  192
 
 #define OLD_REPLAY_MODE          231
 
