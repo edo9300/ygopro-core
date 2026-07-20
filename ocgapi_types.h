@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #define OCG_VERSION_MAJOR 11
-#define OCG_VERSION_MINOR 0
+#define OCG_VERSION_MINOR 1
 
 typedef enum OCG_LogTypes {
 	OCG_LOG_TYPE_ERROR,
@@ -37,6 +37,13 @@ typedef enum OCG_MultiplayerEliminationStatus {
 	OCG_MULTIPLAYER_ELIMINATION_CURRENT_PLAYER = 2,
 	OCG_MULTIPLAYER_ELIMINATION_FINISHED = 4
 }OCG_MultiplayerEliminationStatus;
+
+typedef enum OCG_MultiplayerEliminationReason {
+	OCG_MULTIPLAYER_ELIMINATION_REASON_LP = 1,
+	OCG_MULTIPLAYER_ELIMINATION_REASON_DECK = 2,
+	OCG_MULTIPLAYER_ELIMINATION_REASON_SURRENDER = 3,
+	OCG_MULTIPLAYER_ELIMINATION_REASON_EFFECT = 4
+}OCG_MultiplayerEliminationReason;
 
 typedef void* OCG_Duel;
 
