@@ -31,6 +31,13 @@ typedef enum OCG_DuelStatus {
 	OCG_DUEL_STATUS_CONTINUE
 }OCG_DuelStatus;
 
+typedef enum OCG_MultiplayerEliminationStatus {
+	OCG_MULTIPLAYER_ELIMINATION_NONE = 0,
+	OCG_MULTIPLAYER_ELIMINATION_APPLIED = 1,
+	OCG_MULTIPLAYER_ELIMINATION_CURRENT_PLAYER = 2,
+	OCG_MULTIPLAYER_ELIMINATION_FINISHED = 4
+}OCG_MultiplayerEliminationStatus;
+
 typedef void* OCG_Duel;
 
 typedef struct OCG_CardData {

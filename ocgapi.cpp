@@ -130,6 +130,43 @@ OCGAPI void OCG_DuelSetResponse(OCG_Duel ocg_duel, const void* buffer, uint32_t 
 	pduel->set_response(buffer, length);
 }
 
+OCGAPI uint32_t OCG_DuelEliminatePlayer(OCG_Duel ocg_duel, uint8_t player, uint8_t reason) {
+	if(!ocg_duel || player >= MultiplayerState::MAX_PLAYERS
+			|| reason < static_cast<uint8_t>(PlayerEliminationReason::LP)
+			|| reason > static_cast<uint8_t>(PlayerEliminationReason::EFFECT))
+		return OCG_MULTIPLAYER_ELIMINATION_NONE;
+	auto* pduel = static_cast<duel*>(ocg_duel);
+	auto& game_field = *pduel->game_field;
+	if(!game_field.multiplayer.enabled() || !game_field.multiplayer.is_active(player))
+		return OCG_MULTIPLAYER_ELIMINATION_NONE;
+
+	const bool was_current_player = game_field.multiplayer.current_player() == player;
+	if(!game_field.eliminate_multiplayer_player(player, static_cast<PlayerEliminationReason>(reason)))
+		return OCG_MULTIPLAYER_ELIMINATION_NONE;
+
+	uint32_t status = OCG_MULTIPLAYER_ELIMINATION_APPLIED;
+	if(was_current_player)
+		status |= OCG_MULTIPLAYER_ELIMINATION_CURRENT_PLAYER;
+	if(game_field.multiplayer.is_finished()) {
+		status |= OCG_MULTIPLAYER_ELIMINATION_FINISHED;
+		uint8_t winner = PLAYER_NONE;
+		if(game_field.multiplayer.has_winner()) {
+			winner = game_field.multiplayer.mode() == MultiplayerMode::THREE_V_ONE
+				? game_field.multiplayer.winner_team()
+				: game_field.multiplayer.field_side_of(game_field.multiplayer.winner_player());
+		}
+		auto message = pduel->new_message(MSG_WIN);
+		message->write<uint8_t>(winner);
+		message->write<uint8_t>(reason == static_cast<uint8_t>(PlayerEliminationReason::LP) ? 1
+			: (reason == static_cast<uint8_t>(PlayerEliminationReason::DECK) ? 2 : 0));
+		game_field.core.win_player = 5;
+		game_field.core.win_reason = 0;
+	} else if(was_current_player) {
+		game_field.core.force_turn_end = true;
+	}
+	return status;
+}
+
 OCGAPI int OCG_LoadScript(OCG_Duel ocg_duel, const char* buffer, uint32_t length, const char* name) {
 	auto* pduel = static_cast<duel*>(ocg_duel);
 	return pduel->lua->load_script(buffer, length, name);

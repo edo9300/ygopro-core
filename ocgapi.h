@@ -38,6 +38,7 @@ OCGAPI void OCG_StartDuel(OCG_Duel ocg_duel);
 OCGAPI int OCG_DuelProcess(OCG_Duel ocg_duel);
 OCGAPI void* OCG_DuelGetMessage(OCG_Duel ocg_duel, uint32_t* length);
 OCGAPI void OCG_DuelSetResponse(OCG_Duel ocg_duel, const void* buffer, uint32_t length);
+OCGAPI uint32_t OCG_DuelEliminatePlayer(OCG_Duel ocg_duel, uint8_t player, uint8_t reason);
 OCGAPI int OCG_LoadScript(OCG_Duel ocg_duel, const char* buffer, uint32_t length, const char* name);
 
 OCGAPI uint32_t OCG_DuelQueryCount(OCG_Duel ocg_duel, uint8_t team, uint32_t loc);
