@@ -139,6 +139,7 @@ OCGAPI uint32_t OCG_DuelEliminatePlayer(OCG_Duel ocg_duel, uint8_t player, uint8
 	auto& game_field = *pduel->game_field;
 	if(!game_field.multiplayer.enabled() || !game_field.multiplayer.is_active(player))
 		return OCG_MULTIPLAYER_ELIMINATION_NONE;
+	pduel->buff.clear();
 
 	const bool was_current_player = game_field.multiplayer.current_player() == player;
 	if(!game_field.eliminate_multiplayer_player(player, static_cast<PlayerEliminationReason>(reason)))
