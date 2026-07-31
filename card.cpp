@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -3853,6 +3853,8 @@ int32_t card::is_capable_be_effect_target(effect* peffect, uint8_t playerid) {
 	return TRUE;
 }
 int32_t card::is_can_be_fusion_material(card* fcard, uint64_t summon_type, uint8_t playerid) {
+	if(this == fcard)
+		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
 	effect_set eset;
@@ -3886,9 +3888,11 @@ int32_t card::is_can_be_fusion_material(card* fcard, uint64_t summon_type, uint8
 	return TRUE;
 }
 int32_t card::is_can_be_synchro_material(card* scard, uint8_t playerid, card* /*tuner*/) {
+	if(this == scard)
+		return FALSE;
 	if(data.type & (TYPE_XYZ) && !(is_affected_by_effect(EFFECT_RANK_LEVEL) || is_affected_by_effect(EFFECT_RANK_LEVEL_S)))
 		return FALSE;
-	if (data.type & (TYPE_LINK) && !(is_affected_by_effect(EFFECT_SYNCHRO_LEVEL)))
+	if(data.type & (TYPE_LINK) && !(is_affected_by_effect(EFFECT_SYNCHRO_LEVEL)))
 		return FALSE;
 	if(!(get_type(scard, SUMMON_TYPE_SYNCHRO, playerid) & TYPE_MONSTER))
 		return FALSE;
@@ -3912,6 +3916,8 @@ int32_t card::is_can_be_synchro_material(card* scard, uint8_t playerid, card* /*
 	return TRUE;
 }
 int32_t card::is_can_be_ritual_material(card* scard, uint8_t playerid) {
+	if(this == scard)
+		return FALSE;
 	if(!(get_type() & TYPE_MONSTER))
 		return FALSE;
 	effect_set eset;
@@ -3933,6 +3939,8 @@ int32_t card::is_can_be_ritual_material(card* scard, uint8_t playerid) {
 	return TRUE;
 }
 int32_t card::is_can_be_xyz_material(card* scard, uint8_t playerid, uint32_t reason) {
+	if(this == scard)
+		return FALSE;
 	if(data.type & TYPE_TOKEN)
 		return FALSE;
 	if((!(current.location & LOCATION_ONFIELD) || (reason & REASON_MATERIAL)) && is_status(STATUS_FORBIDDEN))
@@ -3959,6 +3967,8 @@ int32_t card::is_can_be_xyz_material(card* scard, uint8_t playerid, uint32_t rea
 	return TRUE;
 }
 int32_t card::is_can_be_link_material(card* scard, uint8_t playerid) {
+	if(this == scard)
+		return FALSE;
 	if(!(get_type(scard, SUMMON_TYPE_LINK, playerid) & TYPE_MONSTER))
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
@@ -3979,6 +3989,8 @@ int32_t card::is_can_be_link_material(card* scard, uint8_t playerid) {
 	return TRUE;
 }
 int32_t card::is_can_be_material(card* scard, uint64_t sumtype, uint8_t playerid) {
+	if(this == scard)
+		return FALSE;
 	if(sumtype & SUMMON_TYPE_FUSION)
 		return is_can_be_fusion_material(scard, sumtype, playerid);
 	if(sumtype & SUMMON_TYPE_SYNCHRO)
