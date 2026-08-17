@@ -6,6 +6,8 @@ env:
   DEPLOY_DIR: ocgcore
   DEPLOY_REPO: ${{ secrets.DEPLOY_REPO }}
   DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+  OBJCOPY_BIN: ./scripts/llvm-objcopy
+  STRIP_BIN: ./scripts/llvm-strip
 jobs:
   Windows-visual-studio:
     strategy:
@@ -29,6 +31,7 @@ jobs:
       VISUAL_STUDIO_ARCH: ${{ matrix.arch }}
       VISUAL_STUDIO_VERSION: vs2022
       PREMAKE_FLAGS: ${{ matrix.premake-flag }}
+      STRIP: 0
     steps:
     - uses: actions/checkout@v1
       with:
@@ -115,8 +118,6 @@ jobs:
       run: ./scripts/build-premake5.sh
     - name: Predeploy
       shell: bash
-      env:
-        STRIP: 1
       run: ./scripts/predeploy.sh
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -164,8 +165,6 @@ jobs:
         sudo chown -R $USER bin
     - name: Predeploy
       shell: bash
-      env:
-        STRIP: 1
       run: ./scripts/predeploy.sh
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -210,6 +209,7 @@ jobs:
       TRAVIS_OS_NAME: linux
       TARGET_OS: windows
       STRIP_BIN: llvm-strip
+      OBJCOPY_BIN: llvm-objcopy
       BUILD_CONFIG: ${{ format('release_{0}', matrix.arch) }}
       AR: ${{ format('{0}-w64-mingw32-ar', matrix.flavour) }}
       CC: ${{ format('{0}-w64-mingw32-cc', matrix.flavour) }}
@@ -229,8 +229,6 @@ jobs:
       run: ./scripts/build-premake5.sh
     - name: Predeploy
       shell: bash
-      env:
-        STRIP: 1
       run: ./scripts/predeploy.sh
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -268,6 +266,8 @@ jobs:
       BUILD_CONFIG: release_win32
       MINGW_LITE_VARIANT: ${{ matrix.mingw_variant }}
       EXTRA_CFLAGS: ${{ matrix.extra_cflags }}
+      STRIP_BIN: strip
+      OBJCOPY_BIN: objcopy
       CC: /usr/local/bin/i686-w64-mingw32-gcc
       CXX: /usr/local/bin/i686-w64-mingw32-g++
       AR: /usr/local/bin/i686-w64-mingw32-gcc-ar
@@ -289,8 +289,6 @@ jobs:
       run: ./scripts/build-premake5.sh
     - name: Predeploy
       shell: bash
-      env:
-        STRIP: 1
       run: ./scripts/predeploy.sh
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
@@ -483,6 +481,7 @@ jobs:
       CXX: /opt/cctools/bin/x86_64-macosx-clang++
       RANLIB: /opt/cctools/bin/x86_64-apple-darwin11-ranlib
       AR: /opt/cctools/bin/arm-apple-darwin11-ar rcu
+      STRIP: 0
     steps:
     - uses: actions/checkout@v1
       with:
@@ -538,6 +537,7 @@ jobs:
       CXX: /opt/cctools/bin/arm64-macosx-clang++
       RANLIB: /opt/cctools/bin/arm-apple-darwin11-ranlib
       AR: /opt/cctools/bin/arm-apple-darwin11-ar rcu
+      STRIP: 0
     steps:
     - uses: actions/checkout@v1
       with:
@@ -586,6 +586,8 @@ jobs:
   Mac-os-universal-cctools:
     runs-on: ubuntu-22.04
     env:
+      TRAVIS_OS_NAME: linux
+      TARGET_OS: macosx
       DEPLOY_BRANCH: travis-core-osx-universal-cctools
     needs: [ Mac-os-cctools, Mac-os-aarch64-cctools ]
     steps:
@@ -605,12 +607,12 @@ jobs:
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: |
-        ./lipo -create -output libocgcore.dylib ./osx-aarch64-cctools/libocgcore.dylib ./osx-cctools/libocgcore.dylib
-    - name: Move merged binary
+        mkdir -p ./bin/$BUILD_CONFIG
+        ./lipo -create -output ./bin/$BUILD_CONFIG/libocgcore.dylib ./osx-aarch64-cctools/libocgcore.dylib ./osx-cctools/libocgcore.dylib
+    - name: Predeploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
-      run: |
-        mkdir -p $DEPLOY_DIR && mv libocgcore.dylib $DEPLOY_DIR
+      run: ./scripts/predeploy.sh
     - name: Deploy
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
