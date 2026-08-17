@@ -2960,7 +2960,7 @@ void card::get_own_effects(effect_set* eset) {
 	});
 	std::sort(eset->begin(), eset->end(), effect_sort_id);
 }
-int32_t card::fusion_check(group* fusion_m, group* cg, uint32_t chkf) {
+int32_t card::fusion_check(group* fusion_m, group* cg, uint64_t chkf) {
 	effect* peffect = nullptr;
 	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	for (; ecit != single_effect.end(); ++ecit) {
@@ -2984,7 +2984,7 @@ int32_t card::fusion_check(group* fusion_m, group* cg, uint32_t chkf) {
 	}
 	return FALSE;
 }
-void card::fusion_filter_valid(group* fusion_m, group* cg, uint32_t chkf, effect_set* eset) {
+void card::fusion_filter_valid(group* fusion_m, group* cg, uint64_t chkf, effect_set* eset) {
 	effect* peffect = nullptr;
 	auto ecit = single_effect.find(EFFECT_FUSION_MATERIAL);
 	for (; ecit != single_effect.end(); ++ecit) {

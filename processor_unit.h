@@ -681,11 +681,11 @@ struct RockPaperScissors : public Process<true> {
 };
 struct SelectFusion : public Process<false> {
 	uint8_t playerid;
-	uint32_t chkf;
+	uint64_t chkf;
 	owned_lua<group> fusion_materials;
 	owned_lua<group> forced_materials;
 	card* pcard;
-	SelectFusion(uint16_t step_, uint8_t playerid_, owned_lua<group> fusion_materials_, uint32_t chkf_,
+	SelectFusion(uint16_t step_, uint8_t playerid_, owned_lua<group> fusion_materials_, uint64_t chkf_,
 						  owned_lua<group> forced_materials_, card* pcard_) :
 		Process(step_), playerid(playerid_), chkf(chkf_), fusion_materials(fusion_materials_),
 		forced_materials(forced_materials_), pcard(pcard_) {}

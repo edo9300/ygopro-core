@@ -1931,7 +1931,7 @@ LUA_FUNCTION(CheckFusionMaterial) {
 		cg = pduel->new_group(_pcard);
 	else
 		cg = lua_get<group*>(L, 3);
-	auto chkf = lua_get<uint32_t, PLAYER_NONE>(L, 4);
+	auto chkf = lua_get<uint64_t, PLAYER_NONE>(L, 4);
 	lua_pushboolean(L, self->fusion_check(pgroup, cg, chkf));
 	return 1;
 }

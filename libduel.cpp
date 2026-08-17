@@ -2734,7 +2734,7 @@ LUA_STATIC_FUNCTION(SelectFusionMaterial) {
 		forced_materials = pduel->new_group(pcard_);
 	else
 		forced_materials = lua_get<group*>(L, 4);
-	auto chkf = lua_get<uint32_t, PLAYER_NONE>(L, 5);
+	auto chkf = lua_get<uint64_t, PLAYER_NONE>(L, 5);
 	pduel->game_field->emplace_process<Processors::SelectFusion>(playerid, pgroup, chkf, forced_materials, pcard);
 	return yieldk({
 		auto pgroup = pduel->new_group(pduel->game_field->core.fusion_materials);
