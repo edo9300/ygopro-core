@@ -2764,7 +2764,8 @@ void card::filter_spsummon_procedure(uint8_t playerid, effect_set* peset, uint32
 			peffect->get_value(this, 0, retval);
 			uint32_t sumtype = retval.size() > 0 ? static_cast<uint32_t>(retval[0]) : 0;
 			uint32_t zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0xff;
-			if(zone != 0xff && pduel->game_field->get_useable_count(this, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone, nullptr) <= 0)
+			bool ignore_zone_check = retval.size() > 2 ? static_cast<bool>(retval[2]) : false;
+			if(zone != 0xff && !ignore_zone_check && pduel->game_field->get_useable_count(this, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone, nullptr) <= 0)
 				continue;
 			if(summon_type != 0 && summon_type != sumtype)
 				continue;
