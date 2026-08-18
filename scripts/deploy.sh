@@ -19,5 +19,5 @@ else
 	rm -r ./.tmp
 fi
 git add -A .
-git commit -qm "Deploy $DEPLOY_REPO to $DEPLOY_REPO:$DEPLOY_BRANCH" -qm "$GITHUB_SHA"
+git commit -qm "$GITHUB_SHA $DEPLOY_BRANCH"
 git push -qf origin $DEPLOY_BRANCH:$DEPLOY_BRANCH
