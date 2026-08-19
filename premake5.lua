@@ -1,3 +1,7 @@
+--old premake5 support
+if not externalincludedirs then
+	externalincludedirs = sysincludedirs
+end
 local ocgcore_config=function()
 	files { "*.h", "*.hpp", "*.cpp", "RNG/*.hpp", "RNG/*.cpp" }
 	warnings "Extra"
@@ -16,7 +20,7 @@ local ocgcore_config=function()
 		buildoptions { "-fno-exceptions" }
 	filter {}
 	links { "lua" }
-	includedirs { "lua/src" }
+	externalincludedirs { "lua/src" }
 end
 
 if not subproject then
@@ -52,6 +56,9 @@ if not subproject then
 	filter { "action:vs*", "platforms:Win32 or x64" }
 		vectorextensions "SSE2"
 		if _OPTIONS["oldwindows"] then
+			if _ACTION >= "vs2019" then
+				externalincludedirs = includedirs
+			end
 			toolset "v141_xp"
 		end
 
