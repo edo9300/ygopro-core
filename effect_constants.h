@@ -448,4 +448,8 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 
 #define DOUBLE_DAMAGE				0x80000000
 #define HALF_DAMAGE					0x80000001
+
+/* Maximum Summon Flags */
+#define FLAG_MAXIMUM_CENTER			170000000
+#define FLAG_MAXIMUM_SIDE			170000001
 #endif /* EFFECT_CONSTANTS_H_ */
