@@ -1,14 +1,26 @@
 project('ocgcore', 'cpp',
 	license : 'AGPL-3.0-or-later',
-	default_options : ['cpp_std=c++17'],
-	version : '9.1'
+	default_options : ['cpp_std=c++17', 'warning_level=3', 'cpp_rtti=false'],
+	version : '11.0'
 )
 
-lua_dep = dependency('lua-5.4')
-
-args = []
+ocg_args = []
 if get_option('default_library') == 'shared'
-	args += ['-DOCGCORE_EXPORT_FUNCTIONS', '-fvisibility=hidden']
+	ocg_args += ['-DOCGCORE_EXPORT_FUNCTIONS']
+	if meson.get_compiler('cpp').get_id() != 'msvc'
+		add_global_arguments('-fvisibility=hidden', language: ['cpp'])
+	endif
+endif
+
+subdir('lua')
+
+linker_args = []
+if meson.get_compiler('cpp').get_id() != 'msvc'
+	linker_args += ['-Wl,--no-undefined']
+endif
+
+if host_machine.system() == 'darwin'
+	ocg_args += ['-D_LIBCPP_NO_EXCEPTIONS']
 endif
 
 ocgcore_src = files([
@@ -16,7 +28,6 @@ ocgcore_src = files([
 	'duel.cpp',
 	'effect.cpp',
 	'field.cpp',
-	'group.cpp',
 	'interpreter.cpp',
 	'libcard.cpp',
 	'libdebug.cpp',
@@ -31,4 +42,4 @@ ocgcore_src = files([
 	'scriptlib.cpp',
 ])
 
-library('ocgcore', ocgcore_src, cpp_args : args, dependencies : lua_dep)
+library('ocgcore', ocgcore_src, cpp_args : ocg_args, link_args : linker_args, dependencies : lua_dep)

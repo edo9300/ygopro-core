@@ -1,0 +1,1 @@
+option('lua_apicheck', type : 'boolean', value : false, description : 'Build lua with apicheck enabled')
