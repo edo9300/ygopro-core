@@ -4,19 +4,15 @@ project('ocgcore', 'cpp',
 	version : '11.0'
 )
 
+subdir('lua')
+
+linker_args = []
 ocg_args = []
 if get_option('default_library') == 'shared'
 	ocg_args += ['-DOCGCORE_EXPORT_FUNCTIONS']
 	if meson.get_compiler('cpp').get_id() != 'msvc'
-		add_global_arguments('-fvisibility=hidden', language: ['cpp'])
+		linker_args += ['-fvisibility=hidden']
 	endif
-endif
-
-subdir('lua')
-
-linker_args = []
-if meson.get_compiler('cpp').get_id() != 'msvc'
-	linker_args += ['-Wl,--no-undefined']
 endif
 
 if host_machine.system() == 'darwin'
@@ -42,4 +38,5 @@ ocgcore_src = files([
 	'scriptlib.cpp',
 ])
 
-library('ocgcore', ocgcore_src, cpp_args : ocg_args, link_args : linker_args, dependencies : lua_dep)
+ocgcore_lib = library('ocgcore', ocgcore_src, cpp_args : ocg_args, link_args : linker_args, dependencies : lua_dep)
+ocgcore_dep = declare_dependency(include_directories : include_directories('./'), link_with : ocgcore_lib)
