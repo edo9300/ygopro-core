@@ -472,15 +472,23 @@ jobs:
         username: Github
 
   Mac-os-cctools:
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ["x86_64", "aarch64"]
+        include:
+          - arch: 'aarch64'
+            target_prefix: '-aarch64'
+    runs-on: ubuntu-latest
     env:
-      DEPLOY_BRANCH: travis-core-osx-cctools
+      DEPLOY_BRANCH: ${{ format('travis-core-osx{0}-cctools', matrix.target_prefix) }}
       TRAVIS_OS_NAME: linux
       TARGET_OS: macosx
-      CC: /opt/cctools/bin/x86_64-macosx-clang
-      CXX: /opt/cctools/bin/x86_64-macosx-clang++
-      RANLIB: /opt/cctools/bin/x86_64-apple-darwin11-ranlib
-      AR: /opt/cctools/bin/arm-apple-darwin11-ar rcu
+      ARTIFACT_NAME: ${{ format('osx{0}-cctools', matrix.target_prefix) }}
+      CC: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-clang', matrix.arch) }}
+      CXX: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-clang++-gstdc++', matrix.arch) }}
+      AR: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-ar', matrix.arch) }}
+      RANLIB: ${{ format('/opt/cctools/bin/{0}-apple-darwin21.4-ranlib', matrix.arch) }}
       STRIP: 0
     steps:
     - uses: actions/checkout@v1
@@ -492,9 +500,9 @@ jobs:
     - name: Download cctools
       run: |
         cd /opt
-        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
+        wget https://github.com/edo9300/cctools-build/releases/download/osxcross/cctools.tar.xz
         tar xf cctools.tar.xz
-        cd cctools/bin
+        echo "PATH=/opt/cctools/bin:/opt/cctools/clang/bin:$PATH" >> $GITHUB_ENV
     - name: Install premake
       shell: bash
       run: ./scripts/install-premake5.sh
@@ -511,63 +519,7 @@ jobs:
     - uses: actions/upload-artifact@v6
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       with:
-        name: osx-cctools
-        path: ocgcore/libocgcore.dylib
-    - name: Log Failure
-      uses: sarisia/actions-status-discord@v1
-      if: failure()
-      with:
-        nodetail: true
-        description: |
-            [[${{ github.event.repository.name }}] ${{ github.job }} failed on ${{ github.ref }}](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})
-        title: |
-                
-        color: 0xff0000
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
-        username: Github
-
-  Mac-os-aarch64-cctools:
-    runs-on: ubuntu-22.04
-    env:
-      DEPLOY_BRANCH: travis-core-osx-aarch64-cctools
-      TRAVIS_OS_NAME: linux
-      TARGET_OS: macosx
-      CC: /opt/cctools/bin/arm64-macosx-clang
-      CXX: /opt/cctools/bin/arm64-macosx-clang++
-      RANLIB: /opt/cctools/bin/arm-apple-darwin11-ranlib
-      AR: /opt/cctools/bin/arm-apple-darwin11-ar rcu
-      STRIP: 0
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        ref: ${{ github.head_ref }}
-        repository: ${{github.event.pull_request.head.repo.full_name}}
-        fetch-depth: 1
-        submodules: recursive
-    - name: Download cctools
-      run: |
-        cd /opt
-        wget https://github.com/edo9300/cctools-build/releases/download/preview/cctools.tar.xz
-        tar xf cctools.tar.xz
-        cd cctools/bin
-    - name: Install premake
-      shell: bash
-      run: ./scripts/install-premake5.sh
-    - name: Build
-      shell: bash
-      run: ./scripts/build-premake5.sh
-    - name: Predeploy
-      shell: bash
-      run: ./scripts/predeploy.sh
-    - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      shell: bash
-      run: ./scripts/deploy.sh
-    - uses: actions/upload-artifact@v6
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-      with:
-        name: osx-aarch64-cctools
+        name: ${{ env.ARTIFACT_NAME }}
         path: ocgcore/libocgcore.dylib
     - name: Log Failure
       uses: sarisia/actions-status-discord@v1
@@ -584,12 +536,12 @@ jobs:
         username: Github
 
   Mac-os-universal-cctools:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       TRAVIS_OS_NAME: linux
       TARGET_OS: macosx
       DEPLOY_BRANCH: travis-core-osx-universal-cctools
-    needs: [ Mac-os-cctools, Mac-os-aarch64-cctools ]
+    needs: [ Mac-os-cctools ]
     steps:
     - uses: actions/checkout@v1
       if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
