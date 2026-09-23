@@ -68,5 +68,14 @@ enum ActivityType : uint8_t {
 	ACTIVITY_CHAIN = 7,
 };
 
+enum class LOCATION_REASON {
+	NONE			= 0x0,
+	TOFIELD			= 0x1,
+	CONTROL			= 0x2,
+	COUNT			= 0x4,
+	RETURN			= 0x8,
+	RETURN_TOFIELD	= 0x9,
+};
+
 
 #endif /* COMMON_H_ */
