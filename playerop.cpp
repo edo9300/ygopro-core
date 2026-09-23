@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -402,7 +402,7 @@ bool field::process(Processors::SelectUnselectCard& arg) {
 			return TRUE;
 		}
 		if ((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
-			if(cancelable)
+			if(finishable)
 				return_cards.canceled = true;
 			else
 				return_cards.list.push_back(core.select_cards.size() ? core.select_cards.front() : core.unselect_cards.front());
