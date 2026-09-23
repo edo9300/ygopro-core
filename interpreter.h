@@ -10,7 +10,7 @@
 // Due to longjmp behaviour, we must build Lua as C++ to avoid UB
 #include <cstdio> //std::snprintf
 #include <list>
-#include <type_traits> //std::is_integral_v
+#include <type_traits> //std::is_integral_v, std::is_enum_v, std::underlying_type_t
 #include <unordered_map>
 #include <utility> //std::forward
 #include <vector>
@@ -74,9 +74,10 @@ public:
 	void add_param(T param, bool front = false) {
 		lua_param p;
 		if constexpr(std::is_integral_v<T>) {
-			static_assert(type == LuaParam::INT || type == LuaParam::FUNCTION || type == LuaParam::BOOLEAN || type == LuaParam::INDEX,
-						  "Passed parameter type doesn't match provided LuaParam");
 			p.integer = param;
+		} else if constexpr(std::is_enum_v<T>) {
+			static_assert(type == LuaParam::INT, "Passed parameter type doesn't match provided LuaParam");
+			p.integer = static_cast<std::underlying_type_t<T>>(param);
 		} else {
 			static_assert(scriptlib::get_lua_param_type<T>() == type);
 			p.ptr = param;
