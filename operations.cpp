@@ -2185,7 +2185,7 @@ bool field::process(Processors::SummonRule& arg) {
 			positions &= eff->get_value();
 		}
 		target->enable_field_effect(false);
-		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone);
+		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone, FALSE, LOCATION_REASON::SUMMON);
 		arg.step = 11;
 		return FALSE;
 	}
@@ -2730,7 +2730,7 @@ bool field::process(Processors::MonsterSet& arg) {
 				targetplayer = 1 - setplayer;
 		}
 		target->enable_field_effect(false);
-		move_to_field(target, setplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone);
+		move_to_field(target, setplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone, FALSE, LOCATION_REASON::SET);
 		return FALSE;
 	}
 	case 10: {
@@ -3114,7 +3114,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 			}
 			positions &= eff->get_value();
 		}
-		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone, TRUE);
+		move_to_field(target, sumplayer, targetplayer, LOCATION_MZONE, positions, FALSE, 0, zone, TRUE, LOCATION_REASON::SPSUMMON);
 		target->current.reason = REASON_SPSUMMON;
 		target->current.reason_effect = proc;
 		target->current.reason_player = sumplayer;
@@ -3351,7 +3351,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 			if(ct1 == 0)
 				zone = flag1;
 		}
-		move_to_field(pcard, sumplayer, sumplayer, LOCATION_MZONE, positions, FALSE, 0, zone, TRUE);
+		move_to_field(pcard, sumplayer, sumplayer, LOCATION_MZONE, positions, FALSE, 0, zone, TRUE, LOCATION_REASON::SPSUMMON);
 		return FALSE;
 	}
 	case 24: {
@@ -3618,7 +3618,7 @@ bool field::process(Processors::SpSummonStep& arg) {
 					zone &= flag1;
 			}
 		}
-		move_to_field(target, target->summon.player, playerid, LOCATION_MZONE, positions, FALSE, 0, zone);
+		move_to_field(target, target->summon.player, playerid, LOCATION_MZONE, positions, FALSE, 0, zone, false, LOCATION_REASON::SPSUMMON);
 		return FALSE;
 	}
 	case 2: {
@@ -4935,12 +4935,13 @@ bool field::process(Processors::MoveToField& arg) {
 			emplace_process<Processors::SelectPlace>(move_player, flag, 1);
 		} else {
 			uint32_t flag;
-			LOCATION_REASON lreason = LOCATION_REASON::TOFIELD;
-			if(reason != LOCATION_REASON::NONE)
-				lreason = reason;
-			else if(target->current.location == LOCATION_MZONE)
-				lreason = LOCATION_REASON::CONTROL;
-			int32_t ct = get_useable_count(target, playerid, location, move_player, lreason, zone, &flag);
+			LOCATION_REASON real_reason = LOCATION_REASON::TOFIELD;
+			if(reason != LOCATION_REASON::NONE) {
+				if(reason != LOCATION_REASON::SUMMON && reason != LOCATION_REASON::SPSUMMON && reason != LOCATION_REASON::SET)
+					real_reason = reason;
+			} else if(target->current.location == LOCATION_MZONE)
+				real_reason = LOCATION_REASON::CONTROL;
+			int32_t ct = get_useable_count(target, playerid, location, move_player, real_reason, zone, &flag);
 			if(location == LOCATION_MZONE && (zone & 0x60) && (zone != 0xff) && !rule) {
 				if((zone & 0x20) && is_location_useable(playerid, location, 5)) {
 					flag = flag & ~(1u << 5);
@@ -4972,6 +4973,26 @@ bool field::process(Processors::MoveToField& arg) {
 				returns.set<int8_t>(2, target->previous.sequence);
 				return FALSE;
 			}
+
+			if(reason == LOCATION_REASON::SUMMON || reason == LOCATION_REASON::SPSUMMON || reason == LOCATION_REASON::SET) {
+				effect_set eset;
+				filter_player_effect(move_player, EFFECT_OPPO_CHOOSES_SPSUMMON_ZONE, &eset);
+				for(const auto& peff : eset) {
+					if(peff->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peff->count_limit == 0)
+						continue;
+					if(peff->operation) {
+						pduel->lua->add_param<LuaParam::EFFECT>(peff, true);
+						pduel->lua->add_param<LuaParam::CARD>(target);
+						pduel->lua->add_param<LuaParam::INT>(move_player);
+						pduel->lua->add_param<LuaParam::INT>(reason);
+						if(!pduel->lua->check_condition(peff->operation, 4))
+							continue;
+					}
+					peff->dec_count();
+					move_player = 1 - move_player;
+				}
+			}
+
 			if(move_player == playerid) {
 				if(location == LOCATION_SZONE)
 					flag = ((flag & 0xff) << 8) | 0xffff00ff;
@@ -5082,11 +5103,12 @@ bool field::process(Processors::MoveToField& arg) {
 			filter_player_effect(0, EFFECT_MUST_USE_MZONE, &eset, false);
 			filter_player_effect(1, EFFECT_MUST_USE_MZONE, &eset, false);
 			target->filter_effect(EFFECT_MUST_USE_MZONE, &eset);
-			LOCATION_REASON lreason = LOCATION_REASON::TOFIELD;
-			if(reason != LOCATION_REASON::NONE)
-				lreason = reason;
-			else if(target->current.location == LOCATION_MZONE)
-				lreason = LOCATION_REASON::CONTROL;
+			LOCATION_REASON real_reason = LOCATION_REASON::TOFIELD;
+			if(reason != LOCATION_REASON::NONE) {
+				if(reason != LOCATION_REASON::SUMMON && reason != LOCATION_REASON::SPSUMMON && reason != LOCATION_REASON::SET)
+					real_reason = reason;
+			} else if(target->current.location == LOCATION_MZONE)
+				real_reason = LOCATION_REASON::CONTROL;
 			for(const auto& peff : eset) {
 				if(peff->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peff->count_limit == 0)
 					continue;
@@ -5094,7 +5116,7 @@ bool field::process(Processors::MoveToField& arg) {
 					pduel->lua->add_param<LuaParam::EFFECT>(peff, true);
 					pduel->lua->add_param<LuaParam::INT>(target->current.controler);
 					pduel->lua->add_param<LuaParam::INT>(move_player);
-					pduel->lua->add_param<LuaParam::INT>(lreason);
+					pduel->lua->add_param<LuaParam::INT>(real_reason);
 					if(!pduel->lua->check_condition(peff->operation, 4))
 						continue;
 				}
@@ -5102,12 +5124,12 @@ bool field::process(Processors::MoveToField& arg) {
 				if(peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 					pduel->lua->add_param<LuaParam::INT>(target->current.controler);
 					pduel->lua->add_param<LuaParam::INT>(move_player);
-					pduel->lua->add_param<LuaParam::INT>(lreason);
+					pduel->lua->add_param<LuaParam::INT>(real_reason);
 					value = peff->get_value(3);
 				} else {
 					pduel->lua->add_param<LuaParam::INT>(target->current.controler);
 					pduel->lua->add_param<LuaParam::INT>(move_player);
-					pduel->lua->add_param<LuaParam::INT>(lreason);
+					pduel->lua->add_param<LuaParam::INT>(real_reason);
 					value = peff->get_value(target, 3);
 				}
 				if(peff->get_handler_player() != target->current.controler)

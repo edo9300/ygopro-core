@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2023-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -304,6 +304,7 @@ inline effect_flag operator|(effect_flag flag1, effect_flag flag2)
 #define EFFECT_MAX_SZONE                    264
 #define EFFECT_MUST_USE_MZONE               265
 #define EFFECT_BECOME_LINKED_ZONE           266
+#define EFFECT_OPPO_CHOOSES_SPSUMMON_ZONE   267
 #define EFFECT_HAND_LIMIT                   270
 #define EFFECT_DRAW_COUNT                   271
 #define EFFECT_SPIRIT_DONOT_RETURN          280
