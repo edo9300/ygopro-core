@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -10,7 +10,7 @@
 // Due to longjmp behaviour, we must build Lua as C++ to avoid UB
 #include <cstdio> //std::snprintf
 #include <list>
-#include <type_traits> //std::is_integral_v
+#include <type_traits> //std::is_integral_v, std::is_enum_v, std::underlying_type_t
 #include <unordered_map>
 #include <utility> //std::forward
 #include <vector>
@@ -77,6 +77,9 @@ public:
 			static_assert(type == LuaParam::INT || type == LuaParam::FUNCTION || type == LuaParam::BOOLEAN || type == LuaParam::INDEX,
 						  "Passed parameter type doesn't match provided LuaParam");
 			p.integer = param;
+		} else if constexpr(std::is_enum_v<T>) {
+			static_assert(type == LuaParam::INT, "Passed parameter type doesn't match provided LuaParam");
+			p.integer = static_cast<std::underlying_type_t<T>>(param);
 		} else {
 			static_assert(scriptlib::get_lua_param_type<T>() == type);
 			p.ptr = param;
