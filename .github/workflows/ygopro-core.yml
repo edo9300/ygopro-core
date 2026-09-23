@@ -536,7 +536,7 @@ jobs:
         username: Github
 
   Mac-os-universal-cctools:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     env:
       TRAVIS_OS_NAME: linux
       TARGET_OS: macosx
