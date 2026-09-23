@@ -75,6 +75,9 @@ enum class LOCATION_REASON {
 	COUNT			= 0x4,
 	RETURN			= 0x8,
 	RETURN_TOFIELD	= 0x9,
+	SUMMON			= 0x10,
+	SPSUMMON		= 0x11,
+	SET				= 0x12,
 };
 
 
