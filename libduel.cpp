@@ -688,7 +688,7 @@ LUA_STATIC_FUNCTION(ReturnToField) {
 	pcard->enable_field_effect(false);
 	pduel->game_field->adjust_instant();
 	pduel->game_field->refresh_location_info_instant();
-	pduel->game_field->move_to_field(pcard, pcard->previous.controler, pcard->previous.controler, pcard->previous.location, pos, TRUE, 1, zone, FALSE, LOCATION_REASON_TOFIELD | LOCATION_REASON_RETURN);
+	pduel->game_field->move_to_field(pcard, pcard->previous.controler, pcard->previous.controler, pcard->previous.location, pos, TRUE, 1, zone, FALSE, LOCATION_REASON::RETURN_TOFIELD);
 	return yieldk({
 		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
@@ -1689,10 +1689,10 @@ LUA_STATIC_FUNCTION(GetLocationCount) {
 	if(playerid != 0 && playerid != 1)
 		return 0;
 	auto uplayer = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	auto reason = lua_get<uint32_t, LOCATION_REASON_TOFIELD>(L, 4);
+	auto reason = lua_get<uint32_t, static_cast<uint32_t>(LOCATION_REASON::TOFIELD)>(L, 4);
 	auto zone = lua_get<uint32_t, 0xff>(L, 5);
 	uint32_t list = 0;
-	lua_pushinteger(L, pduel->game_field->get_useable_count(nullptr, playerid, location, uplayer, reason, zone, &list));
+	lua_pushinteger(L, pduel->game_field->get_useable_count(nullptr, playerid, location, uplayer, static_cast<LOCATION_REASON>(reason), zone, &list));
 	lua_pushinteger(L, list);
 	return 2;
 }
@@ -1723,10 +1723,10 @@ LUA_STATIC_FUNCTION(GetMZoneCount) {
 		swapped = true;
 	}
 	auto uplayer = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	auto reason = lua_get<uint32_t, LOCATION_REASON_TOFIELD>(L, 4);
+	auto reason = lua_get<uint32_t, static_cast<uint32_t>(LOCATION_REASON::TOFIELD)>(L, 4);
 	auto zone = lua_get<uint32_t, 0xff>(L, 5);
 	uint32_t list = 0;
-	lua_pushinteger(L, pduel->game_field->get_useable_count(nullptr, playerid, LOCATION_MZONE, uplayer, reason, zone, &list));
+	lua_pushinteger(L, pduel->game_field->get_useable_count(nullptr, playerid, LOCATION_MZONE, uplayer, static_cast<LOCATION_REASON>(reason), zone, &list));
 	lua_pushinteger(L, list);
 	if(swapped) {
 		pduel->game_field->player[0].used_location = used_location[0];
@@ -1803,11 +1803,11 @@ LUA_STATIC_FUNCTION(GetUsableMZoneCount) {
 	auto uplayer = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
 	uint32_t zone = 0xff;
 	uint32_t flag1, flag2;
-	int32_t ct1 = pduel->game_field->get_tofield_count(nullptr, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
+	int32_t ct1 = pduel->game_field->get_tofield_count(nullptr, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON::TOFIELD, zone, &flag1);
 	int32_t ct2 = pduel->game_field->get_spsummonable_count_fromex(nullptr, playerid, uplayer, zone, &flag2);
 	int32_t ct3 = field::field_used_count[~(flag1 | flag2) & 0x1f];
 	int32_t count = ct1 + ct2 - ct3;
-	int32_t limit = pduel->game_field->get_mzone_limit(playerid, uplayer, LOCATION_REASON_TOFIELD);
+	int32_t limit = pduel->game_field->get_mzone_limit(playerid, uplayer, LOCATION_REASON::TOFIELD);
 	if(count > limit)
 		count = limit;
 	lua_pushinteger(L, count);
@@ -3162,7 +3162,7 @@ LUA_STATIC_FUNCTION(SelectDisableField) {
 	filter |= lua_get<uint32_t>(L, 5, filter);
 	uint32_t ct1 = 0, ct2 = 0, ct3 = 0, ct4 = 0, plist = 0, flag = 0xffffffff;
 	if(location1 & LOCATION_MZONE) {
-		ct1 = pduel->game_field->get_useable_count(nullptr, playerid, LOCATION_MZONE, PLAYER_NONE, 0, 0xff, &plist);
+		ct1 = pduel->game_field->get_useable_count(nullptr, playerid, LOCATION_MZONE, PLAYER_NONE, LOCATION_REASON::NONE, 0xff, &plist);
 		if (all_field) {
 			plist &= ~0x60;
 			if (!pduel->game_field->is_location_useable(playerid, LOCATION_MZONE, 5))
@@ -3177,7 +3177,7 @@ LUA_STATIC_FUNCTION(SelectDisableField) {
 		flag = (flag & 0xffffff00) | plist;
 	}
 	if(location1 & LOCATION_SZONE) {
-		ct2 = pduel->game_field->get_useable_count(nullptr, playerid, LOCATION_SZONE, PLAYER_NONE, 0, 0xff, &plist);
+		ct2 = pduel->game_field->get_useable_count(nullptr, playerid, LOCATION_SZONE, PLAYER_NONE, LOCATION_REASON::NONE, 0xff, &plist);
 		if (all_field) {
 			plist &= ~0xe0;
 			if (!pduel->game_field->is_location_useable(playerid, LOCATION_SZONE, 5))
@@ -3196,7 +3196,7 @@ LUA_STATIC_FUNCTION(SelectDisableField) {
 		flag = (flag & 0xffff00ff) | (plist << 8);
 	}
 	if(location2 & LOCATION_MZONE) {
-		ct3 = pduel->game_field->get_useable_count(nullptr, 1 - playerid, LOCATION_MZONE, PLAYER_NONE, 0, 0xff, &plist);
+		ct3 = pduel->game_field->get_useable_count(nullptr, 1 - playerid, LOCATION_MZONE, PLAYER_NONE, LOCATION_REASON::NONE, 0xff, &plist);
 		if (all_field) {
 			plist &= ~0x60;
 			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_MZONE, 5))
@@ -3211,7 +3211,7 @@ LUA_STATIC_FUNCTION(SelectDisableField) {
 		flag = (flag & 0xff00ffff) | (plist << 16);
 	}
 	if(location2 & LOCATION_SZONE) {
-		ct4 = pduel->game_field->get_useable_count(nullptr, 1 - playerid, LOCATION_SZONE, PLAYER_NONE, 0, 0xff, &plist);
+		ct4 = pduel->game_field->get_useable_count(nullptr, 1 - playerid, LOCATION_SZONE, PLAYER_NONE, LOCATION_REASON::NONE, 0xff, &plist);
 		if (all_field) {
 			plist &= ~0xe0;
 			if (!pduel->game_field->is_location_useable(1 - playerid, LOCATION_SZONE, 5))

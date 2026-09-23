@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2009-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2017-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2017-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -66,6 +66,15 @@ enum ActivityType : uint8_t {
 	ACTIVITY_ATTACK = 5,
 	ACTIVITY_BATTLE_PHASE = 6,
 	ACTIVITY_CHAIN = 7,
+};
+
+enum class LOCATION_REASON {
+	NONE = 0x0,
+	TOFIELD = 0x1,
+	CONTROL = 0x2,
+	COUNT = 0x4,
+	RETURN = 0x8,
+	RETURN_TOFIELD = 0x9,
 };
 
 

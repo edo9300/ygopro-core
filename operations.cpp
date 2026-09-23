@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -337,7 +337,7 @@ void field::send_to(card_set targets, effect* reason_effect, uint32_t reason, ui
 void field::send_to(card* target, effect* reason_effect, uint32_t reason, uint8_t reason_player, uint8_t playerid, uint16_t destination, uint32_t sequence, uint8_t position, bool ignore) {
 	send_to(card_set{ target }, reason_effect, reason, reason_player, playerid, destination, sequence, position, ignore);
 }
-void field::move_to_field(card* target, uint8_t move_player, uint8_t playerid, uint16_t destination, uint8_t positions, bool enable, uint8_t ret, uint8_t zone, bool rule, uint8_t reason, bool confirm) {
+void field::move_to_field(card* target, uint8_t move_player, uint8_t playerid, uint16_t destination, uint8_t positions, bool enable, uint8_t ret, uint8_t zone, bool rule, LOCATION_REASON reason, bool confirm) {
 	if(!(destination & (LOCATION_MZONE | LOCATION_MMZONE | LOCATION_EMZONE | LOCATION_SZONE | LOCATION_STZONE | LOCATION_PZONE | LOCATION_FZONE)) || !positions)
 		return;
 	if(destination & LOCATION_PZONE && target->current.is_location(LOCATION_PZONE) && playerid == target->current.controler)
@@ -1086,12 +1086,12 @@ bool field::process(Processors::GetControl& arg) {
 				change = false;
 			if(reason_effect && !pcard->is_affect_by_effect(reason_effect))
 				change = false;
-			if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && ((pcard->get_type() & TYPE_TRAPMONSTER) && get_useable_count(pcard, playerid, LOCATION_SZONE, playerid, LOCATION_REASON_CONTROL) <= 0))
+			if(!is_flag(DUEL_TRAP_MONSTERS_NOT_USE_ZONE) && ((pcard->get_type() & TYPE_TRAPMONSTER) && get_useable_count(pcard, playerid, LOCATION_SZONE, playerid, LOCATION_REASON::CONTROL) <= 0))
 				change = false;
 			if(!change)
 				targets->container.erase(pcard);
 		}
-		int32_t fcount = get_useable_count(nullptr, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_CONTROL, zone);
+		int32_t fcount = get_useable_count(nullptr, playerid, LOCATION_MZONE, playerid, LOCATION_REASON::CONTROL, zone);
 		if(fcount <= 0) {
 			arg.destroy_set.swap(targets->container);
 			arg.step = 5;
@@ -1228,14 +1228,14 @@ bool field::process(Processors::SwapControl& arg) {
 			if((reason_effect && !pcard->is_affect_by_effect(reason_effect)))
 				return FALSE;
 		}
-		int32_t ct = get_useable_count(nullptr, p1, LOCATION_MZONE, reason_player, LOCATION_REASON_CONTROL);
+		int32_t ct = get_useable_count(nullptr, p1, LOCATION_MZONE, reason_player, LOCATION_REASON::CONTROL);
 		for(auto& pcard : targets1->container) {
 			if(pcard->current.sequence >= 5)
 				--ct;
 		}
 		if(ct < 0)
 			return FALSE;
-		ct = get_useable_count(nullptr, p2, LOCATION_MZONE, reason_player, LOCATION_REASON_CONTROL);
+		ct = get_useable_count(nullptr, p2, LOCATION_MZONE, reason_player, LOCATION_REASON::CONTROL);
 		for(auto& pcard : targets2->container) {
 			if(pcard->current.sequence >= 5)
 				--ct;
@@ -1264,7 +1264,7 @@ bool field::process(Processors::SwapControl& arg) {
 		uint8_t p1 = pcard1->current.controler;
 		uint8_t s1 = pcard1->current.sequence;
 		uint32_t flag;
-		get_useable_count(nullptr, p1, LOCATION_MZONE, reason_player, LOCATION_REASON_CONTROL, 0xff, &flag);
+		get_useable_count(nullptr, p1, LOCATION_MZONE, reason_player, LOCATION_REASON::CONTROL, 0xff, &flag);
 		flag = (flag & ~(1 << s1) & 0xff) | ~0x1f;
 		card* pcard2 = *targets2->it;
 		auto message = pduel->new_message(MSG_HINT);
@@ -1280,7 +1280,7 @@ bool field::process(Processors::SwapControl& arg) {
 		uint8_t p2 = pcard2->current.controler;
 		uint8_t s2 = pcard2->current.sequence;
 		uint32_t flag;
-		get_useable_count(nullptr, p2, LOCATION_MZONE, reason_player, LOCATION_REASON_CONTROL, 0xff, &flag);
+		get_useable_count(nullptr, p2, LOCATION_MZONE, reason_player, LOCATION_REASON::CONTROL, 0xff, &flag);
 		flag = (flag & ~(1 << s2) & 0xff) | ~0x1f;
 		card* pcard1 = *targets1->it;
 		auto message = pduel->new_message(MSG_HINT);
@@ -1341,8 +1341,8 @@ bool field::process(Processors::ControlAdjust& arg) {
 	case 0: {
 		auto& destroy_set = arg.destroy_set;
 		destroy_set.clear();
-		uint32_t b0 = get_useable_count(nullptr, 0, LOCATION_MZONE, 0, LOCATION_REASON_CONTROL);
-		uint32_t b1 = get_useable_count(nullptr, 1, LOCATION_MZONE, 1, LOCATION_REASON_CONTROL);
+		uint32_t b0 = get_useable_count(nullptr, 0, LOCATION_MZONE, 0, LOCATION_REASON::CONTROL);
+		uint32_t b1 = get_useable_count(nullptr, 1, LOCATION_MZONE, 1, LOCATION_REASON::CONTROL);
 		for(auto& pcard : core.control_adjust_set[0])
 			pcard->filter_disable_related_cards();
 		for(auto& pcard : core.control_adjust_set[1])
@@ -1614,7 +1614,7 @@ bool field::process(Processors::TrapMonsterAdjust& arg) {
 		if(oppo_selection)
 			check_player = 1 - infos.turn_player;
 		refresh_location_info_instant();
-		int32_t fcount = get_useable_count(nullptr, check_player, LOCATION_SZONE, check_player, 0);
+		int32_t fcount = get_useable_count(nullptr, check_player, LOCATION_SZONE, check_player, LOCATION_REASON::NONE);
 		if(fcount <= 0) {
 			for(auto& pcard : core.trap_monster_adjust_set[check_player]) {
 				to_grave_set.insert(pcard);
@@ -1691,7 +1691,7 @@ bool field::process(Processors::Equip& arg) {
 		}
 		if(equip_card->current.location != LOCATION_SZONE) {
 			refresh_location_info_instant();
-			if(get_useable_count(equip_card, equip_player, LOCATION_SZONE, equip_player, LOCATION_REASON_TOFIELD) <= 0)
+			if(get_useable_count(equip_card, equip_player, LOCATION_SZONE, equip_player, LOCATION_REASON::TOFIELD) <= 0)
 				to_grave = true;
 		}
 		if(to_grave) {
@@ -1947,8 +1947,8 @@ bool field::process(Processors::SummonRule& arg) {
 				return_cards.clear();
 				arg.step = 4;
 			} else {
-				int32_t ct = get_tofield_count(target, sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
-				int32_t fcount = get_mzone_limit(sumplayer, sumplayer, LOCATION_REASON_TOFIELD);
+				int32_t ct = get_tofield_count(target, sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON::TOFIELD, zone);
+				int32_t fcount = get_mzone_limit(sumplayer, sumplayer, LOCATION_REASON::TOFIELD);
 				if(min == 0 && ct > 0 && fcount > 0) {
 					emplace_process<Processors::SelectYesNo>(sumplayer, 90);
 					arg.max_allowed_tributes = max;
@@ -2576,8 +2576,8 @@ bool field::process(Processors::MonsterSet& arg) {
 				return_cards.clear();
 				arg.step = 3;
 			} else {
-				int32_t ct = get_tofield_count(target, setplayer, LOCATION_MZONE, setplayer, LOCATION_REASON_TOFIELD, zone);
-				int32_t fcount = get_mzone_limit(setplayer, setplayer, LOCATION_REASON_TOFIELD);
+				int32_t ct = get_tofield_count(target, setplayer, LOCATION_MZONE, setplayer, LOCATION_REASON::TOFIELD, zone);
+				int32_t fcount = get_mzone_limit(setplayer, setplayer, LOCATION_REASON::TOFIELD);
 				if(min == 0 && ct > 0 && fcount > 0) {
 					emplace_process<Processors::SelectYesNo>(setplayer, 90);
 					arg.max_allowed_tributes = max;
@@ -2762,7 +2762,7 @@ bool field::process(Processors::SpellSet& arg) {
 	auto reason_effect = arg.reason_effect;
 	switch(arg.step) {
 	case 0: {
-		if(!(target->data.type & TYPE_FIELD) && get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON_TOFIELD) <= 0)
+		if(!(target->data.type & TYPE_FIELD) && get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON::TOFIELD) <= 0)
 			return TRUE;
 		if(target->data.type & TYPE_MONSTER && !target->is_affected_by_effect(EFFECT_MONSTER_SSET))
 			return TRUE;
@@ -2827,7 +2827,7 @@ bool field::process(Processors::SpellSetGroup& arg) {
 	case 0: {
 		core.operated_set.clear();
 		for(auto& target : ptarget->container) {
-			if((!(target->data.type & TYPE_FIELD) && get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON_TOFIELD) <= 0)
+			if((!(target->data.type & TYPE_FIELD) && get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON::TOFIELD) <= 0)
 				|| (target->data.type & TYPE_MONSTER && !target->is_affected_by_effect(EFFECT_MONSTER_SSET))
 				|| (target->current.location == LOCATION_SZONE)
 				|| (!is_player_can_sset(setplayer, target))
@@ -2864,7 +2864,7 @@ bool field::process(Processors::SpellSetGroup& arg) {
 			return FALSE;
 		}
 		uint32_t flag;
-		get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON_TOFIELD, 0xff, &flag);
+		get_useable_count(target, toplayer, LOCATION_SZONE, setplayer, LOCATION_REASON::TOFIELD, 0xff, &flag);
 		flag |= core.set_group_used_zones;
 		if(setplayer == toplayer) {
 			flag = ((flag & 0xff) << 8) | 0xffff00ff;
@@ -2905,7 +2905,7 @@ bool field::process(Processors::SpellSetGroup& arg) {
 				}
 			}
 		}
-		move_to_field(target, setplayer, toplayer, LOCATION_SZONE, POS_FACEDOWN, FALSE, 0, zone, FALSE, 0, FALSE);
+		move_to_field(target, setplayer, toplayer, LOCATION_SZONE, POS_FACEDOWN, false, 0, zone, false, LOCATION_REASON::NONE, false);
 		return FALSE;
 	}
 	case 4: {
@@ -3336,7 +3336,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 		}
 		uint32_t zone = 0xff;
 		uint32_t flag1, flag2;
-		int32_t ct1 = get_tofield_count(pcard, sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone, &flag1);
+		int32_t ct1 = get_tofield_count(pcard, sumplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON::TOFIELD, zone, &flag1);
 		int32_t ct2 = get_spsummonable_count_fromex(pcard, sumplayer, sumplayer, zone, &flag2);
 		for(auto it = pgroup->it; it != pgroup->container.end(); ++it) {
 			if((*it)->current.location != LOCATION_EXTRA)
@@ -3552,7 +3552,7 @@ bool field::process(Processors::SpSummonStep& arg) {
 			arg.step = 4;
 			return FALSE;
 		}
-		if(get_useable_count(target, playerid, LOCATION_MZONE, target->summon.player, LOCATION_REASON_TOFIELD, zone) <= 0) {
+		if(get_useable_count(target, playerid, LOCATION_MZONE, target->summon.player, LOCATION_REASON::TOFIELD, zone) <= 0) {
 			if(target->current.location != LOCATION_GRAVE)
 				core.ss_tograve_set.insert(target);
 			arg.step = 4;
@@ -3597,7 +3597,7 @@ bool field::process(Processors::SpSummonStep& arg) {
 		bool extra = !(zone & 0xff);
 		if(targets && is_flag(DUEL_EMZONE)) {
 			uint32_t flag1, flag2;
-			int32_t ct1 = get_tofield_count(target, playerid, LOCATION_MZONE, target->summon.player, LOCATION_REASON_TOFIELD, zone, &flag1);
+			int32_t ct1 = get_tofield_count(target, playerid, LOCATION_MZONE, target->summon.player, LOCATION_REASON::TOFIELD, zone, &flag1);
 			int32_t ct2 = get_spsummonable_count_fromex(target, playerid, target->summon.player, zone, &flag2);
 			for(auto& pcard : targets->container) {
 				if(pcard->current.location == LOCATION_MZONE)
@@ -4466,7 +4466,7 @@ bool field::process(Processors::SendTo& arg) {
 			pcard->set_status(STATUS_LEAVE_CONFIRMED, FALSE);
 			return FALSE;
 		}
-		if(param->predirect && get_useable_count(pcard, pcard->current.controler, LOCATION_SZONE, pcard->current.controler, LOCATION_REASON_TOFIELD) > 0)
+		if(param->predirect && get_useable_count(pcard, pcard->current.controler, LOCATION_SZONE, pcard->current.controler, LOCATION_REASON::TOFIELD) > 0)
 			emplace_process<Processors::SelectEffectYesNo>(pcard->current.controler, 97, pcard);
 		else
 			returns.set<int32_t>(0, 0);
@@ -4530,7 +4530,7 @@ bool field::process(Processors::SendTo& arg) {
 		auto& param = arg.extra_args;
 		card* pcard = *param->cvit;
 		uint32_t flag;
-		get_useable_count(pcard, pcard->current.controler, LOCATION_SZONE, pcard->current.controler, LOCATION_REASON_TOFIELD, 0xff, &flag);
+		get_useable_count(pcard, pcard->current.controler, LOCATION_SZONE, pcard->current.controler, LOCATION_REASON::TOFIELD, 0xff, &flag);
 		flag = ((flag << 8) & 0xff00) | 0xffffe0ff;
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_SELECTMSG);
@@ -4935,7 +4935,11 @@ bool field::process(Processors::MoveToField& arg) {
 			emplace_process<Processors::SelectPlace>(move_player, flag, 1);
 		} else {
 			uint32_t flag;
-			uint32_t lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
+			LOCATION_REASON lreason = LOCATION_REASON::TOFIELD;
+			if(reason != LOCATION_REASON::NONE)
+				lreason = reason;
+			else if(target->current.location == LOCATION_MZONE)
+				lreason = LOCATION_REASON::CONTROL;
 			int32_t ct = get_useable_count(target, playerid, location, move_player, lreason, zone, &flag);
 			if(location == LOCATION_MZONE && (zone & 0x60) && (zone != 0xff) && !rule) {
 				if((zone & 0x20) && is_location_useable(playerid, location, 5)) {
@@ -5078,7 +5082,11 @@ bool field::process(Processors::MoveToField& arg) {
 			filter_player_effect(0, EFFECT_MUST_USE_MZONE, &eset, false);
 			filter_player_effect(1, EFFECT_MUST_USE_MZONE, &eset, false);
 			target->filter_effect(EFFECT_MUST_USE_MZONE, &eset);
-			uint32_t lreason = reason ? reason : (target->current.location == LOCATION_MZONE) ? LOCATION_REASON_CONTROL : LOCATION_REASON_TOFIELD;
+			LOCATION_REASON lreason = LOCATION_REASON::TOFIELD;
+			if(reason != LOCATION_REASON::NONE)
+				lreason = reason;
+			else if(target->current.location == LOCATION_MZONE)
+				lreason = LOCATION_REASON::CONTROL;
 			for(const auto& peff : eset) {
 				if(peff->is_flag(EFFECT_FLAG_COUNT_LIMIT) && peff->count_limit == 0)
 					continue;
@@ -5220,7 +5228,7 @@ bool field::process(Processors::ChangePos& arg) {
 		if(ssets.size()) {
 			return_cards.clear();
 			refresh_location_info_instant();
-			int32_t fcount = get_useable_count(nullptr, playerid, LOCATION_SZONE, playerid, 0);
+			int32_t fcount = get_useable_count(nullptr, playerid, LOCATION_SZONE, playerid, LOCATION_REASON::NONE);
 			if(fcount <= 0) {
 				for(auto& pcard : ssets) {
 					arg.to_grave_set.insert(pcard);
@@ -5652,8 +5660,8 @@ bool field::process(Processors::SelectRelease& arg) {
 	case 0: {
 		if(check_field) {
 			int32_t ct = 0;
-			zone &= (0x1f & get_forced_zones(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
-			ct = get_useable_count(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
+			zone &= (0x1f & get_forced_zones(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD));
+			ct = get_useable_count(to_check, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD, zone);
 			if(ct < min) {
 				arg.must_choose_one = std::make_unique<card_set>();
 				for(auto& pcard : core.release_cards) {
@@ -5807,8 +5815,8 @@ bool field::process(Processors::SelectTribute& arg) {
 	switch(arg.step) {
 	case 0: {
 		core.operated_set.clear();
-		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
-		int32_t ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
+		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD));
+		int32_t ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD, zone);
 		if(ct > 0) {
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_SELECTMSG);
@@ -5833,8 +5841,8 @@ bool field::process(Processors::SelectTribute& arg) {
 	}
 	case 1: {
 		int32_t rmax = 0;
-		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD));
-		int32_t ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone);
+		zone &= (0x1f & get_forced_zones(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD));
+		int32_t ct = get_tofield_count(target, toplayer, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD, zone);
 		card_set must_choose_one;
 		for(auto& pcard : core.release_cards) {
 			if((pcard->current.location == LOCATION_MZONE && pcard->current.controler == toplayer && ((zone >> pcard->current.sequence) & 1)))

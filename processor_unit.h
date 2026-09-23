@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2023-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -369,11 +369,11 @@ struct MoveToField : public Process<false> {
 	bool pzone;
 	uint8_t zone;
 	bool rule;
-	uint8_t location_reason;
+	LOCATION_REASON location_reason;
 	bool confirm;
 	card* target;
 	MoveToField(uint16_t step_, card* target_, bool enable_, uint8_t ret_, bool pzone_,
-						 uint8_t zone_, bool rule_, uint8_t location_reason_, bool confirm_) :
+						 uint8_t zone_, bool rule_, LOCATION_REASON location_reason_, bool confirm_) :
 		Process(step_), enable(enable_), ret(ret_) , pzone(pzone_) , zone(zone_) , rule(rule_) ,
 		location_reason(location_reason_) , confirm(confirm_), target(target_) {}
 };

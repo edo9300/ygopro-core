@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -657,7 +657,7 @@ int32_t field::is_location_useable(uint32_t playerid, uint32_t location, uint32_
 // uplayer: request player, PLAYER_NONE means ignoring EFFECT_MAX_MZONE, EFFECT_MAX_SZONE
 // list: store local flag in list
 // return: usable count of LOCATION_MZONE or real LOCATION_SZONE of playerid requested by uplayer (may be negative)
-int32_t field::get_useable_count(card* pcard, uint8_t playerid, uint8_t location, uint8_t uplayer, uint32_t reason, uint32_t zone, uint32_t* list) {
+int32_t field::get_useable_count(card* pcard, uint8_t playerid, uint8_t location, uint8_t uplayer, LOCATION_REASON reason, uint32_t zone, uint32_t* list) {
 	if(location == LOCATION_MZONE && pcard && pcard->current.location == LOCATION_EXTRA)
 		return get_useable_count_fromex(pcard, playerid, uplayer, zone, list);
 	else
@@ -674,7 +674,7 @@ int32_t field::get_useable_count_fromex(card* pcard, uint8_t playerid, uint8_t u
 	if(is_flag(DUEL_EMZONE))
 		useable_count = get_useable_count_fromex_rule4(pcard, playerid, uplayer, zone, list);
 	else
-		useable_count = get_useable_count_other(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone, list);
+		useable_count = get_useable_count_other(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON::TOFIELD, zone, list);
 	if(use_temp_card)
 		pcard->current.location = 0;
 	return useable_count;
@@ -683,7 +683,7 @@ int32_t field::get_spsummonable_count(card* pcard, uint8_t playerid, uint32_t zo
 	if(pcard->current.location == LOCATION_EXTRA)
 		return get_spsummonable_count_fromex(pcard, playerid, playerid, zone, list);
 	else
-		return get_tofield_count(pcard, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone, list);
+		return get_tofield_count(pcard, playerid, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD, zone, list);
 }
 int32_t field::get_spsummonable_count_fromex(card* pcard, uint8_t playerid, uint8_t uplayer, uint32_t zone, uint32_t* list) {
 	bool use_temp_card = false;
@@ -696,12 +696,12 @@ int32_t field::get_spsummonable_count_fromex(card* pcard, uint8_t playerid, uint
 	if(is_flag(DUEL_EMZONE))
 		spsummonable_count = get_spsummonable_count_fromex_rule4(pcard, playerid, uplayer, zone, list);
 	else
-		spsummonable_count = get_tofield_count(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD, zone, list);
+		spsummonable_count = get_tofield_count(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON::TOFIELD, zone, list);
 	if(use_temp_card)
 		pcard->current.location = 0;
 	return spsummonable_count;
 }
-int32_t field::get_useable_count_other(card* pcard, uint8_t playerid, uint8_t location, uint8_t uplayer, uint32_t reason, uint32_t zone, uint32_t* list) {
+int32_t field::get_useable_count_other(card* pcard, uint8_t playerid, uint8_t location, uint8_t uplayer, LOCATION_REASON reason, uint32_t zone, uint32_t* list) {
 	int32_t count = get_tofield_count(pcard, playerid, location, uplayer, reason, zone, list);
 	int32_t limit;
 	if(location == LOCATION_MZONE)
@@ -712,7 +712,7 @@ int32_t field::get_useable_count_other(card* pcard, uint8_t playerid, uint8_t lo
 		count = limit;
 	return count;
 }
-int32_t field::get_tofield_count(card* pcard, uint8_t playerid, uint8_t location, uint32_t uplayer, uint32_t reason, uint32_t zone, uint32_t* list) {
+int32_t field::get_tofield_count(card* pcard, uint8_t playerid, uint8_t location, uint32_t uplayer, LOCATION_REASON reason, uint32_t zone, uint32_t* list) {
 	if (location != LOCATION_MZONE && location != LOCATION_SZONE)
 		return 0;
 	uint32_t flag = player[playerid].disabled_location | player[playerid].used_location;
@@ -730,14 +730,14 @@ int32_t field::get_tofield_count(card* pcard, uint8_t playerid, uint8_t location
 }
 int32_t field::get_useable_count_fromex_rule4(card* pcard, uint8_t playerid, uint8_t uplayer, uint32_t zone, uint32_t* list) {
 	int32_t count = get_spsummonable_count_fromex_rule4(pcard, playerid, uplayer, zone, list);
-	int32_t limit = get_mzone_limit(playerid, uplayer, LOCATION_REASON_TOFIELD);
+	int32_t limit = get_mzone_limit(playerid, uplayer, LOCATION_REASON::TOFIELD);
 	if(count > limit)
 		count = limit;
 	return count;
 }
 int32_t field::get_spsummonable_count_fromex_rule4(card* pcard, uint8_t playerid, uint8_t uplayer, uint32_t zone, uint32_t* list) {
 	uint32_t flag = player[playerid].disabled_location | player[playerid].used_location;
-	flag |= ~get_forced_zones(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON_TOFIELD);
+	flag |= ~get_forced_zones(pcard, playerid, LOCATION_MZONE, uplayer, LOCATION_REASON::TOFIELD);
 	if(player[playerid].list_mzone[5] && is_location_useable(playerid, LOCATION_MZONE, 6)
 		&& check_extra_link(playerid, pcard, 6)) {
 		flag |= 1u << 5;
@@ -761,7 +761,7 @@ int32_t field::get_spsummonable_count_fromex_rule4(card* pcard, uint8_t playerid
 		++count;
 	return count;
 }
-int32_t field::get_mzone_limit(uint8_t playerid, uint8_t uplayer, uint32_t reason) {
+int32_t field::get_mzone_limit(uint8_t playerid, uint8_t uplayer, LOCATION_REASON reason) {
 	uint32_t used_flag = player[playerid].used_location;
 	used_flag = used_flag & 0x1f;
 	int32_t max = 5;
@@ -787,7 +787,7 @@ int32_t field::get_mzone_limit(uint8_t playerid, uint8_t uplayer, uint32_t reaso
 	int32_t limit = max - used_count;
 	return limit;
 }
-int32_t field::get_szone_limit(uint8_t playerid, uint8_t uplayer, uint32_t reason) {
+int32_t field::get_szone_limit(uint8_t playerid, uint8_t uplayer, LOCATION_REASON reason) {
 	uint32_t used_flag = player[playerid].used_location;
 	used_flag = (used_flag >> 8) & 0x1f;
 	effect_set eset;
@@ -805,7 +805,7 @@ int32_t field::get_szone_limit(uint8_t playerid, uint8_t uplayer, uint32_t reaso
 	int32_t limit = max - field_used_count[used_flag];
 	return limit;
 }
-int32_t field::get_forced_zones(card* pcard, uint8_t playerid, uint8_t location, uint32_t uplayer, uint32_t reason) {
+int32_t field::get_forced_zones(card* pcard, uint8_t playerid, uint8_t location, uint32_t uplayer, LOCATION_REASON reason) {
 	if(location != LOCATION_MZONE)
 		return 0xff;
 	effect_set eset;
@@ -1856,8 +1856,8 @@ int32_t field::check_release_list(uint8_t playerid, int32_t min, int32_t /*max*/
 	int32_t rcount = get_release_list(playerid, &relcard, &relcard, &relcard_oneof, use_hand, fun, exarg, exc, exg, use_oppo, reason);
 	if(check_field) {
 		int32_t ct = 0;
-		zone &= (0x1f & get_forced_zones(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON_TOFIELD));
-		ct = get_useable_count(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON_TOFIELD, zone);
+		zone &= (0x1f & get_forced_zones(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON::TOFIELD));
+		ct = get_useable_count(to_check, playerid, LOCATION_MZONE, to_player, LOCATION_REASON::TOFIELD, zone);
 		if(ct < min) {
 			has_to_choose_one = true;
 			for(auto& pcard : relcard) {
@@ -2583,9 +2583,9 @@ int32_t field::check_tribute(card* pcard, int32_t min, int32_t max, group* mg, u
 		max = m;
 	if(min > max)
 		return FALSE;
-	zone &= (0x1f & get_forced_zones(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD));
+	zone &= (0x1f & get_forced_zones(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON::TOFIELD));
 	int32_t s = 0;
-	int32_t ct = get_tofield_count(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON_TOFIELD, zone);
+	int32_t ct = get_tofield_count(pcard, toplayer, LOCATION_MZONE, sumplayer, LOCATION_REASON::TOFIELD, zone);
 	if(ct <= 0 && max <= 0)
 		return FALSE;
 	const auto& to_check_release_list = [&] {
@@ -2603,7 +2603,7 @@ int32_t field::check_tribute(card* pcard, int32_t min, int32_t max, group* mg, u
 	if(ct <= 0)
 		return FALSE;
 	max -= (int32_t)ex_list.size();
-	int32_t fcount = get_mzone_limit(toplayer, sumplayer, LOCATION_REASON_TOFIELD);
+	int32_t fcount = get_mzone_limit(toplayer, sumplayer, LOCATION_REASON::TOFIELD);
 	if(s < -fcount + 1)
 		return FALSE;
 	if(max < 0)

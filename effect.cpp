@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2024, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -185,14 +185,14 @@ int32_t effect::is_activateable(uint8_t playerid, const tevent& e, int32_t negle
 			} else {
 				if(!(((handler->data.type & TYPE_FIELD) && (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && value<=0)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_FZONE)) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_HAND)))) {
 					if (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_MZONE)) {
-						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD) <= 0)
+						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_MZONE, playerid, LOCATION_REASON::TOFIELD) <= 0)
 							return FALSE;
 					} else if ((handler->data.type & TYPE_PENDULUM) || (!is_flag(EFFECT_FLAG_LIMIT_ZONE) && (value & LOCATION_PZONE))) {
 						if(!pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 0)
 							&& !pduel->game_field->is_location_useable(playerid, LOCATION_PZONE, 1))
 						return FALSE;
 					} else {
-						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_SZONE, playerid, LOCATION_REASON_TOFIELD, zone) <= 0)
+						if (pduel->game_field->get_useable_count(handler, playerid, LOCATION_SZONE, playerid, LOCATION_REASON::TOFIELD, zone) <= 0)
 							return FALSE;
 					}
 				}
