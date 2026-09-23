@@ -402,7 +402,7 @@ bool field::process(Processors::SelectUnselectCard& arg) {
 			return TRUE;
 		}
 		if ((playerid == 1) && is_flag(DUEL_SIMPLE_AI)) {
-			if(cancelable)
+			if(finishable)
 				return_cards.canceled = true;
 			else
 				return_cards.list.push_back(core.select_cards.size() ? core.select_cards.front() : core.unselect_cards.front());
