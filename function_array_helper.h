@@ -27,15 +27,11 @@
 
 #if !defined(__INTELLISENSE__) || !HAS_COUNTER
 #include <array>
-#include <cmath> //std::round
 #include <lauxlib.h>
-#include <optional>
 #include <string_view>
-#include <type_traits> //std::conditional_t, std::enable_if_t, std::is_same_v
+#include <type_traits> //std::conditional_t
 #include <tuple>
 #include <utility> //std::index_sequence, std::make_index_sequence
-#include <variant>
-#include "common.h"
 #include "scriptlib.h"
 #include "type_traits_utilities.h"
 
@@ -74,31 +70,7 @@
 namespace {
 namespace LUA_NAMESPACE {
 
-struct Function {
-	int value;
-	Function() = default;
-	Function(int v) : value(v) {}
-	operator int() {
-		return value;
-	}
-	operator int() const {
-		return value;
-	}
-};
-
-struct Table {
-	int value;
-	Table() = default;
-	Table(int v) : value(v) {}
-	operator int() {
-		return value;
-	}
-	operator int() const {
-		return value;
-	}
-};
-
-using Nil = struct {}*;
+using scriptlib::Nil;
 
 namespace Detail {
 
@@ -208,282 +180,6 @@ constexpr auto count_trailing_optionals() {
 	}
 }
 
-template<typename RangedInt>
-static inline RangedInt check_ranged_int(lua_State* L, int idx, lua_Integer value) {
-	using base_int_type = typename RangedInt::value_type;
-	static constexpr auto min = RangedInt::min_value;
-	static constexpr auto max = RangedInt::max_value;
-	if constexpr(std::is_unsigned_v<base_int_type>) {
-		auto unsigned_val = static_cast<lua_Unsigned>(value);
-		if(unsigned_val > max || unsigned_val < min) {
-			lua_error(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
-					  static_cast<lua_Unsigned>(min), static_cast<lua_Unsigned>(max), unsigned_val);
-		}
-	} else {
-		if(value > max || value < min) {
-			lua_error(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
-					  static_cast<lua_Integer>(min), static_cast<lua_Integer>(max), value);
-		}
-	}
-	return { static_cast<base_int_type>(value) };
-}
-
-template<typename T, std::enable_if_t<!is_variant_v<T>, int> = 0>
-inline constexpr T get_lua(lua_State* L, int idx) {
-	using namespace scriptlib;
-	// we need to not have type::value_type be evaluated if the type isn't an optional
-	auto _ = [](auto a) {
-		using type = decltype(a);
-		if constexpr(is_optional_v<type>) {
-			return typename type::value_type{};
-		} else {
-			return type{};
-		}
-	};
-	using actual_type = FunctionResult<decltype(_), T>;
-	if constexpr(is_optional_v<T>) {
-		if(lua_isnoneornil(L, idx))
-			return std::nullopt;
-	}
-	auto return_value = [](auto val) {
-		if constexpr(is_optional_v<T>) {
-			return std::make_optional<actual_type>(val);
-		} else {
-			return static_cast<actual_type>(val);
-		}
-	};
-	if constexpr(std::is_same_v<actual_type, lua_obj*>) {
-		auto* ret = lua_get<lua_obj*>(L, idx);
-		if(!ret) {
-			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
-		}
-		return return_value(ret);
-	} else {
-		constexpr auto lua_type = [] {
-			if constexpr(std::is_same_v<Function, actual_type>)
-				return LuaParam::FUNCTION;
-			else if constexpr(std::is_same_v<Table, actual_type>)
-				return LuaParam::TABLE;
-			else if constexpr(is_string_view_v<actual_type>)
-				return LuaParam::STRING;
-			else
-				return get_lua_param_type<actual_type>();
-		}();
-		if constexpr(lua_type == LuaParam::CARD || lua_type == LuaParam::GROUP || lua_type == LuaParam::EFFECT) {
-			lua_obj* ret = nullptr;
-			check_param<lua_type>(L, idx, &ret);
-			return return_value(reinterpret_cast<actual_type>(ret));
-		} else {
-			check_param<lua_type>(L, idx);
-			if constexpr(lua_type == LuaParam::BOOLEAN) {
-				return return_value(static_cast<bool>(lua_toboolean(L, idx)));
-			} else if constexpr(lua_type == LuaParam::INT) {
-				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
-				if constexpr(is_ranged_integer_v<actual_type>) {
-					return return_value(check_ranged_int<actual_type>(L, idx, val));
-				} else {
-					return return_value(static_cast<actual_type>(val));
-				}
-			} else if constexpr(lua_type == LuaParam::FUNCTION) {
-				return return_value(Function{ idx });
-			} else if constexpr(lua_type == LuaParam::TABLE) {
-				return return_value(Table{ idx });
-			} else if constexpr(lua_type == LuaParam::STRING) {
-				size_t len{};
-				const auto* str = lua_tolstring(L, idx, &len);
-				return return_value(std::string_view{ str, len });
-			}
-		}
-	}
-}
-
-template<typename variant_t>
-struct check_variant_types_functor;
-
-template<typename... Args>
-struct check_variant_types_functor<std::variant<Args...>> {
-	constexpr bool operator()(LuaParam lua_type) {
-		using namespace scriptlib;
-		if constexpr((IsCard<Args> || ...) || (IsLuaObj<Args> || ...)) {
-			if(lua_type == LuaParam::CARD)
-				return true;
-		}
-		if constexpr((IsGroup<Args> || ...) || (IsLuaObj<Args> || ...)) {
-			if(lua_type == LuaParam::GROUP)
-				return true;
-		}
-		if constexpr((IsEffect<Args> || ...) || (IsLuaObj<Args> || ...)) {
-			if(lua_type == LuaParam::EFFECT)
-				return true;
-		}
-		if constexpr((std::is_same_v<Function, Args> || ...)) {
-			if(lua_type == LuaParam::FUNCTION)
-				return true;
-		}
-		if constexpr((std::is_same_v<Table, Args> || ...)) {
-			if(lua_type == LuaParam::TABLE)
-				return true;
-		}
-		if constexpr((IsBool<Args> || ...)) {
-			if(lua_type == LuaParam::BOOLEAN)
-				return true;
-		}
-		if constexpr((IsInteger<Args> || ...)) {
-			if(lua_type == LuaParam::INT)
-				return true;
-		}
-		if constexpr((is_string_view_v<Args> || ...)) {
-			if(lua_type == LuaParam::STRING)
-				return true;
-		}
-		if constexpr((std::is_same_v<Nil, Args> || ...)) {
-			if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
-				return true;
-		}
-		return false;		
-	}
-};
-
-template<typename variant_t>
-struct get_variant_type_functor;
-
-template<typename... Args>
-struct get_variant_type_functor<std::variant<Args...>> {
-	using variant_t = std::variant<Args...>;
-	template<typename T>
-	static inline constexpr bool is_handled_variant_type = scriptlib::IsCard<T> || scriptlib::IsGroup<T> ||
-		scriptlib::IsEffect<T> || scriptlib::IsLuaObj<T> || std::is_same_v<Function, T> ||
-		std::is_same_v<Table, T> || scriptlib::IsBool<T> || scriptlib::IsInteger<T> || std::is_same_v<Nil, T>;
-	constexpr variant_t operator()(lua_State* L, int idx, LuaParam lua_type) {
-		static_assert(((is_handled_variant_type<Args> * 1) + ...) == std::variant_size_v<variant_t>, "Unhandled variant type passed");
-		using namespace scriptlib;
-		if constexpr((IsCard<Args> || ...)) {
-			if(lua_type == LuaParam::CARD)
-				return reinterpret_cast<card*>(lua_get<lua_obj*>(L, idx));
-		}
-		if constexpr((IsGroup<Args> || ...)) {
-			if(lua_type == LuaParam::GROUP)
-				return reinterpret_cast<group*>(lua_get<lua_obj*>(L, idx));
-		}
-		if constexpr((IsEffect<Args> || ...)) {
-			if(lua_type == LuaParam::EFFECT)
-				return reinterpret_cast<effect*>(lua_get<lua_obj*>(L, idx));
-		}
-		if constexpr((IsLuaObj<Args> || ...)) {
-			if(lua_type == LuaParam::CARD || lua_type == LuaParam::EFFECT || lua_type == LuaParam::GROUP)
-				return lua_get<lua_obj*>(L, idx);
-		}
-		if constexpr((std::is_same_v<Function, Args> || ...)) {
-			if(lua_type == LuaParam::FUNCTION)
-				return Function{ idx };
-		}
-		if constexpr((std::is_same_v<Table, Args> || ...)) {
-			if(lua_type == LuaParam::TABLE)
-				return Table{ idx };
-		}
-		if constexpr((IsBool<Args> || ...)) {
-			if(lua_type == LuaParam::BOOLEAN)
-				return static_cast<bool>(lua_toboolean(L, idx));
-		}
-		if constexpr((IsInteger<Args> || ...)) {
-			static_assert((IsInteger<Args> + ...) <= 1, "Variant must have at most 1 integer type");
-			if(lua_type == LuaParam::INT) {
-				constexpr auto int_index = [] {
-					int i = 0;
-					int elem = 0;
-					// do this comma operator spam to avoid sequence point warnings
-					((!IsInteger<Args> || (elem = i), ++i), ...);
-					return elem;
-				}();
-				using integer_type = std::tuple_element_t<int_index, std::tuple<Args...>>;
-				auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
-				if constexpr(is_ranged_integer_v<integer_type>) {
-					return check_ranged_int<integer_type>(L, idx, val);
-				} else {
-					return static_cast<integer_type>(val);
-				}
-			}
-		}
-		if constexpr((is_string_view_v<Args> || ...)) {
-			if(lua_type == LuaParam::STRING) {
-				size_t len{};
-				const auto* str = lua_tolstring(L, idx, &len);
-				return std::string_view{ str, len };
-			}
-		}
-		if constexpr((std::is_same_v<Nil, Args> || ...)) {
-			if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
-				return Nil{};
-		}
-		unreachable();
-	}
-};
-
-template<typename variant_t>
-struct get_variant_names_functor;
-
-template<typename... Args>
-struct get_variant_names_functor<std::variant<Args...>> {
-	constexpr std::array<char, 128> operator()() {
-		using namespace scriptlib;
-		std::array<char, 128> ret{};
-		auto it = ret.begin();
-		bool is_first = true;
-		auto copy_string = [&](const char* string) {
-			if(!is_first) {
-				*it++ = ',';
-				*it++ = ' ';
-			}
-			is_first = false;
-			*it++ = '"';
-			while(*string) {
-				*it++ = *string++;
-			}
-			*it++ = '"';
-		};
-		if constexpr((IsCard<Args> || ...) || (IsLuaObj<Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::CARD>());
-		}
-		if constexpr((IsGroup<Args> || ...) || (IsLuaObj<Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::GROUP>());
-		}
-		if constexpr((IsEffect<Args> || ...) || (IsLuaObj<Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::EFFECT>());
-		}
-		if constexpr((std::is_same_v<Function, Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::FUNCTION>());
-		}
-		if constexpr((std::is_same_v<Table, Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::TABLE>());
-		}
-		if constexpr((IsBool<Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::BOOLEAN>());
-		}
-		if constexpr((IsInteger<Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::INT>());
-		}
-		if constexpr((is_string_view_v<Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::STRING>());
-		}
-		if constexpr((std::is_same_v<Nil, Args> || ...)) {
-			copy_string(get_lua_param_name<LuaParam::NIL>());
-		}
-		return ret;
-	}
-};
-
-template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
-inline constexpr T get_lua(lua_State* L, int idx) {
-	using namespace scriptlib;
-	auto type = get_lua_type(L, idx);
-	if(!check_variant_types_functor<T>()(type)) {
-		constexpr auto types_string = get_variant_names_functor<T>()();
-		static_assert(types_string.back() == '\0');
-		lua_error(L, R"(Parameter %d should be one of %s but is "%s".)", idx, types_string.data(), get_lua_type_name(L, idx));
-	}
-	return get_variant_type_functor<T>()(L, idx, type);
-}
-
 template<typename Sig>
 struct get_lua_function_arguments;
 
@@ -496,6 +192,7 @@ using get_lua_function_arguments_t = typename get_lua_function_arguments<Sig>::t
 
 template<typename tuple, size_t... indices>
 static inline decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::index_sequence<indices...>) {
+	using namespace scriptlib;
 	// Visual Studio 2017 crashes when using make_tuple with a RangedInteger as last parameter, work around that
 #ifdef _MSC_VER
 	tuple t;
@@ -630,29 +327,7 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 }
 #else
 #include <string_view>
-struct Function {
-	int value;
-	Function() = default;
-	Function(int v) : value(v) {}
-	operator int() {
-		return value;
-	}
-	operator int() const {
-		return value;
-	}
-};
-struct Table {
-	int value;
-	Table() = default;
-	Table(int v) : value(v) {}
-	operator int() {
-		return value;
-	}
-	operator int() const {
-		return value;
-	}
-};
-using Nil = struct {}*;
+
 #define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, [[maybe_unused]] LUA_CLASS* const self, ##__VA_ARGS__)
 #define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
