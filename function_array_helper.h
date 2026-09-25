@@ -9,6 +9,13 @@
 #define MAKE_LUA_NAME_IMPL(module, name) c_lua_##module##_##name
 #define MAKE_LUA_NAME(module, name) MAKE_LUA_NAME_IMPL(module, name)
 
+#if defined(__cpp_impl_reflection) && __has_include(<meta>)
+#define USE_REFLECTION 1
+#else
+#define USE_REFLECTION 0
+#endif
+
+#if !USE_REFLECTION
 #if defined(__clang__)
 #pragma GCC diagnostic ignored "-Wunused-const-variable"
 #if __clang_major__ >= 22
@@ -24,14 +31,22 @@
 #else
 #define HAS_COUNTER 1
 #endif
+#endif
 
-#if !defined(__INTELLISENSE__) || !HAS_COUNTER
+#if !defined(__INTELLISENSE__) || USE_REFLECTION || !(HAS_COUNTER + 0)
+#if USE_REFLECTION
+#include <algorithm>
+#include <meta>
+#include <ranges>
+#include <vector>
+#else
+#include <type_traits> //std::conditional_t
+#endif
 #include <array>
 #include <lauxlib.h>
 #include <string_view>
-#include <type_traits> //std::conditional_t
 #include <tuple>
-#include <utility> //std::index_sequence, std::make_index_sequence
+#include <utility> //std::index_sequence, std::make_index_sequence, std::tuple_size_v
 #include "scriptlib.h"
 #include "type_traits_utilities.h"
 
@@ -65,7 +80,11 @@
 #define LUA_INLINE ForceInline
 #endif
 
+#if USE_REFLECTION
+#define LUA_NAMESPACE lua_functions
+#else
 #define LUA_NAMESPACE
+#endif
 
 namespace {
 namespace LUA_NAMESPACE {
@@ -73,6 +92,15 @@ namespace LUA_NAMESPACE {
 using scriptlib::Nil;
 
 namespace Detail {
+
+#if USE_REFLECTION
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+#define COUNTER_MACRO 0
+
+#else
 
 template<std::size_t N>
 struct LuaFunction {
@@ -164,7 +192,8 @@ constexpr auto make_lua_functions_array() {
 	return make_lua_functions_array_int(std::make_index_sequence<counter - COUNTER_OFFSET>());
 }
 
-#endif
+#endif // !HAS_COUNTER
+#endif // USE_REFLECTION
 
 template <typename Tuple, size_t idx = std::tuple_size_v<Tuple>>
 constexpr auto count_trailing_optionals() {
@@ -183,8 +212,16 @@ constexpr auto count_trailing_optionals() {
 template<typename Sig>
 struct get_lua_function_arguments;
 
+template<>
+struct get_lua_function_arguments<int(*)(lua_State*)> {
+	using type = std::tuple<>;
+};
 template<typename Ret, typename Arg1, typename Arg2, typename... Args>
 struct get_lua_function_arguments<Ret(*)(Arg1, Arg2, Args...)> {
+	using type = std::tuple<Args...>;
+};
+template<typename Ret, typename Arg1, typename Arg2, typename... Args>
+struct get_lua_function_arguments<Ret(*const)(Arg1, Arg2, Args...)> {
 	using type = std::tuple<Args...>;
 };
 template<typename Sig>
@@ -211,9 +248,6 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 } // namespace Detail
 } // namespace LUA_NAMESPACE
 } // namespace
-
-#define GET_LUA_FUNCTIONS_ARRAY() \
-	LUA_NAMESPACE::Detail::make_lua_functions_array<COUNTER_MACRO>()
 
 #if NEEDS_VARIADIC_OVERLOADING
 
@@ -267,6 +301,182 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 		## __VA_ARGS__)
 #endif
 
+#define LUA_FUNCTION_EXISTING(name,...) LUA_FUNCTION_EXISTING_INT(name, COUNTER_MACRO, __VA_ARGS__)
+
+#define LUA_FUNCTION_ALIAS(name) LUA_FUNCTION_ALIAS_INT(name, COUNTER_MACRO)
+
+#if USE_REFLECTION
+
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+#define MAKE_LUA_MODULE_IMPL(module) c_lua_##module##_
+#define MAKE_LUA_MODULE(module) MAKE_LUA_MODULE_IMPL(module)
+
+#define LUA_PREFIX STR(MAKE_LUA_MODULE(LUA_MODULE))
+
+
+#define LUA_STATIC_FUNCTION_INT(name, COUNTER, ...) \
+[[maybe_unused]] static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
+
+#define LUA_FUNCTION_ALIAS_INT(name, COUNTER) \
+[[maybe_unused]] static lua_alias MAKE_LUA_NAME(LUA_MODULE,name)
+
+#define LUA_FUNCTION_EXISTING_INT(name, COUNTER, ...) \
+[[maybe_unused]] [[=existing_lua_function(__VA_ARGS__)]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+	([[maybe_unused]] lua_State* const L)
+
+struct existing_lua_function { lua_CFunction field; };
+
+struct lua_alias { };
+
+struct LuaBaseFunction {
+	std::meta::info obj;
+	std::meta::info lua_arguments;
+	size_t max_number_of_arguments{ 0 };
+};
+
+struct LuaFunctionSymbol {
+	const char* lua_name = "";
+	LuaBaseFunction f;
+	int total_overloads;
+	bool alias;
+};
+
+
+template<LuaBaseFunction cur_element>
+static int32_t call_lua_function(lua_State* L) {
+	using namespace scriptlib;
+	using namespace LUA_NAMESPACE;
+	using lua_function_arguments = typename[:cur_element.lua_arguments:];
+	if constexpr(cur_element.max_number_of_arguments == 0) {
+		return [:cur_element.obj:](L, lua_get<duel*>(L));
+	} else {
+		static constexpr int required_args = static_cast<int>(cur_element.max_number_of_arguments) - Detail::count_trailing_optionals<lua_function_arguments>();
+		if constexpr(required_args > 0)
+			check_param_count(L, required_args);
+		return std::apply([:cur_element.obj:],
+		  std::tuple_cat(
+			  std::make_tuple(L, lua_get<duel*>(L)),
+			  Detail::parse_arguments_tuple<lua_function_arguments>(L)
+		  )
+		);
+	}
+}
+
+template<std::meta::info Namespace>
+consteval auto get_lua_functions() {
+	static constexpr auto [lua_symbols, real_functions] = [] {
+		constexpr auto lua_symbols_int = [] {
+			std::vector<std::meta::info> res;
+			template for (constexpr auto M : define_static_array(members_of(Namespace, std::meta::access_context::current()))) {
+				if constexpr (has_identifier(M) && identifier_of(M).starts_with(LUA_PREFIX)) {
+					static_assert(is_function(M) || is_variable(M));
+					if constexpr(is_function(M)) {
+						res.emplace_back(M);
+					} else if constexpr(is_variable(M)) {
+						static_assert(type_of(M) == ^^lua_alias);
+						res.emplace_back(M);
+					}
+				}
+			}
+			return define_static_array(res);
+		}();
+		std::vector<LuaFunctionSymbol> internal;
+		// only consider non overloaded functions
+		int real_functions = 0;
+		{
+			template for (constexpr auto pair : std::views::enumerate(lua_symbols_int)) {
+				static constexpr auto [i, M] = pair;
+				constexpr auto lua_name = define_static_string(identifier_of(M).substr(std::string_view{LUA_PREFIX}.size()));
+				if constexpr(is_function(M)) {
+					using lua_args = LUA_NAMESPACE::Detail::get_lua_function_arguments_t<typename[:add_pointer(type_of(M)):]>;
+					constexpr bool is_overload = (i > 0)
+						&& identifier_of(lua_symbols_int[i-1]).substr(std::string_view{LUA_PREFIX}.size()) == lua_name;
+					constexpr LuaBaseFunction func {
+						.obj = M,
+						.lua_arguments = ^^lua_args,
+						.max_number_of_arguments = std::tuple_size_v<lua_args>,
+					};
+					int total_overloads = is_overload;
+					if constexpr(is_overload) {
+						total_overloads += internal.back().total_overloads;
+					}
+					real_functions += !is_overload;
+					internal.emplace_back(lua_name, func, total_overloads, false);
+				} else if constexpr(is_variable(M)) {
+					static_assert(i > 0, "an alias must have a preceding entry");
+					constexpr LuaBaseFunction func {
+						.obj = M,
+					};
+					internal.emplace_back(lua_name, func, 0, true);
+					++real_functions;
+				}
+			}
+		}
+		return std::make_pair(define_static_array(internal), real_functions);
+	}();
+	std::array<luaL_Reg, real_functions + 1> ret_array{};
+    template for (int i = 0; constexpr auto pair : std::views::enumerate(lua_symbols)) {
+		static constexpr auto [idx, obj] = pair;
+		constexpr auto identifier = obj.lua_name;
+		if constexpr(!obj.alias) {
+			constexpr auto annotations = define_static_array(annotations_of_with_type(obj.f.obj, ^^existing_lua_function));
+			static_assert(annotations.size() <= 1);
+			if constexpr(annotations.size() == 1) {
+				constexpr auto annotation = extract<existing_lua_function>(annotations[0]);
+				static_assert(annotation.field != nullptr);
+				ret_array[i] = luaL_Reg{identifier, annotation.field};
+			} else {
+				lua_CFunction func = nullptr;
+				if constexpr(obj.total_overloads) {
+					// if it's an overload, we reuse the same slot
+					--i;
+					static constexpr auto arr = lua_symbols.subspan(idx - obj.total_overloads, obj.total_overloads);
+					static_assert(
+						std::ranges::is_sorted(arr, [](const auto& obj1, const auto& obj2) {
+							return obj1.f.max_number_of_arguments < obj2.f.max_number_of_arguments;
+						})
+						&& obj.f.max_number_of_arguments > arr.back().f.max_number_of_arguments,
+						"Overloaded functions must be declared in order from the one with less arguments to the one with most"
+					);
+					func = [](lua_State* L) -> int32_t {
+						size_t argnum = lua_gettop(L);
+						lua_CFunction func = call_lua_function<obj.f>;
+						template for(constexpr auto elem : std::ranges::views::reverse(arr)) {
+							if (argnum <= elem.f.max_number_of_arguments) {
+								func = call_lua_function<elem.f>;
+							}
+						}
+
+						return func(L);
+					};
+				} else {
+					func = call_lua_function<obj.f>;
+				}
+				ret_array[i] = luaL_Reg{identifier, func};
+			}
+		} else {
+			ret_array[i] = luaL_Reg{identifier, ret_array[i - 1].func};
+		}
+		i++;
+    }
+	return ret_array;
+}
+
+#undef LUA_PREFIX
+#undef STR
+#undef STR_HELPER
+#undef MAKE_LUA_MODULE_IMPL
+#undef MAKE_LUA_MODULE
+
+#define GET_LUA_FUNCTIONS_ARRAY() get_lua_functions<^^LUA_NAMESPACE>()
+
+#else
+
+#define GET_LUA_FUNCTIONS_ARRAY() \
+	LUA_NAMESPACE::Detail::make_lua_functions_array<COUNTER_MACRO>()
+
 template<auto* function_ptr, bool is_overload, typename previous_element, auto* prev_function_ptr>
 static int32_t call_lua_function(lua_State* L) {
 	using namespace scriptlib;
@@ -310,7 +520,6 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 }; \
 static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 
-#define LUA_FUNCTION_EXISTING(name,...) LUA_FUNCTION_EXISTING_INT(name, COUNTER_MACRO, __VA_ARGS__)
 #define LUA_FUNCTION_EXISTING_INT(name, COUNTER, ...) \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
@@ -318,13 +527,14 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	static constexpr luaL_Reg elem{#name,__VA_ARGS__}; \
 }
 
-#define LUA_FUNCTION_ALIAS(name) LUA_FUNCTION_ALIAS_INT(name, COUNTER_MACRO)
 #define LUA_FUNCTION_ALIAS_INT(name, COUNTER) \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT_NO_ARGS(name, COUNTER) \
 	static constexpr luaL_Reg elem{lua_name,prev_element::elem.func}; \
 }
+#endif
+
 #else
 #include <string_view>
 
