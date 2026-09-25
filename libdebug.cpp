@@ -161,28 +161,25 @@ LUA_STATIC_FUNCTION(ReloadFieldEnd) {
 	return 0;
 }
 template<int message_code, size_t max_len>
-int32_t write_string_message(lua_State* L) {
-	check_param_count(L, 1);
-	check_param<LuaParam::STRING>(L, 1);
-	size_t len = 0;
-	const char* pstr = lua_tolstring(L, 1, &len);
-	if(len > max_len)
-		len = max_len;
-	auto message = lua_get<duel*>(L)->new_message(message_code);
+int32_t write_string_message(duel* pduel, std::string_view str) {
+	size_t len = std::min(str.size(), max_len);
+	auto message = pduel->new_message(message_code);
 	message->write<uint16_t>(static_cast<uint16_t>(len));
-	message->write(pstr, len);
+	message->write(str.data(), len);
 	message->write<uint8_t>(0);
 	return 0;
 }
-
-LUA_FUNCTION_EXISTING(SetAIName, write_string_message<MSG_AI_NAME, 100>);
-LUA_FUNCTION_EXISTING(ShowHint, write_string_message<MSG_SHOW_HINT, 1024>);
+LUA_STATIC_FUNCTION(SetAIName, std::string_view name) {
+	return write_string_message<MSG_AI_NAME, 100>(pduel, name);
+}
+LUA_STATIC_FUNCTION(ShowHint, std::string_view name) {
+	return write_string_message<MSG_SHOW_HINT, 1024>(pduel, name);
+}
 
 LUA_STATIC_FUNCTION(PrintStacktrace) {
 	interpreter::print_stacktrace(L);
 	return 0;
 }
-
 LUA_STATIC_FUNCTION(CardToStringWrapper) {
 	const auto pcard = lua_get<card*>(L, 1);
 	if(pcard) {

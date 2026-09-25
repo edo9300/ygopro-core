@@ -2750,28 +2750,22 @@ LUA_STATIC_FUNCTION(SelectFieldZone, playerid_t playerid, uint8_t count, uint16_
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(AnnounceRace) {
+LUA_STATIC_FUNCTION(AnnounceRace, playerid_t playerid, uint8_t count, uint64_t available) {
 	check_action_permission(L);
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto available = lua_get<uint64_t>(L, 3);
 	if(bit::has_invalid_bits(available, RACE_ALL))
 		lua_error(L, "Passed an invalid race.");
-	auto count = std::min(lua_get<uint8_t>(L, 2), bit::popcnt(available));
+	count = std::min(count, bit::popcnt(available));
 	pduel->game_field->emplace_process<Processors::AnnounceRace>(playerid, count, available);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<uint64_t>(0));
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(AnnounceAttribute) {
+LUA_STATIC_FUNCTION(AnnounceAttribute, playerid_t playerid, uint8_t count, uint64_t available) {
 	check_action_permission(L);
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto available = lua_get<uint32_t>(L, 3);
 	if(bit::has_invalid_bits(available, ATTRIBUTE_ALL))
 		lua_error(L, "Passed an invalid attribute.");
-	auto count = std::min(lua_get<uint8_t>(L, 2), bit::popcnt(available));
+	count = std::min(count, bit::popcnt(available));
 	pduel->game_field->emplace_process<Processors::AnnounceAttribute>(playerid, count, available);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
