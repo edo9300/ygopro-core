@@ -30,6 +30,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <type_traits> // std::false_type, std::true_type
 #include "ocgapi_constants.h"
 
 #define TRUE 1
