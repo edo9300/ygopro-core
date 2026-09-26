@@ -219,10 +219,6 @@ constexpr auto count_trailing_optionals() {
 template<typename Sig>
 struct get_lua_function_arguments;
 
-template<>
-struct get_lua_function_arguments<int(*)(lua_State*)> {
-	using type = std::tuple<>;
-};
 template<typename Ret, typename Arg1, typename Arg2, typename... Args>
 struct get_lua_function_arguments<Ret(*)(Arg1, Arg2, Args...)> {
 	using type = std::tuple<Args...>;
