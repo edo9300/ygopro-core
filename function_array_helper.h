@@ -321,10 +321,7 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 [[maybe_unused]] static lua_alias MAKE_LUA_NAME(LUA_MODULE,name)
 
 #define LUA_FUNCTION_EXISTING_INT(name, COUNTER, ...) \
-[[maybe_unused]] [[=existing_lua_function(__VA_ARGS__)]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
-	([[maybe_unused]] lua_State* const L)
-
-struct existing_lua_function { lua_CFunction field; };
+[[maybe_unused]] static constexpr lua_CFunction MAKE_LUA_NAME(LUA_MODULE,name) = __VA_ARGS__;
 
 struct lua_alias { };
 
@@ -339,6 +336,7 @@ struct LuaFunctionSymbol {
 	LuaBaseFunction f;
 	int total_overloads;
 	bool alias;
+	lua_CFunction existing;
 };
 
 
@@ -387,13 +385,15 @@ consteval auto get_lua_functions() {
 								total_overloads += res.back().total_overloads;
 							}
 							real_functions += !is_overload;
-							res.emplace_back(lua_name, func, total_overloads, false);
+							res.emplace_back(lua_name, func, total_overloads, false, nullptr);
 						} else if constexpr(is_variable(symbol)) {
-							static_assert(type_of(symbol) == ^^lua_alias);
-							LuaBaseFunction func {
-								.obj = symbol,
-							};
-							res.emplace_back(lua_name, func, 0, true);
+							constexpr auto type = type_of(symbol);
+							lua_CFunction cfunc = nullptr;
+							static_assert(type == ^^lua_alias || type == add_const(^^lua_CFunction));
+							if constexpr(type == add_const(^^lua_CFunction)) {
+								cfunc = [:symbol:];
+							}
+							res.emplace_back(lua_name, LuaBaseFunction{}, 0, type == ^^lua_alias, cfunc);
 							++real_functions;
 						} else {
 							static_assert(false);
@@ -408,39 +408,33 @@ consteval auto get_lua_functions() {
     template for (constexpr auto pair : std::views::enumerate(lua_symbols)) {
 		constexpr auto obj = std::get<1>(pair);
 		constexpr auto identifier = obj.lua_name;
-		if constexpr(!obj.alias) {
-			constexpr auto annotations = define_static_array(annotations_of_with_type(obj.f.obj, ^^existing_lua_function));
-			static_assert(annotations.size() <= 1);
-			if constexpr(annotations.size() == 1) {
-				constexpr auto annotation = extract<existing_lua_function>(annotations[0]);
-				static_assert(annotation.field != nullptr);
-				ret_array.push_back(luaL_Reg{identifier, annotation.field});
-			} else {
-				if constexpr(obj.total_overloads) {
-					constexpr auto idx = std::get<0>(pair);
-					static constexpr auto arr = lua_symbols.subspan(idx - obj.total_overloads, obj.total_overloads);
-					static_assert(
-						std::ranges::is_sorted(arr, [](const auto& obj1, const auto& obj2) {
-							return obj1.f.max_number_of_arguments < obj2.f.max_number_of_arguments;
-						})
-						&& obj.f.max_number_of_arguments > arr.back().f.max_number_of_arguments,
-						"Overloaded functions must be declared in order from the one with less arguments to the one with most"
-					);
-					auto* func = +[](lua_State* L) -> int32_t {
-						size_t argnum = lua_gettop(L);
-						lua_CFunction func = call_lua_function<obj.f>;
-						template for(constexpr auto elem : std::ranges::views::reverse(arr)) {
-							if (argnum <= elem.f.max_number_of_arguments) {
-								func = call_lua_function<elem.f>;
-							}
+		if constexpr(obj.existing) {
+			ret_array.push_back(luaL_Reg{identifier, obj.existing});
+		} else if constexpr(!obj.alias) {
+			if constexpr(obj.total_overloads) {
+				constexpr auto idx = std::get<0>(pair);
+				static constexpr auto arr = lua_symbols.subspan(idx - obj.total_overloads, obj.total_overloads);
+				static_assert(
+					std::ranges::is_sorted(arr, [](const auto& obj1, const auto& obj2) {
+						return obj1.f.max_number_of_arguments < obj2.f.max_number_of_arguments;
+					})
+					&& obj.f.max_number_of_arguments > arr.back().f.max_number_of_arguments,
+					"Overloaded functions must be declared in order from the one with less arguments to the one with most"
+				);
+				auto* func = +[](lua_State* L) -> int32_t {
+					size_t argnum = lua_gettop(L);
+					lua_CFunction func = call_lua_function<obj.f>;
+					template for(constexpr auto elem : std::ranges::views::reverse(arr)) {
+						if (argnum <= elem.f.max_number_of_arguments) {
+							func = call_lua_function<elem.f>;
 						}
+					}
 
-						return func(L);
-					};
-					ret_array.back() = luaL_Reg{identifier, func};
-				} else {
-					ret_array.push_back(luaL_Reg{identifier, call_lua_function<obj.f>});
-				}
+					return func(L);
+				};
+				ret_array.back() = luaL_Reg{identifier, func};
+			} else {
+				ret_array.push_back(luaL_Reg{identifier, call_lua_function<obj.f>});
 			}
 		} else {
 			ret_array.push_back(luaL_Reg{identifier, ret_array.back().func}); // if this fail, an alias was declared withuout a prior function being declared
