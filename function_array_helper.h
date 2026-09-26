@@ -365,51 +365,44 @@ static int32_t call_lua_function(lua_State* L) {
 template<std::meta::info Namespace>
 consteval auto get_lua_functions() {
 	static constexpr auto [lua_symbols, real_functions] = [] {
-		constexpr auto lua_symbols_int = [] {
-			std::vector<std::meta::info> res;
-			template for (constexpr auto M : define_static_array(members_of(Namespace, std::meta::access_context::current()))) {
-				if constexpr (has_identifier(M) && identifier_of(M).starts_with(LUA_PREFIX)) {
-					static_assert(is_function(M) || is_variable(M));
-					if constexpr(is_function(M)) {
-						res.emplace_back(M);
-					} else if constexpr(is_variable(M)) {
-						static_assert(type_of(M) == ^^lua_alias);
-						res.emplace_back(M);
-					}
-				}
-			}
-			return define_static_array(res);
-		}();
-		std::vector<LuaFunctionSymbol> internal;
+		std::vector<LuaFunctionSymbol> res;
 		// only consider non overloaded functions
 		int real_functions = 0;
 		{
-			template for (constexpr auto symbol : lua_symbols_int.template first<lua_symbols_int.size()>()) {
-				constexpr auto lua_name = define_static_string(identifier_of(symbol).substr(std::string_view{LUA_PREFIX}.size()));
-				if constexpr(is_function(symbol)) {
-					using lua_args = LUA_NAMESPACE::Detail::get_lua_function_arguments_t<typename[:add_pointer(type_of(symbol)):]>;
-					bool is_overload = !internal.empty() && internal.back().lua_name == lua_name;
-					LuaBaseFunction func {
-						.obj = symbol,
-						.lua_arguments = ^^lua_args,
-						.max_number_of_arguments = std::tuple_size_v<lua_args>,
-					};
-					int total_overloads = is_overload;
-					if (is_overload) {
-						total_overloads += internal.back().total_overloads;
+			template for (constexpr auto symbol : define_static_array(members_of(Namespace, std::meta::access_context::current()))) {
+				if constexpr (has_identifier(symbol)) {
+					constexpr auto identifier = identifier_of(symbol);
+					if constexpr(identifier.starts_with(LUA_PREFIX)) {
+						constexpr auto lua_name = define_static_string(identifier.substr(std::string_view{LUA_PREFIX}.size()));
+						if constexpr(is_function(symbol)) {
+							using lua_args = LUA_NAMESPACE::Detail::get_lua_function_arguments_t<typename[:add_pointer(type_of(symbol)):]>;
+							bool is_overload = !res.empty() && res.back().lua_name == lua_name;
+							LuaBaseFunction func {
+								.obj = symbol,
+								.lua_arguments = ^^lua_args,
+								.max_number_of_arguments = std::tuple_size_v<lua_args>,
+							};
+							int total_overloads = is_overload;
+							if (is_overload) {
+								total_overloads += res.back().total_overloads;
+							}
+							real_functions += !is_overload;
+							res.emplace_back(lua_name, func, total_overloads, false);
+						} else if constexpr(is_variable(symbol)) {
+							static_assert(type_of(symbol) == ^^lua_alias);
+							LuaBaseFunction func {
+								.obj = symbol,
+							};
+							res.emplace_back(lua_name, func, 0, true);
+							++real_functions;
+						} else {
+							static_assert(false);
+						}
 					}
-					real_functions += !is_overload;
-					internal.emplace_back(lua_name, func, total_overloads, false);
-				} else if constexpr(is_variable(symbol)) {
-					LuaBaseFunction func {
-						.obj = symbol,
-					};
-					internal.emplace_back(lua_name, func, 0, true);
-					++real_functions;
 				}
 			}
 		}
-		return std::make_pair(define_static_array(internal), real_functions);
+		return std::make_pair(define_static_array(res), real_functions);
 	}();
 	std::inplace_vector<luaL_Reg, real_functions + 1> ret_array{};
     template for (constexpr auto pair : std::views::enumerate(lua_symbols)) {
