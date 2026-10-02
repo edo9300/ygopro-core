@@ -61,6 +61,8 @@ namespace scriptlib {
 
 	using playerid_either_t = RangedInteger<uint8_t, 0, PLAYER_EITHER>;
 
+	using counter_t = RangedInteger<uint16_t, 1, std::numeric_limits<uint16_t>::max()>;
+
 	using function = struct {}*;
 
 	template<typename T, typename type>
