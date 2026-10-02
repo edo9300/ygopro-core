@@ -243,6 +243,10 @@ namespace scriptlib {
 		return (!str || retlen == 0) ? "" : str;
 	}
 
+	inline auto lua_pushbool(lua_State* L, bool value) {
+		return lua_pushboolean(L, value);
+	}
+
 	template<typename T>
 	inline void lua_table_iterate(lua_State* L, int idx, T&& func) {
 		lua_pushnil(L);
