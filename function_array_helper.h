@@ -172,7 +172,7 @@ constexpr auto count_trailing_optionals() {
 		return 0;
 	} else {
 		using Arg = std::tuple_element_t<idx - 1, Tuple>;
-		if constexpr(!(is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>))) {
+		if constexpr(!((is_vector_v<Arg> && !is_nonempty_vector_v<Arg>) || is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>))) {
 			return 0;
 		} else {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
@@ -196,10 +196,10 @@ static inline decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::in
 	// Visual Studio 2017 crashes when using make_tuple with a RangedInteger as last parameter, work around that
 #ifdef _MSC_VER
 	tuple t;
-	((std::get<indices>(t) = get_lua<std::tuple_element_t<indices, tuple>>(L, indices + 1)), ...);
+	((std::get<indices>(t) = get_lua<std::tuple_element_t<indices, tuple>, (indices + 1 == sizeof...(indices))>(L, indices + 1)), ...);
 	return t;
 #else
-	return std::make_tuple(get_lua<std::tuple_element_t<indices, tuple>>(L, indices + 1)...);
+	return std::make_tuple(get_lua<std::tuple_element_t<indices, tuple>, (indices + 1 == sizeof...(indices))>(L, indices + 1)...);
 #endif
 }
 
@@ -328,9 +328,9 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 #else
 #include <string_view>
 
-#define LUA_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+#define LUA_FUNCTION(name, ...) [[maybe_unused]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, [[maybe_unused]] LUA_CLASS* const self, ##__VA_ARGS__)
-#define LUA_STATIC_FUNCTION(name, ...) static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+#define LUA_STATIC_FUNCTION(name, ...) [[maybe_unused]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
