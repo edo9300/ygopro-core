@@ -31,14 +31,14 @@ void assert_readonly_group(lua_State* L, group* pgroup) {
 	lua_error(L, "attempt to modify a read only group");
 }
 
-LUA_STATIC_FUNCTION(CreateGroup) {
+LUA_STATIC_FUNCTION(CreateGroup, std::vector<std::optional<card*>> cards) {
 	auto pgroup = pduel->new_group();
-	lua_iterate_table_or_stack(L, 1, lua_gettop(L), [L, &container = pgroup->container] {
-		if(!lua_isnil(L, -1)) {
-			auto pcard = lua_get<card*, true>(L, -1);
+	auto& container = pgroup->container;
+	for(const auto& card : cards) {
+		if(auto* pcard = card.value_or(nullptr); pcard) {
 			container.insert(pcard);
 		}
-	});
+	}
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }

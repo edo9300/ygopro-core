@@ -90,21 +90,16 @@ LUA_FUNCTION(SetAbsoluteRange, playerid_t playerid, uint16_t self_range, uint16_
 	self->flag[0] |= EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
 }
-LUA_FUNCTION(SetCountLimit, uint8_t count, std::variant<Nil, uint32_t, Table> code_variant, std::optional<uint8_t> flag_opt) {
+LUA_FUNCTION(SetCountLimit, uint8_t count, std::vector<uint32_t> hopt_code, std::optional<uint8_t> flag_opt) {
 	if(count == 0)
 		lua_error(L, "The count must not be 0");
 	uint8_t hopt_index = 0;
 	uint32_t code = 0;
-	if(const auto* table = std::get_if<Table>(&code_variant); table) {
-		auto top = lua_gettop(L);
-		lua_rawgeti(L, *table, 1);
-		code = lua_get<uint32_t>(L, -1);
-		if(code != 0 && lua_rawgeti(L, *table, 2) != LUA_TNIL) {
-			hopt_index = lua_get<uint8_t>(L, -1);
-		}
-		lua_settop(L, top);
-	} else if(const auto* code_ptr = std::get_if<uint32_t>(&code_variant); code_ptr) {
-		code = *code_ptr;
+	if(hopt_code.size() >= 2) {
+		hopt_index = hopt_code[1];
+	}
+	if(hopt_code.size() >= 1) {
+		code = hopt_code[0];
 	}
 	uint8_t flag = flag_opt.value_or(0);
 	if((flag & EFFECT_COUNT_CODE_CHAIN) != 0 && code == 0)
@@ -153,12 +148,8 @@ LUA_FUNCTION(SetProperty, uint32_t prop1, std::optional<uint32_t> prop2) {
 	self->flag[1] = prop2.value_or(0);
 	return 0;
 }
-LUA_FUNCTION(SetLabel) {
-	check_param_count(L, 2);
-	self->label.clear();
-	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [&] {
-		self->label.push_back(lua_get<lua_Integer>(L, -1));
-	});
+LUA_FUNCTION(SetLabel, nonempty_vector<lua_Integer> labels) {
+	self->label = std::move(labels);
 	return 0;
 }
 LUA_FUNCTION(SetLabelObject, [[maybe_unused]] std::variant<Nil, lua_obj*, Table> obj) {

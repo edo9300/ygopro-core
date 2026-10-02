@@ -8,6 +8,7 @@
 #define INTERPRETER_H_
 
 // Due to longjmp behaviour, we must build Lua as C++ to avoid UB
+#include <any>
 #include <cstdio> //std::snprintf
 #include <list>
 #include <type_traits> //std::is_integral_v, std::is_enum_v, std::underlying_type_t
@@ -56,6 +57,7 @@ public:
 	lua_invalid deleted;
 	int weak_lua_references;
 	int loaded_scripts_table;
+	std::any temp_lua_parsing_storage;
 
 	interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~interpreter();
