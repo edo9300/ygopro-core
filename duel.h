@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2015, Argon Sun (Fluorohydride)
- * Copyright (c) 2016-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2016-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -109,6 +109,13 @@ public:
 	inline int read_script(const char* name) {
 		return read_script_callback(read_script_payload, this, name);
 	}
+	inline int filter_allows_declaring_cards(const uint64_t* opcodes, size_t count){
+		return exist_cards_to_declare_callback(exist_cards_to_declare_payload, opcodes, count);
+	}
+	template<typename T>
+	inline int filter_allows_declaring_cards(const T& opcodes){
+		return filter_allows_declaring_cards(opcodes.data(), opcodes.size());
+	}
 private:
 	std::deque<duel_message> messages;
 	RNG::Xoshiro256StarStar random;
@@ -116,10 +123,12 @@ private:
 	OCG_ScriptReader read_script_callback;
 	OCG_LogHandler handle_message_callback;
 	OCG_DataReaderDone read_card_done_callback;
+	OCG_ExistCardsToDeclare exist_cards_to_declare_callback;
 	void* read_card_payload;
 	void* read_script_payload;
 	void* handle_message_payload;
 	void* read_card_done_payload;
+	void* exist_cards_to_declare_payload;
 };
 
 #endif /* DUEL_H_ */
