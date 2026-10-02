@@ -10,6 +10,12 @@
 #include <string_view>
 #include <type_traits> //std::disjunction, std::false_type, std::is_same, std::true_type
 #include <variant>
+#include <vector>
+
+template<typename ...Args>
+struct nonempty_vector : public std::vector<Args...> {
+	using base = std::vector<Args...>;
+};
 
 template<typename T>
 struct is_optional : std::false_type {};
@@ -19,6 +25,27 @@ struct is_optional<std::optional<T>> : std::true_type {};
 
 template<typename T>
 [[maybe_unused]] inline constexpr bool is_optional_v = is_optional<T>::value;
+
+template<typename T>
+struct is_vector : std::false_type {};
+
+template<typename T>
+struct is_vector<std::vector<T>> : std::true_type {};
+
+template<typename T>
+struct is_vector<nonempty_vector<T>> : std::true_type {};
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool is_vector_v = is_vector<T>::value;
+
+template<typename T>
+struct is_nonempty_vector : std::false_type {};
+
+template<typename T>
+struct is_nonempty_vector<nonempty_vector<T>> : std::true_type {};
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool is_nonempty_vector_v = is_nonempty_vector<T>::value;
 
 template<typename T>
 struct is_variant : std::false_type {};

@@ -6,6 +6,7 @@
 #ifndef SCRIPTLIB_H_
 #define SCRIPTLIB_H_
 
+#include <any>
 #include <array>
 #include <cmath> //std::round
 #include <cstdint>
@@ -43,6 +44,7 @@ namespace scriptlib {
 		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 	}
 	int32_t is_deleted_object(lua_State* L);
+	std::any* set_any_temp_storage(lua_State* L, std::any&& storage);
 
 #define lua_error(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
 
@@ -455,7 +457,7 @@ namespace scriptlib {
 		return { static_cast<base_int_type>(value) };
 	}
 
-	template<typename T, std::enable_if_t<!is_variant_v<T>, int> = 0>
+	template<typename T, bool last = false, std::enable_if_t<!is_variant_v<T> && !is_vector_v<T>, int> = 0>
 	inline constexpr T get_lua(lua_State* L, int idx) {
 		using namespace scriptlib;
 		// we need to not have type::value_type be evaluated if the type isn't an optional
@@ -699,7 +701,7 @@ namespace scriptlib {
 		}
 	};
 
-	template<typename T, std::enable_if_t<is_variant_v<T>, int> = 0>
+	template<typename T, bool last = false, std::enable_if_t<is_variant_v<T>, int> = 0>
 	inline constexpr T get_lua(lua_State* L, int idx) {
 		using namespace scriptlib;
 		auto type = get_lua_type(L, idx);
@@ -711,6 +713,24 @@ namespace scriptlib {
 		return get_variant_type_functor<T>()(L, idx, type);
 	}
 
+	template<typename T, bool last, std::enable_if_t<is_vector_v<T>, int> = 0>
+	inline constexpr T get_lua(lua_State* L, int idx) {
+		using namespace scriptlib;
+		T& result = *std::any_cast<T>(set_any_temp_storage(L, T{}));
+		if constexpr(!is_nonempty_vector_v<T> && !last) {
+			// range as middle parameter which can also be nil
+			if(lua_isnoneornil(L, idx))
+				return std::move(result);
+		}
+		lua_iterate_table_or_stack(L, idx, last ? lua_gettop(L) : idx, [&] {
+			result.push_back(get_lua<typename T::value_type>(L, -1));
+		});
+		if constexpr(is_nonempty_vector_v<T>) {
+			if(result.empty())
+				lua_error(L, "Parameter %d: no values were provided.", idx);
+		}
+		return std::move(result);
+	}
 }
 
 #endif /* SCRIPTLIB_H_ */
