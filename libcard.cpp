@@ -1041,17 +1041,13 @@ LUA_FUNCTION(GetActivateEffect) {
 		interpreter::pushobject(L, peffect);
 	return static_cast<int32_t>(eset.size());
 }
-LUA_FUNCTION(CheckActivateEffect) {
-	check_param_count(L, 4);
-	bool neglect_con = lua_get<bool>(L, 2);
-	bool neglect_cost = lua_get<bool>(L, 3);
-	bool copy_info = lua_get<bool>(L, 4);
+LUA_FUNCTION(CheckActivateEffect, bool skip_condition_check, bool skip_cost_check, bool return_even_info) {
 	tevent pe;
 	for(const auto& eit : self->field_effect) {
 		effect* peffect = eit.second;
 		if((peffect->type & EFFECT_TYPE_ACTIVATE)
-		        && pduel->game_field->check_event_c(peffect, pduel->game_field->core.reason_player, neglect_con, neglect_cost, copy_info, &pe)) {
-			if(!copy_info || (peffect->code == EVENT_FREE_CHAIN)) {
+		        && pduel->game_field->check_event_c(peffect, pduel->game_field->core.reason_player, skip_condition_check, skip_cost_check, return_even_info, &pe)) {
+			if(!return_even_info || (peffect->code == EVENT_FREE_CHAIN)) {
 				interpreter::pushobject(L, peffect);
 				return 1;
 			} else {
@@ -1068,13 +1064,10 @@ LUA_FUNCTION(CheckActivateEffect) {
 	}
 	return 0;
 }
-LUA_FUNCTION(RegisterEffect) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 2);
-	bool forced = lua_get<bool, false>(L, 3);
+LUA_FUNCTION(RegisterEffect, effect* peffect, std::optional<bool> forced) {
 	if(peffect->owner == pduel->game_field->temp_card)
 		return 0;
-	if(!forced && pduel->game_field->core.reason_effect && !self->is_affect_by_effect(pduel->game_field->core.reason_effect)) {
+	if(!forced.value_or(false) && pduel->game_field->core.reason_effect && !self->is_affect_by_effect(pduel->game_field->core.reason_effect)) {
 		pduel->game_field->core.reseted_effects.insert(peffect);
 		return 0;
 	}
@@ -1084,20 +1077,18 @@ LUA_FUNCTION(RegisterEffect) {
 	lua_pushinteger(L, id);
 	return 1;
 }
-LUA_FUNCTION(IsHasEffect) {
-	check_param_count(L, 2);
-	auto code = lua_get<uint32_t>(L, 2);
+LUA_FUNCTION(IsHasEffect, uint32_t effect_code, std::optional<playerid_none_t> check_player) {
 	effect_set eset;
-	self->filter_effect(code, &eset);
+	self->filter_effect(effect_code, &eset);
 	auto size = eset.size();
 	if(!size) {
 		lua_pushnil(L);
 		return 1;
 	}
-	auto check_player = lua_get<uint8_t, PLAYER_NONE>(L, 3);
+	auto check_player_count_limit = check_player.value_or(PLAYER_NONE);
 	luaL_checkstack(L, static_cast<int>(eset.size()), nullptr); // we waste a bit of stack space but keeps checking simple
 	for(const auto& peff : eset) {
-		if(check_player == PLAYER_NONE || peff->check_count_limit(check_player))
+		if(check_player_count_limit == PLAYER_NONE || peff->check_count_limit(check_player_count_limit))
 			interpreter::pushobject(L, peff);
 		else
 			--size;
@@ -1108,10 +1099,9 @@ LUA_FUNCTION(IsHasEffect) {
 	}
 	return static_cast<int32_t>(size);
 }
-LUA_FUNCTION(GetCardEffect) {
-	auto code = lua_get<uint32_t, 0>(L, 2);
+LUA_FUNCTION(GetCardEffect, std::optional<uint32_t> effect_code) {
 	effect_set eset;
-	self->get_card_effect(code, &eset);
+	self->get_card_effect(effect_code.value_or(0), &eset);
 	if(eset.empty()) {
 		lua_pushnil(L);
 		return 1;
@@ -1131,75 +1121,59 @@ LUA_FUNCTION(GetOwnEffects) {
 		interpreter::pushobject(L, peff);
 	return static_cast<int32_t>(eset.size());
 }
-LUA_FUNCTION(ResetEffect) {
-	check_param_count(L, 3);
-	auto code = lua_get<uint32_t>(L, 2);
-	auto type = lua_get<uint32_t>(L, 3);
-	self->reset(code, type);
+LUA_FUNCTION(ResetEffect, uint32_t effect_code, uint32_t reset_type) {
+	self->reset(effect_code, reset_type);
 	return 0;
 }
-LUA_FUNCTION(GetEffectCount) {
-	check_param_count(L, 2);
-	auto code = lua_get<uint32_t>(L, 2);
+LUA_FUNCTION(GetEffectCount, uint32_t effect_code) {
 	effect_set eset;
-	self->filter_effect(code, &eset);
+	self->filter_effect(effect_code, &eset);
 	lua_pushinteger(L, eset.size());
 	return 1;
 }
-LUA_FUNCTION(RegisterFlagEffect) {
-	check_param_count(L, 5);
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
-	auto reset = lua_get<uint32_t>(L, 3);
-	auto flag = lua_get<uint32_t>(L, 4);
-	auto count = lua_get<uint16_t>(L, 5);
-	auto lab = lua_get<lua_Integer, 0>(L, 6);
-	auto desc = lua_get<uint64_t, 0>(L, 7);
-	if(count == 0)
-		count = 1;
-	if(reset & (RESET_PHASE) && !(reset & (RESET_SELF_TURN | RESET_OPPO_TURN)))
-		reset |= (RESET_SELF_TURN | RESET_OPPO_TURN);
+LUA_FUNCTION(RegisterFlagEffect, uint32_t code, uint32_t reset_flag, effect_flag flag, uint16_t reset_count, std::optional<lua_Integer> label, std::optional<uint64_t> description) {
+	code = (code & 0xfffffff) | 0x10000000;
+	if(reset_count == 0)
+		reset_count = 1;
+	if(reset_flag & (RESET_PHASE) && !(reset_flag & (RESET_SELF_TURN | RESET_OPPO_TURN)))
+		reset_flag |= (RESET_SELF_TURN | RESET_OPPO_TURN);
 	effect* peffect = pduel->new_effect();
 	peffect->owner = self;
 	peffect->handler = nullptr;
 	peffect->type = EFFECT_TYPE_SINGLE;
 	peffect->code = code;
-	peffect->reset_flag = reset;
+	peffect->reset_flag = reset_flag;
 	peffect->flag[0] = flag | EFFECT_FLAG_CANNOT_DISABLE;
-	peffect->reset_count = count;
-	peffect->label = { lab };
-	peffect->description = desc;
+	peffect->reset_count = reset_count;
+	peffect->label = { label.value_or(0) };
+	peffect->description = description.value_or(0);
 	self->add_effect(peffect);
 	interpreter::pushobject(L, peffect);
 	return 1;
 }
-LUA_FUNCTION(GetFlagEffect) {
-	check_param_count(L, 2);
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
+LUA_FUNCTION(GetFlagEffect, uint32_t code) {
+	code = (code & 0xfffffff) | 0x10000000;
 	lua_pushinteger(L, self->single_effect.count(code));
 	return 1;
 }
-LUA_FUNCTION(ResetFlagEffect) {
-	check_param_count(L, 2);
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
+LUA_FUNCTION(ResetFlagEffect, uint32_t code) {
+	code = (code & 0xfffffff) | 0x10000000;
 	self->reset(code, RESET_CODE);
 	return 0;
 }
-LUA_FUNCTION(SetFlagEffectLabel) {
-	check_param_count(L, 3);
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
-	auto lab = lua_get<uint32_t>(L, 3);
+LUA_FUNCTION(SetFlagEffectLabel, uint32_t code, lua_Integer label) {
+	code = (code & 0xfffffff) | 0x10000000;
 	auto eit = self->single_effect.find(code);
 	if(eit == self->single_effect.end())
 		lua_pushboolean(L, FALSE);
 	else {
-		eit->second->label = { lab };
+		eit->second->label = { label };
 		lua_pushboolean(L, TRUE);
 	}
 	return 1;
 }
-LUA_FUNCTION(GetFlagEffectLabel) {
-	check_param_count(L, 2);
-	auto code = (lua_get<uint32_t>(L, 2) & 0xfffffff) | 0x10000000;
+LUA_FUNCTION(GetFlagEffectLabel, uint32_t code) {
+	code = (code & 0xfffffff) | 0x10000000;
 	auto rg = self->single_effect.equal_range(code);
 	auto count = static_cast<int32_t>(std::distance(rg.first, rg.second));
 	if(!count) {
@@ -1213,28 +1187,19 @@ LUA_FUNCTION(GetFlagEffectLabel) {
 	}
 	return count;
 }
-LUA_FUNCTION(CreateRelation) {
-	check_param_count(L, 3);
-	auto rcard = lua_get<card*, true>(L, 2);
-	auto reset = lua_get<uint32_t>(L, 3);
-	self->create_relation(rcard, reset);
+LUA_FUNCTION(CreateRelation, card* related_card, uint32_t reset_flag) {
+	self->create_relation(related_card, reset_flag);
 	return 0;
 }
-LUA_FUNCTION(ReleaseRelation) {
-	check_param_count(L, 2);
-	auto rcard = lua_get<card*, true>(L, 2);
-	self->release_relation(rcard);
+LUA_FUNCTION(ReleaseRelation, card* related_card) {
+	self->release_relation(related_card);
 	return 0;
 }
-LUA_FUNCTION(CreateEffectRelation) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 2);
+LUA_FUNCTION(CreateEffectRelation, effect* peffect) {
 	self->create_relation(peffect);
 	return 0;
 }
-LUA_FUNCTION(ReleaseEffectRelation) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 2);
+LUA_FUNCTION(ReleaseEffectRelation, effect* peffect) {
 	self->release_relation(peffect);
 	return 0;
 }
@@ -1242,52 +1207,34 @@ LUA_FUNCTION(ClearEffectRelation) {
 	self->clear_relate_effect();
 	return 0;
 }
-LUA_FUNCTION(IsRelateToEffect) {
-	check_param_count(L, 2);
-	auto peffect = lua_get<effect*, true>(L, 2);
+LUA_FUNCTION(IsRelateToEffect, effect* peffect) {
 	lua_pushboolean(L, self->is_has_relation(peffect));
 	return 1;
 }
-LUA_FUNCTION(IsRelateToChain) {
-	check_param_count(L, 2);
-	auto chain_count = lua_get<uint8_t>(L, 2);
-	if(chain_count > pduel->game_field->core.current_chain.size() || chain_count < 1)
-		chain_count = (uint8_t)pduel->game_field->core.current_chain.size();
-	lua_pushboolean(L, self->is_has_relation(pduel->game_field->core.current_chain[chain_count - 1]));
+LUA_FUNCTION(IsRelateToChain, uint32_t chain_index) {
+	if(chain_index > pduel->game_field->core.current_chain.size() || chain_index < 1)
+		chain_index = pduel->game_field->core.current_chain.size();
+	lua_pushboolean(L, self->is_has_relation(pduel->game_field->core.current_chain[chain_index - 1]));
 	return 1;
 }
-LUA_FUNCTION(IsRelateToCard) {
-	check_param_count(L, 2);
-	auto rcard = lua_get<card*, true>(L, 2);
-	lua_pushboolean(L, self->is_has_relation(rcard));
+LUA_FUNCTION(IsRelateToCard, card* maybe_relate_card) {
+	lua_pushboolean(L, self->is_has_relation(maybe_relate_card));
 	return 1;
 }
 LUA_FUNCTION(IsRelateToBattle) {
 	lua_pushboolean(L, self->fieldid_r == pduel->game_field->core.pre_field[0] || self->fieldid_r == pduel->game_field->core.pre_field[1]);
 	return 1;
 }
-LUA_FUNCTION(CopyEffect) {
-	check_param_count(L, 3);
-	auto code = lua_get<uint32_t>(L, 2);
-	auto reset = lua_get<uint32_t>(L, 3);
-	auto count = lua_get<uint8_t, 1>(L, 4);
-	if(count == 0)
-		count = 1;
+LUA_FUNCTION(CopyEffect, uint32_t code, uint32_t reset, std::optional<uint8_t> count) {
 	if(reset & RESET_PHASE && !(reset & (RESET_SELF_TURN | RESET_OPPO_TURN)))
 		reset |= (RESET_SELF_TURN | RESET_OPPO_TURN);
-	lua_pushinteger(L, self->copy_effect(code, reset, count));
+	lua_pushinteger(L, self->copy_effect(code, reset, std::max<uint8_t>(count.value_or(1), 1)));
 	return 1;
 }
-LUA_FUNCTION(ReplaceEffect) {
-	check_param_count(L, 3);
-	auto code = lua_get<uint32_t>(L, 2);
-	auto reset = lua_get<uint32_t>(L, 3);
-	auto count = lua_get<uint8_t, 0>(L, 4);
-	if(count == 0)
-		count = 1;
+LUA_FUNCTION(ReplaceEffect, uint32_t code, uint32_t reset, std::optional<uint8_t> count) {
 	if(reset & RESET_PHASE && !(reset & (RESET_SELF_TURN | RESET_OPPO_TURN)))
 		reset |= (RESET_SELF_TURN | RESET_OPPO_TURN);
-	lua_pushinteger(L, self->replace_effect(code, reset, count));
+	lua_pushinteger(L, self->replace_effect(code, reset, std::max<uint8_t>(count.value_or(1), 1)));
 	return 1;
 }
 LUA_FUNCTION(EnableUnsummonable) {
@@ -1327,27 +1274,23 @@ LUA_FUNCTION(IsDisabled) {
 	return 1;
 }
 LUA_FUNCTION(IsDestructable) {
-	effect* peffect = nullptr;
-	if(lua_gettop(L) > 1)
-		peffect = lua_get<effect*, true>(L, 2);
-	if(peffect)
-		lua_pushboolean(L, self->is_destructable_by_effect(peffect, pduel->game_field->core.reason_player));
-	else
-		lua_pushboolean(L, self->is_destructable());
+	lua_pushboolean(L, self->is_destructable());
+	return 1;
+}
+LUA_FUNCTION(IsDestructable, effect* peffect) {
+	lua_pushboolean(L, self->is_destructable_by_effect(peffect, pduel->game_field->core.reason_player));
 	return 1;
 }
 LUA_FUNCTION(IsSummonableCard) {
 	lua_pushboolean(L, self->is_summonable_card());
 	return 1;
 }
-LUA_FUNCTION(IsSpecialSummonable) {
-	auto sumtype = lua_get<uint32_t, 0>(L, 2);
-	lua_pushboolean(L, self->is_special_summonable(pduel->game_field->core.reason_player, sumtype));
+LUA_FUNCTION(IsSpecialSummonable, std::optional<uint32_t> summon_type) {
+	lua_pushboolean(L, self->is_special_summonable(pduel->game_field->core.reason_player, summon_type.value_or(0)));
 	return 1;
 }
-LUA_FUNCTION(IsFusionSummonableCard) {
-	auto summon_type = lua_get<uint32_t, 0>(L, 2);
-	lua_pushboolean(L, self->is_fusion_summonable_card(summon_type));
+LUA_FUNCTION(IsFusionSummonableCard, std::optional<uint32_t> summon_type) {
+	lua_pushboolean(L, self->is_fusion_summonable_card(summon_type.value_or(0)));
 	return 1;
 }
 inline int32_t spsummonable_rule(lua_State* L, card* self, uint32_t cardtype, uint32_t sumtype,
