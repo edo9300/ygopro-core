@@ -3381,9 +3381,9 @@ void get_opcodes(lua_State* L, std::vector<uint64_t>& opcodes, int arguments_sta
 		opcodes.push_back(OPCODE_ISTYPE);
 	}
 }
-bool check_announceable(const std::vector<uint64_t>& opcodes, bool& has_filter_opcodes){
+bool check_announceable(std::vector<uint64_t>& opcodes){
 	int32_t stack_size = 0;
-	has_filter_opcodes = false;
+	bool has_filter_opcodes = false;
 	for(auto& opcode : opcodes) {
 		if(opcode != OPCODE_ALLOW_ALIASES && opcode != OPCODE_ALLOW_TOKENS)
 			has_filter_opcodes = true;
@@ -3419,18 +3419,19 @@ bool check_announceable(const std::vector<uint64_t>& opcodes, bool& has_filter_o
 		if(stack_size <= 0)
 			break;
 	}
-	return !(stack_size != 1 && has_filter_opcodes);
+	if(stack_size != 1 && has_filter_opcodes)
+		return false;
+	if(!has_filter_opcodes) {
+		opcodes.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
+		opcodes.push_back(OPCODE_ISTYPE);
+	}
+	return true;
 }
 LUA_STATIC_FUNCTION(HasAnnounceableCard) {
 	std::vector<uint64_t> options;
 	get_opcodes(L, options, 1);
-	bool has_filter_opcodes = false;
-	if(!check_announceable(options, has_filter_opcodes))
+	if(!check_announceable(options))
 		lua_error(L, "Parameters are invalid.");
-	if(!has_filter_opcodes) {
-		options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
-		options.push_back(OPCODE_ISTYPE);
-	}
 	lua_pushboolean(L, pduel->filter_allows_declaring_cards(options));
 	return 1;
 }
@@ -3441,13 +3442,8 @@ LUA_STATIC_FUNCTION(AnnounceCard) {
 	auto& options = pduel->game_field->core.select_options;
 	options.clear();
 	get_opcodes(L, options, 2);
-	bool has_filter_opcodes = false;
-	if(!check_announceable(options, has_filter_opcodes))
+	if(!check_announceable(options))
 		lua_error(L, "Parameters are invalid.");
-	if(!has_filter_opcodes) {
-		options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
-		options.push_back(OPCODE_ISTYPE);
-	}
 	pduel->game_field->emplace_process<Processors::AnnounceCard>(playerid);
 	return yieldk({
 		lua_pushinteger(L, pduel->game_field->returns.at<int32_t>(0));
