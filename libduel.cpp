@@ -669,9 +669,9 @@ LUA_STATIC_FUNCTION(ConfirmDecktop, playerid_t playerid, uint32_t count) {
 		message->write<uint32_t>(pcard->current.sequence);
 	}
 	return yieldk({
-		auto playerid = lua_get<uint8_t>(L, 1);
+		auto playerid = get_lua<uint8_t>(L, 1);
 		auto& main = pduel->game_field->player[playerid].list_main;
-		const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), main.size());
+		const auto count = std::min<size_t>(get_lua<uint32_t>(L, 2), main.size());
 		const auto offset = main.size() - count;
 		auto pgroup = pduel->new_group(main.begin() + offset, main.end());
 		interpreter::pushobject(L, pgroup);
@@ -694,10 +694,10 @@ LUA_STATIC_FUNCTION(ConfirmExtratop, playerid_t playerid, uint32_t count) {
 		message->write<uint32_t>(pcard->current.sequence);
 	}
 	return yieldk({
-		auto playerid = lua_get<uint8_t>(L, 1);
+		auto playerid = get_lua<uint8_t>(L, 1);
 		const auto& player = pduel->game_field->player[playerid];
 		auto& extra = player.list_extra;
-		const auto count = std::min<size_t>(lua_get<uint32_t>(L, 2), extra.size() - player.extra_p_count);
+		const auto count = std::min<size_t>(get_lua<uint32_t>(L, 2), extra.size() - player.extra_p_count);
 		auto begin = extra.rbegin() + player.extra_p_count;
 		auto pgroup = pduel->new_group(begin, begin + count);
 		interpreter::pushobject(L, pgroup);
@@ -2891,7 +2891,7 @@ LUA_STATIC_FUNCTION(AnnounceType, playerid_t playerid) {
 	pduel->game_field->core.select_options.push_back(72);
 	pduel->game_field->emplace_process<Processors::SelectOption>(playerid);
 	return yieldk({
-		auto playerid = lua_get<uint8_t>(L, 1);
+		auto playerid = get_lua<uint8_t>(L, 1);
 		auto message = pduel->new_message(MSG_HINT);
 		message->write<uint8_t>(HINT_OPSELECTED);
 		message->write<uint8_t>(playerid);
@@ -2921,8 +2921,8 @@ LUA_STATIC_FUNCTION(AnnounceCoin, playerid_t playerid, std::optional<uint64_t> d
 	pduel->game_field->core.select_options.push_back(61);
 	pduel->game_field->emplace_process<Processors::SelectOption>(playerid);
 	return yieldk({
-		if(/*bool sel_hint = */lua_get<bool, true>(L, 2)) {
-			auto playerid = lua_get<uint8_t>(L, 1);
+		if(get_lua<std::optional<bool>>(L, 2).value_or(true)) {
+			auto playerid = get_lua<uint8_t>(L, 1);
 			auto message = pduel->new_message(MSG_HINT);
 			message->write<uint8_t>(HINT_OPSELECTED);
 			message->write<uint8_t>(playerid);
@@ -2975,20 +2975,19 @@ LUA_STATIC_FUNCTION(GetDiceResult) {
 		lua_pushinteger(L, dice);
 	return static_cast<int32_t>(dice_results.size());
 }
-LUA_STATIC_FUNCTION(SetCoinResult) {
+LUA_STATIC_FUNCTION(SetCoinResult, nonempty_vector<RangedInteger<uint8_t, 0, 1>> new_coin_results) {
 	auto& coin_results = pduel->game_field->core.coin_results;
-	if(lua_gettop(L) != (int)coin_results.size())
-		lua_error(L, "The number of coin results passed didn't match the expected amount of %d. (Passed %d)", coin_results.size(), lua_gettop(L));
+	if(new_coin_results.size() != coin_results.size())
+		lua_error(L, "The number of coin results passed didn't match the expected amount of %d. (Passed %d)", coin_results.size(), new_coin_results.size());
 	for(size_t i = 0; i < coin_results.size(); ++i)
-		coin_results[i] = static_cast<bool>(lua_get<uint8_t>(L, static_cast<int>(i + 1)));
+		coin_results[i] = static_cast<bool>(new_coin_results[i]);
 	return 0;
 }
-LUA_STATIC_FUNCTION(SetDiceResult) {
+LUA_STATIC_FUNCTION(SetDiceResult, nonempty_vector<uint8_t> new_dice_results) {
 	auto& dice_results = pduel->game_field->core.dice_results;
-	if(lua_gettop(L) != (int)dice_results.size())
-		lua_error(L, "The number of dice results passed didn't match the expected amount of %d. (Passed %d)", dice_results.size(), lua_gettop(L));
-	for(size_t i = 0; i < dice_results.size(); ++i)
-		dice_results[i] = lua_get<uint8_t>(L, static_cast<int>(i + 1));
+	if(new_dice_results.size() != dice_results.size())
+		lua_error(L, "The number of dice results passed didn't match the expected amount of %d. (Passed %d)", dice_results.size(), new_dice_results.size());
+	std::swap(dice_results, new_dice_results);
 	return 0;
 }
 LUA_STATIC_FUNCTION(IsDuelType, uint64_t duel_type) {
