@@ -2040,10 +2040,9 @@ LUA_FUNCTION(CheckUniqueOnField) {
 	lua_pushboolean(L, pduel->game_field->check_unique_onfield(self, check_player, check_location, icard) ? 0 : 1);
 	return 1;
 }
-LUA_FUNCTION(ResetNegateEffect) {
-	lua_iterate_table_or_stack(L, 2, lua_gettop(L), [L, self] {
-		self->reset(lua_get<uint32_t>(L, -1), RESET_CARD);
-	});
+LUA_FUNCTION(ResetNegateEffect, nonempty_vector<uint32_t> resets) {
+	for(auto reset_code : resets)
+		self->reset(reset_code, RESET_CARD);
 	return 0;
 }
 LUA_FUNCTION(AssumeProperty) {
@@ -2075,12 +2074,10 @@ LUA_FUNCTION(lua_name) { \
 CARD_INFO_FUNC(Code, code)
 CARD_INFO_FUNC(Alias, alias)
 
-LUA_FUNCTION(Setcode) {
-	if(lua_gettop(L) > 1) {
+LUA_FUNCTION(Setcode, std::vector<uint16_t> setcodes) {
+	if(setcodes.size() > 0) {
 		self->data.setcodes.clear();
-		lua_iterate_table_or_stack(L, 2, 2, [&setcodes = self->data.setcodes, L]{
-			setcodes.insert(lua_get<uint16_t>(L, -1));
-		});
+		self->data.setcodes.insert(setcodes.begin(), setcodes.end());
 		return 0;
 	} else {
 		luaL_checkstack(L, static_cast<int>(self->data.setcodes.size()), nullptr);
@@ -2100,26 +2097,29 @@ CARD_INFO_FUNC(Rscale, rscale)
 CARD_INFO_FUNC(Lscale, lscale)
 CARD_INFO_FUNC(LinkMarker, link_marker)
 #undef CARD_INFO_FUNC
-LUA_FUNCTION(Recreate) {
-	check_param_count(L, 2);
-	auto code = lua_get<uint32_t>(L, 2);
+LUA_FUNCTION(Recreate, uint32_t code, std::optional<uint32_t> alias, std::vector<uint16_t> setcodes,
+			 std::optional<uint32_t> type, std::optional<uint32_t> level, std::optional<uint32_t> attribute,
+			 std::optional<uint64_t> race, std::optional<int32_t> attack, std::optional<int32_t> defense,
+			 std::optional<uint32_t> lscale, std::optional<uint32_t> rscale, std::optional<uint32_t> link_marker,
+			 std::optional<bool> replace_effect) {
+#define SET_IF_PROVIDED(property) do {if(property.has_value()) self->data.property = *property; } while(0)
 	if (self->recreate(code)) {
-		self->data.alias = lua_get<uint32_t>(L, 3, self->data.alias);
-		if(lua_gettop(L) > 3 && !lua_isnoneornil(L, 4)) {
-			lua_iterate_table_or_stack(L, 4, 4, [&setcodes = self->data.setcodes, L]{
-				setcodes.insert(lua_get<uint16_t>(L, -1));
-			});
+		SET_IF_PROVIDED(alias);
+		if(setcodes.size() > 0 && !lua_isnoneornil(L, 4)) {
+			self->data.setcodes.clear();
+			self->data.setcodes.insert(setcodes.begin(), setcodes.end());
 		}
-		self->data.type = lua_get<uint32_t>(L, 5, self->data.type);
-		self->data.level = lua_get<uint32_t>(L, 6, self->data.level);
-		self->data.attribute = lua_get<uint32_t>(L, 7, self->data.attribute);
-		self->data.race = lua_get<uint64_t>(L, 8, self->data.race);
-		self->data.attack = lua_get<int32_t>(L, 9, self->data.attack);
-		self->data.defense = lua_get<int32_t>(L, 10, self->data.defense);
-		self->data.lscale = lua_get<uint32_t>(L, 11, self->data.lscale);
-		self->data.rscale = lua_get<uint32_t>(L, 12, self->data.rscale);
-		self->data.link_marker = lua_get<uint32_t>(L, 13, self->data.link_marker);
-		if (lua_get<bool, false>(L, 14))
+		SET_IF_PROVIDED(type);
+		SET_IF_PROVIDED(level);
+		SET_IF_PROVIDED(attribute);
+		SET_IF_PROVIDED(race);
+		SET_IF_PROVIDED(attack);
+		SET_IF_PROVIDED(defense);
+		SET_IF_PROVIDED(lscale);
+		SET_IF_PROVIDED(rscale);
+		SET_IF_PROVIDED(link_marker);
+#undef SET_IF_PROVIDED
+		if (replace_effect.value_or(false))
 			self->replace_effect(code, 0, 0, true);
 	}
 	return 0;
