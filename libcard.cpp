@@ -1350,95 +1350,80 @@ LUA_FUNCTION(IsFusionSummonableCard) {
 	lua_pushboolean(L, self->is_fusion_summonable_card(summon_type));
 	return 1;
 }
-inline int32_t spsummonable_rule(lua_State* L, uint32_t cardtype, uint32_t sumtype, uint32_t offset) {
+inline int32_t spsummonable_rule(lua_State* L, card* self, uint32_t cardtype, uint32_t sumtype,
+								 const std::variant<Nil, card*, group*>& forced_materials, const std::variant<Nil, card*, group*>& materials,
+								 const std::optional<uint16_t>& minc, const std::optional<uint16_t>& maxc) {
 	const auto pduel = lua_get<duel*>(L);
-	auto pcard = lua_get<card*, true>(L, 1);
-	if(!(pcard->data.type & cardtype))
+	if(!(self->data.type & cardtype))
 		return 0;
-	owned_lua<group> must = nullptr;
-	owned_lua<group> materials = nullptr;
-	if(auto [pcard_, pgroup_] = lua_get_card_or_group<true>(L, 2 + offset); pcard_)
-		must = pduel->new_group(pcard_);
-	else if(pgroup_)
-		must = pgroup_;
-	if(auto [pcard_, pgroup_] = lua_get_card_or_group<true>(L, 3 + offset); pcard_)
-		materials = pduel->new_group(pcard_);
-	else if(pgroup_)
-		materials = pgroup_;
-	auto minc = lua_get<uint16_t, 0>(L, 4 + offset);
-	auto maxc = lua_get<uint16_t, 0>(L, 5 + offset);
+	owned_lua<group> forced_materials_group = nullptr;
+	owned_lua<group> materials_group = nullptr;
+	if(auto* ppcard = std::get_if<card*>(&forced_materials); ppcard)
+		forced_materials_group = pduel->new_group(*ppcard);
+	else if(auto* ppgroup = std::get_if<group*>(&forced_materials); ppgroup)
+		forced_materials_group = pduel->new_group(*ppgroup);
+	if(forced_materials_group)
+		forced_materials_group->is_readonly = true;
+
+	if(auto* ppcard = std::get_if<card*>(&materials); ppcard)
+		materials_group = pduel->new_group(*ppcard);
+	else if(auto* ppgroup = std::get_if<group*>(&materials); ppgroup)
+		materials_group = pduel->new_group(*ppgroup);
+	if(materials_group)
+		materials_group->is_readonly = true;
+
 	auto& core = pduel->game_field->core;
 	uint8_t p = core.reason_player;
-	core.must_use_mats = must;
-	core.only_use_mats = materials;
-	core.forced_summon_minc = minc;
-	core.forced_summon_maxc = maxc;
-	lua_pushboolean(L, pcard->is_special_summonable(p, sumtype));
+	core.must_use_mats = forced_materials_group;
+	core.only_use_mats = materials_group;
+	core.forced_summon_minc = minc.value_or(0);
+	core.forced_summon_maxc = maxc.value_or(0);
+	lua_pushboolean(L, self->is_special_summonable(p, sumtype));
 	core.must_use_mats = nullptr;
 	core.only_use_mats = nullptr;
 	core.forced_summon_minc = 0;
 	core.forced_summon_maxc = 0;
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsSynchroSummonable) {
-	return spsummonable_rule(L, TYPE_SYNCHRO, SUMMON_TYPE_SYNCHRO, 0);
+LUA_FUNCTION(IsSynchroSummonable, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummonable_rule(L, self, TYPE_SYNCHRO, SUMMON_TYPE_SYNCHRO, must, materials, minc, maxc);
 }
-LUA_STATIC_FUNCTION(IsXyzSummonable) {
-	return spsummonable_rule(L, TYPE_XYZ, SUMMON_TYPE_XYZ, 0);
+LUA_FUNCTION(IsXyzSummonable, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummonable_rule(L, self, TYPE_XYZ, SUMMON_TYPE_XYZ, must, materials, minc, maxc);
 }
-LUA_STATIC_FUNCTION(IsLinkSummonable) {
-	return spsummonable_rule(L, TYPE_LINK, SUMMON_TYPE_LINK, 0);
+LUA_FUNCTION(IsLinkSummonable, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummonable_rule(L, self, TYPE_LINK, SUMMON_TYPE_LINK, must, materials, minc, maxc);
 }
-LUA_STATIC_FUNCTION(IsProcedureSummonable) {
-	check_param_count(L, 3);
-	auto cardtype = lua_get<uint32_t, true>(L, 2);
-	auto sumtype = lua_get<uint32_t, true>(L, 3);
-	return spsummonable_rule(L, cardtype, sumtype, 2);
+LUA_FUNCTION(IsProcedureSummonable, uint32_t cardtype, uint32_t sumtype, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummonable_rule(L, self, cardtype, sumtype, must, materials, minc, maxc);
 }
-LUA_FUNCTION(IsSummonable) {
-	check_param_count(L, 2);
-	auto ign = lua_get<bool>(L, 2);
-	effect* peffect = nullptr;
-	if(!lua_isnoneornil(L, 3))
-		peffect = lua_get<effect*, true>(L, 3);
-	auto minc = lua_get<uint16_t, 0>(L, 4);
-	auto zone = lua_get<uint16_t, 0x1f>(L, 5);
-	lua_pushboolean(L, self->is_can_be_summoned(pduel->game_field->core.reason_player, ign, peffect, minc, zone));
+LUA_FUNCTION(IsSummonable, bool ignore_location_check, std::optional<effect*> peffect, std::optional<uint16_t> minimum_tributes, std::optional<uint16_t> zone) {
+	lua_pushboolean(L, self->is_can_be_summoned(pduel->game_field->core.reason_player, ignore_location_check,
+												peffect.value_or(nullptr), minimum_tributes.value_or(0), zone.value_or(0x1f)));
 	return 1;
 }
-LUA_FUNCTION(IsMSetable) {
-	check_param_count(L, 2);
-	bool ign = lua_get<bool>(L, 2);
-	effect* peffect = nullptr;
-	if(!lua_isnoneornil(L, 3))
-		peffect = lua_get<effect*, true>(L, 3);
-	auto minc = lua_get<uint16_t, 0>(L, 4);
-	auto zone = lua_get<uint32_t, 0xff>(L, 5);
-	lua_pushboolean(L, self->is_setable_mzone(pduel->game_field->core.reason_player, ign, peffect, minc, zone));
+LUA_FUNCTION(IsMSetable, bool ignore_location_check, std::optional<effect*> peffect, std::optional<uint16_t> minimum_tributes, std::optional<uint32_t> zone) {
+	lua_pushboolean(L, self->is_setable_mzone(pduel->game_field->core.reason_player, ignore_location_check,
+											  peffect.value_or(nullptr), minimum_tributes.value_or(0), zone.value_or(0xff)));
 	return 1;
 }
-LUA_FUNCTION(IsSSetable) {
-	bool ign = lua_get<bool, false>(L, 2);
-	auto toplayer = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_setable_szone(toplayer, ign));
+LUA_FUNCTION(IsSSetable, std::optional<bool> ignore_location_check, std::optional<playerid_t> toplayer) {
+	lua_pushboolean(L, self->is_setable_szone(toplayer.value_or(pduel->game_field->core.reason_player), ignore_location_check.value_or(false)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeSpecialSummoned) {
-	check_param_count(L, 6);
-	auto peffect = lua_get<effect*, true>(L, 2);
-	auto sumtype = lua_get<uint32_t>(L, 3);
-	auto sumplayer = lua_get<uint8_t>(L, 4);
-	auto nocheck = lua_get<bool>(L, 5);
-	auto nolimit = lua_get<bool>(L, 6);
-	auto sumpos = lua_get<uint8_t, POS_FACEUP>(L, 7);
-	auto toplayer = lua_get<uint8_t>(L, 8, sumplayer);
-	auto zone = lua_get<uint32_t, 0xff>(L, 9);
-	lua_pushboolean(L, self->is_can_be_special_summoned(peffect, sumtype, sumpos, sumplayer, toplayer, nocheck, nolimit, zone));
+LUA_FUNCTION(IsCanBeSpecialSummoned, effect* peffect, uint32_t sumtype, playerid_t sumplayer,
+			 bool nocheck, bool nolimit, std::optional<uint8_t> sumpos, std::optional<playerid_t> toplayer,
+			 std::optional<uint32_t> zone) {
+	lua_pushboolean(L, self->is_can_be_special_summoned(peffect, sumtype, sumpos.value_or(POS_FACEUP),
+														sumplayer, toplayer.value_or(sumplayer), nocheck, nolimit, zone.value_or(0xff)));
 	return 1;
 }
-LUA_FUNCTION(IsAbleToHand) {
-	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_capable_send_to_hand(p));
+LUA_FUNCTION(IsAbleToHand, std::optional<playerid_t> reason_player) {
+	lua_pushboolean(L, self->is_capable_send_to_hand(reason_player.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToDeck) {
@@ -1449,16 +1434,14 @@ LUA_FUNCTION(IsAbleToExtra) {
 	lua_pushboolean(L, self->is_capable_send_to_extra(pduel->game_field->core.reason_player));
 	return 1;
 }
-LUA_FUNCTION(IsAbleToGrave) {
-	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 2);
-	lua_pushboolean(L, self->is_capable_send_to_grave(pduel->game_field->core.reason_player, reason));
+LUA_FUNCTION(IsAbleToGrave, std::optional<uint32_t> reason) {
+	lua_pushboolean(L, self->is_capable_send_to_grave(pduel->game_field->core.reason_player, reason.value_or(REASON_EFFECT)));
 	return 1;
 }
-LUA_FUNCTION(IsAbleToRemove) {
-	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
-	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 3);
-	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 4);
-	lua_pushboolean(L, self->is_removeable(p, pos, reason));
+LUA_FUNCTION(IsAbleToRemove, std::optional<playerid_t> reason_player, std::optional<uint8_t> position, std::optional<uint32_t> reason) {
+	lua_pushboolean(L, self->is_removeable(reason_player.value_or(pduel->game_field->core.reason_player),
+										   position.value_or(POS_FACEUP),
+										   reason.value_or(REASON_EFFECT)));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToHandAsCost) {
@@ -1482,31 +1465,25 @@ LUA_FUNCTION(IsAbleToGraveAsCost) {
 	lua_pushboolean(L, self->is_capable_cost_to_grave(pduel->game_field->core.reason_player));
 	return 1;
 }
-LUA_FUNCTION(IsAbleToRemoveAsCost) {
-	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 2);
-	lua_pushboolean(L, self->is_removeable_as_cost(pduel->game_field->core.reason_player, pos));
+LUA_FUNCTION(IsAbleToRemoveAsCost, std::optional<uint8_t> position) {
+	lua_pushboolean(L, self->is_removeable_as_cost(pduel->game_field->core.reason_player, position.value_or(POS_FACEUP)));
 	return 1;
 }
-LUA_FUNCTION(IsReleasable) {
-	const auto reason = lua_get<uint32_t, REASON_COST>(L, 2);
-	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_releasable_by_nonsummon(player, reason));
+LUA_FUNCTION(IsReleasable, std::optional<uint32_t> reason, std::optional<playerid_t> reason_player) {
+	lua_pushboolean(L, self->is_releasable_by_nonsummon(reason_player.value_or(pduel->game_field->core.reason_player), reason.value_or(REASON_COST)));
 	return 1;
 }
-LUA_FUNCTION(IsReleasableByEffect) {
-	effect* re = pduel->game_field->core.reason_effect;
-	if(!lua_isnoneornil(L, 2))
-		re = lua_get<effect*, true>(L, 2);
-	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_releasable_by_nonsummon(player, REASON_EFFECT) && self->is_releasable_by_effect(player, re));
+LUA_FUNCTION(IsReleasableByEffect, std::optional<effect*> reason_effect, std::optional<playerid_t> reason_player) {
+	auto player = reason_player.value_or(pduel->game_field->core.reason_player);
+	lua_pushboolean(L, self->is_releasable_by_nonsummon(player, REASON_EFFECT) &&
+					self->is_releasable_by_effect(player, reason_effect.value_or(pduel->game_field->core.reason_effect)));
 	return 1;
 }
-LUA_FUNCTION(IsDiscardable) {
+LUA_FUNCTION(IsDiscardable, std::optional<uint32_t> reason, std::optional<playerid_t> reason_player) {
 	effect* pe = pduel->game_field->core.reason_effect;
-	auto reason = lua_get<uint32_t, REASON_COST>(L, 2);
-	auto player = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	if((reason != REASON_COST || !self->is_affected_by_effect(EFFECT_CANNOT_USE_AS_COST))
-	        && pduel->game_field->is_player_can_discard_hand(player, self, pe, reason))
+	auto reason_ = reason.value_or(REASON_COST);
+	if((reason_ != REASON_COST || !self->is_affected_by_effect(EFFECT_CANNOT_USE_AS_COST))
+	        && pduel->game_field->is_player_can_discard_hand(reason_player.value_or(pduel->game_field->core.reason_player), self, pe, reason_))
 		lua_pushboolean(L, 1);
 	else
 		lua_pushboolean(L, 0);
@@ -1516,13 +1493,12 @@ LUA_FUNCTION(CanAttack) {
 	lua_pushboolean(L, self->is_capable_attack());
 	return 1;
 }
-LUA_FUNCTION(CanChainAttack) {
+LUA_FUNCTION(CanChainAttack, std::optional<uint8_t> attack_count, std::optional<bool> attack_only_monsters) {
 	if(self != pduel->game_field->core.attacker) {
 		lua_pushboolean(L, 0);
 		return 1;
 	}
-	auto ac = lua_get<uint8_t, 2>(L, 2);
-	bool monsteronly = lua_get<bool, false>(L, 3);
+	auto ac = attack_count.value_or(2);
 	if(self->is_status(STATUS_BATTLE_DESTROYED)
 			|| self->current.controler != pduel->game_field->infos.turn_player
 			|| self->fieldid_r != pduel->game_field->core.pre_field[0]
@@ -1534,7 +1510,7 @@ LUA_FUNCTION(CanChainAttack) {
 	}
 	pduel->game_field->core.select_cards.clear();
 	pduel->game_field->get_attack_target(self, &pduel->game_field->core.select_cards, true);
-	if(pduel->game_field->core.select_cards.empty() && (monsteronly || !self->direct_attackable))
+	if(pduel->game_field->core.select_cards.empty() && (attack_only_monsters.value_or(false) || !self->direct_attackable))
 		lua_pushboolean(L, 0);
 	else
 		lua_pushboolean(L, 1);
@@ -1556,28 +1532,20 @@ LUA_FUNCTION(IsDefensePos) {
 	lua_pushboolean(L, self->is_position(POS_DEFENSE));
 	return 1;
 }
-LUA_FUNCTION(IsPosition) {
-	check_param_count(L, 2);
-	auto pos = lua_get<uint8_t>(L, 2);
-	lua_pushboolean(L, self->is_position(pos));
+LUA_FUNCTION(IsPosition, uint8_t position) {
+	lua_pushboolean(L, self->is_position(position));
 	return 1;
 }
-LUA_FUNCTION(IsPreviousPosition) {
-	check_param_count(L, 2);
-	auto pos = lua_get<uint8_t>(L, 2);
-	lua_pushboolean(L, (self->previous.position & pos) != 0);
+LUA_FUNCTION(IsPreviousPosition, uint8_t position) {
+	lua_pushboolean(L, (self->previous.position & position) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsControler) {
-	check_param_count(L, 2);
-	auto con = lua_get<uint8_t>(L, 2);
-	lua_pushboolean(L, self->current.controler == con);
+LUA_FUNCTION(IsControler, playerid_t controller) {
+	lua_pushboolean(L, self->current.controler == controller);
 	return 1;
 }
-LUA_FUNCTION(IsPreviousControler) {
-	check_param_count(L, 2);
-	auto con = lua_get<uint8_t>(L, 2);
-	lua_pushboolean(L, self->previous.controler == con);
+LUA_FUNCTION(IsPreviousControler, playerid_t controller) {
+	lua_pushboolean(L, self->previous.controler == controller);
 	return 1;
 }
 LUA_FUNCTION(IsOnField) {
@@ -1588,41 +1556,33 @@ LUA_FUNCTION(IsOnField) {
 		lua_pushboolean(L, 0);
 	return 1;
 }
-LUA_FUNCTION(IsLocation) {
-	check_param_count(L, 2);
-	auto loc = lua_get<uint16_t>(L, 2);
+LUA_FUNCTION(IsLocation, uint16_t location) {
 	if(self->current.location == LOCATION_MZONE) {
-		if(self->current.is_location(loc) && !self->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP))
+		if(self->current.is_location(location) && !self->get_status(STATUS_SUMMONING | STATUS_SUMMON_DISABLED | STATUS_SPSUMMON_STEP))
 			lua_pushboolean(L, 1);
 		else
 			lua_pushboolean(L, 0);
 	} else if(self->current.location == LOCATION_SZONE) {
-		if(self->current.is_location(loc) && !self->is_status(STATUS_ACTIVATE_DISABLED))
+		if(self->current.is_location(location) && !self->is_status(STATUS_ACTIVATE_DISABLED))
 			lua_pushboolean(L, 1);
 		else
 			lua_pushboolean(L, 0);
 	} else
-		lua_pushboolean(L, (self->current.location & loc) != 0);
+		lua_pushboolean(L, (self->current.location & location) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsPreviousLocation) {
-	check_param_count(L, 2);
-	auto loc = lua_get<uint16_t>(L, 2);
-	lua_pushboolean(L, self->previous.is_location(loc));
+LUA_FUNCTION(IsPreviousLocation, uint16_t location) {
+	lua_pushboolean(L, self->previous.is_location(location));
 	return 1;
 }
-LUA_FUNCTION(IsLevelBelow) {
-	check_param_count(L, 2);
-	auto lvl = lua_get<uint32_t>(L, 2);
-	uint32_t plvl = self->get_level();
-	lua_pushboolean(L, plvl > 0 && plvl <= lvl);
+LUA_FUNCTION(IsLevelBelow, uint32_t level) {
+	auto cur_level = self->get_level();
+	lua_pushboolean(L, cur_level > 0 && cur_level <= level);
 	return 1;
 }
-LUA_FUNCTION(IsLevelAbove) {
-	check_param_count(L, 2);
-	auto lvl = lua_get<uint32_t>(L, 2);
-	uint32_t plvl = self->get_level();
-	lua_pushboolean(L, plvl > 0 && plvl >= lvl);
+LUA_FUNCTION(IsLevelAbove, uint32_t level) {
+	auto cur_level = self->get_level();
+	lua_pushboolean(L, cur_level > 0 && cur_level >= level);
 	return 1;
 }
 LUA_FUNCTION(IsRankBelow, uint32_t rank) {
@@ -1645,16 +1605,16 @@ LUA_FUNCTION(IsLinkAbove, uint32_t link) {
 	lua_pushboolean(L, cur_link > 0 && cur_link >= link);
 	return 1;
 }
-LUA_FUNCTION(IsAttackBelow, uint32_t atk) {
+LUA_FUNCTION(IsAttackBelow, int32_t atk) {
 	if(!(self->data.type & TYPE_MONSTER) && !(self->get_type() & TYPE_MONSTER) && !self->is_affected_by_effect(EFFECT_PRE_MONSTER))
 		lua_pushboolean(L, 0);
 	else {
-		int32_t _atk = self->get_attack();
-		lua_pushboolean(L, _atk >= 0 && _atk <= atk);
+		auto cur_atk = self->get_attack();
+		lua_pushboolean(L, cur_atk >= 0 && cur_atk <= atk);
 	}
 	return 1;
 }
-LUA_FUNCTION(IsAttackAbove, uint32_t atk) {
+LUA_FUNCTION(IsAttackAbove, int32_t atk) {
 	if(!(self->data.type & TYPE_MONSTER) && !(self->get_type() & TYPE_MONSTER) && !self->is_affected_by_effect(EFFECT_PRE_MONSTER))
 		lua_pushboolean(L, 0);
 	else {
@@ -1662,17 +1622,17 @@ LUA_FUNCTION(IsAttackAbove, uint32_t atk) {
 	}
 	return 1;
 }
-LUA_FUNCTION(IsDefenseBelow, uint32_t def) {
+LUA_FUNCTION(IsDefenseBelow, int32_t def) {
 	if((self->data.type & TYPE_LINK)
 	   || (!(self->data.type & TYPE_MONSTER) && !(self->get_type() & TYPE_MONSTER) && !(self->current.location & LOCATION_MZONE)))
 		lua_pushboolean(L, 0);
 	else {
-		int32_t _def = self->get_defense();
-		lua_pushboolean(L, _def >= 0 && _def <= def);
+		auto cur_def = self->get_defense();
+		lua_pushboolean(L, cur_def >= 0 && cur_def <= def);
 	}
 	return 1;
 }
-LUA_FUNCTION(IsDefenseAbove, uint32_t def) {
+LUA_FUNCTION(IsDefenseAbove, int32_t def) {
 	if((self->data.type & TYPE_LINK)
 	   || (!(self->data.type & TYPE_MONSTER) && !(self->get_type() & TYPE_MONSTER) && !self->is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		lua_pushboolean(L, 0);
