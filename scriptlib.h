@@ -144,13 +144,6 @@ namespace scriptlib {
 		unreachable();
 	}
 
-	template<typename T, EnableIfTemplate<T, duel*> = 0>
-	inline duel* lua_get(lua_State* L) {
-		duel* pduel = nullptr;
-		std::memcpy(&pduel, lua_getextraspace(L), sizeof(duel*));
-		return pduel;
-	}
-
 	template<typename T, bool forced = false, EnableIfTemplate<T, function> = 0>
 	inline int32_t lua_get(lua_State* L, int idx) {
 		if constexpr(!forced) {
@@ -399,7 +392,7 @@ namespace scriptlib {
 #define yieldk(...) lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int {\
 	(void)status; \
 	(void)ctx; \
-	auto pduel = lua_get<duel*>(L); \
+	auto pduel = duel::from(L); \
 	(void)pduel; \
 	do __VA_ARGS__ while(0); \
 	unreachable(); \

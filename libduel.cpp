@@ -205,7 +205,7 @@ inline int32_t spsummon_rule(lua_State* L, playerid_t playerid, card* pcard, uin
 							const std::variant<Nil, card*, group*>& forced_materials, const std::variant<Nil, card*, group*>& materials,
 							const std::optional<uint16_t>& minc, const std::optional<uint16_t>& maxc) {
 	check_action_permission(L);
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 	if(pduel->game_field->core.effect_damage_step)
 		return 0;
 	if(playerid != 0 && playerid != 1)
@@ -257,7 +257,7 @@ LUA_STATIC_FUNCTION(ProcedureSummon, playerid_t playerid, card* pcard, uint32_t 
 	return spsummon_rule(L, playerid, pcard, sumtype, must, materials, minc, maxc);
 }
 inline int32_t spsummon_rule_group(lua_State* L, playerid_t playerid, uint32_t summon_type) {
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule_group(playerid, summon_type);
 	if(pduel->game_field->core.current_chain.size()) {
@@ -2042,7 +2042,7 @@ static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
 	uint32_t lastarg = 4;
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 	auto min = lua_get<uint16_t>(L, 3);
 	auto max = min;
 	bool check_field = false;
@@ -2116,7 +2116,7 @@ static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
 		pexgroup = lua_get<group*>(L, lastarg);
 	uint32_t extraargs = lua_gettop(L) - lastarg;
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 	auto min = lua_get<uint16_t>(L, 3);
 	auto max = lua_get<uint16_t>(L, 4);
 	pduel->game_field->core.release_cards.clear();
