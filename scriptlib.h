@@ -478,11 +478,13 @@ namespace scriptlib {
 			}
 		};
 		if constexpr(std::is_same_v<actual_type, lua_obj*>) {
-			auto* ret = lua_get<lua_obj*>(L, idx);
-			if(!ret) {
-				lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
+			if(auto obj = lua_touserdata(L, idx)) {
+				auto* ret = *static_cast<lua_obj**>(obj);
+				if(ret->lua_type == LuaParam::DELETED)
+					lua_error(L, "Attempting to access deleted object.");
+				return return_value(ret);
 			}
-			return return_value(ret);
+			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
 		} else {
 			constexpr auto lua_type = [] {
 				if constexpr(std::is_same_v<Function, actual_type>)
@@ -584,19 +586,19 @@ namespace scriptlib {
 			using namespace scriptlib;
 			if constexpr((IsCard<Args> || ...)) {
 				if(lua_type == LuaParam::CARD)
-					return reinterpret_cast<card*>(lua_get<lua_obj*>(L, idx));
+					return *static_cast<card**>(lua_touserdata(L, idx));
 			}
 			if constexpr((IsGroup<Args> || ...)) {
 				if(lua_type == LuaParam::GROUP)
-					return reinterpret_cast<group*>(lua_get<lua_obj*>(L, idx));
+					return *static_cast<group**>(lua_touserdata(L, idx));
 			}
 			if constexpr((IsEffect<Args> || ...)) {
 				if(lua_type == LuaParam::EFFECT)
-					return reinterpret_cast<effect*>(lua_get<lua_obj*>(L, idx));
+					return *static_cast<effect**>(lua_touserdata(L, idx));
 			}
 			if constexpr((IsLuaObj<Args> || ...)) {
 				if(lua_type == LuaParam::CARD || lua_type == LuaParam::EFFECT || lua_type == LuaParam::GROUP)
-					return lua_get<lua_obj*>(L, idx);
+					return *static_cast<lua_obj**>(lua_touserdata(L, idx));
 			}
 			if constexpr((std::is_same_v<Function, Args> || ...)) {
 				if(lua_type == LuaParam::FUNCTION)
