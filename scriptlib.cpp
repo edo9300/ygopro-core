@@ -66,10 +66,10 @@ const char* get_lua_type_name(lua_State* L, int32_t index) {
 }
 
 bool is_in_noaction_state(lua_State* L) {
-	return lua_get<duel*>(L)->lua->no_action;
+	return duel::from(L)->lua->no_action;
 }
 int32_t push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 	bool cancelable = (bool)ctx;
 	if(pduel->game_field->return_cards.canceled) {
 		if(cancelable) {
@@ -94,7 +94,7 @@ int32_t is_deleted_object(lua_State* L) {
 	return 1;
 }
 std::any* set_any_temp_storage(lua_State* L, std::any&& storage) {
-	lua_get<duel*>(L)->lua->temp_lua_parsing_storage = std::move(storage);
-	return &lua_get<duel*>(L)->lua->temp_lua_parsing_storage;
+	duel::from(L)->lua->temp_lua_parsing_storage = std::move(storage);
+	return &duel::from(L)->lua->temp_lua_parsing_storage;
 }
 }

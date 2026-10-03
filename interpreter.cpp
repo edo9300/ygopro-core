@@ -24,7 +24,7 @@ using namespace scriptlib;
 #endif
 void ocgcore_lua_api_check(void* state, const char* error_message) {
 	auto L = static_cast<lua_State*>(state);
-	auto pduel = lua_get<duel*>(L);
+	auto pduel = duel::from(L);
 	pduel->handle_message(error_message, OCG_LOG_TYPE_ERROR);
 }
 
@@ -665,7 +665,7 @@ void interpreter::pushobject(lua_State* L, lua_obj* obj) {
 	if(!obj || (obj->ref_handle == 0 && obj->weak_ref_handle == 0))
 		lua_pushnil(L);
 	else if(obj->ref_handle == 0)
-		lua_get<duel*>(L)->lua->push_weak_ref(L, obj->weak_ref_handle);
+		duel::from(L)->lua->push_weak_ref(L, obj->weak_ref_handle);
 	else
 		lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_handle);
 }
@@ -693,7 +693,7 @@ int32_t interpreter::get_function_handle(lua_State* L, int32_t index) {
 }
 
 void interpreter::print_stacktrace(lua_State* L) {
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 #if LUA_VERSION_NUM < 505
 	// in lua 5.4 (and likely in 5.3 as well) luaL_traceback requires more than the 5 stack slots documented
 	// and doesn't automatically increase the stack to fit its needs
