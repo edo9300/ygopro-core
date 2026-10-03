@@ -201,39 +201,37 @@ LUA_STATIC_FUNCTION(SpecialSummonRule, playerid_t playerid, card* pcard, std::op
 	}
 	return yield();
 }
-inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset) {
+inline int32_t spsummon_rule(lua_State* L, playerid_t playerid, card* pcard, uint32_t summon_type,
+							const std::variant<Nil, card*, group*>& forced_materials, const std::variant<Nil, card*, group*>& materials,
+							const std::optional<uint16_t>& minc, const std::optional<uint16_t>& maxc) {
 	check_action_permission(L);
-	check_param_count(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	auto pcard = lua_get<card*, true>(L, 2);
 	const auto pduel = lua_get<duel*>(L);
 	if(pduel->game_field->core.effect_damage_step)
 		return 0;
 	if(playerid != 0 && playerid != 1)
 		return 0;
-	owned_lua<group> must = nullptr;
-	if(auto _pcard = lua_get<card*>(L, 3 + offset)) {
-		must = pduel->new_group(_pcard);
-		must->is_readonly = true;
-	} else if(auto pgroup = lua_get<group*>(L, 3 + offset)) {
-		must = pduel->new_group(pgroup);
-		must->is_readonly = true;
-	}
-	owned_lua<group> materials = nullptr;
-	if(auto _pcard = lua_get<card*>(L, 4 + offset)) {
-		materials = pduel->new_group(_pcard);
-		materials->is_readonly = true;
-	} else if(auto pgroup = lua_get<group*>(L, 4 + offset)) {
-		materials = pduel->new_group(pgroup);
-		materials->is_readonly = true;
-	}
-	auto minc = lua_get<uint16_t, 0>(L, 5 + offset);
-	auto maxc = lua_get<uint16_t, 0>(L, 6 + offset);
-	pduel->game_field->core.must_use_mats = must;
-	pduel->game_field->core.only_use_mats = materials;
-	pduel->game_field->core.forced_summon_minc = minc;
-	pduel->game_field->core.forced_summon_maxc = maxc;
-	pduel->game_field->core.summon_cancelable = FALSE;
+	owned_lua<group> forced_materials_group = nullptr;
+	owned_lua<group> materials_group = nullptr;
+	if(auto* ppcard = std::get_if<card*>(&forced_materials); ppcard)
+		forced_materials_group = pduel->new_group(*ppcard);
+	else if(auto* ppgroup = std::get_if<group*>(&forced_materials); ppgroup)
+		forced_materials_group = pduel->new_group(*ppgroup);
+	if(forced_materials_group)
+		forced_materials_group->is_readonly = true;
+
+	if(auto* ppcard = std::get_if<card*>(&materials); ppcard)
+		materials_group = pduel->new_group(*ppcard);
+	else if(auto* ppgroup = std::get_if<group*>(&materials); ppgroup)
+		materials_group = pduel->new_group(*ppgroup);
+	if(materials_group)
+		materials_group->is_readonly = true;
+
+	auto& core = pduel->game_field->core;
+	core.must_use_mats = forced_materials_group;
+	core.only_use_mats = materials_group;
+	core.forced_summon_minc = minc.value_or(0);
+	core.forced_summon_maxc = maxc.value_or(0);
+	core.summon_cancelable = false;
 	pduel->game_field->special_summon_rule(playerid, pcard, summon_type);
 	if(pduel->game_field->core.current_chain.size()) {
 		pduel->game_field->core.reserved = std::move(pduel->game_field->core.subunits.back());
@@ -242,24 +240,24 @@ inline int32_t spsummon_rule(lua_State* L, uint32_t summon_type, uint32_t offset
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(SynchroSummon) {
-	return spsummon_rule(L, SUMMON_TYPE_SYNCHRO, 0);
+LUA_STATIC_FUNCTION(SynchroSummon, playerid_t playerid, card* pcard, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummon_rule(L, playerid, pcard, SUMMON_TYPE_SYNCHRO, must, materials, minc, maxc);
 }
-LUA_STATIC_FUNCTION(XyzSummon) {
-	return spsummon_rule(L, SUMMON_TYPE_XYZ, 0);
+LUA_STATIC_FUNCTION(XyzSummon, playerid_t playerid, card* pcard, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummon_rule(L, playerid, pcard, SUMMON_TYPE_XYZ, must, materials, minc, maxc);
 }
-LUA_STATIC_FUNCTION(LinkSummon) {
-	return spsummon_rule(L, SUMMON_TYPE_LINK, 0);
+LUA_STATIC_FUNCTION(LinkSummon, playerid_t playerid, card* pcard, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummon_rule(L, playerid, pcard, SUMMON_TYPE_LINK, must, materials, minc, maxc);
 }
-LUA_STATIC_FUNCTION(ProcedureSummon) {
-	check_param_count(L, 3);
-	auto sumtype = lua_get<uint32_t>(L, 3);
-	return spsummon_rule(L, sumtype, 1);
+LUA_STATIC_FUNCTION(ProcedureSummon, playerid_t playerid, card* pcard, uint32_t sumtype, std::variant<Nil, card*, group*> must, std::variant<Nil, card*, group*> materials,
+					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
+	return spsummon_rule(L, playerid, pcard, sumtype, must, materials, minc, maxc);
 }
-inline int32_t spsummon_rule_group(lua_State* L, uint32_t summon_type, [[maybe_unused]] uint32_t offset) {
-	check_param_count(L, 1);
+inline int32_t spsummon_rule_group(lua_State* L, playerid_t playerid, uint32_t summon_type) {
 	const auto pduel = lua_get<duel*>(L);
-	const auto playerid = lua_get<uint8_t>(L, 1);
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule_group(playerid, summon_type);
 	if(pduel->game_field->core.current_chain.size()) {
@@ -269,13 +267,11 @@ inline int32_t spsummon_rule_group(lua_State* L, uint32_t summon_type, [[maybe_u
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(PendulumSummon) {
-	return spsummon_rule_group(L, SUMMON_TYPE_PENDULUM, 0);
+LUA_STATIC_FUNCTION(PendulumSummon, playerid_t playerid) {
+	return spsummon_rule_group(L, playerid, SUMMON_TYPE_PENDULUM);
 }
-LUA_STATIC_FUNCTION(ProcedureSummonGroup) {
-	check_param_count(L, 2);
-	auto sumtype = lua_get<uint32_t>(L, 2);
-	return spsummon_rule_group(L, sumtype, 1);
+LUA_STATIC_FUNCTION(ProcedureSummonGroup, playerid_t playerid, uint32_t sumtype) {
+	return spsummon_rule_group(L, playerid, sumtype);
 }
 LUA_STATIC_FUNCTION(MSet, playerid_t playerid, card* pcard, bool ignore_count, std::optional<effect*> peffect,
 					std::optional<uint8_t> min_tribute, std::optional<uint32_t> zone) {
