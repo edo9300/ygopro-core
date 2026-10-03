@@ -2865,8 +2865,9 @@ bool check_announceable(std::vector<uint64_t>& opcodes){
 LUA_STATIC_FUNCTION(AnnounceCard, playerid_t playerid, lua_range<uint64_t> ttype_or_opcodes) {
 	check_action_permission(L);
 	auto& options = pduel->game_field->core.select_options;
+	const auto was_from_table = ttype_or_opcodes.from_table;
 	options = std::move(ttype_or_opcodes);
-	if(!lua_istable(L, 2) && options.size() == 1) {
+	if(!was_from_table && options.size() == 1) {
 		if(options.empty())
 			options.push_back(TYPE_MONSTER | TYPE_SPELL | TYPE_TRAP);
 		options.push_back(OPCODE_ISTYPE);
