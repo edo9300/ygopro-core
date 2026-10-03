@@ -94,7 +94,9 @@ int32_t is_deleted_object(lua_State* L) {
 	return 1;
 }
 std::any* set_any_temp_storage(lua_State* L, std::any&& storage) {
-	duel::from(L)->lua->temp_lua_parsing_storage = std::move(storage);
-	return &duel::from(L)->lua->temp_lua_parsing_storage;
+	return &duel::from(L)->lua->temp_lua_parsing_storage.emplace_back(std::move(storage));
+}
+void clear_any_temp_storage(lua_State* L) {
+	duel::from(L)->lua->temp_lua_parsing_storage.clear();
 }
 }

@@ -11,13 +11,14 @@
 #include <cmath> //std::round
 #include <cstdint>
 #include <cstring> //std::memcpy
+#include <functional> //std::ref
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
 #include <optional>
 #include <tuple>
 #include <type_traits> //std::is_same_v, std::enable_if_t, std::invoke_result_t, std::result_of_t, std::conditional_t, std::is_unsigned_v
-#include <utility> //std::pair
+#include <utility> //std::move, std::pair
 #include <variant>
 #include "common.h"
 #include "lua_obj.h"
@@ -45,6 +46,7 @@ namespace scriptlib {
 	}
 	int32_t is_deleted_object(lua_State* L);
 	std::any* set_any_temp_storage(lua_State* L, std::any&& storage);
+	void clear_any_temp_storage(lua_State* L);
 
 #define lua_error(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
 #define check_action_permission(L) do { if(is_in_noaction_state(L)) lua_error(L, "Action is not allowed here."); } while(0)
@@ -453,7 +455,7 @@ namespace scriptlib {
 		return { static_cast<base_int_type>(value) };
 	}
 
-	template<typename T, bool last = false, std::enable_if_t<!is_variant_v<T> && !is_vector_v<T>, int> = 0>
+	template<typename T, bool last = false, std::enable_if_t<!is_variant_v<T> && !is_lua_range_v<T>, int> = 0>
 	inline constexpr T get_lua(lua_State* L, int idx) {
 		using namespace scriptlib;
 		// we need to not have type::value_type be evaluated if the type isn't an optional
@@ -711,23 +713,32 @@ namespace scriptlib {
 		return get_variant_type_functor<T>()(L, idx, type);
 	}
 
-	template<typename T, bool last, std::enable_if_t<is_vector_v<T>, int> = 0>
-	inline constexpr T get_lua(lua_State* L, int idx) {
+	template<typename T, bool last, std::enable_if_t<is_lua_range_v<T>, int> = 0>
+	inline constexpr decltype(auto) get_lua(lua_State* L, int idx) {
 		using namespace scriptlib;
-		T& result = *std::any_cast<T>(set_any_temp_storage(L, T{}));
-		if constexpr(!is_nonempty_vector_v<T> && !last) {
+		using vec_type = typename T::base;
+		vec_type& result = *std::any_cast<vec_type>(set_any_temp_storage(L, vec_type{}));
+		if constexpr(!is_nonempty_lua_range_v<T> && !last) {
 			// range as middle parameter which can also be nil
 			if(lua_isnoneornil(L, idx))
-				return std::move(result);
+				return std::ref(result);
 		}
 		lua_iterate_table_or_stack(L, idx, last ? lua_gettop(L) : idx, [&] {
+#if defined(_MSC_VER) && (_MSC_VER + 0) < 1920
+			// Visual Studio 2017 crashes when using push_back on a vector with a RangedInteger as its element, work around that
+			// fatal error C1001: An internal error has occurred in the compiler.1>(compiler file ‘msc1.cpp’, line 1518)
+			auto val = get_lua<typename T::value_type>(L, -1);
+			result.resize(result.size() + 1);
+			result.back() = std::move(val);
+#else
 			result.push_back(get_lua<typename T::value_type>(L, -1));
+#endif
 		});
-		if constexpr(is_nonempty_vector_v<T>) {
+		if constexpr(is_nonempty_lua_range_v<T>) {
 			if(result.empty())
 				lua_error(L, "Parameter %d: no values were provided.", idx);
 		}
-		return std::move(result);
+		return std::ref(result);
 	}
 }
 

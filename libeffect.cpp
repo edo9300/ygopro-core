@@ -90,7 +90,7 @@ LUA_FUNCTION(SetAbsoluteRange, playerid_t playerid, uint16_t self_range, uint16_
 	self->flag[0] |= EFFECT_FLAG_ABSOLUTE_TARGET;
 	return 0;
 }
-LUA_FUNCTION(SetCountLimit, uint8_t count, std::vector<uint32_t> hopt_code, std::optional<uint8_t> flag_opt) {
+LUA_FUNCTION(SetCountLimit, uint8_t count, lua_range<uint32_t> hopt_code, std::optional<uint8_t> flag_opt) {
 	if(count == 0)
 		lua_error(L, "The count must not be 0");
 	uint8_t hopt_index = 0;
@@ -148,7 +148,7 @@ LUA_FUNCTION(SetProperty, uint32_t prop1, std::optional<uint32_t> prop2) {
 	self->flag[1] = prop2.value_or(0);
 	return 0;
 }
-LUA_FUNCTION(SetLabel, nonempty_vector<lua_Integer> labels) {
+LUA_FUNCTION(SetLabel, nonempty_lua_range<lua_Integer> labels) {
 	self->label = std::move(labels);
 	return 0;
 }

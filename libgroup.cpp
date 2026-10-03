@@ -31,7 +31,7 @@ void assert_readonly_group(lua_State* L, group* pgroup) {
 	lua_error(L, "attempt to modify a read only group");
 }
 
-LUA_STATIC_FUNCTION(CreateGroup, std::vector<std::optional<card*>> cards) {
+LUA_STATIC_FUNCTION(CreateGroup, lua_range<std::optional<card*>> cards) {
 	auto pgroup = pduel->new_group();
 	auto& container = pgroup->container;
 	for(const auto& card : cards) {
