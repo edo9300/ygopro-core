@@ -1898,13 +1898,13 @@ LUA_FUNCTION(SetSPSummonOnce) {
 	return 0;
 }
 #define CARD_INFO_FUNC(lua_name,attr) \
-LUA_FUNCTION(lua_name) { \
+LUA_FUNCTION(lua_name, std::optional<decltype(card::data.attr)> attr) { \
+	if (attr.has_value()) { \
+		self->data.attr = *attr; \
+		return 0; \
+	} \
 	lua_pushinteger(L, self->data.attr); \
 	return 1;\
-} \
-LUA_FUNCTION(lua_name, decltype(card::data.attr) attr) { \
-	self->data.attr = attr; \
-	return 0; \
 }
 CARD_INFO_FUNC(Code, code)
 CARD_INFO_FUNC(Alias, alias)
