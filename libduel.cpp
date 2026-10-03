@@ -2973,16 +2973,18 @@ LUA_STATIC_FUNCTION(GetDiceResult) {
 }
 LUA_STATIC_FUNCTION(SetCoinResult, nonempty_vector<RangedInteger<uint8_t, 0, 1>> new_coin_results) {
 	auto& coin_results = pduel->game_field->core.coin_results;
-	if(new_coin_results.size() != coin_results.size())
-		lua_error(L, "The number of coin results passed didn't match the expected amount of %d. (Passed %d)", coin_results.size(), new_coin_results.size());
+	if(const auto new_coin_results_size = new_coin_results.size(), coin_results_size = coin_results.size();
+	   new_coin_results_size != coin_results_size)
+		lua_error(L, "The number of coin results passed didn't match the expected amount of %d. (Passed %d)", coin_results_size, new_coin_results_size);
 	for(size_t i = 0; i < coin_results.size(); ++i)
 		coin_results[i] = static_cast<bool>(new_coin_results[i]);
 	return 0;
 }
 LUA_STATIC_FUNCTION(SetDiceResult, nonempty_vector<uint8_t> new_dice_results) {
 	auto& dice_results = pduel->game_field->core.dice_results;
-	if(new_dice_results.size() != dice_results.size())
-		lua_error(L, "The number of dice results passed didn't match the expected amount of %d. (Passed %d)", dice_results.size(), new_dice_results.size());
+	if(const auto new_dice_results_size = new_dice_results.size(), dice_results_size = dice_results.size();
+	   new_dice_results_size != dice_results_size)
+		lua_error(L, "The number of dice results passed didn't match the expected amount of %d. (Passed %d)", dice_results_size, new_dice_results_size);
 	std::swap(dice_results, new_dice_results);
 	return 0;
 }
