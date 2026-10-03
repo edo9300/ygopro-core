@@ -23,19 +23,14 @@ namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
-LUA_FUNCTION(GetCode) {
-	if (lua_gettop(L) > 1) {
-		card* scard = nullptr;
-		uint8_t playerid = PLAYER_NONE;
-		if (!lua_isnoneornil(L, 2))
-			scard = lua_get<card*, true>(L, 2);
-		auto sumtype = lua_get<uint64_t, 0>(L, 3);
-		if (lua_gettop(L) > 3)
-			playerid = lua_get<uint8_t>(L, 4);
-		else if (sumtype == SUMMON_TYPE_FUSION)
-			playerid = pduel->game_field->core.reason_player;
+LUA_FUNCTION(GetCode, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	if (scard.has_value() || sumtype.has_value() || playerid.has_value()) {
 		std::set<uint32_t> codes;
-		self->get_summon_code(codes, scard, sumtype, playerid);
+		self->get_summon_code(codes, scard.value_or(nullptr),
+							  sumtype.value_or(0),
+							  playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+												pduel->game_field->core.reason_player :
+												PLAYER_NONE));
 		if (codes.empty()) {
 			lua_pushnil(L);
 			return 1;
@@ -83,19 +78,14 @@ LUA_FUNCTION(GetOriginalCodeRule) {
 	}
 	return 1;
 }
-LUA_FUNCTION(GetSetCard) {
+LUA_FUNCTION(GetSetCard, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
 	std::set<uint16_t> setcodes;
-	if (lua_gettop(L) > 1) {
-		card* scard = nullptr;
-		uint8_t playerid = PLAYER_NONE;
-		if (!lua_isnoneornil(L, 2))
-			scard = lua_get<card*, true>(L, 2);
-		auto sumtype = lua_get<uint64_t, 0>(L, 3);
-		if (lua_gettop(L) > 3)
-			playerid = lua_get<uint8_t>(L, 4);
-		else if (sumtype == SUMMON_TYPE_FUSION)
-			playerid = pduel->game_field->core.reason_player;
-		self->get_summon_set_card(setcodes, scard, sumtype, playerid);
+	if (scard.has_value() || sumtype.has_value() || playerid.has_value()) {
+		self->get_summon_set_card(setcodes, scard.value_or(nullptr),
+								  sumtype.value_or(0),
+								  playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+													pduel->game_field->core.reason_player :
+													PLAYER_NONE));
 	} else {
 		self->get_set_card(setcodes);
 	}
@@ -156,15 +146,11 @@ LUA_FUNCTION(GetLink) {
 	lua_pushinteger(L, self->get_link());
 	return 1;
 }
-LUA_FUNCTION(GetSynchroLevel) {
-	check_param_count(L, 2);
-	auto scard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(GetSynchroLevel, card* scard) {
 	lua_pushinteger(L, self->get_synchro_level(scard));
 	return 1;
 }
-LUA_FUNCTION(GetRitualLevel) {
-	check_param_count(L, 2);
-	auto scard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(GetRitualLevel, card* scard) {
 	lua_pushinteger(L, self->get_ritual_level(scard));
 	return 1;
 }
@@ -182,11 +168,8 @@ LUA_FUNCTION(GetOriginalRank) {
 		lua_pushinteger(L, self->data.level);
 	return 1;
 }
-LUA_FUNCTION(IsXyzLevel) {
-	check_param_count(L, 3);
-	auto xyzcard = lua_get<card*, true>(L, 2);
-	auto lv = lua_get<uint32_t>(L, 3);
-	lua_pushboolean(L, self->check_xyz_level(xyzcard, lv));
+LUA_FUNCTION(IsXyzLevel, card* xyzcard, uint32_t level) {
+	lua_pushboolean(L, self->check_xyz_level(xyzcard, level));
 	return 1;
 }
 LUA_FUNCTION(GetLeftScale) {
@@ -209,10 +192,8 @@ LUA_FUNCTION(GetLinkMarker) {
 	lua_pushinteger(L, self->get_link_marker());
 	return 1;
 }
-LUA_FUNCTION(IsLinkMarker) {
-	check_param_count(L, 2);
-	auto dir = lua_get<uint32_t>(L, 2);
-	lua_pushboolean(L, self->is_link_marker(dir));
+LUA_FUNCTION(IsLinkMarker, uint32_t markers) {
+	lua_pushboolean(L, self->is_link_marker(markers));
 	return 1;
 }
 LUA_FUNCTION(GetLinkedGroup) {
@@ -228,19 +209,17 @@ LUA_FUNCTION(GetLinkedGroupCount) {
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
-LUA_FUNCTION(GetLinkedZone) {
+LUA_FUNCTION(GetLinkedZone, std::optional<playerid_t> check_player) {
 	uint32_t zone = self->get_linked_zone();
-	auto cp = lua_get<uint8_t>(L, 2, self->current.controler);
-	if(cp == 1 - self->current.controler)
+	if(check_player.value_or(self->current.controler) == (1 - self->current.controler))
 		lua_pushinteger(L, (((zone & 0xffff) << 16) | (zone >> 16)));
 	else
 		lua_pushinteger(L, zone);
 	return 1;
 }
-LUA_FUNCTION(GetFreeLinkedZone) {
+LUA_FUNCTION(GetFreeLinkedZone, std::optional<playerid_t> check_player) {
 	uint32_t zone = self->get_linked_zone(true);
-	auto cp = lua_get<uint8_t>(L, 2, self->current.controler);
-	if(cp == 1 - self->current.controler)
+	if(check_player.value_or(self->current.controler) == (1 - self->current.controler))
 		lua_pushinteger(L, (((zone & 0xffff) << 16) | (zone >> 16)));
 	else
 		lua_pushinteger(L, zone);
@@ -259,10 +238,9 @@ LUA_FUNCTION(GetMutualLinkedGroupCount) {
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
-LUA_FUNCTION(GetMutualLinkedZone) {
+LUA_FUNCTION(GetMutualLinkedZone, std::optional<playerid_t> check_player) {
 	uint32_t zone = self->get_mutual_linked_zone();
-	auto cp = lua_get<uint8_t>(L, 2, self->current.controler);
-	if(cp == 1 - self->current.controler)
+	if(check_player.value_or(self->current.controler) == (1 - self->current.controler))
 		lua_pushinteger(L, (((zone & 0xffff) << 16) | (zone >> 16)));
 	else
 		lua_pushinteger(L, zone);
@@ -276,31 +254,22 @@ LUA_FUNCTION(IsExtraLinked) {
 	lua_pushboolean(L, self->is_extra_link_state());
 	return 1;
 }
-LUA_FUNCTION(GetColumnGroup) {
-	auto left = lua_get<uint8_t, 0>(L, 2);
-	auto right = lua_get<uint8_t, 0>(L, 3);
+LUA_FUNCTION(GetColumnGroup, std::optional<uint8_t> left, std::optional<uint8_t> right) {
 	card_set cset;
-	self->get_column_cards(&cset, left, right);
+	self->get_column_cards(&cset, left.value_or(0), right.value_or(0));
 	auto pgroup = pduel->new_group(cset);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_FUNCTION(GetColumnGroupCount) {
-	auto left = lua_get<uint8_t, 0>(L, 2);
-	auto right = lua_get<uint8_t, 0>(L, 3);
+LUA_FUNCTION(GetColumnGroupCount, std::optional<uint8_t> left, std::optional<uint8_t> right) {
 	card_set cset;
-	self->get_column_cards(&cset, left, right);
+	self->get_column_cards(&cset, left.value_or(0), right.value_or(0));
 	lua_pushinteger(L, cset.size());
 	return 1;
 }
-LUA_FUNCTION(GetColumnZone) {
-	check_param_count(L, 2);
-	auto loc = lua_get<uint16_t>(L, 2);
-	auto left = lua_get<uint8_t, 0>(L, 3);
-	auto right = lua_get<uint8_t, 0>(L, 4);
-	auto cp = lua_get<uint8_t>(L, 5, self->current.controler);
-	uint32_t zone = self->get_column_zone(loc, left, right);
-	if(cp == 1 - self->current.controler)
+LUA_FUNCTION(GetColumnZone, uint16_t location, std::optional<uint8_t> left, std::optional<uint8_t> right, std::optional<playerid_t> check_player) {
+	uint32_t zone = self->get_column_zone(location, left.value_or(0), right.value_or(0));
+	if(check_player.value_or(self->current.controler) == (1 - self->current.controler))
 		lua_pushinteger(L, (((zone & 0xffff) << 16) | (zone >> 16)));
 	else
 		lua_pushinteger(L, zone);
@@ -310,17 +279,12 @@ LUA_FUNCTION(IsAllColumn) {
 	lua_pushboolean(L, self->is_all_column());
 	return 1;
 }
-LUA_FUNCTION(GetAttribute) {
-	card* scard = nullptr;
-	uint8_t playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1 && !lua_isnoneornil(L, 2))
-		scard = lua_get<card*, true>(L, 2);
-	auto sumtype = lua_get<uint64_t, 0>(L, 3);
-	if (lua_gettop(L) > 3)
-		playerid = lua_get<uint8_t>(L, 4);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushinteger(L, self->get_attribute(scard, sumtype, playerid));
+LUA_FUNCTION(GetAttribute, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushinteger(L, self->get_attribute(scard.value_or(nullptr),
+										   sumtype.value_or(0),
+										   playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+															 pduel->game_field->core.reason_player :
+															 PLAYER_NONE)));
 	return 1;
 }
 LUA_FUNCTION(GetOriginalAttribute) {
@@ -330,17 +294,12 @@ LUA_FUNCTION(GetOriginalAttribute) {
 		lua_pushinteger(L, self->data.attribute);
 	return 1;
 }
-LUA_FUNCTION(GetRace) {
-	card* scard = nullptr;
-	uint8_t playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1 && !lua_isnoneornil(L, 2))
-		scard = lua_get<card*, true>(L, 2);
-	auto sumtype = lua_get<uint64_t, 0>(L, 3);
-	if (lua_gettop(L) > 3)
-		playerid = lua_get<uint8_t>(L, 4);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushinteger(L, self->get_race(scard, sumtype, playerid));
+LUA_FUNCTION(GetRace, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushinteger(L, self->get_race(scard.value_or(nullptr),
+									  sumtype.value_or(0),
+									  playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+														pduel->game_field->core.reason_player :
+														PLAYER_NONE)));
 	return 1;
 }
 LUA_FUNCTION(GetOriginalRace) {
@@ -444,32 +403,27 @@ LUA_FUNCTION(GetReasonEffect) {
 	interpreter::pushobject(L, self->current.reason_effect);
 	return 1;
 }
-LUA_FUNCTION(SetReason) {
-	check_param_count(L, 2);
-	auto reason = lua_get<uint32_t>(L, 2);
-	if (lua_get<bool, false>(L, 3))
+LUA_FUNCTION(SetReason, uint32_t reason) {
+	self->current.reason = reason;
+	return 0;
+}
+LUA_FUNCTION(SetReason, uint32_t reason, bool keep) {
+	if(keep)
 		self->current.reason |= reason;
 	else
 		self->current.reason = reason;
 	return 0;
 }
-LUA_FUNCTION(SetReasonCard) {
-	check_param_count(L, 2);
-	auto rcard = lua_get<card*, true>(L, 2);
+LUA_FUNCTION(SetReasonCard, card* rcard) {
 	self->current.reason_card = rcard;
 	return 0;
 }
-LUA_FUNCTION(SetReasonPlayer) {
-	check_param_count(L, 2);
-	auto rp = lua_get<uint8_t>(L, 2);
-	if (rp <= (unsigned)PLAYER_ALL)
-		self->current.reason_player = rp;
+LUA_FUNCTION(SetReasonPlayer, playerid_all_t reason_player) {
+	self->current.reason_player = reason_player;
 	return 0;
 }
-LUA_FUNCTION(SetReasonEffect) {
-	check_param_count(L, 2);
-	auto re = lua_get<effect*, true>(L, 2);
-	self->current.reason_effect = re;
+LUA_FUNCTION(SetReasonEffect, effect* reffect) {
+	self->current.reason_effect = reffect;
 	return 0;
 }
 LUA_FUNCTION(GetPosition) {
@@ -681,34 +635,20 @@ LUA_FUNCTION(IsPreviousSetCard) {
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsType) {
-	check_param_count(L, 2);
-	auto ttype = lua_get<uint32_t>(L, 2);
-	card* scard = nullptr;
-	uint8_t playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 2 && !lua_isnoneornil(L, 3))
-		scard = lua_get<card*, true>(L, 3);
-	auto sumtype = lua_get<uint64_t, 0>(L, 4);
-	if (lua_gettop(L) > 4)
-		playerid = lua_get<uint8_t>(L, 5);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, self->get_type(scard, sumtype, playerid) & ttype);
+LUA_FUNCTION(IsType, uint32_t type, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushboolean(L, (self->get_type(scard.value_or(nullptr),
+									  sumtype.value_or(0),
+									  playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+														pduel->game_field->core.reason_player :
+														PLAYER_NONE)) & type) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsExactType) {
-	check_param_count(L, 2);
-	auto ttype = lua_get<uint32_t>(L, 2);
-	card* scard = nullptr;
-	uint8_t playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 2 && !lua_isnoneornil(L, 3))
-		scard = lua_get<card*, true>(L, 3);
-	auto sumtype = lua_get<uint64_t, 0>(L, 4);
-	if (lua_gettop(L) > 4)
-		playerid = lua_get<uint8_t>(L, 5);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, (self->get_type(scard, sumtype, playerid) & ttype) == ttype);
+LUA_FUNCTION(IsExactType, uint32_t type, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushboolean(L, (self->get_type(scard.value_or(nullptr),
+									   sumtype.value_or(0),
+									   playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+														 pduel->game_field->core.reason_player :
+														 PLAYER_NONE)) & type) == type);
 	return 1;
 }
 LUA_FUNCTION(IsOriginalType) {
@@ -755,58 +695,38 @@ LUA_FUNCTION(IsDefense) {
 		is_prop(L, self->get_defense());
 	return 1;
 }
-LUA_FUNCTION(IsRace) {
-	check_param_count(L, 2);
-	auto trace = lua_get<uint64_t>(L, 2);
-	card* scard = nullptr;
-	auto playerid = PLAYER_NONE;
-	if(lua_gettop(L) > 2 && !lua_isnoneornil(L, 3))
-		scard = lua_get<card*, true>(L, 3);
-	auto sumtype = lua_get<uint64_t, 0>(L, 4);
-	if(lua_gettop(L) > 4)
-		playerid = lua_get<uint8_t>(L, 5);
-	else if(sumtype==SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, (self->get_race(scard, sumtype, playerid) & trace) != 0);
+LUA_FUNCTION(IsRace, uint64_t race, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushboolean(L, (self->get_race(scard.value_or(nullptr),
+									   sumtype.value_or(0),
+									   playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+														 pduel->game_field->core.reason_player :
+														 PLAYER_NONE)) & race) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsOriginalRace) {
-	check_param_count(L, 2);
-	auto trace = lua_get<uint64_t>(L, 2);
+LUA_FUNCTION(IsOriginalRace, uint64_t race) {
 	if(self->status & STATUS_NO_LEVEL)
 		lua_pushboolean(L, FALSE);
 	else
-		lua_pushboolean(L, (self->data.race & trace) != 0);
+		lua_pushboolean(L, (self->data.race & race) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsAttribute) {
-	check_param_count(L, 2);
-	auto tattrib = lua_get<uint32_t>(L, 2);
-	card* scard = nullptr;
-	uint8_t playerid = PLAYER_NONE;
-	if(lua_gettop(L) > 2 && !lua_isnoneornil(L, 3))
-		scard = lua_get<card*, true>(L, 3);
-	auto sumtype = lua_get<uint64_t, 0>(L, 4);
-	if(lua_gettop(L) > 4)
-		playerid = lua_get<uint8_t>(L, 5);
-	else if(sumtype==SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, self->get_attribute(scard, sumtype, playerid) & tattrib);
+LUA_FUNCTION(IsAttribute, uint32_t attribute, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushboolean(L, self->get_attribute(scard.value_or(nullptr),
+										   sumtype.value_or(0),
+										   playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+															 pduel->game_field->core.reason_player :
+															 PLAYER_NONE)) & attribute);
 	return 1;
 }
-LUA_FUNCTION(IsOriginalAttribute) {
-	check_param_count(L, 2);
-	auto tattrib = lua_get<uint32_t>(L, 2);
+LUA_FUNCTION(IsOriginalAttribute, uint32_t attribute) {
 	if(self->status & STATUS_NO_LEVEL)
 		lua_pushboolean(L, FALSE);
 	else
-		lua_pushboolean(L, (self->data.attribute & tattrib) != 0);
+		lua_pushboolean(L, (self->data.attribute & attribute) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsReason) {
-	check_param_count(L, 2);
-	auto treason = lua_get<uint32_t>(L, 2);
-	lua_pushboolean(L, (self->current.reason & treason) != 0);
+LUA_FUNCTION(IsReason, uint32_t reason) {
+	lua_pushboolean(L, (self->current.reason & reason) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsSummonType) {
@@ -820,13 +740,11 @@ LUA_FUNCTION(IsSummonType) {
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsSummonLocation) {
-	auto loc = lua_get<uint16_t>(L, 2);
-	lua_pushboolean(L, card_state::is_location(self->summon, loc));
+LUA_FUNCTION(IsSummonLocation, uint16_t location) {
+	lua_pushboolean(L, card_state::is_location(self->summon, location));
 	return 1;
 }
-LUA_FUNCTION(IsSummonPlayer) {
-	auto player = lua_get<uint8_t>(L, 2);
+LUA_FUNCTION(IsSummonPlayer, playerid_t player) {
 	lua_pushboolean(L, self->summon.player == player);
 	return 1;
 }
@@ -1296,7 +1214,7 @@ LUA_FUNCTION(IsFusionSummonableCard, std::optional<uint32_t> summon_type) {
 inline int32_t spsummonable_rule(lua_State* L, card* self, uint32_t cardtype, uint32_t sumtype,
 								 const std::variant<Nil, card*, group*>& forced_materials, const std::variant<Nil, card*, group*>& materials,
 								 const std::optional<uint16_t>& minc, const std::optional<uint16_t>& maxc) {
-	const auto pduel = lua_get<duel*>(L);
+	const auto pduel = duel::from(L);
 	if(!(self->data.type & cardtype))
 		return 0;
 	owned_lua<group> forced_materials_group = nullptr;
