@@ -65,9 +65,8 @@ const char* get_lua_type_name(lua_State* L, int32_t index) {
 	}
 }
 
-void check_action_permission(lua_State* L) {
-	if(lua_get<duel*>(L)->lua->no_action)
-		lua_error(L, "Action is not allowed here.");
+bool is_in_noaction_state(lua_State* L) {
+	return lua_get<duel*>(L)->lua->no_action;
 }
 int32_t push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
 	const auto pduel = lua_get<duel*>(L);

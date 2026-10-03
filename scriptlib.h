@@ -38,7 +38,7 @@ namespace scriptlib {
 	void push_group_lib(lua_State* L);
 	void push_duel_lib(lua_State* L);
 	void push_debug_lib(lua_State* L);
-	void check_action_permission(lua_State* L);
+	bool is_in_noaction_state(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
 	inline int32_t push_return_cards(lua_State* L, bool cancelable) {
 		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
@@ -47,11 +47,8 @@ namespace scriptlib {
 	std::any* set_any_temp_storage(lua_State* L, std::any&& storage);
 
 #define lua_error(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
-
-	inline void check_param_count(lua_State* L, int32_t count) {
-		if(lua_gettop(L) < count)
-			lua_error(L, "%d Parameters are needed.", count);
-	}
+#define check_action_permission(L) do { if(is_in_noaction_state(L)) lua_error(L, "Action is not allowed here."); } while(0)
+#define check_param_count(L, count) do { if(lua_gettop(L) < count) lua_error(L, "%d Parameters are needed.", count); } while(0)
 
 	using playerid_t = RangedInteger<uint8_t, 0, 1>;
 
