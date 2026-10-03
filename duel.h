@@ -73,7 +73,12 @@ public:
 	std::unordered_map<uint32_t, card_data> data_cache;
 	
 	duel() = delete;
-	explicit duel(const OCG_DuelOptions& options, bool& valid_lua_lib);
+	duel(const OCG_DuelOptions& options, bool& valid_lua_lib);
+	static duel* from(lua_State* L) {
+		duel* pduel = nullptr;
+		std::memcpy(&pduel, lua_getextraspace(L), sizeof(duel*));
+		return pduel;
+	}
 	~duel();
 	void clear();
 	
