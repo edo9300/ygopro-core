@@ -195,9 +195,12 @@ static inline decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::in
 	using namespace scriptlib;
 	// Visual Studio 2017 crashes when using make_tuple with a RangedInteger as last parameter, work around that
 #ifdef _MSC_VER
-	tuple t;
-	((std::get<indices>(t) = get_lua<std::tuple_element_t<indices, tuple>, (indices + 1 == sizeof...(indices))>(L, indices + 1)), ...);
-	return t;
+	// use this lambda to ensure that get_lua is called before the tuple is attempted to be initialized
+	return [](auto&&... args) {
+		tuple t;
+		((std::get<indices>(t) = std::forward<decltype(args)>(args)), ...);
+		return t;
+	}(get_lua<std::tuple_element_t<indices, tuple>, (indices + 1 == sizeof...(indices))>(L, indices + 1)...);
 #else
 	return std::make_tuple(get_lua<std::tuple_element_t<indices, tuple>, (indices + 1 == sizeof...(indices))>(L, indices + 1)...);
 #endif
