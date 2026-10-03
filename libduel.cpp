@@ -1519,7 +1519,7 @@ LUA_STATIC_FUNCTION(GetCurrentChain, std::optional<bool> real) {
 	lua_pushinteger(L, real.value_or(false) ? core.real_chain_count : core.current_chain.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetChainInfo, uint8_t count, nonempty_vector<CHAININFO> chain_flags) {
+LUA_STATIC_FUNCTION(GetChainInfo, uint8_t count, nonempty_lua_range<CHAININFO> chain_flags) {
 	chain* ch = pduel->game_field->get_chain(count);
 	if(!ch)
 		return 0;
@@ -1967,7 +1967,7 @@ LUA_STATIC_FUNCTION(SelectMatchingCard) {
 	return push_return_cards(L, cancelable);
 }
 LUA_STATIC_FUNCTION(SelectCardsFromCodes, playerid_t playerid, uint16_t min, uint16_t max, bool cancelable,
-					[[maybe_unused]] bool return_index, nonempty_vector<uint32_t> select_codes) {
+					[[maybe_unused]] bool return_index, nonempty_lua_range<uint32_t> select_codes) {
 	check_action_permission(L);
 	pduel->game_field->core.select_cards_codes.clear();
 	for(auto code : select_codes) {
@@ -2566,7 +2566,7 @@ LUA_STATIC_FUNCTION(SelectYesNo, playerid_t playerid, uint64_t description) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SelectOption, playerid_t playerid, nonempty_vector<uint64_t> options) {
+LUA_STATIC_FUNCTION(SelectOption, playerid_t playerid, nonempty_lua_range<uint64_t> options) {
 	check_action_permission(L);
 	pduel->game_field->core.select_options = std::move(options);
 	pduel->game_field->emplace_process<Processors::SelectOption>(playerid);
@@ -2582,7 +2582,7 @@ LUA_STATIC_FUNCTION(SelectOption, playerid_t playerid, nonempty_vector<uint64_t>
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(SelectOption, playerid_t playerid, std::variant<bool, uint64_t> option_or_confirm_dialog, nonempty_vector<uint64_t> remaining_options) {
+LUA_STATIC_FUNCTION(SelectOption, playerid_t playerid, std::variant<bool, uint64_t> option_or_confirm_dialog, nonempty_lua_range<uint64_t> remaining_options) {
 	check_action_permission(L);
 	auto& select_options = pduel->game_field->core.select_options;
 	select_options.clear();
@@ -2772,7 +2772,7 @@ LUA_STATIC_FUNCTION(AnnounceAttribute, playerid_t playerid, uint8_t count, uint6
 	});
 }
 LUA_STATIC_FUNCTION(AnnounceNumberRange, playerid_t playerid, std::optional<uint32_t> min_opt,
-					std::optional<uint32_t> max_opt, std::vector<std::optional<uint32_t>> excluded_vec) {
+					std::optional<uint32_t> max_opt, lua_range<std::optional<uint32_t>> excluded_vec) {
 	check_action_permission(L);
 	auto min = min_opt.value_or(1);
 	auto max = max_opt.value_or(12);
@@ -2862,7 +2862,7 @@ bool check_announceable(std::vector<uint64_t>& opcodes){
 	}
 	return true;
 }
-LUA_STATIC_FUNCTION(AnnounceCard, playerid_t playerid, std::vector<uint64_t> ttype_or_opcodes) {
+LUA_STATIC_FUNCTION(AnnounceCard, playerid_t playerid, lua_range<uint64_t> ttype_or_opcodes) {
 	check_action_permission(L);
 	auto& options = pduel->game_field->core.select_options;
 	options = std::move(ttype_or_opcodes);
@@ -2896,7 +2896,7 @@ LUA_STATIC_FUNCTION(AnnounceType, playerid_t playerid) {
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(AnnounceNumber, playerid_t playerid, nonempty_vector<uint64_t> numbers) {
+LUA_STATIC_FUNCTION(AnnounceNumber, playerid_t playerid, nonempty_lua_range<uint64_t> numbers) {
 	check_action_permission(L);
 	pduel->game_field->core.select_options = std::move(numbers);
 	pduel->game_field->emplace_process<Processors::AnnounceNumber>(playerid);
@@ -2971,7 +2971,7 @@ LUA_STATIC_FUNCTION(GetDiceResult) {
 		lua_pushinteger(L, dice);
 	return static_cast<int32_t>(dice_results.size());
 }
-LUA_STATIC_FUNCTION(SetCoinResult, nonempty_vector<RangedInteger<uint8_t, 0, 1>> new_coin_results) {
+LUA_STATIC_FUNCTION(SetCoinResult, nonempty_lua_range<RangedInteger<uint8_t, 0, 1>> new_coin_results) {
 	auto& coin_results = pduel->game_field->core.coin_results;
 	if(const auto new_coin_results_size = new_coin_results.size(), coin_results_size = coin_results.size();
 	   new_coin_results_size != coin_results_size)
@@ -2980,7 +2980,7 @@ LUA_STATIC_FUNCTION(SetCoinResult, nonempty_vector<RangedInteger<uint8_t, 0, 1>>
 		coin_results[i] = static_cast<bool>(new_coin_results[i]);
 	return 0;
 }
-LUA_STATIC_FUNCTION(SetDiceResult, nonempty_vector<uint8_t> new_dice_results) {
+LUA_STATIC_FUNCTION(SetDiceResult, nonempty_lua_range<uint8_t> new_dice_results) {
 	auto& dice_results = pduel->game_field->core.dice_results;
 	if(const auto new_dice_results_size = new_dice_results.size(), dice_results_size = dice_results.size();
 	   new_dice_results_size != dice_results_size)
@@ -3066,7 +3066,7 @@ LUA_STATIC_FUNCTION(IsPlayerCanFlipSummon, playerid_t playerid, card* pcard) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_flipsummon(playerid, pcard));
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster, playerid_t playerid, uint32_t code, std::vector<uint16_t> setcodes, std::optional<uint32_t> type,
+LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster, playerid_t playerid, uint32_t code, lua_range<uint16_t> setcodes, std::optional<uint32_t> type,
 					std::optional<int32_t> attack, std::optional<int32_t> defense, std::optional<uint32_t> level, std::optional<uint64_t> race,
 					std::optional<uint32_t> attribute, std::optional<uint8_t> pos, std::optional<playerid_t> toplayer, std::optional<uint32_t> sumtype) {
 	card_data dat = pduel->read_card(code);
@@ -3207,7 +3207,7 @@ LUA_STATIC_FUNCTION(CheckChainUniqueness) {
 	lua_pushboolean(L, er.size() == pduel->game_field->core.current_chain.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetActivityCount, playerid_t playerid, nonempty_vector<ActivityType> activities) {
+LUA_STATIC_FUNCTION(GetActivityCount, playerid_t playerid, nonempty_lua_range<ActivityType> activities) {
 	luaL_checkstack(L, activities.size(), nullptr);
 	auto& core = pduel->game_field->core;
 	for(const auto activity_type : activities) {

@@ -1793,7 +1793,7 @@ LUA_FUNCTION(CheckUniqueOnField, playerid_t check_player, std::optional<uint8_t>
 	lua_pushbool(L, pduel->game_field->check_unique_onfield(self, check_player, check_location.value_or(LOCATION_ONFIELD) & LOCATION_ONFIELD, card_to_ignore.value_or(nullptr)));
 	return 1;
 }
-LUA_FUNCTION(ResetNegateEffect, nonempty_vector<uint32_t> resets) {
+LUA_FUNCTION(ResetNegateEffect, nonempty_lua_range<uint32_t> resets) {
 	for(auto reset_code : resets)
 		self->reset(reset_code, RESET_CARD);
 	return 0;
@@ -1833,7 +1833,7 @@ LUA_FUNCTION(Setcode) {
 		lua_pushinteger(L, setcode);
 	return static_cast<int32_t>(self->data.setcodes.size());
 }
-LUA_FUNCTION(Setcode, nonempty_vector<uint16_t> setcodes) {
+LUA_FUNCTION(Setcode, nonempty_lua_range<uint16_t> setcodes) {
 	self->data.setcodes.clear();
 	self->data.setcodes.insert(setcodes.begin(), setcodes.end());
 	return 0;
@@ -1849,7 +1849,7 @@ CARD_INFO_FUNC(Rscale, rscale)
 CARD_INFO_FUNC(Lscale, lscale)
 CARD_INFO_FUNC(LinkMarker, link_marker)
 #undef CARD_INFO_FUNC
-LUA_FUNCTION(Recreate, uint32_t code, std::optional<uint32_t> alias, std::vector<uint16_t> setcodes,
+LUA_FUNCTION(Recreate, uint32_t code, std::optional<uint32_t> alias, lua_range<uint16_t> setcodes,
 			 std::optional<uint32_t> type, std::optional<uint32_t> level, std::optional<uint32_t> attribute,
 			 std::optional<uint64_t> race, std::optional<int32_t> attack, std::optional<int32_t> defense,
 			 std::optional<uint32_t> lscale, std::optional<uint32_t> rscale, std::optional<uint32_t> link_marker,

@@ -12,10 +12,21 @@
 #include <variant>
 #include <vector>
 
-template<typename ...Args>
-struct nonempty_vector : public std::vector<Args...> {
-	using base = std::vector<Args...>;
+template<typename T, bool nonempty = false>
+struct lua_range : public std::vector<T> {
+	using base = std::vector<T>;
+	lua_range() = default;
+	lua_range(const lua_range&) = delete;
+	lua_range& operator=(const lua_range&) = delete;
+	lua_range(lua_range&&) = default;
+	lua_range& operator=(lua_range&&) = default;
+	lua_range(base & rhs) : base{ std::move(rhs) } {}
+	lua_range& operator=(base & rhs) { *this = std::move(rhs); return *this; }
+	lua_range(base&& rhs) : base{ std::move(rhs) } {}
 };
+
+template<typename T>
+using nonempty_lua_range = lua_range<T, true>;
 
 template<typename T>
 struct is_optional : std::false_type {};
@@ -27,25 +38,25 @@ template<typename T>
 [[maybe_unused]] inline constexpr bool is_optional_v = is_optional<T>::value;
 
 template<typename T>
-struct is_vector : std::false_type {};
+struct is_lua_range : std::false_type {};
 
 template<typename T>
-struct is_vector<std::vector<T>> : std::true_type {};
+struct is_lua_range<lua_range<T>> : std::true_type {};
 
 template<typename T>
-struct is_vector<nonempty_vector<T>> : std::true_type {};
+struct is_lua_range<nonempty_lua_range<T>> : std::true_type {};
 
 template<typename T>
-[[maybe_unused]] inline constexpr bool is_vector_v = is_vector<T>::value;
+[[maybe_unused]] inline constexpr bool is_lua_range_v = is_lua_range<T>::value;
 
 template<typename T>
-struct is_nonempty_vector : std::false_type {};
+struct is_nonempty_lua_range : std::false_type {};
 
 template<typename T>
-struct is_nonempty_vector<nonempty_vector<T>> : std::true_type {};
+struct is_nonempty_lua_range<nonempty_lua_range<T>> : std::true_type {};
 
 template<typename T>
-[[maybe_unused]] inline constexpr bool is_nonempty_vector_v = is_nonempty_vector<T>::value;
+[[maybe_unused]] inline constexpr bool is_nonempty_lua_range_v = is_nonempty_lua_range<T>::value;
 
 template<typename T>
 struct is_variant : std::false_type {};

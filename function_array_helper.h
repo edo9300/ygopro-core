@@ -172,7 +172,7 @@ constexpr auto count_trailing_optionals() {
 		return 0;
 	} else {
 		using Arg = std::tuple_element_t<idx - 1, Tuple>;
-		if constexpr(!((is_vector_v<Arg> && !is_nonempty_vector_v<Arg>) || is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>))) {
+		if constexpr(!((is_lua_range_v<Arg> && !is_nonempty_lua_range_v<Arg>) || is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>))) {
 			return 0;
 		} else {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
@@ -193,8 +193,10 @@ using get_lua_function_arguments_t = typename get_lua_function_arguments<Sig>::t
 template<typename tuple, size_t... indices>
 static inline decltype(auto) parse_helper([[maybe_unused]] lua_State* L, std::index_sequence<indices...>) {
 	using namespace scriptlib;
+	clear_any_temp_storage(L);
+#if defined(_MSC_VER) && (_MSC_VER + 0) < 1920
 	// Visual Studio 2017 crashes when using make_tuple with a RangedInteger as last parameter, work around that
-#ifdef _MSC_VER
+	// fatal error C1001: An internal error has occurred in the compiler.1>(compiler file ‘msc1.cpp’, line 1518)
 	// use this lambda to ensure that get_lua is called before the tuple is attempted to be initialized
 	return [](auto&&... args) {
 		tuple t;

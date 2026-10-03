@@ -57,7 +57,7 @@ public:
 	lua_invalid deleted;
 	int weak_lua_references;
 	int loaded_scripts_table;
-	std::any temp_lua_parsing_storage;
+	std::list<std::any> temp_lua_parsing_storage;
 
 	interpreter(duel* pd, const OCG_DuelOptions& options, bool& valid_lua_lib);
 	~interpreter();
