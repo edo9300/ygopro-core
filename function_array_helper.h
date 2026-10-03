@@ -282,14 +282,14 @@ static int32_t call_lua_function(lua_State* L) {
 			return prev_function_ptr(L);
 	}
 	if constexpr(max_number_of_arguments == 0) {
-		return function_ptr(L, lua_get<duel*>(L));
+		return function_ptr(L, duel::from(L));
 	} else {
 		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals<lua_function_arguments>();
 		if constexpr(required_args > 0)
 			check_param_count(L, required_args);
 		return std::apply(function_ptr,
 		  std::tuple_cat(
-			  std::make_tuple(L, lua_get<duel*>(L)),
+			  std::make_tuple(L, duel::from(L)),
 			  Detail::parse_arguments_tuple<lua_function_arguments>(L)
 		  )
 		);
