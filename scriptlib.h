@@ -718,6 +718,7 @@ namespace scriptlib {
 		using namespace scriptlib;
 		using vec_type = typename T::base;
 		vec_type& result = *std::any_cast<vec_type>(set_any_temp_storage(L, vec_type{}));
+		result.from_table = lua_istable(L, idx);
 		if constexpr(!is_nonempty_lua_range_v<T> && !last) {
 			// range as middle parameter which can also be nil
 			if(lua_isnoneornil(L, idx))
