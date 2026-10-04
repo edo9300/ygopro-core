@@ -172,10 +172,14 @@ constexpr auto count_trailing_optionals() {
 		return 0;
 	} else {
 		using Arg = std::tuple_element_t<idx - 1, Tuple>;
-		if constexpr(!((is_lua_range_v<Arg> && !is_nonempty_lua_range_v<Arg>) || is_optional_v<Arg> || (is_variant_v<Arg> && is_variant_member_v<Arg, Nil>))) {
-			return 0;
-		} else {
+		if constexpr(is_lua_range_v<Arg> && !is_nonempty_lua_range_v<Arg>) {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
+		} else if constexpr(is_optional_v<Arg>) {
+			return 1 + count_trailing_optionals<Tuple, idx - 1>();
+		} else if constexpr(is_variant_v<Arg> && is_variant_member_v<Arg, Nil>) {
+			return 1 + count_trailing_optionals<Tuple, idx - 1>();
+		} else {
+			return 0;
 		}
 	}
 }

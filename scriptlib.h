@@ -434,6 +434,7 @@ namespace scriptlib {
 
 	using Nil = struct {}*;
 
+	using Any = std::variant<card*, group*, effect*, scriptlib::Function, scriptlib::Table, bool, lua_Integer, Nil>;
 
 	template<typename RangedInt>
 	static inline RangedInt check_ranged_int(lua_State* L, int idx, lua_Integer value) {
