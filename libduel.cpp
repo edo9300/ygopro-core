@@ -1999,38 +1999,20 @@ LUA_STATIC_FUNCTION(SelectCardsFromCodes, playerid_t playerid, uint16_t min, uin
 		return ret;
 	});
 }
-/**
-* \brief Duel.GetReleaseGroup
-* \param playerid
-* \return Group
-*/
-LUA_STATIC_FUNCTION(GetReleaseGroup) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	bool hand = lua_get<bool, false>(L, 2);
-	bool oppo = lua_get<bool, false>(L, 3);
-	const auto reason = lua_get<uint32_t, REASON_COST>(L, 4);
+LUA_STATIC_FUNCTION(GetReleaseGroup, playerid_t playerid, std::optional<bool> use_hand, std::optional<bool> use_oppo, std::optional<uint32_t> reason) {
 	auto pgroup = pduel->new_group();
-	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container, hand, 0, 0, nullptr, nullptr, oppo, reason);
+	pduel->game_field->get_release_list(playerid, &pgroup->container, &pgroup->container, &pgroup->container,
+										use_hand.value_or(false), 0, 0, nullptr, nullptr,
+										use_oppo.value_or(false),
+										reason.value_or(REASON_COST));
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-/**
-* \brief Duel.GetReleaseGroupCount
-* \param playerid
-* \return Integer
-*/
-LUA_STATIC_FUNCTION(GetReleaseGroupCount) {
-	check_param_count(L, 1);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	bool hand = lua_get<bool, false>(L, 2);
-	bool oppo = lua_get<bool, false>(L, 3);
-	const auto reason = lua_get<uint32_t, REASON_COST>(L, 4);
-	lua_pushinteger(L, pduel->game_field->get_release_list(playerid, nullptr, nullptr, nullptr, hand, 0, 0, nullptr, nullptr, oppo, reason));
+LUA_STATIC_FUNCTION(GetReleaseGroupCount, playerid_t playerid, std::optional<bool> use_hand, std::optional<bool> use_oppo, std::optional<uint32_t> reason) {
+	lua_pushinteger(L, pduel->game_field->get_release_list(playerid, nullptr, nullptr, nullptr,
+														   use_hand.value_or(false), 0, 0, nullptr, nullptr,
+														   use_oppo.value_or(false),
+														   reason.value_or(REASON_COST)));
 	return 1;
 }
 static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
