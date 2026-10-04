@@ -180,8 +180,8 @@ LUA_STATIC_FUNCTION(PrintStacktrace) {
 	interpreter::print_stacktrace(L);
 	return 0;
 }
-LUA_STATIC_FUNCTION(CardToStringWrapper) {
-	if(get_lua_type(L, 1) == LuaParam::CARD) {
+LUA_STATIC_FUNCTION(CardToStringWrapper, Any argument) {
+	if(std::holds_alternative<card*>(argument)) {
 		luaL_checkstack(L, 4, nullptr);
 		lua_getglobal(L, "Debug");
 		lua_pushstring(L, "CardToString");
