@@ -434,7 +434,13 @@ namespace scriptlib {
 
 	using Nil = struct {}*;
 
-	using Any = std::variant<card*, group*, effect*, scriptlib::Function, scriptlib::Table, bool, lua_Integer, Nil>;
+	using Invalid = lua_obj_helper<LuaParam::DELETED>;
+
+	struct Unknown {
+		int idx;
+	};
+
+	using Any = std::variant<card*, group*, effect*, Invalid*, Function, Table, bool, lua_Integer, Nil, Unknown>;
 
 	template<typename RangedInt>
 	static inline RangedInt check_ranged_int(lua_State* L, int idx, lua_Integer value) {
@@ -534,16 +540,20 @@ namespace scriptlib {
 	struct check_variant_types_functor<std::variant<Args...>> {
 		constexpr bool operator()(LuaParam lua_type) {
 			using namespace scriptlib;
-			if constexpr((IsCard<Args> || ...) || (IsLuaObj<Args> || ...)) {
+			if constexpr(((IsCard<Args> || IsLuaObj<Args>) || ...)) {
 				if(lua_type == LuaParam::CARD)
 					return true;
 			}
-			if constexpr((IsGroup<Args> || ...) || (IsLuaObj<Args> || ...)) {
+			if constexpr(((IsGroup<Args> || IsLuaObj<Args>) || ...)) {
 				if(lua_type == LuaParam::GROUP)
 					return true;
 			}
-			if constexpr((IsEffect<Args> || ...) || (IsLuaObj<Args> || ...)) {
+			if constexpr(((IsEffect<Args> || IsLuaObj<Args>) || ...)) {
 				if(lua_type == LuaParam::EFFECT)
+					return true;
+			}
+			if constexpr((std::is_same_v<Invalid*, Args> || ...)) {
+				if(lua_type == LuaParam::DELETED)
 					return true;
 			}
 			if constexpr((std::is_same_v<Function, Args> || ...)) {
@@ -570,6 +580,10 @@ namespace scriptlib {
 				if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
 					return true;
 			}
+			if constexpr((std::is_same_v<Unknown, Args> || ...)) {
+				if(lua_type == LuaParam::UNKNOWN)
+					return true;
+			}
 			return false;
 		}
 	};
@@ -582,8 +596,8 @@ namespace scriptlib {
 		using variant_t = std::variant<Args...>;
 		template<typename T>
 		static inline constexpr bool is_handled_variant_type = scriptlib::IsCard<T> || scriptlib::IsGroup<T> ||
-			scriptlib::IsEffect<T> || scriptlib::IsLuaObj<T> || std::is_same_v<Function, T> ||
-			std::is_same_v<Table, T> || scriptlib::IsBool<T> || scriptlib::IsInteger<T> || std::is_same_v<Nil, T>;
+			scriptlib::IsEffect<T> || std::is_same_v<Invalid*,T> || scriptlib::IsLuaObj<T> || std::is_same_v<Function, T> ||
+			std::is_same_v<Table, T> || scriptlib::IsBool<T> || scriptlib::IsInteger<T> || std::is_same_v<Nil, T> || std::is_same_v<Unknown, T>;
 		constexpr variant_t operator()(lua_State* L, int idx, LuaParam lua_type) {
 			static_assert(((is_handled_variant_type<Args> * 1) + ...) == std::variant_size_v<variant_t>, "Unhandled variant type passed");
 			using namespace scriptlib;
@@ -598,6 +612,10 @@ namespace scriptlib {
 			if constexpr((IsEffect<Args> || ...)) {
 				if(lua_type == LuaParam::EFFECT)
 					return *static_cast<effect**>(lua_touserdata(L, idx));
+			}
+			if constexpr((std::is_same_v<Invalid*, Args> || ...)) {
+				if(lua_type == LuaParam::DELETED)
+					return *static_cast<Invalid**>(lua_touserdata(L, idx));
 			}
 			if constexpr((IsLuaObj<Args> || ...)) {
 				if(lua_type == LuaParam::CARD || lua_type == LuaParam::EFFECT || lua_type == LuaParam::GROUP)
@@ -644,6 +662,10 @@ namespace scriptlib {
 			if constexpr((std::is_same_v<Nil, Args> || ...)) {
 				if(lua_type == LuaParam::NIL || lua_type == LuaParam::NONE)
 					return Nil{};
+			}
+			if constexpr((std::is_same_v<Unknown, Args> || ...)) {
+				if(lua_type == LuaParam::UNKNOWN)
+					return Unknown{ idx };
 			}
 			unreachable();
 		}

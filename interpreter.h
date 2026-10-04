@@ -27,8 +27,6 @@ class duel;
 
 struct lua_State;
 
-using lua_invalid = lua_obj_helper<LuaParam::DELETED>;
-
 class interpreter {
 	char msgbuf[128]{};
 public:
@@ -54,7 +52,7 @@ public:
 	coroutine_map coroutines;
 	int32_t no_action;
 	int32_t call_depth;
-	lua_invalid deleted;
+	scriptlib::Invalid deleted;
 	int weak_lua_references;
 	int loaded_scripts_table;
 	std::list<std::any> temp_lua_parsing_storage;
