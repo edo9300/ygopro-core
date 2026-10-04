@@ -491,7 +491,7 @@ lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else
-		result = lua_get<lua_Integer, 0>(current_state, -1);
+		result = get_lua<std::optional<lua_Integer>>(current_state, -1).value_or(0);
 	lua_pop(current_state, 1);
 	return result;
 }
@@ -511,10 +511,11 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 		int32_t stack_newtop = lua_gettop(current_state);
 		for(int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
 			lua_Integer return_value = 0;
-			if(lua_isboolean(current_state, index))
-				return_value = lua_get<bool>(current_state, index);
-			else
-				return_value = lua_get<lua_Integer, 0>(current_state, index);
+			auto val = get_lua<Any>(current_state, index);
+			if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+				return_value = *int_val;
+			else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
+				return_value = *bool_val;
 			result.push_back(return_value);
 		}
 		lua_settop(current_state, stack_top);
@@ -530,10 +531,11 @@ lua_Integer interpreter::get_function_value(int32_t function, uint32_t param_cou
 	if(!call_function(function, param_count, 1))
 		return 0;
 	lua_Integer result = 0;
-	if(lua_isboolean(current_state, -1))
-		result = lua_get<bool>(current_state, -1);
-	else
-		result = lua_get<lua_Integer, 0>(current_state, -1);
+	auto val = get_lua<Any>(current_state, -1);
+	if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+		result = *int_val;
+	else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
+		result = *bool_val;
 	lua_pop(current_state, 1);
 	return result;
 }
@@ -548,10 +550,11 @@ bool interpreter::get_function_value(int32_t function, uint32_t param_count, std
 	const int32_t stack_newtop = lua_gettop(current_state);
 	for(int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
 		lua_Integer return_value = 0;
-		if(lua_isboolean(current_state, index))
-			return_value = lua_get<bool>(current_state, index);
-		else
-			return_value = lua_get<lua_Integer, 0>(current_state, index);
+		auto val = get_lua<Any>(current_state, -1);
+		if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+			return_value = *int_val;
+		else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
+			return_value = *bool_val;
 		result.push_back(return_value);
 	}
 	//pops all the results from the stack (lua_pop(current_state, stack_newtop - stack_top))
