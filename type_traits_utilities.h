@@ -12,9 +12,14 @@
 #include <variant>
 #include <vector>
 
+template<typename T>
+struct base_lua_range : public std::vector<T> {
+	bool from_table{ false };
+};
+
 template<typename T, bool nonempty = false>
-struct lua_range : public std::vector<T> {
-	using base = std::vector<T>;
+struct lua_range : public base_lua_range<T> {
+	using base = base_lua_range<T>;
 	lua_range() = default;
 	lua_range(const lua_range&) = delete;
 	lua_range& operator=(const lua_range&) = delete;
