@@ -487,7 +487,7 @@ lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else
-		result = lua_get<lua_Integer>(current_state, -1);
+		result = lua_get<lua_Integer, 0>(current_state, -1);
 	lua_pop(current_state, 1);
 	return result;
 }
