@@ -117,17 +117,12 @@ LUA_FUNCTION(GetPreviousSetCard) {
 		lua_pushinteger(L, setcode);
 	return static_cast<int32_t>(setcodes.size());
 }
-LUA_FUNCTION(GetType) {
-	card* scard = nullptr;
-	uint8_t playerid = PLAYER_NONE;
-	if (lua_gettop(L) > 1 && !lua_isnoneornil(L, 2))
-		scard = lua_get<card*, true>(L, 2);
-	auto sumtype = lua_get<uint64_t, 0>(L, 3);
-	if (lua_gettop(L) > 3)
-		playerid = lua_get<uint8_t>(L, 4);
-	else if (sumtype == SUMMON_TYPE_FUSION)
-		playerid = pduel->game_field->core.reason_player;
-	lua_pushinteger(L, self->get_type(scard, sumtype, playerid));
+LUA_FUNCTION(GetType, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	lua_pushinteger(L, self->get_type(scard.value_or(nullptr),
+									  sumtype.value_or(0),
+									  playerid.value_or(sumtype == SUMMON_TYPE_FUSION ?
+														pduel->game_field->core.reason_player :
+														PLAYER_NONE)));
 	return 1;
 }
 LUA_FUNCTION(GetOriginalType) {
@@ -493,8 +488,7 @@ LUA_FUNCTION(GetCardID) {
 	lua_pushinteger(L, self->cardid);
 	return 1;
 }
-LUA_FUNCTION(IsOriginalCodeRule) {
-	check_param_count(L, 2);
+LUA_FUNCTION(IsOriginalCodeRule, nonempty_lua_range<uint32_t> codes) {
 	uint32_t code1 = 0;
 	uint32_t code2 = 0;
 	effect_set eset;
@@ -507,17 +501,13 @@ LUA_FUNCTION(IsOriginalCodeRule) {
 		if(eset.size())
 			code2 = eset.back()->get_value(self);
 	}
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, code1, code2] {
-		if(lua_isnoneornil(L, -1))
-			return false;
-		uint32_t tcode = lua_get<uint32_t>(L, -1);
+	bool found = std::find_if(codes.begin(), codes.end(), [&](uint32_t tcode) {
 		return code1 == tcode || (code2 && code2 == tcode);
-	});
+	}) != codes.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsOriginalCode) {
-	check_param_count(L, 2);
+LUA_FUNCTION(IsOriginalCode, nonempty_lua_range<uint32_t> codes) {
 	const auto original_code = [self]() {
 		if(self->data.alias) {
 			int32_t dif = self->data.code - self->data.alias;
@@ -528,32 +518,19 @@ LUA_FUNCTION(IsOriginalCode) {
 		} else
 			return self->data.code;
 	}();
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, original_code] {
-		if(lua_isnoneornil(L, -1))
-			return false;
-		return original_code == lua_get<uint32_t>(L, -1);
-	});
-	lua_pushboolean(L, found);
+	lua_pushboolean(L, std::find(codes.begin(), codes.end(), original_code) != codes.end());
 	return 1;
 }
-LUA_FUNCTION(IsCode) {
-	check_param_count(L, 2);
+LUA_FUNCTION(IsCode, nonempty_lua_range<uint32_t> codes) {
 	uint32_t code1 = self->get_code();
 	uint32_t code2 = self->get_another_code();
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, code1, code2] {
-		if(lua_isnoneornil(L, -1))
-			return false;
-		uint32_t tcode = lua_get<uint32_t>(L, -1);
+	bool found = std::find_if(codes.begin(), codes.end(), [&](uint32_t tcode) {
 		return code1 == tcode || (code2 && code2 == tcode);
-	});
+	}) != codes.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsSummonCode) {
-	check_param_count(L, 5);
-	auto scard = lua_get<card*>(L, 2);
-	auto sumtype = lua_get<uint64_t>(L, 3);
-	auto playerid = lua_get<uint8_t, PLAYER_NONE>(L, 4);
+LUA_FUNCTION(IsSummonCode, card* scard, uint64_t sumtype, std::optional<playerid_none_t> playerid, nonempty_lua_range<uint32_t> summon_codes) {
 	effect_set eset;
 	std::set<uint32_t> codes;
 	self->filter_effect(EFFECT_ADD_CODE, &eset, FALSE);
@@ -569,8 +546,9 @@ LUA_FUNCTION(IsSummonCode) {
 			continue;
 		pduel->lua->add_param<LuaParam::CARD>(scard);
 		pduel->lua->add_param<LuaParam::INT>(sumtype);
-		pduel->lua->add_param<LuaParam::INT>(playerid);
-		if (!pduel->lua->check_condition(peff->operation, 3))
+		pduel->lua->add_param<LuaParam::INT>(playerid.value_or(PLAYER_NONE));
+		pduel->lua->add_param<LuaParam::EFFECT>(pduel->game_field->core.reason_effect);
+		if (!pduel->lua->check_condition(peff->operation, 4))
 			continue;
 		if (peff->code == EFFECT_ADD_CODE)
 			codes.insert(peff->get_value(self));
@@ -583,12 +561,9 @@ LUA_FUNCTION(IsSummonCode) {
 			codes.insert(peff->get_value(self));
 		}
 	}
-	bool found = lua_find_in_table_or_in_stack(L, 5, lua_gettop(L), [L, &codes] {
-		if(lua_isnoneornil(L, -1))
-			return false;
-		uint32_t tcode = lua_get<uint32_t>(L, -1);
+	bool found = std::find_if(summon_codes.begin(), summon_codes.end(), [&](uint32_t tcode) {
 		return codes.find(tcode) != codes.end();
-	});
+	}) != summon_codes.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
@@ -597,41 +572,32 @@ inline bool set_contains_setcode(const std::set<uint16_t>& setcodes, uint16_t to
 		return card::match_setcode(to_match_setcode, setcode);
 	});
 }
-LUA_FUNCTION(IsSetCard) {
-	check_param_count(L, 2);
-	std::set<uint16_t> setcodes;
-	if (lua_gettop(L) > 2) {
-		card* scard = nullptr;
-		uint8_t playerid = PLAYER_NONE;
-		if (!lua_isnoneornil(L, 3))
-			scard = lua_get<card*, true>(L, 3);
-		auto sumtype = lua_get<uint64_t, 0>(L, 4);
-		playerid = lua_get<uint8_t, PLAYER_NONE>(L, 5);
-		self->get_summon_set_card(setcodes, scard, sumtype, playerid);
+LUA_FUNCTION(IsSetCard, nonempty_lua_range<uint16_t> setcodes, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
+	std::set<uint16_t> own_setcodes;
+	if(scard.has_value() || sumtype.has_value() || playerid.has_value()) {
+		self->get_summon_set_card(own_setcodes, scard.value_or(nullptr), sumtype.value_or(0), playerid.value_or(PLAYER_NONE));
 	} else
-		self->get_set_card(setcodes);
-	bool found = lua_find_in_table_or_in_stack(L, 2, 2, [L, &setcodes] {
-		return set_contains_setcode(setcodes, lua_get<uint16_t>(L, -1));
-	});
+		self->get_set_card(own_setcodes);
+	bool found = std::find_if(setcodes.begin(), setcodes.end(), [&](uint16_t setcode) {
+		return set_contains_setcode(own_setcodes, setcode);
+	}) != setcodes.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsOriginalSetCard) {
-	check_param_count(L, 2);
-	const auto& setcodes = self->get_origin_set_card();
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, &setcodes] {
-		return set_contains_setcode(setcodes, lua_get<uint16_t>(L, -1));
-	});
+LUA_FUNCTION(IsOriginalSetCard, nonempty_lua_range<uint16_t> setcodes) {
+	const auto& own_setcodes = self->get_origin_set_card();
+	bool found = std::find_if(setcodes.begin(), setcodes.end(), [&](uint16_t setcode) {
+		return set_contains_setcode(own_setcodes, setcode);
+	}) != setcodes.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsPreviousSetCard) {
-	check_param_count(L, 2);
-	std::set<uint16_t> setcodes;
-	self->get_pre_set_card(setcodes);
-	bool found = lua_find_in_table_or_in_stack(L, 2, 2, [L, &setcodes] {
-		return set_contains_setcode(setcodes, lua_get<uint16_t>(L, -1));
-	});
+LUA_FUNCTION(IsPreviousSetCard, nonempty_lua_range<uint16_t> setcodes) {
+	std::set<uint16_t> own_setcodes;
+	self->get_pre_set_card(own_setcodes);
+	bool found = std::find_if(setcodes.begin(), setcodes.end(), [&](uint16_t setcode) {
+		return set_contains_setcode(own_setcodes, setcode);
+	}) != setcodes.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
@@ -651,48 +617,37 @@ LUA_FUNCTION(IsExactType, uint32_t type, std::optional<card*> scard, std::option
 														 PLAYER_NONE)) & type) == type);
 	return 1;
 }
-LUA_FUNCTION(IsOriginalType) {
-	check_param_count(L, 2);
-	auto ttype = lua_get<uint32_t>(L, 2);
-	lua_pushboolean(L, (self->data.type & ttype) != 0);
+LUA_FUNCTION(IsOriginalType, uint32_t type) {
+	lua_pushboolean(L, (self->data.type & type) != 0);
 	return 1;
 }
-inline int32_t is_prop(lua_State* L, uint32_t val) {
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, val] {
-		if(lua_isnoneornil(L, -1))
-			return false;
-		return val == lua_get<uint32_t>(L, -1);
-	});
+inline int32_t is_prop(lua_State* L, const nonempty_lua_range<uint32_t>& values, uint32_t val) {
+	bool found = std::find(values.begin(), values.end(), val) != values.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
-LUA_FUNCTION(IsLevel) {
-	check_param_count(L, 2);
-	return is_prop(L, self->get_level());
+LUA_FUNCTION(IsLevel, nonempty_lua_range<uint32_t> levels) {
+	return is_prop(L, levels, self->get_level());
 }
-LUA_FUNCTION(IsRank) {
-	check_param_count(L, 2);
-	return is_prop(L, self->get_rank());
+LUA_FUNCTION(IsRank, nonempty_lua_range<uint32_t> ranks) {
+	return is_prop(L, ranks, self->get_rank());
 }
-LUA_FUNCTION(IsLink) {
-	check_param_count(L, 2);
-	return is_prop(L, self->get_link());
+LUA_FUNCTION(IsLink, nonempty_lua_range<uint32_t> links) {
+	return is_prop(L, links, self->get_link());
 }
-LUA_FUNCTION(IsAttack) {
-	check_param_count(L, 2);
+LUA_FUNCTION(IsAttack, nonempty_lua_range<uint32_t> attack) {
 	if(!(self->data.type & TYPE_MONSTER) && !(self->get_type() & TYPE_MONSTER) && !self->is_affected_by_effect(EFFECT_PRE_MONSTER))
 		lua_pushboolean(L, 0);
 	else
-		is_prop(L, self->get_attack());
+		is_prop(L, attack, self->get_attack());
 	return 1;
 }
-LUA_FUNCTION(IsDefense) {
-	check_param_count(L, 2);
+LUA_FUNCTION(IsDefense, nonempty_lua_range<uint32_t> defenses) {
 	if((self->data.type & TYPE_LINK)
 	   || (!(self->data.type & TYPE_MONSTER) && !(self->get_type() & TYPE_MONSTER) && !self->is_affected_by_effect(EFFECT_PRE_MONSTER)))
 		lua_pushboolean(L, 0);
 	else
-		is_prop(L, self->get_defense());
+		is_prop(L, defenses, self->get_defense());
 	return 1;
 }
 LUA_FUNCTION(IsRace, uint64_t race, std::optional<card*> scard, std::optional<uint64_t> sumtype, std::optional<playerid_none_t> playerid) {
@@ -729,14 +684,11 @@ LUA_FUNCTION(IsReason, uint32_t reason) {
 	lua_pushboolean(L, (self->current.reason & reason) != 0);
 	return 1;
 }
-LUA_FUNCTION(IsSummonType) {
-	check_param_count(L, 2);
-	bool found = lua_find_in_table_or_in_stack(L, 2, lua_gettop(L), [L, summon_info = self->summon.type & 0xff00ffff] {
-		if(lua_isnoneornil(L, -1))
-			return false;
-		auto ttype = lua_get<uint32_t>(L, -1);
-		return (summon_info & ttype) == ttype;
-	});
+LUA_FUNCTION(IsSummonType, nonempty_lua_range<uint32_t> summon_types) {
+	auto summon_info = self->summon.type & 0xff00ffff;
+	bool found = std::find_if(summon_types.begin(), summon_types.end(), [&](uint32_t sumtype) {
+		return (summon_info & sumtype) == sumtype;
+	}) != summon_types.end();
 	lua_pushboolean(L, found);
 	return 1;
 }
@@ -749,7 +701,6 @@ LUA_FUNCTION(IsSummonPlayer, playerid_t player) {
 	return 1;
 }
 LUA_FUNCTION(IsStatus, uint32_t tstatus) {
-	check_param_count(L, 2);
 	lua_pushboolean(L, (self->status & tstatus) != 0);
 	return 1;
 }
@@ -1622,12 +1573,9 @@ LUA_FUNCTION(IsCanBeSynchroMaterial, card* scard, std::optional<card*> tuner, st
 														tuner.value_or(nullptr)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeRitualMaterial) {
-	card* scard = nullptr;
-	if(lua_gettop(L) >= 2 && !lua_isnoneornil(L, 2))
-		scard = lua_get<card*, true>(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_can_be_ritual_material(scard, playerid));
+LUA_FUNCTION(IsCanBeRitualMaterial, std::optional<card*> scard, std::optional<playerid_t> playerid) {
+	lua_pushboolean(L, self->is_can_be_ritual_material(scard.value_or(nullptr),
+													   playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
 LUA_FUNCTION(IsCanBeXyzMaterial, std::optional<card*> scard, std::optional<playerid_t> playerid, std::optional<uint32_t> reason) {
@@ -1798,20 +1746,18 @@ LUA_FUNCTION(ResetNegateEffect, nonempty_lua_range<uint32_t> resets) {
 		self->reset(reset_code, RESET_CARD);
 	return 0;
 }
-LUA_FUNCTION(AssumeProperty) {
-	check_param_count(L, 3);
-	auto assume = lua_get<uint32_t>(L, 2);
+LUA_FUNCTION(AssumeProperty, uint32_t property, uint64_t value) {
+	auto assume = property;
 	if ((assume < ASSUME_CODE) || (assume > ASSUME_LINKMARKER))
 		lua_error(L, "Invalid ASSUME value");
-	self->assume[assume] = lua_get<uint64_t>(L, 3);
+	self->assume[assume] = value;
 	pduel->assumes.insert(self);
 	return 0;
 }
-LUA_FUNCTION(SetSPSummonOnce) {
-	check_param_count(L, 2);
+LUA_FUNCTION(SetSPSummonOnce, uint32_t spsummon_code) {
 	if(self->status & STATUS_COPYING_EFFECT)
 		return 0;
-	self->spsummon_code = lua_get<uint32_t>(L, 2);
+	self->spsummon_code = spsummon_code;
 	pduel->game_field->core.global_flag |= GLOBALFLAG_SPSUMMON_ONCE;
 	return 0;
 }
