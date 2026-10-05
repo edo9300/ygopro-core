@@ -637,28 +637,26 @@ LUA_FUNCTION(Remove) {
 	interpreter::pushobject(L, self);
 	return 1;
 }
-std::tuple<group*, group*, card*> get_binary_op_group_card_parameters(lua_State* L) {
-	auto obj1 = lua_get<lua_obj*>(L, 1);
-	auto obj2 = lua_get<lua_obj*>(L, 2);
-	if(!obj1 || !obj2)
-		lua_error(L, "At least 1 parameter should be \"Group\".");
-	if(obj1->lua_type != LuaParam::GROUP)
-		std::swap(obj1, obj2);
-	if(obj1->lua_type != LuaParam::GROUP)
-		lua_error(L, "At least 1 parameter should be \"Group\".");
-
-	switch(obj2->lua_type) {
-	case LuaParam::GROUP:
-		return { static_cast<group*>(obj1), static_cast<group*>(obj2), nullptr};
-	case LuaParam::CARD:
-		return { static_cast<group*>(obj1), nullptr, static_cast<card*>(obj2) };
-	default:
-		lua_error(L, "A parameter isn't \"Group\" nor \"Card\".");
+inline std::tuple<group*, group*, card*> get_binary_op_group_card_parameters(const std::variant<card*, group*>& lhs, const std::variant<card*, group*>& rhs) {
+	auto* rhs_ptr = &rhs;
+	auto* ppgroup = std::get_if<group*>(&lhs);
+	if(!ppgroup){
+		rhs_ptr = &lhs;
+		ppgroup = std::get_if<group*>(&rhs);
+	}
+	if(!ppgroup) {
+		return {};
+	}
+	if(auto* ppgroup2 = std::get_if<group*>(rhs_ptr); ppgroup2) {
+		return { *ppgroup, *ppgroup2, nullptr };
+	} else {
+		return { *ppgroup, nullptr, *std::get_if<card*>(rhs_ptr) };
 	}
 }
-LUA_STATIC_FUNCTION(__band) {
-	check_param_count(L, 2);
-	auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(L);
+LUA_STATIC_FUNCTION(__band, std::variant<card*, group*> lhs, std::variant<card*, group*> rhs) {
+	auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(lhs, rhs);
+	if(!pgroup1)
+		lua_error(L, "At least 1 parameter should be \"Group\".");
 	card_set cset;
 	if(pcard) {
 		if(pgroup1->has_card(pcard)) {
@@ -671,9 +669,10 @@ LUA_STATIC_FUNCTION(__band) {
 	interpreter::pushobject(L, pduel->new_group(std::move(cset)));
 	return 1;
 }
-LUA_STATIC_FUNCTION(__add) {
-	check_param_count(L, 2);
-	auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(L);
+LUA_STATIC_FUNCTION(__add, std::variant<card*, group*> lhs, std::variant<card*, group*> rhs) {
+	auto [pgroup1, pgroup2, pcard] = get_binary_op_group_card_parameters(lhs, rhs);
+	if(!pgroup1)
+		lua_error(L, "At least 1 parameter should be \"Group\".");
 	auto newgroup = pduel->new_group(pgroup1);
 	if(pcard) {
 		newgroup->container.insert(pcard);
