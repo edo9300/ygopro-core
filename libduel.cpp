@@ -1826,89 +1826,35 @@ LUA_STATIC_FUNCTION(GetExtraTopGroup, playerid_t playerid, uint32_t amount) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-/**
-* \brief Duel.GetMatchingGroup
-* \param filter_func, self, location1, location2, exception card, (extraargs...)
-* \return Group
-*/
-LUA_STATIC_FUNCTION(GetMatchingGroup) {
-	check_param_count(L, 5);
-	const auto findex = lua_get<function>(L, 1);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 5)) == nullptr)
-		pexgroup = lua_get<group*>(L, 5);
-	uint32_t extraargs = lua_gettop(L) - 5;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto location1 = lua_get<uint16_t>(L, 3);
-	auto location2 = lua_get<uint16_t>(L, 4);
+LUA_STATIC_FUNCTION(GetMatchingGroup, Function filter, uint8_t location_check_player,
+					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
+	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo, pgroup, pexception, pexgroup, extraargs.size);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-/**
-* \brief Duel.GetMatchingGroupCount
-* \param filter_func, self, location1, location2, exception card, (extraargs...)
-* \return Integer
-*/
-LUA_STATIC_FUNCTION(GetMatchingGroupCount) {
-	check_param_count(L, 5);
-	const auto findex = lua_get<function>(L, 1);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 5)) == nullptr)
-		pexgroup = lua_get<group*>(L, 5);
-	uint32_t extraargs = lua_gettop(L) - 5;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto location1 = lua_get<uint16_t>(L, 3);
-	auto location2 = lua_get<uint16_t>(L, 4);
+LUA_STATIC_FUNCTION(GetMatchingGroupCount, Function filter, uint8_t location_check_player,
+					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
+	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo, pgroup, pexception, pexgroup, extraargs.size);
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
 }
-/**
-* \brief Duel.GetFirstMatchingCard
-* \param filter_func, self, location1, location2, exception card, (extraargs...)
-* \return Card | nil
-*/
-LUA_STATIC_FUNCTION(GetFirstMatchingCard) {
-	check_param_count(L, 5);
-	const auto findex = lua_get<function>(L, 1);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 5)) == nullptr)
-		pexgroup = lua_get<group*>(L, 5);
-	uint32_t extraargs = lua_gettop(L) - 5;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto location1 = lua_get<uint16_t>(L, 3);
-	auto location2 = lua_get<uint16_t>(L, 4);
+LUA_STATIC_FUNCTION(GetFirstMatchingCard, Function filter, uint8_t location_check_player,
+					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
+	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	card* pret = nullptr;
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, nullptr, pexception, pexgroup, extraargs, &pret);
-	if(pret)
-		interpreter::pushobject(L, pret);
-	else lua_pushnil(L);
+	pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo, nullptr, pexception, pexgroup, extraargs.size);
+	interpreter::pushobject(L, pret);
 	return 1;
 }
-/**
-* \brief Duel.IsExistingMatchingCard
-* \param filter_func, self, location1, location2, count, exception card, (extraargs...)
-* \return boolean
-*/
-LUA_STATIC_FUNCTION(IsExistingMatchingCard) {
-	check_param_count(L, 6);
-	const auto findex = lua_get<function>(L, 1);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	if((pexception = lua_get<card*>(L, 6)) == nullptr)
-		pexgroup = lua_get<group*>(L, 6);
-	uint32_t extraargs = lua_gettop(L) - 6;
-	auto self = lua_get<uint8_t>(L, 2);
-	auto location1 = lua_get<uint16_t>(L, 3);
-	auto location2 = lua_get<uint16_t>(L, 4);
-	auto fcount = lua_get<uint32_t>(L, 5);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(findex, self, location1, location2, nullptr, pexception, pexgroup, extraargs, nullptr, fcount));
+LUA_STATIC_FUNCTION(IsExistingMatchingCard, Function filter, uint8_t location_check_player,
+					uint16_t location_self, uint16_t location_oppo, uint32_t count, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
+	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo,
+															   nullptr, pexception, pexgroup, extraargs.size, nullptr, count));
 	return 1;
 }
 /**
