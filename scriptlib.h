@@ -17,7 +17,7 @@
 #include <lualib.h>
 #include <optional>
 #include <tuple>
-#include <type_traits> //std::is_same_v, std::enable_if_t, std::invoke_result_t, std::result_of_t, std::conditional_t, std::is_unsigned_v
+#include <type_traits> //std::is_same_v, std::is_trivially_destructible_v, std::enable_if_t, std::invoke_result_t, std::result_of_t, std::conditional_t, std::is_unsigned_v
 #include <utility> //std::move, std::pair
 #include <variant>
 #include "common.h"
@@ -464,6 +464,7 @@ namespace scriptlib {
 
 	template<typename T, bool last = false, std::enable_if_t<!is_variant_v<T> && !is_lua_range_v<T>, int> = 0>
 	inline constexpr T get_lua(lua_State* L, int idx) {
+		static_assert(std::is_trivially_destructible_v<T>);
 		using namespace scriptlib;
 		// we need to not have type::value_type be evaluated if the type isn't an optional
 		auto _ = [](auto a) {
@@ -600,6 +601,7 @@ namespace scriptlib {
 			std::is_same_v<Table, T> || scriptlib::IsBool<T> || scriptlib::IsInteger<T> || std::is_same_v<Nil, T> || std::is_same_v<Unknown, T>;
 		constexpr variant_t operator()(lua_State* L, int idx, LuaParam lua_type) {
 			static_assert(((is_handled_variant_type<Args> * 1) + ...) == std::variant_size_v<variant_t>, "Unhandled variant type passed");
+			static_assert(std::is_trivially_destructible_v<variant_t>);
 			using namespace scriptlib;
 			if constexpr((IsCard<Args> || ...)) {
 				if(lua_type == LuaParam::CARD)
