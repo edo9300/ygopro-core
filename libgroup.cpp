@@ -119,41 +119,40 @@ LUA_FUNCTION(GetCount) {
 	lua_pushinteger(L, self->container.size());
 	return 1;
 }
-LUA_FUNCTION(Filter) {
-	check_param_count(L, 3);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(Filter, Function filter, std::variant<card*, group*, Nil> excluded_card_or_group, VariadicArgs extraargs) {
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
-		cset.erase(pexception);
-	} else if(pexgroup) {
-		for(auto& pcard : pexgroup->container)
+	if(auto* ppgroup = std::get_if<group*>(&excluded_card_or_group); ppgroup) {
+		for(auto& pcard : (*ppgroup)->container)
 			cset.erase(pcard);
+	} else if(auto* ppcard = std::get_if<card*>(&excluded_card_or_group); ppcard) {
+		cset.erase(*ppcard);
 	}
 	auto new_group = pduel->new_group();
-	uint32_t extraargs = lua_gettop(L) - 3;
 	for(auto& pcard : cset) {
-		if(pduel->lua->check_matching(pcard, findex, extraargs)) {
+		if(pduel->lua->check_matching(pcard, filter, extraargs.size)) {
 			new_group->container.insert(pcard);
 		}
 	}
 	interpreter::pushobject(L, new_group);
 	return 1;
 }
-LUA_FUNCTION(Match) {
-	check_param_count(L, 3);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(Match, Function filter, std::variant<card*, group*, Nil> excluded_card_or_group, VariadicArgs extraargs) {
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	uint32_t extraargs = lua_gettop(L) - 3;
+	auto call_filter = [&](card* pcard) {
+		return pduel->lua->check_matching(pcard, filter, extraargs.size);
+	};
 	auto& cset = self->container;
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
+	if(auto* ppcard = std::get_if<card*>(&excluded_card_or_group); ppcard) {
+		auto* pexception = *ppcard;
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
-			if(pcard == pexception || !pduel->lua->check_matching(pcard, findex, extraargs))
+			if(pcard == pexception || !call_filter(pcard))
 				cset.erase(rm);
 		}
-	} else if(pexgroup) {
+	} else if(auto* ppgroup = std::get_if<group*>(&excluded_card_or_group); ppgroup) {
+		auto* pexgroup = *ppgroup;
 		auto should_remove = [pexbegin = pexgroup->container.cbegin(), pexend = pexgroup->container.cend()](card* pcard) mutable {
 			if(pexbegin == pexend)
 				return false;
@@ -166,37 +165,32 @@ LUA_FUNCTION(Match) {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
-			if(should_remove(pcard) || !pduel->lua->check_matching(pcard, findex, extraargs))
+			if(should_remove(pcard) || !call_filter(pcard))
 				cset.erase(rm);
 		}
 	} else {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
-			if(!pduel->lua->check_matching(pcard, findex, extraargs))
+			if(!call_filter(pcard))
 				cset.erase(rm);
 		}
 	}
 	interpreter::pushobject(L, self);
 	return 1;
 }
-LUA_FUNCTION(FilterCount) {
-	check_param_count(L, 3);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(FilterCount, Function filter, std::variant<card*, group*, Nil> excluded_card_or_group, VariadicArgs extraargs) {
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
-		cset.erase(pexception);
-	} else if(pexgroup) {
-		for(auto& pcard : pexgroup->container)
+	if(auto* ppgroup = std::get_if<group*>(&excluded_card_or_group); ppgroup) {
+		for(auto& pcard : (*ppgroup)->container)
 			cset.erase(pcard);
+	} else if(auto* ppcard = std::get_if<card*>(&excluded_card_or_group); ppcard) {
+		cset.erase(*ppcard);
 	}
-	uint32_t extraargs = lua_gettop(L) - 3;
-	uint32_t count = 0;
-	for (auto& pcard : cset) {
-		if(pduel->lua->check_matching(pcard, findex, extraargs))
-			++count;
-	}
-	lua_pushinteger(L, count);
+	lua_pushinteger(L, std::count_if(cset.begin(), cset.end(),
+									 [&](auto* pcard) {
+										 return pduel->lua->check_matching(pcard, filter, extraargs.size);
+									 }));
 	return 1;
 }
 LUA_FUNCTION(FilterSelect) {
@@ -255,18 +249,16 @@ LUA_FUNCTION(Select) {
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return push_return_cards(L, cancelable);
 }
-LUA_FUNCTION(SelectUnselect) {
+LUA_FUNCTION(SelectUnselect, std::optional<group*> selected_group, playerid_t playerid, std::optional<bool> finishable,
+			 std::optional<bool> cancelable, std::optional<uint16_t> min, std::optional<uint16_t> max) {
 	check_action_permission(L);
-	check_param_count(L, 3);
-	auto pgroup2 = lua_get<group*>(L, 2);
-	auto playerid = lua_get<uint8_t>(L, 3);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	if(pgroup2) {
+	pduel->game_field->core.unselect_cards.clear();
+	if(selected_group.has_value()) {
+		auto* pgroup = *selected_group;
 		auto first1 = self->container.begin();
 		auto last1 = self->container.end();
-		auto first2 = pgroup2->container.begin();
-		auto last2 = pgroup2->container.end();
+		auto first2 = pgroup->container.begin();
+		auto last2 = pgroup->container.end();
 		while(first1 != last1 && first2 != last2) {
 			if((*first1)->cardid < (*first2)->cardid) {
 				++first1;
@@ -277,19 +269,14 @@ LUA_FUNCTION(SelectUnselect) {
 				++first2;
 			}
 		}
+		pduel->game_field->core.unselect_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	}
-	bool finishable = lua_get<bool, false>(L, 4);
-	bool cancelable = lua_get<bool, false>(L, 5);
-	uint16_t min = lua_get<uint16_t, 1>(L, 6);
-	uint16_t max = lua_get<uint16_t, 1>(L, 7);
-	if(min > max)
-		min = max;
 	pduel->game_field->core.select_cards.assign(self->container.begin(), self->container.end());
-	if(pgroup2)
-		pduel->game_field->core.unselect_cards.assign(pgroup2->container.begin(), pgroup2->container.end());
-	else
-		pduel->game_field->core.unselect_cards.clear();
-	pduel->game_field->emplace_process<Processors::SelectUnselectCard>(playerid, cancelable, min, max, finishable);
+	auto min_real = min.value_or(1);
+	auto max_real = max.value_or(1);
+	if(min_real > max_real)
+		min_real = max_real;
+	pduel->game_field->emplace_process<Processors::SelectUnselectCard>(playerid, cancelable.value_or(false), min_real, max_real, finishable.value_or(false));
 	return yieldk({
 		if(pduel->game_field->return_cards.canceled)
 			lua_pushnil(L);
@@ -298,10 +285,7 @@ LUA_FUNCTION(SelectUnselect) {
 		return 1;
 	});
 }
-LUA_FUNCTION(RandomSelect) {
-	check_param_count(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	size_t count = lua_get<uint32_t>(L, 3);
+LUA_FUNCTION(RandomSelect, playerid_t playerid, uint32_t count) {
 	auto newgroup = pduel->new_group();
 	if(count > self->container.size())
 		count = self->container.size();
@@ -328,21 +312,17 @@ LUA_FUNCTION(RandomSelect) {
 	interpreter::pushobject(L, newgroup);
 	return 1;
 }
-LUA_FUNCTION(IsExists) {
-	check_param_count(L, 4);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(IsExists, Function filter, uint16_t count, std::variant<card*, group*, Nil> excluded_card_or_group, VariadicArgs extraargs) {
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 4); pexception) {
-		cset.erase(pexception);
-	} else if(pexgroup) {
-		for(auto& pcard : pexgroup->container)
+	if(auto* ppcard = std::get_if<card*>(&excluded_card_or_group); ppcard) {
+		cset.erase(*ppcard);
+	} else if(auto* ppgroup = std::get_if<group*>(&excluded_card_or_group); ppgroup) {
+		for(auto& pcard : (*ppgroup)->container)
 			cset.erase(pcard);
 	}
-	auto count = lua_get<uint16_t>(L, 3);
-	uint32_t extraargs = lua_gettop(L) - 4;
 	uint32_t fcount = 0;
 	for(auto& pcard : cset) {
-		if(pduel->lua->check_matching(pcard, findex, extraargs)) {
+		if(pduel->lua->check_matching(pcard, filter, extraargs.size)) {
 			++fcount;
 			if(fcount >= count)
 				break;
@@ -351,17 +331,11 @@ LUA_FUNCTION(IsExists) {
 	lua_pushboolean(L, fcount >= count);
 	return 1;
 }
-LUA_FUNCTION(CheckWithSumEqual) {
-	check_param_count(L, 5);
-	const auto findex = lua_get<function, true>(L, 2);
-	auto acc = lua_get<uint32_t>(L, 3);
-	auto min = lua_get<int32_t>(L, 4);
-	auto max = lua_get<int32_t>(L, 5);
+LUA_FUNCTION(CheckWithSumEqual, Function filter, uint32_t value_to_reach, int32_t min, int32_t max, VariadicArgs extraargs) {
 	if(min < 0)
 		min = 0;
 	if(max < min)
 		max = min;
-	int32_t extraargs = lua_gettop(L) - 5;
 	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32_t mcount = static_cast<int32_t>(cv.size());
 	const auto beginit = pduel->game_field->core.must_select_cards.begin();
@@ -372,30 +346,21 @@ LUA_FUNCTION(CheckWithSumEqual) {
 	}
 	pduel->game_field->core.must_select_cards.clear();
 	for(auto& pcard : cv) {
-		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, filter, extraargs.size); pcard->sum_param == 0) {
 			lua_error(L, "Group contains a card for which the value function returned 0.");
 		}
 	}
 	int32_t should_continue = TRUE;
-	lua_pushboolean(L, field::check_with_sum_limit_m(cv, acc, 0, min, max, mcount, &should_continue));
+	lua_pushboolean(L, field::check_with_sum_limit_m(cv, value_to_reach, 0, min, max, mcount, &should_continue));
 	lua_pushboolean(L, should_continue);
 	return 2;
 }
-LUA_FUNCTION(SelectWithSumEqual) {
+LUA_FUNCTION(SelectWithSumEqual, playerid_t playerid, Function filter, uint32_t value_to_reach, int32_t min, int32_t max, VariadicArgs extraargs) {
 	check_action_permission(L);
-	check_param_count(L, 6);
-	const auto findex = lua_get<function, true>(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto acc = lua_get<uint32_t>(L, 4);
-	auto min = lua_get<int32_t>(L, 5);
-	auto max = lua_get<int32_t>(L, 6);
 	if(min < 0)
 		min = 0;
 	if(max < min)
 		max = min;
-	int32_t extraargs = lua_gettop(L) - 6;
 	pduel->game_field->core.select_cards.assign(self->container.begin(), self->container.end());
 	for(auto& pcard : pduel->game_field->core.must_select_cards) {
 		auto it = std::remove(pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end(), pcard);
@@ -405,17 +370,17 @@ LUA_FUNCTION(SelectWithSumEqual) {
 	int32_t mcount = static_cast<int32_t>(cv.size());
 	cv.insert(cv.end(), pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end());
 	for(auto& pcard : cv) {
-		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, filter, extraargs.size); pcard->sum_param == 0) {
 			lua_error(L, "Group contains a card for which the value function returned 0.");
 		}
 	}
-	if(!field::check_with_sum_limit_m(cv, acc, 0, min, max, mcount, nullptr)) {
+	if(!field::check_with_sum_limit_m(cv, value_to_reach, 0, min, max, mcount, nullptr)) {
 		pduel->game_field->core.must_select_cards.clear();
 		auto empty_group = pduel->new_group();
 		interpreter::pushobject(L, empty_group);
 		return 1;
 	}
-	pduel->game_field->emplace_process<Processors::SelectSum>(playerid, acc, min, max);
+	pduel->game_field->emplace_process<Processors::SelectSum>(playerid, value_to_reach, min, max);
 	return yieldk({
 		auto pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 		pduel->game_field->core.must_select_cards.clear();
@@ -423,11 +388,7 @@ LUA_FUNCTION(SelectWithSumEqual) {
 		return 1;
 	});
 }
-LUA_FUNCTION(CheckWithSumGreater) {
-	check_param_count(L, 3);
-	const auto findex = lua_get<function, true>(L, 2);
-	auto acc = lua_get<uint32_t>(L, 3);
-	int32_t extraargs = lua_gettop(L) - 3;
+LUA_FUNCTION(CheckWithSumGreater, Function filter, uint32_t value_to_reach, VariadicArgs extraargs) {
 	card_vector cv(pduel->game_field->core.must_select_cards);
 	int32_t mcount = static_cast<int32_t>(cv.size());
 	const auto beginit = pduel->game_field->core.must_select_cards.begin();
@@ -438,24 +399,17 @@ LUA_FUNCTION(CheckWithSumGreater) {
 	}
 	pduel->game_field->core.must_select_cards.clear();
 	for(auto& pcard : cv) {
-		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, filter, extraargs.size); pcard->sum_param == 0) {
 			lua_error(L, "Group contains a card for which the value function returned 0.");
 		}
 	}
 	int32_t should_continue = TRUE;
-	lua_pushboolean(L, field::check_with_sum_greater_limit_m(cv, acc, 0, 0xffff, mcount, &should_continue));
+	lua_pushboolean(L, field::check_with_sum_greater_limit_m(cv, value_to_reach, 0, 0xffff, mcount, &should_continue));
 	lua_pushboolean(L, should_continue);
 	return 2;
 }
-LUA_FUNCTION(SelectWithSumGreater) {
+LUA_FUNCTION(SelectWithSumGreater, playerid_t playerid, Function filter, uint32_t value_to_reach, VariadicArgs extraargs) {
 	check_action_permission(L);
-	check_param_count(L, 4);
-	const auto findex = lua_get<function, true>(L, 3);
-	auto playerid = lua_get<uint8_t>(L, 2);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto acc = lua_get<uint32_t>(L, 4);
-	int32_t extraargs = lua_gettop(L) - 4;
 	pduel->game_field->core.select_cards.assign(self->container.begin(), self->container.end());
 	for(auto& pcard : pduel->game_field->core.must_select_cards) {
 		auto it = std::remove(pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end(), pcard);
@@ -465,17 +419,17 @@ LUA_FUNCTION(SelectWithSumGreater) {
 	int32_t mcount = static_cast<int32_t>(cv.size());
 	cv.insert(cv.end(), pduel->game_field->core.select_cards.begin(), pduel->game_field->core.select_cards.end());
 	for(auto& pcard : cv) {
-		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, findex, extraargs); pcard->sum_param == 0) {
+		if(pcard->sum_param = pduel->lua->get_operation_value(pcard, filter, extraargs.size); pcard->sum_param == 0) {
 			lua_error(L, "Group contains a card for which the value function returned 0.");
 		}
 	}
-	if(!field::check_with_sum_greater_limit_m(cv, acc, 0, 0xffff, mcount, nullptr)) {
+	if(!field::check_with_sum_greater_limit_m(cv, value_to_reach, 0, 0xffff, mcount, nullptr)) {
 		pduel->game_field->core.must_select_cards.clear();
 		auto empty_group = pduel->new_group();
 		interpreter::pushobject(L, empty_group);
 		return 1;
 	}
-	pduel->game_field->emplace_process<Processors::SelectSum>(playerid, acc, 0, 0);
+	pduel->game_field->emplace_process<Processors::SelectSum>(playerid, value_to_reach, 0, 0);
 	return yieldk({
 		auto pgroup = pduel->new_group(pduel->game_field->return_cards.list);
 		pduel->game_field->core.must_select_cards.clear();
@@ -483,134 +437,116 @@ LUA_FUNCTION(SelectWithSumGreater) {
 		return 1;
 	});
 }
-LUA_FUNCTION(GetMinGroup) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(GetMinGroup, Function filter, VariadicArgs extraargs) {
 	if(self->container.size() == 0)
 		return 0;
 	auto newgroup = pduel->new_group();
-	int64_t min, op;
-	int32_t extraargs = lua_gettop(L) - 2;
 	auto cit = self->container.begin();
-	min = pduel->lua->get_operation_value(*cit, findex, extraargs);
+	auto min = pduel->lua->get_operation_value(*cit, filter, extraargs.size);
 	newgroup->container.insert(*cit);
 	++cit;
 	for(; cit != self->container.end(); ++cit) {
-		op = pduel->lua->get_operation_value(*cit, findex, extraargs);
-		if(op == min)
+		auto res = pduel->lua->get_operation_value(*cit, filter, extraargs.size);
+		if(res == min)
 			newgroup->container.insert(*cit);
-		else if(op < min) {
+		else if(res < min) {
 			newgroup->container.clear();
 			newgroup->container.insert(*cit);
-			min = op;
+			min = res;
 		}
 	}
 	interpreter::pushobject(L, newgroup);
 	lua_pushinteger(L, min);
 	return 2;
 }
-LUA_FUNCTION(GetMaxGroup) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(GetMaxGroup, Function filter, VariadicArgs extraargs) {
 	if(self->container.size() == 0)
 		return 0;
 	auto newgroup = pduel->new_group();
-	int64_t max, op;
-	int32_t extraargs = lua_gettop(L) - 2;
 	auto cit = self->container.begin();
-	max = pduel->lua->get_operation_value(*cit, findex, extraargs);
+	auto max = pduel->lua->get_operation_value(*cit, filter, extraargs.size);
 	newgroup->container.insert(*cit);
 	++cit;
 	for(; cit != self->container.end(); ++cit) {
-		op = pduel->lua->get_operation_value(*cit, findex, extraargs);
-		if(op == max)
+		auto res = pduel->lua->get_operation_value(*cit, filter, extraargs.size);
+		if(res == max)
 			newgroup->container.insert(*cit);
-		else if(op > max) {
+		else if(res > max) {
 			newgroup->container.clear();
 			newgroup->container.insert(*cit);
-			max = op;
+			max = res;
 		}
 	}
 	interpreter::pushobject(L, newgroup);
 	lua_pushinteger(L, max);
 	return 2;
 }
-LUA_FUNCTION(GetSum) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	int32_t extraargs = lua_gettop(L) - 2;
+LUA_FUNCTION(GetSum, Function filter, VariadicArgs extraargs) {
 	int64_t sum = 0;
 	for(auto& pcard : self->container) {
-		sum += pduel->lua->get_operation_value(pcard, findex, extraargs);
+		sum += pduel->lua->get_operation_value(pcard, filter, extraargs.size);
 	}
 	lua_pushinteger(L, sum);
 	return 1;
 }
-LUA_FUNCTION(GetBitwiseAnd) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	int32_t extraargs = lua_gettop(L) - 2;
+LUA_FUNCTION(GetBitwiseAnd, Function filter, VariadicArgs extraargs) {
 	uint64_t total = 0;
 	for(auto& pcard : self->container) {
-		total &= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, findex, extraargs));
+		total &= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, filter, extraargs.size));
+		if(total == 0) {
+			break;
+		}
 	}
 	lua_pushinteger(L, total);
 	return 1;
 }
-LUA_FUNCTION(GetBitwiseOr) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	int32_t extraargs = lua_gettop(L) - 2;
+LUA_FUNCTION(GetBitwiseOr, Function filter, VariadicArgs extraargs) {
 	uint64_t total = 0;
 	for(auto& pcard : self->container) {
-		total |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, findex, extraargs));
+		total |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, filter, extraargs.size));
 	}
 	lua_pushinteger(L, total);
 	return 1;
 }
-LUA_FUNCTION(GetClass) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	int32_t extraargs = lua_gettop(L) - 2;
-	std::set<int64_t> er;
+LUA_FUNCTION(GetClass, Function filter, VariadicArgs extraargs) {
+	std::set<int64_t> values;
 	for(auto& pcard : self->container) {
-		er.insert(pduel->lua->get_operation_value(pcard, findex, extraargs));
+		values.insert(pduel->lua->get_operation_value(pcard, filter, extraargs.size));
 	}
-	lua_createtable(L, static_cast<int>(er.size()), 0);
+	lua_createtable(L, static_cast<int>(values.size()), 0);
 	int i = 1;
-	for(auto& val : er) {
+	for(auto& val : values) {
 		lua_pushinteger(L, i++);
 		lua_pushinteger(L, val);
 		lua_settable(L, -3);
 	}
 	return 1;
 }
-LUA_FUNCTION(GetClassCount) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	int32_t extraargs = lua_gettop(L) - 2;
+LUA_FUNCTION(GetClassCount, Function filter, VariadicArgs extraargs) {
 	std::set<int64_t> er;
 	for(auto& pcard : self->container) {
-		er.insert(pduel->lua->get_operation_value(pcard, findex, extraargs));
+		er.insert(pduel->lua->get_operation_value(pcard, filter, extraargs.size));
 	}
 	lua_pushinteger(L, er.size());
 	return 1;
 }
-LUA_FUNCTION(Remove) {
-	check_param_count(L, 3);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(Remove, Function filter, std::variant<card*, group*, Nil> excluded_card_or_group, VariadicArgs extraargs) {
 	assert_readonly_group(L, self);
 	self->is_iterator_dirty = true;
-	uint32_t extraargs = lua_gettop(L) - 3;
+	auto call_filter = [&](card* pcard) {
+		return pduel->lua->check_matching(pcard, filter, extraargs.size);
+	};
 	auto& cset = self->container;
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
+	if(auto* ppcard = std::get_if<card*>(&excluded_card_or_group); ppcard) {
+		auto* pexception = *ppcard;
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
-			if(pcard != pexception && pduel->lua->check_matching(pcard, findex, extraargs))
+			if(pcard != pexception && call_filter(pcard))
 				cset.erase(rm);
 		}
-	} else if(pexgroup) {
+	} else if(auto* ppgroup = std::get_if<group*>(&excluded_card_or_group); ppgroup) {
+		auto* pexgroup = *ppgroup;
 		auto should_keep = [pexbegin = pexgroup->container.cbegin(), pexend = pexgroup->container.cend()](card* pcard) mutable {
 			if(pexbegin == pexend)
 				return false;
@@ -623,14 +559,14 @@ LUA_FUNCTION(Remove) {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
-			if(!should_keep(pcard) && pduel->lua->check_matching(pcard, findex, extraargs))
+			if(!should_keep(pcard) && call_filter(pcard))
 				cset.erase(rm);
 		}
 	} else {
 		for(auto cit = cset.begin(), cend = cset.end(); cit != cend; ) {
 			auto rm = cit++;
 			auto* pcard = *rm;
-			if(pduel->lua->check_matching(pcard, findex, extraargs))
+			if(call_filter(pcard))
 				cset.erase(rm);
 		}
 	}
@@ -721,35 +657,31 @@ LUA_FUNCTION(IsContains, card* pcard) {
 	lua_pushboolean(L, self->has_card(pcard));
 	return 1;
 }
-LUA_FUNCTION(SearchCard) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	uint32_t extraargs = lua_gettop(L) - 2;
-	for(auto& pcard : self->container)
-		if(pduel->lua->check_matching(pcard, findex, extraargs)) {
+LUA_FUNCTION(SearchCard, Function filter, VariadicArgs extraargs) {
+	for(auto& pcard : self->container) {
+		if(pduel->lua->check_matching(pcard, filter, extraargs.size)) {
 			interpreter::pushobject(L, pcard);
 			return 1;
 		}
+	}
 	return 0;
 }
-LUA_FUNCTION(Split) {
-	check_param_count(L, 3);
-	const auto findex = lua_get<function, true>(L, 2);
+LUA_FUNCTION(Split, Function filter, std::variant<card*, group*, Nil> excluded_card_or_group, VariadicArgs extraargs) {
 	card_set cset(self->container);
 	card_set notmatching;
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, 3); pexception) {
-		cset.erase(pexception);
-		notmatching.insert(pexception);
-	} else if(pexgroup) {
-		for(auto& pcard : pexgroup->container) {
+	if(auto* ppgroup = std::get_if<group*>(&excluded_card_or_group); ppgroup) {
+		for(auto& pcard : (*ppgroup)->container) {
 			cset.erase(pcard);
 			notmatching.insert(pcard);
 		}
+	} else if(auto* ppcard = std::get_if<card*>(&excluded_card_or_group); ppcard) {
+		auto* pcard = *ppcard;
+		cset.erase(pcard);
+		notmatching.insert(pcard);
 	}
-	uint32_t extraargs = lua_gettop(L) - 3;
 	for(auto it = cset.begin(); it != cset.end();) {
 		auto pcard = *it;
-		if(pduel->lua->check_matching(pcard, findex, extraargs)) {
+		if(pduel->lua->check_matching(pcard, filter, extraargs.size)) {
 			++it;
 		} else {
 			notmatching.insert(pcard);
@@ -769,13 +701,10 @@ LUA_FUNCTION(Includes, group* pgroup2) {
 	lua_pushboolean(L, res);
 	return 1;
 }
-LUA_FUNCTION(GetBinClassCount) {
-	check_param_count(L, 2);
-	const auto findex = lua_get<function, true>(L, 2);
-	int32_t extraargs = lua_gettop(L) - 2;
+LUA_FUNCTION(GetBinClassCount, Function filter, VariadicArgs extraargs) {
 	uint64_t er = 0;
 	for(auto& pcard : self->container)
-		er |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, findex, extraargs));
+		er |= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, filter, extraargs.size));
 	lua_pushinteger(L, bit::popcnt(er));
 	return 1;
 }
