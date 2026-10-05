@@ -25,11 +25,10 @@ namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
-void assert_readonly_group(lua_State* L, group* pgroup) {
-	if(!pgroup->is_readonly)
-		return;
-	lua_error(L, "attempt to modify a read only group");
-}
+#define assert_readonly_group(L, pgroup) do { \
+	if(pgroup->is_readonly) \
+		lua_error(L, "attempt to modify a read only group"); \
+} while(0)
 
 LUA_STATIC_FUNCTION(CreateGroup, lua_range<std::optional<card*>> cards) {
 	auto pgroup = pduel->new_group();
