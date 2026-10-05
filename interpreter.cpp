@@ -490,8 +490,11 @@ lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_
 	lua_Integer result = 0;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
-	} else
-		result = get_lua<std::optional<lua_Integer>>(current_state, -1).value_or(0);
+	} else {
+		auto val = get_lua<Any>(current_state, -1);
+		if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+			result = *int_val;
+	}
 	lua_pop(current_state, 1);
 	return result;
 }
