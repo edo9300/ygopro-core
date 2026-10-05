@@ -2681,8 +2681,8 @@ LUA_STATIC_FUNCTION(SelectDisableField, playerid_t playerid, uint8_t count, uint
 		return 0;
 	pduel->game_field->emplace_process<Processors::SelectDisField>(playerid, flag, count);
 	return yieldk({
-		auto playerid = lua_get<uint8_t>(L, 1);
-		auto count = lua_get<uint8_t>(L, 2);
+		auto playerid = get_lua<uint8_t>(L, 1);
+		auto count = get_lua<uint8_t>(L, 2);
 		uint32_t dfflag = 0;
 		uint8_t pa = 0;
 		for(uint32_t i = 0; i < count; ++i) {
@@ -2716,8 +2716,8 @@ LUA_STATIC_FUNCTION(SelectFieldZone, playerid_t playerid, uint8_t count, uint16_
 		return 0;
 	pduel->game_field->emplace_process<Processors::SelectDisField>(playerid, flag, count);
 	return yieldk({
-		auto playerid = lua_get<uint8_t>(L, 1);
-		auto count = lua_get<uint8_t>(L, 2);
+		auto playerid = get_lua<uint8_t>(L, 1);
+		auto count = get_lua<uint8_t>(L, 2);
 		uint32_t dfflag = 0;
 		uint8_t pa = 0;
 		for(uint32_t i = 0; i < count; ++i) {
