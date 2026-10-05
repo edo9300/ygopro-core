@@ -70,8 +70,6 @@
 namespace {
 namespace LUA_NAMESPACE {
 
-using scriptlib::Nil;
-
 namespace Detail {
 
 template<std::size_t N>
@@ -168,6 +166,7 @@ constexpr auto make_lua_functions_array() {
 
 template <typename Tuple, size_t idx = std::tuple_size_v<Tuple>>
 constexpr auto count_trailing_optionals() {
+	using namespace scriptlib;
 	if constexpr(idx == 0) {
 		return 0;
 	} else {
@@ -177,6 +176,8 @@ constexpr auto count_trailing_optionals() {
 		} else if constexpr(is_optional_v<Arg>) {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
 		} else if constexpr(is_variant_v<Arg> && is_variant_member_v<Arg, Nil>) {
+			return 1 + count_trailing_optionals<Tuple, idx - 1>();
+		} else if constexpr(std::is_same_v<Arg, VariadicArgs>) {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
 		} else {
 			return 0;

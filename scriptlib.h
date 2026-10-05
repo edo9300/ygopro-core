@@ -436,6 +436,11 @@ namespace scriptlib {
 
 	using Invalid = lua_obj_helper<LuaParam::DELETED>;
 
+	struct VariadicArgs {
+		int start;
+		int size;
+	};
+
 	struct Unknown {
 		int idx;
 	};
@@ -466,10 +471,12 @@ namespace scriptlib {
 	inline constexpr T get_lua(lua_State* L, int idx) {
 		static_assert(std::is_trivially_destructible_v<T>);
 		using namespace scriptlib;
+		static_assert(!std::is_same_v<T, VariadicArgs> || last);
 		// we need to not have type::value_type be evaluated if the type isn't an optional
 		auto _ = [](auto a) {
 			using type = decltype(a);
 			if constexpr(is_optional_v<type>) {
+				static_assert(!std::is_same_v<typename type::value_type, VariadicArgs>);
 				return typename type::value_type{};
 			} else {
 				return type{};
@@ -487,7 +494,10 @@ namespace scriptlib {
 				return static_cast<actual_type>(val);
 			}
 		};
-		if constexpr(std::is_same_v<actual_type, lua_obj*>) {
+		if constexpr(std::is_same_v<T, VariadicArgs>) {
+			auto absidx = lua_absindex(L, idx);
+			return return_value(VariadicArgs{ absidx, std::max<int>(0, (lua_gettop(L) - absidx) + 1) });
+		} else if constexpr(std::is_same_v<actual_type, lua_obj*>) {
 			if(auto obj = lua_touserdata(L, idx)) {
 				auto* ret = *static_cast<lua_obj**>(obj);
 				if(ret->lua_type == LuaParam::DELETED)
