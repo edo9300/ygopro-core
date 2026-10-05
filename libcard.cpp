@@ -705,12 +705,10 @@ LUA_FUNCTION(IsStatus, uint32_t tstatus) {
 	return 1;
 }
 LUA_FUNCTION(IsNotTuner, card* scard, uint8_t playerid) {
-	check_param_count(L, 3);
 	lua_pushboolean(L, self->is_not_tuner(scard, playerid));
 	return 1;
 }
 LUA_FUNCTION(SetStatus, uint32_t tstatus, bool enable) {
-	check_param_count(L, 3);
 	if(self->status & STATUS_COPYING_EFFECT)
 		return 0;
 	self->set_status(tstatus, enable);
@@ -1470,7 +1468,6 @@ LUA_FUNCTION(IsControlerCanBeChanged, std::optional<bool> ignore_availale_mzone_
 	return 1;
 }
 LUA_FUNCTION(AddCounter, counter_t countertype, uint16_t count, std::optional<bool> singly) {
-	check_param_count(L, 3);
 	if(self->is_affect_by_effect(pduel->game_field->core.reason_effect))
 		lua_pushboolean(L, self->add_counter(pduel->game_field->core.reason_player, countertype, count, singly.value_or(false)));
 	else
