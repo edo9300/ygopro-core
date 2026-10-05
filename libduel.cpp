@@ -1050,7 +1050,8 @@ LUA_STATIC_FUNCTION(DiscardDeck, playerid_t playerid, uint16_t count, uint32_t r
 		return 1;
 	});
 }
-LUA_STATIC_FUNCTION(DiscardHand, playerid_t playerid, std::optional<Function> findex, uint16_t min, uint16_t max, uint32_t reason, std::variant<Nil, card*, group*> exception/*, ...*/) {
+LUA_STATIC_FUNCTION(DiscardHand, playerid_t playerid, std::optional<Function> findex, uint16_t min, uint16_t max,
+					uint32_t reason, std::variant<Nil, card*, group*> exception, VariadicArgs extraargs) {
 	check_action_permission(L);
 	card* pexception = nullptr;
 	group* pexgroup = nullptr;
@@ -1059,9 +1060,8 @@ LUA_STATIC_FUNCTION(DiscardHand, playerid_t playerid, std::optional<Function> fi
 	} else if(auto* ppcard = std::get_if<card*>(&exception); ppcard) {
 		pexception = *ppcard;
 	}
-	auto extraargs = std::max<int32_t>(0, lua_gettop(L) - 6);
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex.value_or(0), playerid, LOCATION_HAND, 0, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(findex.value_or(0), playerid, LOCATION_HAND, 0, pgroup, pexception, pexgroup, extraargs.size);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	if(pduel->game_field->core.select_cards.size() == 0) {
 		lua_pushinteger(L, 0);

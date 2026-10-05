@@ -17,12 +17,10 @@ namespace LUA_NAMESPACE {
 
 using namespace scriptlib;
 
-LUA_STATIC_FUNCTION(Message) {
-	int top = lua_gettop(L);
-	if(top == 0)
+LUA_STATIC_FUNCTION(Message, VariadicArgs extraargs) {
+	if(extraargs.size == 0)
 		return 0;
-	luaL_checkstack(L, 1, nullptr);
-	for(int i = 1; i <= top; ++i) {
+	for(int i = extraargs.start; i <= extraargs.size; ++i) {
 		const auto* str = ensure_luaL_stack(luaL_tolstring, L, i, nullptr);
 		if(str)
 			pduel->handle_message(str, OCG_LOG_TYPE_FROM_SCRIPT);
