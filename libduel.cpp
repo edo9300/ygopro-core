@@ -1791,32 +1791,17 @@ LUA_STATIC_FUNCTION(AdjustInstantly, std::optional<card*> adjust_card) {
 	pduel->game_field->adjust_instant();
 	return 0;
 }
-/**
- * \brief Duel.GetFieldGroup
- * \param playerid, location1, location2
- * \return Group
- */
 LUA_STATIC_FUNCTION(GetFieldGroup, playerid_t playerid, uint16_t location1, uint16_t location2) {
 	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_field_card(playerid, location1, location2, pgroup);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-/**
- * \brief Duel.GetFieldGroupCount
- * \param playerid, location1, location2
- * \return Integer
- */
 LUA_STATIC_FUNCTION(GetFieldGroupCount, playerid_t playerid, uint16_t location1, uint16_t location2) {
 	uint32_t count = pduel->game_field->filter_field_card(playerid, location1, location2, nullptr);
 	lua_pushinteger(L, count);
 	return 1;
 }
-/**
- * \brief Duel.GetDeckTop
- * \param playerid, count
- * \return Group
- */
 LUA_STATIC_FUNCTION(GetDecktopGroup, playerid_t playerid, uint32_t amount) {
 	auto& main = pduel->game_field->player[playerid].list_main;
 	const auto count = std::min<size_t>(amount, main.size());
@@ -1832,11 +1817,6 @@ LUA_STATIC_FUNCTION(GetDeckbottomGroup, playerid_t playerid, uint32_t amount) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-/**
- * \brief Duel.GetExtraTopGroup
- * \param playerid, count
- * \return Group
- */
 LUA_STATIC_FUNCTION(GetExtraTopGroup, playerid_t playerid, uint32_t amount) {
 	const auto& player = pduel->game_field->player[playerid];
 	auto& extra = player.list_extra;
@@ -2114,22 +2094,12 @@ LUA_STATIC_FUNCTION(SelectReleaseGroup) {
 LUA_STATIC_FUNCTION(SelectReleaseGroupEx) {
 	return select_release_group(L, true);
 }
-/**
-* \brief Duel.GetTributeGroup
-* \param targetcard
-* \return Group
-*/
 LUA_STATIC_FUNCTION(GetTributeGroup, card* target) {
 	auto pgroup = pduel->new_group();
 	pduel->game_field->get_summon_release_list(target, &(pgroup->container), &(pgroup->container), &(pgroup->container));
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-/**
-* \brief Duel.GetTributeCount
-* \param targetcard
-* \return Integer
-*/
 LUA_STATIC_FUNCTION(GetTributeCount, card* target, std::optional<group*> material_group, std::optional<bool> include_opponent) {
 	lua_pushinteger(L, pduel->game_field->get_summon_release_list(target, nullptr, nullptr, nullptr, material_group.value_or(nullptr), include_opponent.value_or(false)));
 	return 1;
