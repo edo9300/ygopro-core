@@ -62,6 +62,7 @@ namespace scriptlib {
 	}
 #define lua_error(dummy,...) return parse_lua_error(__VA_ARGS__)
 #define check_action_permission(L) do { if(is_in_noaction_state(L)) lua_error(L, "Action is not allowed here."); } while(0)
+#define check_param_count_unsafe(L, count) do { if(lua_gettop(L) < count) lua_error_unsafe(L, "%d Parameters are needed.", count); } while(0)
 #define check_param_count(L, count) do { if(lua_gettop(L) < count) lua_error(L, "%d Parameters are needed.", count); } while(0)
 
 	using playerid_t = RangedInteger<uint8_t, 0, 1>;
