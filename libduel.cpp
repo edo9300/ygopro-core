@@ -2904,7 +2904,7 @@ LUA_STATIC_FUNCTION(IsPlayerCanSummon, playerid_t playerid) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_SUMMON));
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsPlayerCanSummon, playerid_t playerid, card* pcard, uint32_t sumtype) {
+LUA_STATIC_FUNCTION(IsPlayerCanSummon, playerid_t playerid, uint32_t sumtype, card* pcard) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_summon(sumtype, playerid, pcard, playerid));
 	return 1;
 }
@@ -2912,7 +2912,7 @@ LUA_STATIC_FUNCTION(CanPlayerSetMonster, playerid_t playerid) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_MSET));
 	return 1;
 }
-LUA_STATIC_FUNCTION(CanPlayerSetMonster, playerid_t playerid, card* pcard, uint32_t sumtype) {
+LUA_STATIC_FUNCTION(CanPlayerSetMonster, playerid_t playerid, uint32_t sumtype, card* pcard) {
 	lua_pushboolean(L, pduel->game_field->is_player_can_mset(sumtype, playerid, pcard, playerid));
 	return 1;
 }
