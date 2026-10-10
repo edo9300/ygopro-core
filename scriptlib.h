@@ -46,7 +46,7 @@ namespace scriptlib {
 	inline LuaRet push_return_cards(lua_State* L, bool cancelable) {
 		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 	}
-	int32_t is_deleted_object(lua_State* L);
+	LuaRet is_deleted_object(lua_State* L);
 	std::any* set_any_temp_storage(lua_State* L, std::any&& storage);
 	void clear_any_temp_storage(lua_State* L);
 
@@ -583,7 +583,7 @@ namespace scriptlib {
 	}
 
 	template<typename T>
-	static int32_t get_lua_ref(lua_State* L) {
+	static LuaRet get_lua_ref(lua_State* L) {
 		lua_pushinteger(L, get_lua<T*>(L, 1)->ref_handle);
 		return 1;
 	}
