@@ -201,15 +201,18 @@ LUA_FUNCTION(FilterSelect) {
 	auto min = get_lua<uint16_t>(L, 4);
 	auto max = get_lua<uint16_t>(L, 5);
 	int lastarg = 6;
-	auto cancelable_or_pexception = get_lua<std::variant<card*, group*, bool>>(L, lastarg);
 	bool cancelable = false;
-	if(std::holds_alternative<bool>(cancelable_or_pexception)) {
+	std::pair<card*, group*> pexception_pair;
+	if(auto cancelable_or_pexception = get_lua<std::variant<card*, group*, bool>>(L, lastarg);
+	   std::holds_alternative<bool>(cancelable_or_pexception)) {
 		++lastarg;
 		cancelable = *std::get_if<bool>(&cancelable_or_pexception);
-		cancelable_or_pexception = get_lua<std::variant<card*, group*, bool>>(L, lastarg);
+		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*>>(L, lastarg));
+	} else {
+		pexception_pair = expand_to_card_or_group(cancelable_or_pexception);
 	}
 	card_set cset(self->container);
-	if(auto [pexception, pexgroup] = expand_to_card_or_group(cancelable_or_pexception); pexception) {
+	if(auto [pexception, pexgroup] = pexception_pair; pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
@@ -240,7 +243,7 @@ LUA_FUNCTION(Select, playerid_t playerid, uint16_t min, uint16_t max, std::varia
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return push_return_cards(L, cancelable);
 }
-LUA_FUNCTION(Select, playerid_t playerid, uint16_t min, uint16_t max, bool cancelable, std::variant<card*, group*> pexception_card_or_group) {
+LUA_FUNCTION(Select, playerid_t playerid, uint16_t min, uint16_t max, std::variant<bool> cancelable, std::variant<card*, group*> pexception_card_or_group) {
 	check_action_permission(L);
 	card_set cset(self->container);
 	if(auto [pexception, pexgroup] = expand_to_card_or_group(pexception_card_or_group); pexception) {
@@ -250,8 +253,8 @@ LUA_FUNCTION(Select, playerid_t playerid, uint16_t min, uint16_t max, bool cance
 			cset.erase(pcard);
 	}
 	pduel->game_field->core.select_cards.assign(cset.begin(), cset.end());
-	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
-	return push_return_cards(L, cancelable);
+	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, *std::get_if<bool>(&cancelable), min, max);
+	return push_return_cards(L, *std::get_if<bool>(&cancelable));
 }
 LUA_FUNCTION(SelectUnselect, std::optional<group*> selected_group, playerid_t playerid, std::optional<bool> finishable,
 			 std::optional<bool> cancelable, std::optional<uint16_t> min, std::optional<uint16_t> max) {
