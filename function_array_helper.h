@@ -177,7 +177,7 @@ constexpr auto count_trailing_optionals() {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
 		} else if constexpr(is_variant_v<Arg> && is_variant_member_v<Arg, Nil>) {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
-		} else if constexpr(std::is_same_v<Arg, VariadicArgs>) {
+		} else if constexpr(IsVariadic<Arg>) {
 			return 1 + count_trailing_optionals<Tuple, idx - 1>();
 		} else {
 			return 0;
