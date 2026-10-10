@@ -203,11 +203,11 @@ LUA_FUNCTION(FilterSelect) {
 	int lastarg = 6;
 	bool cancelable = false;
 	std::pair<card*, group*> pexception_pair;
-	if(auto cancelable_or_pexception = get_lua<std::variant<card*, group*, bool>>(L, lastarg);
+	if(auto cancelable_or_pexception = get_lua<std::variant<card*, group*, bool, Nil>>(L, lastarg);
 	   std::holds_alternative<bool>(cancelable_or_pexception)) {
 		++lastarg;
 		cancelable = *std::get_if<bool>(&cancelable_or_pexception);
-		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*>>(L, lastarg));
+		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
 	} else {
 		pexception_pair = expand_to_card_or_group(cancelable_or_pexception);
 	}
