@@ -231,6 +231,8 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 			[&](auto val) -> int { \
 				if constexpr(std::is_same_v<int, decltype(val)>) \
 					return val; \
+				else if constexpr(std::is_same_v<const char*, decltype(val)>) \
+					return luaL_error(L, val); \
 				else \
 					return val(L); \
 			}, \

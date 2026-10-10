@@ -34,7 +34,7 @@ static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers")
 static_assert(LUA_EXTRASPACE >= sizeof(duel*), "LUA_EXTRASPACE needs to be big enough to hold a pointer to the duel object");
 
 namespace scriptlib {
-	using LuaRet = std::variant<int32_t, std::function<int(lua_State*)>>;
+	using LuaRet = std::variant<int, const char*, std::function<int(lua_State*)>>;
 
 	void push_card_lib(lua_State* L);
 	void push_effect_lib(lua_State* L);
@@ -42,7 +42,7 @@ namespace scriptlib {
 	void push_duel_lib(lua_State* L);
 	void push_debug_lib(lua_State* L);
 	bool is_in_noaction_state(lua_State* L);
-	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
+	int push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
 	inline LuaRet push_return_cards([[maybe_unused]] lua_State* L, bool cancelable) {
 		return [cancelable](lua_State* L)->int32_t { return lua_yieldk(L, 0, static_cast<lua_KContext>(cancelable), push_return_cards); };
 	}
@@ -51,7 +51,16 @@ namespace scriptlib {
 	void clear_any_temp_storage(lua_State* L);
 
 #define lua_error_unsafe(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
-#define lua_error(dummy,...) return [=](lua_State* L) -> int32_t { lua_error_unsafe(L, __VA_ARGS__); }
+
+	template<typename... Args>
+	inline LuaRet parse_lua_error(const char* format, Args... args) {
+		if constexpr(sizeof...(Args) == 0) {
+			return format;
+		} else {
+			return [=](lua_State* L) -> int32_t { lua_error_unsafe(L, format, args...); };
+		}
+	}
+#define lua_error(dummy,...) return parse_lua_error(__VA_ARGS__)
 #define check_action_permission(L) do { if(is_in_noaction_state(L)) lua_error(L, "Action is not allowed here."); } while(0)
 #define check_param_count(L, count) do { if(lua_gettop(L) < count) lua_error(L, "%d Parameters are needed.", count); } while(0)
 
