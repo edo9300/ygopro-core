@@ -592,15 +592,7 @@ namespace scriptlib {
 		static_assert(IsCard<T*> || IsGroup<T*> || IsEffect<T*>);
 		auto ref = get_lua<int32_t>(L, 1);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-		auto obj = get_lua<T*>(L, -1);
-		if(!obj) {
-			if constexpr(IsCard<T*>)
-				lua_error(L, "Parameter 1 should be a lua reference to a Card.");
-			else if constexpr(IsGroup<T*>)
-				lua_error(L, "Parameter 1 should be a lua reference to a Group.");
-			else if constexpr(IsEffect<T*>)
-				lua_error(L, "Parameter 1 should be a lua reference to an Effect.");
-		}
+		check_param<get_lua_param_type<T*>()>(L, -1);
 		return 1;
 	}
 }
