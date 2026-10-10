@@ -313,7 +313,7 @@ static int call_lua_function(lua_State* L) {
 		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals<lua_function_arguments>();
 		auto ret = [&]() -> LuaRet {
 			if constexpr(required_args > 0)
-				check_param_count(L, required_args);
+				check_param_count_unsafe(L, required_args);
 			return std::apply(function_ptr,
 				std::tuple_cat(
 					std::make_tuple(L, duel::from(L)),
