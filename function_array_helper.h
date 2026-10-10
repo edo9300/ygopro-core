@@ -225,6 +225,19 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 #define GET_LUA_FUNCTIONS_ARRAY() \
 	LUA_NAMESPACE::Detail::make_lua_functions_array<COUNTER_MACRO>()
 
+#define PERFORM_VISIT(ret) do { \
+		Assume(!ret.valueless_by_exception()); \
+		return std::visit( \
+			[&](auto val) -> int { \
+				if constexpr(std::is_same_v<int, decltype(val)>) \
+					return val; \
+				else \
+					return val(L); \
+			}, \
+			ret \
+		); \
+	} while(0)
+
 #if NEEDS_VARIADIC_OVERLOADING
 
 #define __NARG__(...)  __NARG_I_(__VA_ARGS__, __RSEQ_N())
@@ -292,17 +305,21 @@ static int call_lua_function(lua_State* L) {
 			return prev_function_ptr(L);
 	}
 	if constexpr(max_number_of_arguments == 0) {
-		return function_ptr(L, duel::from(L));
+		auto ret = function_ptr(L, duel::from(L));
+		PERFORM_VISIT(ret);
 	} else {
 		static constexpr int required_args = static_cast<int>(max_number_of_arguments) - Detail::count_trailing_optionals<lua_function_arguments>();
-		if constexpr(required_args > 0)
-			check_param_count(L, required_args);
-		return std::apply(function_ptr,
-		  std::tuple_cat(
-			  std::make_tuple(L, duel::from(L)),
-			  Detail::parse_arguments_tuple<lua_function_arguments>(L)
-		  )
-		);
+		auto ret = [&]() -> LuaRet {
+			if constexpr(required_args > 0)
+				check_param_count(L, required_args);
+			return std::apply(function_ptr,
+				std::tuple_cat(
+					std::make_tuple(L, duel::from(L)),
+					Detail::parse_arguments_tuple<lua_function_arguments>(L)
+				)
+			);
+		}();
+		PERFORM_VISIT(ret);
 	}
 }
 
@@ -325,7 +342,11 @@ static LUA_INLINE LuaRet MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT_NO_ARGS(name, COUNTER) \
-	static constexpr luaL_Reg elem{#name,__VA_ARGS__}; \
+	static int32_t func(lua_State* L) { \
+		LuaRet ret = __VA_ARGS__ (L); \
+		PERFORM_VISIT(ret); \
+	} \
+	static constexpr luaL_Reg elem{#name,func}; \
 }
 
 #define LUA_FUNCTION_ALIAS(name) LUA_FUNCTION_ALIAS_INT(name, COUNTER_MACRO)

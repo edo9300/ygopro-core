@@ -1651,7 +1651,7 @@ LUA_STATIC_FUNCTION(GetChainInfo, uint8_t count, nonempty_lua_range<CHAININFO> c
 			lua_error(L, "Passed invalid CHAININFO flag.");
 		}
 	}
-	return chain_flags.size();
+	return static_cast<int>(chain_flags.size());
 }
 LUA_STATIC_FUNCTION(GetChainEvent, uint8_t count) {
 	chain* ch = pduel->game_field->get_chain(count);
@@ -3087,7 +3087,7 @@ LUA_STATIC_FUNCTION(GetActivityCount, playerid_t playerid, nonempty_lua_range<Ac
 			lua_error(L, "Passed invalid ACTIVITY flag.");
 		}
 	}
-	return activities.size();
+	return static_cast<int>(activities.size());
 }
 LUA_STATIC_FUNCTION(CheckPhaseActivity) {
 	lua_pushboolean(L, pduel->game_field->core.phase_action);

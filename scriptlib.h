@@ -34,7 +34,7 @@ static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers")
 static_assert(LUA_EXTRASPACE >= sizeof(duel*), "LUA_EXTRASPACE needs to be big enough to hold a pointer to the duel object");
 
 namespace scriptlib {
-	using LuaRet = int;
+	using LuaRet = std::variant<int32_t, std::function<int(lua_State*)>>;
 
 	void push_card_lib(lua_State* L);
 	void push_effect_lib(lua_State* L);
@@ -43,14 +43,15 @@ namespace scriptlib {
 	void push_debug_lib(lua_State* L);
 	bool is_in_noaction_state(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
-	inline LuaRet push_return_cards(lua_State* L, bool cancelable) {
-		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
+	inline LuaRet push_return_cards([[maybe_unused]] lua_State* L, bool cancelable) {
+		return [cancelable](lua_State* L)->int32_t { return lua_yieldk(L, 0, static_cast<lua_KContext>(cancelable), push_return_cards); };
 	}
 	LuaRet is_deleted_object(lua_State* L);
 	std::any* set_any_temp_storage(lua_State* L, std::any&& storage);
 	void clear_any_temp_storage(lua_State* L);
 
-#define lua_error(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
+#define lua_error_unsafe(...) do { luaL_error(__VA_ARGS__); unreachable(); } while(0)
+#define lua_error(dummy,...) return [=](lua_State* L) -> int32_t { lua_error_unsafe(L, __VA_ARGS__); }
 #define check_action_permission(L) do { if(is_in_noaction_state(L)) lua_error(L, "Action is not allowed here."); } while(0)
 #define check_param_count(L, count) do { if(lua_gettop(L) < count) lua_error(L, "%d Parameters are needed.", count); } while(0)
 
@@ -255,7 +256,7 @@ namespace scriptlib {
 			valid = type == param_type;
 		}
 		if(!valid) {
-			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_type_name(param_type), get_lua_type_name(type));
+			lua_error_unsafe(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_type_name(param_type), get_lua_type_name(type));
 		}
 	}
 
@@ -277,12 +278,12 @@ namespace scriptlib {
 		if constexpr(std::is_unsigned_v<base_int_type>) {
 			auto unsigned_val = static_cast<lua_Unsigned>(value);
 			if(unsigned_val > max || unsigned_val < min) {
-				lua_error(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
+				lua_error_unsafe(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
 						  static_cast<lua_Unsigned>(min), static_cast<lua_Unsigned>(max), unsigned_val);
 			}
 		} else {
 			if(value > max || value < min) {
-				lua_error(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
+				lua_error_unsafe(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
 						  static_cast<lua_Integer>(min), static_cast<lua_Integer>(max), value);
 			}
 		}
@@ -322,10 +323,10 @@ namespace scriptlib {
 			if(auto obj = lua_touserdata(L, idx)) {
 				auto* ret = *static_cast<lua_obj**>(obj);
 				if(ret->lua_type == LuaParam::DELETED)
-					lua_error(L, "Attempting to access deleted object.");
+					lua_error_unsafe(L, "Attempting to access deleted object.");
 				return return_value(ret);
 			}
-			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(get_lua_type(L, idx)));
+			lua_error_unsafe(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(get_lua_type(L, idx)));
 		} else {
 			constexpr auto lua_type = get_lua_param_type<actual_type>();
 			check_param<lua_type>(L, idx);
@@ -549,7 +550,7 @@ namespace scriptlib {
 		if(!check_variant_types_functor<T>()(type)) {
 			constexpr auto types_string = get_variant_names_functor<T>()();
 			static_assert(types_string.back() == '\0');
-			lua_error(L, R"(Parameter %d should be one of %s but is "%s".)", idx, types_string.data(), get_lua_type_name(type));
+			lua_error_unsafe(L, R"(Parameter %d should be one of %s but is "%s".)", idx, types_string.data(), get_lua_type_name(type));
 		}
 		return get_variant_type_functor<T>()(L, idx, type);
 	}
@@ -577,7 +578,7 @@ namespace scriptlib {
 		});
 		if constexpr(is_nonempty_lua_range_v<T>) {
 			if(result.empty())
-				lua_error(L, "Parameter %d: no values were provided.", idx);
+				lua_error_unsafe(L, "Parameter %d: no values were provided.", idx);
 		}
 		return std::ref(result);
 	}
@@ -597,16 +598,18 @@ namespace scriptlib {
 	}
 }
 
-#define yieldk(...) lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int {\
-	(void)status; \
-	(void)ctx; \
-	auto pduel = duel::from(L); \
-	(void)pduel; \
-	do __VA_ARGS__ while(0); \
-	unreachable(); \
-})
+#define yieldk(...) +[](lua_State* L)->int32_t { \
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int { \
+		(void)status; \
+		(void)ctx; \
+		auto pduel = duel::from(L); \
+		(void)pduel; \
+		do __VA_ARGS__ while(0); \
+		unreachable(); \
+	}); \
+}
 
-#define yield() lua_yield(L, 0)
+#define yield() +[](lua_State* L)->int32_t { return lua_yield(L, 0); }
 
 // double macro to make MSVC happy
 #define ensure_luaL_stack_int(L,...) [&](){ luaL_checkstack(L, 5, nullptr); return __VA_ARGS__; }()
