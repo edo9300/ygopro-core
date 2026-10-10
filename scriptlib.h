@@ -381,7 +381,7 @@ namespace scriptlib {
 	}
 
 	template<typename ...Args>
-	inline std::pair<card*, owned_lua<group>> expand_to_card_or_group(const std::variant<Args...>& v) {
+	inline std::pair<card*, group*> expand_to_card_or_group(const std::variant<Args...>& v) {
 		if(auto* ppcard = std::get_if<card*>(&v); ppcard) {
 			return { *ppcard, nullptr };
 		} else if(auto* ppgroup = std::get_if<group*>(&v); ppgroup) {
