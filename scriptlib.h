@@ -143,7 +143,6 @@ namespace scriptlib {
 	template<typename T>
 	inline constexpr bool IsOwnedObject<owned_lua<T>> = true;
 
-	const char* get_lua_type_name(lua_State* L, int32_t index);
 	LuaParam get_lua_type(lua_State* L, int32_t index);
 
 	template<typename T>
@@ -168,29 +167,32 @@ namespace scriptlib {
 			return LuaParam::STRING;
 	}
 
-	template<LuaParam param>
-	static constexpr const char* get_lua_param_name() {
-		if constexpr(param == LuaParam::INT)
-			return "Int";
-		else if constexpr(param == LuaParam::STRING)
-			return "String";
-		else if constexpr(param == LuaParam::CARD)
-			return "Card";
-		else if constexpr(param == LuaParam::GROUP)
-			return "Group";
-		else if constexpr(param == LuaParam::EFFECT)
-			return "Effect";
-		else if constexpr(param == LuaParam::FUNCTION)
-			return "Function";
-		else if constexpr(param == LuaParam::BOOLEAN)
-			return "boolean";
-		else if constexpr(param == LuaParam::DELETED)
-			return "Deleted";
-		else if constexpr(param == LuaParam::NIL)
-			return "nil";
-		else if constexpr(param == LuaParam::TABLE)
-			return "table";
-		unreachable();
+	static constexpr const char* get_lua_type_name(LuaParam type) {
+		switch(type) {
+			case LuaParam::FUNCTION:
+				return "Function";
+			case LuaParam::STRING:
+				return "String";
+			case LuaParam::INT:
+				return "Int";
+			case LuaParam::BOOLEAN:
+				return "boolean";
+			case LuaParam::TABLE:
+				return "table";
+			case LuaParam::NIL:
+			case LuaParam::NONE:
+				return "nil";
+			case LuaParam::CARD:
+				return "Card";
+			case LuaParam::GROUP:
+				return "Group";
+			case LuaParam::EFFECT:
+				return "Effect";
+			case LuaParam::DELETED:
+				return "Deleted";
+			default:
+				return "unknown";
+		}
 	}
 
 	//always return a string, whereas lua might return nullptr
@@ -257,7 +259,7 @@ namespace scriptlib {
 		if constexpr(retfalse)
 			return false;
 		else
-			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_param_name<param_type>(), get_lua_type_name(L, index));
+			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_type_name(param_type), get_lua_type_name(type));
 	}
 
 	template<typename ...Args>
@@ -327,7 +329,7 @@ namespace scriptlib {
 					lua_error(L, "Attempting to access deleted object.");
 				return return_value(ret);
 			}
-			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(L, idx));
+			lua_error(L, R"(Parameter %d should be one of "Card", "Group", "Effect" but is "%s".)", idx, get_lua_type_name(get_lua_type(L, idx)));
 		} else {
 			constexpr auto lua_type = get_lua_param_type<actual_type>();
 			check_param<lua_type>(L, idx);
@@ -517,31 +519,31 @@ namespace scriptlib {
 				*it++ = '"';
 			};
 			if constexpr((IsCard<Args> || ...) || (IsLuaObj<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::CARD>());
+				copy_string(get_lua_type_name(LuaParam::CARD));
 			}
 			if constexpr((IsGroup<Args> || ...) || (IsLuaObj<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::GROUP>());
+				copy_string(get_lua_type_name(LuaParam::GROUP));
 			}
 			if constexpr((IsEffect<Args> || ...) || (IsLuaObj<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::EFFECT>());
+				copy_string(get_lua_type_name(LuaParam::EFFECT));
 			}
 			if constexpr((IsFunction<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::FUNCTION>());
+				copy_string(get_lua_type_name(LuaParam::FUNCTION));
 			}
 			if constexpr((IsTable<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::TABLE>());
+				copy_string(get_lua_type_name(LuaParam::TABLE));
 			}
 			if constexpr((IsBool<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::BOOLEAN>());
+				copy_string(get_lua_type_name(LuaParam::BOOLEAN));
 			}
 			if constexpr((IsInteger<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::INT>());
+				copy_string(get_lua_type_name(LuaParam::INT));
 			}
 			if constexpr((is_string_view_v<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::STRING>());
+				copy_string(get_lua_type_name(LuaParam::STRING));
 			}
 			if constexpr((IsNil<Args> || ...)) {
-				copy_string(get_lua_param_name<LuaParam::NIL>());
+				copy_string(get_lua_type_name(LuaParam::NIL));
 			}
 			return ret;
 		}
@@ -554,7 +556,7 @@ namespace scriptlib {
 		if(!check_variant_types_functor<T>()(type)) {
 			constexpr auto types_string = get_variant_names_functor<T>()();
 			static_assert(types_string.back() == '\0');
-			lua_error(L, R"(Parameter %d should be one of %s but is "%s".)", idx, types_string.data(), get_lua_type_name(L, idx));
+			lua_error(L, R"(Parameter %d should be one of %s but is "%s".)", idx, types_string.data(), get_lua_type_name(type));
 		}
 		return get_variant_type_functor<T>()(L, idx, type);
 	}
