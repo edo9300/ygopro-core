@@ -196,55 +196,59 @@ LUA_FUNCTION(FilterCount, Function filter, std::variant<card*, group*, Nil> excl
 LUA_FUNCTION(FilterSelect) {
 	check_action_permission(L);
 	check_param_count(L, 6);
-	const auto findex = lua_get<function, true>(L, 3);
-	card_set cset(self->container);
+	auto playerid = get_lua<playerid_t>(L, 2);
+	auto filter = get_lua<Function>(L, 3);
+	auto min = get_lua<uint16_t>(L, 4);
+	auto max = get_lua<uint16_t>(L, 5);
+	int lastarg = 6;
+	auto cancelable_or_pexception = get_lua<std::variant<card*, group*, bool>>(L, lastarg);
 	bool cancelable = false;
-	uint8_t lastarg = 6;
-	if(lua_isboolean(L, lastarg)) {
-		cancelable = lua_get<bool, false>(L, lastarg);
+	if(std::holds_alternative<bool>(cancelable_or_pexception)) {
 		++lastarg;
+		cancelable = *std::get_if<bool>(&cancelable_or_pexception);
+		cancelable_or_pexception = get_lua<std::variant<card*, group*, bool>>(L, lastarg);
 	}
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, lastarg); pexception) {
+	card_set cset(self->container);
+	if(auto [pexception, pexgroup] = expand_to_card_or_group(cancelable_or_pexception); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	auto playerid = lua_get<uint8_t>(L, 2);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto min = lua_get<uint16_t>(L, 4);
-	auto max = lua_get<uint16_t>(L, 5);
 	uint32_t extraargs = lua_gettop(L) - lastarg;
 	pduel->game_field->core.select_cards.clear();
 	for(auto& pcard : cset) {
-		if(pduel->lua->check_matching(pcard, findex, extraargs))
+		if(pduel->lua->check_matching(pcard, filter, extraargs))
 			pduel->game_field->core.select_cards.push_back(pcard);
 	}
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return push_return_cards(L, cancelable);
 }
-LUA_FUNCTION(Select) {
+LUA_FUNCTION(Select, playerid_t playerid, uint16_t min, uint16_t max, std::variant<card*, group*, bool, Nil> cancelable_or_pexception) {
 	check_action_permission(L);
-	check_param_count(L, 5);
 	card_set cset(self->container);
 	bool cancelable = false;
-	uint8_t lastarg = 5;
-	if(lua_isboolean(L, lastarg)) {
-		cancelable = lua_get<bool, false>(L, lastarg);
-		++lastarg;
+	if(auto [pexception, pexgroup] = expand_to_card_or_group(cancelable_or_pexception); pexception) {
+		cset.erase(pexception);
+	} else if(pexgroup) {
+		for(auto& pcard : pexgroup->container)
+			cset.erase(pcard);
+	} else if(std::holds_alternative<bool>(cancelable_or_pexception)) {
+		cancelable = *std::get_if<bool>(&cancelable_or_pexception);
 	}
-	if(auto [pexception, pexgroup] = lua_get_card_or_group<true>(L, lastarg); pexception) {
+	pduel->game_field->core.select_cards.assign(cset.begin(), cset.end());
+	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
+	return push_return_cards(L, cancelable);
+}
+LUA_FUNCTION(Select, playerid_t playerid, uint16_t min, uint16_t max, bool cancelable, std::variant<card*, group*> pexception_card_or_group) {
+	check_action_permission(L);
+	card_set cset(self->container);
+	if(auto [pexception, pexgroup] = expand_to_card_or_group(pexception_card_or_group); pexception) {
 		cset.erase(pexception);
 	} else if(pexgroup) {
 		for(auto& pcard : pexgroup->container)
 			cset.erase(pcard);
 	}
-	auto playerid = lua_get<uint8_t>(L, 2);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto min = lua_get<uint16_t>(L, 3);
-	auto max = lua_get<uint16_t>(L, 4);
 	pduel->game_field->core.select_cards.assign(cset.begin(), cset.end());
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return push_return_cards(L, cancelable);
