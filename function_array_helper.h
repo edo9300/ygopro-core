@@ -278,7 +278,7 @@ static inline decltype(auto) parse_arguments_tuple(lua_State* L) {
 #endif
 
 template<auto* function_ptr, bool is_overload, typename previous_element, auto* prev_function_ptr>
-static int32_t call_lua_function(lua_State* L) {
+static int call_lua_function(lua_State* L) {
 	using namespace scriptlib;
 	using lua_function_arguments = Detail::get_lua_function_arguments_t<decltype(function_ptr)>;
 	static constexpr auto max_number_of_arguments = std::tuple_size_v<lua_function_arguments>;
@@ -307,18 +307,18 @@ static int32_t call_lua_function(lua_State* L) {
 }
 
 #define LUA_STATIC_FUNCTION_INT(name, COUNTER, ...) \
-static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
+static LUA_INLINE LuaRet MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__); \
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT(name, COUNTER, __VA_ARGS__) \
-	using lua_function_typedef = int32_t(*)(__VA_ARGS__); \
+	using lua_function_typedef = LuaRet(*)(__VA_ARGS__); \
 	static constexpr luaL_Reg elem{lua_name, call_lua_function< \
 					/* pick the right overload */ \
 					static_cast<lua_function_typedef>(&MAKE_LUA_NAME(LUA_MODULE, name)), \
 					std::string_view{lua_name} == std::string_view{prev_element::lua_name}, \
 					prev_element, prev_element::elem.func>}; \
 }; \
-static LUA_INLINE int32_t MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
+static LUA_INLINE LuaRet MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 
 #define LUA_FUNCTION_EXISTING(name,...) LUA_FUNCTION_EXISTING_INT(name, COUNTER_MACRO, __VA_ARGS__)
 #define LUA_FUNCTION_EXISTING_INT(name, COUNTER, ...) \
@@ -338,9 +338,9 @@ struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 #else
 #include <string_view>
 
-#define LUA_FUNCTION(name, ...) [[maybe_unused]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+#define LUA_FUNCTION(name, ...) [[maybe_unused]] static LuaRet MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, [[maybe_unused]] LUA_CLASS* const self, ##__VA_ARGS__)
-#define LUA_STATIC_FUNCTION(name, ...) [[maybe_unused]] static int32_t MAKE_LUA_NAME(LUA_MODULE,name) \
+#define LUA_STATIC_FUNCTION(name, ...) [[maybe_unused]] static LuaRet MAKE_LUA_NAME(LUA_MODULE,name) \
 	([[maybe_unused]] lua_State* const L, [[maybe_unused]] duel* const pduel, ##__VA_ARGS__)
 #define LUA_FUNCTION_EXISTING(name,...) struct MAKE_LUA_NAME(LUA_MODULE,name) {}
 #define LUA_FUNCTION_ALIAS(name) struct MAKE_LUA_NAME(LUA_MODULE,name) {}

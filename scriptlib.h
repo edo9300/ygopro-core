@@ -34,6 +34,8 @@ static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers")
 static_assert(LUA_EXTRASPACE >= sizeof(duel*), "LUA_EXTRASPACE needs to be big enough to hold a pointer to the duel object");
 
 namespace scriptlib {
+	using LuaRet = int;
+
 	void push_card_lib(lua_State* L);
 	void push_effect_lib(lua_State* L);
 	void push_group_lib(lua_State* L);
@@ -41,7 +43,7 @@ namespace scriptlib {
 	void push_debug_lib(lua_State* L);
 	bool is_in_noaction_state(lua_State* L);
 	int32_t push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
-	inline int32_t push_return_cards(lua_State* L, bool cancelable) {
+	inline LuaRet push_return_cards(lua_State* L, bool cancelable) {
 		return lua_yieldk(L, 0, (lua_KContext)cancelable, push_return_cards);
 	}
 	int32_t is_deleted_object(lua_State* L);
@@ -586,7 +588,7 @@ namespace scriptlib {
 		return 1;
 	}
 	template<typename T>
-	static int32_t from_lua_ref(lua_State* L) {
+	static LuaRet from_lua_ref(lua_State* L) {
 		static_assert(IsCard<T*> || IsGroup<T*> || IsEffect<T*>);
 		auto ref = get_lua<int32_t>(L, 1);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
