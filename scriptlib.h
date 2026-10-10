@@ -167,7 +167,7 @@ namespace scriptlib {
 			return LuaParam::STRING;
 	}
 
-	static constexpr const char* get_lua_type_name(LuaParam type) {
+	inline constexpr const char* get_lua_type_name(LuaParam type) {
 		switch(type) {
 			case LuaParam::FUNCTION:
 				return "Function";
@@ -240,9 +240,8 @@ namespace scriptlib {
 		}
 	}
 
-	template<LuaParam param_type, bool retfalse = false>
-	static inline auto check_param(lua_State* L, int32_t index) {
-		using ReturnType = std::conditional_t<retfalse, bool, void>;
+	template<LuaParam param_type>
+	static inline void check_param(lua_State* L, int32_t index) {
 		auto type = get_lua_type(L, index);
 		bool valid;
 		if constexpr(param_type == LuaParam::BOOLEAN) {
@@ -253,13 +252,9 @@ namespace scriptlib {
 		} else {
 			valid = type == param_type;
 		}
-		if(valid) {
-			return static_cast<ReturnType>(true);
-		}
-		if constexpr(retfalse)
-			return false;
-		else
+		if(!valid) {
 			lua_error(L, R"(Parameter %d should be "%s" but is "%s".)", index, get_lua_type_name(param_type), get_lua_type_name(type));
+		}
 	}
 
 	template<typename ...Args>
@@ -295,7 +290,6 @@ namespace scriptlib {
 	template<typename T, bool last = false, std::enable_if_t<!is_variant_v<T> && !is_lua_range_v<T>, int> = 0>
 	inline constexpr T get_lua(lua_State* L, int idx) {
 		static_assert(std::is_trivially_destructible_v<T>);
-		using namespace scriptlib;
 		static_assert(!IsVariadic<T> || last);
 		// we need to not have type::value_type be evaluated if the type isn't an optional
 		auto _ = [](auto a) {
@@ -364,7 +358,6 @@ namespace scriptlib {
 	template<typename... Args>
 	struct check_variant_types_functor<std::variant<Args...>> {
 		constexpr bool operator()(LuaParam lua_type) {
-			using namespace scriptlib;
 			if constexpr(((IsCard<Args> || IsLuaObj<Args>) || ...)) {
 				if(lua_type == LuaParam::CARD)
 					return true;
@@ -502,7 +495,6 @@ namespace scriptlib {
 	template<typename... Args>
 	struct get_variant_names_functor<std::variant<Args...>> {
 		constexpr std::array<char, 128> operator()() {
-			using namespace scriptlib;
 			std::array<char, 128> ret{};
 			auto it = ret.begin();
 			bool is_first = true;
@@ -551,7 +543,6 @@ namespace scriptlib {
 
 	template<typename T, bool last = false, std::enable_if_t<is_variant_v<T>, int> = 0>
 	inline constexpr T get_lua(lua_State* L, int idx) {
-		using namespace scriptlib;
 		auto type = get_lua_type(L, idx);
 		if(!check_variant_types_functor<T>()(type)) {
 			constexpr auto types_string = get_variant_names_functor<T>()();
@@ -563,7 +554,6 @@ namespace scriptlib {
 
 	template<typename T, bool last, std::enable_if_t<is_lua_range_v<T>, int> = 0>
 	inline constexpr decltype(auto) get_lua(lua_State* L, int idx) {
-		using namespace scriptlib;
 		using vec_type = typename T::base;
 		vec_type& result = *std::any_cast<vec_type>(set_any_temp_storage(L, vec_type{}));
 		result.from_table = lua_istable(L, idx);
