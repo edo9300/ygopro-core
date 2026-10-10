@@ -1826,34 +1826,34 @@ LUA_STATIC_FUNCTION(GetExtraTopGroup, playerid_t playerid, uint32_t amount) {
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetMatchingGroup, Function filter, uint8_t location_check_player,
+LUA_STATIC_FUNCTION(GetMatchingGroup, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo, pgroup, pexception, pexgroup, extraargs.size);
+	pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo, pgroup, pexception, pexgroup, extraargs.size);
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetMatchingGroupCount, Function filter, uint8_t location_check_player,
+LUA_STATIC_FUNCTION(GetMatchingGroupCount, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo, pgroup, pexception, pexgroup, extraargs.size);
+	pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo, pgroup, pexception, pexgroup, extraargs.size);
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetFirstMatchingCard, Function filter, uint8_t location_check_player,
+LUA_STATIC_FUNCTION(GetFirstMatchingCard, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	card* pret = nullptr;
-	pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo, nullptr, pexception, pexgroup, extraargs.size);
+	pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo, nullptr, pexception, pexgroup, extraargs.size);
 	interpreter::pushobject(L, pret);
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsExistingMatchingCard, Function filter, uint8_t location_check_player,
+LUA_STATIC_FUNCTION(IsExistingMatchingCard, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, uint32_t count, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo,
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
 															   nullptr, pexception, pexgroup, extraargs.size, nullptr, count));
 	return 1;
 }
@@ -2074,19 +2074,19 @@ LUA_STATIC_FUNCTION(SelectTribute, playerid_t playerid, card* target, uint16_t m
 	field->select_tribute_cards(nullptr, playerid, cancelable.value_or(false), min, max, real_toplayer, summon_zone.value_or(0x1f));
 	return push_return_cards(L, cancelable.value_or(false));
 }
-LUA_STATIC_FUNCTION(GetTargetCount, Function filter, uint8_t location_check_player,
+LUA_STATIC_FUNCTION(GetTargetCount, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	auto pgroup = pduel->new_group();
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo,
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
 															   pgroup, pexception, pexgroup, extraargs.size, nullptr, 0, true));
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
 }
-LUA_STATIC_FUNCTION(IsExistingTarget, Function filter, uint8_t location_check_player,
+LUA_STATIC_FUNCTION(IsExistingTarget, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, uint16_t count, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter, location_check_player, location_self, location_oppo,
+	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
 															   nullptr, pexception, pexgroup, extraargs.size, nullptr, count, true));
 	return 1;
 }
