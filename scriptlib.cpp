@@ -37,34 +37,6 @@ LuaParam get_lua_type(lua_State* L, int32_t index) {
 	}
 }
 
-const char* get_lua_type_name(lua_State* L, int32_t index) {
-	switch(auto type = get_lua_type(L, index); type) {
-	case LuaParam::FUNCTION:
-		return "Function";
-	case LuaParam::STRING:
-		return "String";
-	case LuaParam::INT:
-		return "Int";
-	case LuaParam::BOOLEAN:
-		return "boolean";
-	case LuaParam::TABLE:
-		return "table";
-	case LuaParam::NIL:
-	case LuaParam::NONE:
-		return "nil";
-	case LuaParam::CARD:
-		return "Card";
-	case LuaParam::GROUP:
-		return "Group";
-	case LuaParam::EFFECT:
-		return "Effect";
-	case LuaParam::DELETED:
-		return "Deleted";
-	default:
-		return "unknown";
-	}
-}
-
 bool is_in_noaction_state(lua_State* L) {
 	return duel::from(L)->lua->no_action;
 }
