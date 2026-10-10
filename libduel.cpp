@@ -201,7 +201,7 @@ LUA_STATIC_FUNCTION(SpecialSummonRule, playerid_t playerid, card* pcard, std::op
 	}
 	return yield();
 }
-inline int32_t spsummon_rule(lua_State* L, playerid_t playerid, card* pcard, uint32_t summon_type,
+inline LuaRet spsummon_rule(lua_State* L, playerid_t playerid, card* pcard, uint32_t summon_type,
 							const std::variant<Nil, card*, group*>& forced_materials, const std::variant<Nil, card*, group*>& materials,
 							const std::optional<uint16_t>& minc, const std::optional<uint16_t>& maxc) {
 	check_action_permission(L);
@@ -256,7 +256,7 @@ LUA_STATIC_FUNCTION(ProcedureSummon, playerid_t playerid, card* pcard, uint32_t 
 					std::optional<uint16_t> minc, std::optional<uint16_t> maxc) {
 	return spsummon_rule(L, playerid, pcard, sumtype, must, materials, minc, maxc);
 }
-inline int32_t spsummon_rule_group(lua_State* L, playerid_t playerid, uint32_t summon_type) {
+inline LuaRet spsummon_rule_group(lua_State* L, playerid_t playerid, uint32_t summon_type) {
 	const auto pduel = duel::from(L);
 	pduel->game_field->core.summon_cancelable = FALSE;
 	pduel->game_field->special_summon_rule_group(playerid, summon_type);
@@ -1935,7 +1935,7 @@ LUA_STATIC_FUNCTION(GetReleaseGroupCount, playerid_t playerid, std::optional<boo
 														   reason.value_or(REASON_COST)));
 	return 1;
 }
-static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
+static LuaRet check_release_group(lua_State* L, uint8_t use_hand) {
 	check_param_count(L, 4);
 	auto playerid = get_lua<playerid_t>(L, 1);
 	auto filter = get_lua<std::optional<Function>>(L, 2).value_or(0);
@@ -1978,7 +1978,7 @@ LUA_STATIC_FUNCTION(CheckReleaseGroup) {
 LUA_STATIC_FUNCTION(CheckReleaseGroupEx) {
 	return check_release_group(L, TRUE);
 }
-static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
+static LuaRet select_release_group(lua_State* L, uint8_t use_hand) {
 	check_action_permission(L);
 	check_param_count(L, 5);
 	auto playerid = get_lua<playerid_t>(L, 1);
@@ -3200,7 +3200,7 @@ LUA_STATIC_FUNCTION(SwapDeckAndGrave, playerid_t playerid) {
 	pduel->game_field->swap_deck_and_grave(playerid);
 	return 0;
 }
-static int32_t majestic_copy(card* pcard, card* ccard, uint32_t resv, uint16_t resc) {
+static LuaRet majestic_copy(card* pcard, card* ccard, uint32_t resv, uint16_t resc) {
 	if(resv & (RESET_PHASE) && !(resv & (RESET_SELF_TURN | RESET_OPPO_TURN)))
 		resv |= (RESET_SELF_TURN | RESET_OPPO_TURN);
 	for(auto eit = ccard->single_effect.begin(); eit != ccard->field_effect.end(); ++eit) {
