@@ -1865,29 +1865,23 @@ LUA_STATIC_FUNCTION(IsExistingMatchingCard, std::optional<Function> filter, uint
 LUA_STATIC_FUNCTION(SelectMatchingCard) {
 	check_action_permission(L);
 	check_param_count(L, 8);
-	const auto findex = lua_get<function>(L, 2);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
+	auto playerid = get_lua<playerid_t>(L, 1);
+	auto filter = get_lua<std::optional<Function>>(L, 2).value_or(0);
+	auto self = get_lua<uint8_t>(L, 3);
+	auto location1 = get_lua<uint16_t>(L, 4);
+	auto location2 = get_lua<uint16_t>(L, 5);
+	auto min = get_lua<uint16_t>(L, 6);
+	auto max = get_lua<uint16_t>(L, 7);
 	bool cancelable = false;
 	uint8_t lastarg = 8;
-	if(lua_isboolean(L, lastarg)) {
-		check_param_count(L, 9);
-		cancelable = lua_get<bool, false>(L, lastarg);
+	if(auto cancelable_opt = get_lua<std::optional<bool>>(L, lastarg); cancelable_opt.has_value()) {
+		cancelable = *cancelable_opt;
 		++lastarg;
 	}
-	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
-		pexgroup = lua_get<group*>(L, lastarg);
+	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
 	uint32_t extraargs = lua_gettop(L) - lastarg;
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto self = lua_get<uint8_t>(L, 3);
-	auto location1 = lua_get<uint16_t>(L, 4);
-	auto location2 = lua_get<uint16_t>(L, 5);
-	auto min = lua_get<uint16_t>(L, 6);
-	auto max = lua_get<uint16_t>(L, 7);
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
+	pduel->game_field->filter_matching_card(filter, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return push_return_cards(L, cancelable);
@@ -1943,42 +1937,37 @@ LUA_STATIC_FUNCTION(GetReleaseGroupCount, playerid_t playerid, std::optional<boo
 }
 static int32_t check_release_group(lua_State* L, uint8_t use_hand) {
 	check_param_count(L, 4);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	const auto findex = lua_get<function>(L, 2);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	uint32_t lastarg = 4;
-	const auto pduel = duel::from(L);
-	auto min = lua_get<uint16_t>(L, 3);
+	auto playerid = get_lua<playerid_t>(L, 1);
+	auto filter = get_lua<std::optional<Function>>(L, 2).value_or(0);
+	auto min = get_lua<uint16_t>(L, 3);
 	auto max = min;
 	bool check_field = false;
 	uint8_t zone = 0xff;
 	card* to_check = nullptr;
 	uint8_t toplayer = playerid;
 	bool use_oppo = false;
-	if(lua_isboolean(L, lastarg)) {
-		use_hand = lua_get<bool>(L, lastarg);
+	uint32_t lastarg = 4;
+	if(auto use_hand_opt = get_lua<std::optional<bool>>(L, lastarg); use_hand_opt.has_value()) {
+		use_hand = *use_hand_opt;
 		++lastarg;
-		max = lua_get<uint16_t>(L, lastarg, min);
+		max = get_lua<std::optional<uint16_t>>(L, lastarg).value_or(min);
 		++lastarg;
-		check_field = lua_get<bool, false>(L, lastarg);
+		check_field = get_lua<std::optional<bool>>(L, lastarg).value_or(false);
 		++lastarg;
-		to_check = lua_get<card*>(L, lastarg);
+		to_check = get_lua<std::optional<card*>>(L, lastarg).value_or(nullptr);
 		++lastarg;
-		toplayer = lua_get<uint8_t>(L, lastarg, playerid);
+		toplayer = get_lua<std::optional<playerid_t>>(L, lastarg).value_or(playerid);
 		++lastarg;
-		zone = lua_get<uint32_t, 0xff>(L, lastarg);
+		zone = get_lua<std::optional<uint8_t>>(L, lastarg).value_or(0xff);
 		++lastarg;
-		use_oppo = lua_get<bool, false>(L, lastarg);
+		use_oppo = get_lua<std::optional<bool>>(L, lastarg).value_or(false);
 		++lastarg;
 	}
-	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
-		pexgroup = lua_get<group*>(L, lastarg);
+	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
 	uint32_t extraargs = lua_gettop(L) - lastarg;
-	int32_t result = pduel->game_field->check_release_list(playerid, min, max, use_hand, findex, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo, REASON_EFFECT);
-	pduel->game_field->core.must_select_cards.clear();
+	auto& field = duel::from(L)->game_field;
+	int32_t result = field->check_release_list(playerid, min, max, use_hand, filter, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo, REASON_EFFECT);
+	field->core.must_select_cards.clear();
 	lua_pushboolean(L, result);
 	return 1;
 
@@ -1992,46 +1981,42 @@ LUA_STATIC_FUNCTION(CheckReleaseGroupEx) {
 static int32_t select_release_group(lua_State* L, uint8_t use_hand) {
 	check_action_permission(L);
 	check_param_count(L, 5);
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	const auto findex = lua_get<function>(L, 2);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
-	bool cancelable = false;
-	uint8_t lastarg = 5;
+	auto playerid = get_lua<playerid_t>(L, 1);
+	auto filter = get_lua<std::optional<Function>>(L, 2).value_or(0);
+	auto min = get_lua<uint16_t>(L, 3);
+	auto max = get_lua<uint16_t>(L, 4);
 	bool check_field = false;
+	uint8_t zone = 0xff;
 	card* to_check = nullptr;
 	uint8_t toplayer = playerid;
-	uint8_t zone = 0xff;
 	bool use_oppo = false;
-	if(lua_isboolean(L, lastarg)) {
-		use_hand = lua_get<bool>(L, lastarg);
+	bool cancelable = false;
+	uint8_t lastarg = 5;
+	if(auto use_hand_opt = get_lua<std::optional<bool>>(L, lastarg); use_hand_opt.has_value()) {
+		use_hand = *use_hand_opt;
 		++lastarg;
-		cancelable = lua_get<bool, false>(L, lastarg);
+		cancelable = get_lua<std::optional<bool>>(L, lastarg).value_or(0);
 		++lastarg;
-		check_field = lua_get<bool, false>(L, lastarg);
+		check_field = get_lua<std::optional<bool>>(L, lastarg).value_or(false);
 		++lastarg;
-		to_check = lua_get<card*>(L, lastarg);
+		to_check = get_lua<std::optional<card*>>(L, lastarg).value_or(nullptr);
 		++lastarg;
-		toplayer = lua_get<uint8_t>(L, lastarg, playerid);
+		toplayer = get_lua<std::optional<playerid_t>>(L, lastarg).value_or(playerid);
 		++lastarg;
-		zone = lua_get<uint32_t, 0xff>(L, lastarg);
+		zone = get_lua<std::optional<uint8_t>>(L, lastarg).value_or(0xff);
 		++lastarg;
-		use_oppo = lua_get<bool, false>(L, lastarg);
+		use_oppo = get_lua<std::optional<bool>>(L, lastarg).value_or(false);
 		++lastarg;
 	}
-	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
-		pexgroup = lua_get<group*>(L, lastarg);
+	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
 	uint32_t extraargs = lua_gettop(L) - lastarg;
-	const auto pduel = duel::from(L);
-	auto min = lua_get<uint16_t>(L, 3);
-	auto max = lua_get<uint16_t>(L, 4);
-	pduel->game_field->core.release_cards.clear();
-	pduel->game_field->core.release_cards_ex.clear();
-	pduel->game_field->core.release_cards_ex_oneof.clear();
-	pduel->game_field->get_release_list(playerid, &pduel->game_field->core.release_cards, &pduel->game_field->core.release_cards_ex, &pduel->game_field->core.release_cards_ex_oneof, use_hand, findex, extraargs, pexception, pexgroup, use_oppo, REASON_EFFECT);
-	pduel->game_field->emplace_process<Processors::SelectRelease>(playerid, cancelable, min, max, check_field, to_check, toplayer, zone);
+	auto& field = duel::from(L)->game_field;
+	field->core.release_cards.clear();
+	field->core.release_cards_ex.clear();
+	field->core.release_cards_ex_oneof.clear();
+	field->get_release_list(playerid, &field->core.release_cards, &field->core.release_cards_ex,
+							&field->core.release_cards_ex_oneof, use_hand, filter, extraargs, pexception, pexgroup, use_oppo, REASON_EFFECT);
+	field->emplace_process<Processors::SelectRelease>(playerid, cancelable, min, max, check_field, to_check, toplayer, zone);
 	return push_return_cards(L, cancelable);
 }
 LUA_STATIC_FUNCTION(SelectReleaseGroup) {
@@ -2098,31 +2083,25 @@ LUA_STATIC_FUNCTION(IsExistingTarget, std::optional<Function> filter, uint8_t lo
 LUA_STATIC_FUNCTION(SelectTarget) {
 	check_action_permission(L);
 	check_param_count(L, 8);
-	const auto findex = lua_get<function>(L, 2);
-	card* pexception = nullptr;
-	group* pexgroup = nullptr;
+	auto playerid = get_lua<playerid_t>(L, 1);
+	auto filter = get_lua<std::optional<Function>>(L, 2).value_or(0);
+	auto self = get_lua<uint8_t>(L, 3);
+	auto location1 = get_lua<uint16_t>(L, 4);
+	auto location2 = get_lua<uint16_t>(L, 5);
+	auto min = get_lua<uint16_t>(L, 6);
+	auto max = get_lua<uint16_t>(L, 7);
 	bool cancelable = false;
 	uint8_t lastarg = 8;
-	if(lua_isboolean(L, lastarg)) {
-		check_param_count(L, 9);
-		cancelable = lua_get<bool, false>(L, lastarg);
+	if(auto cancelable_opt = get_lua<std::optional<bool>>(L, lastarg); cancelable_opt.has_value()) {
+		cancelable = *cancelable_opt;
 		++lastarg;
 	}
-	if((pexception = lua_get<card*>(L, lastarg)) == nullptr)
-		pexgroup = lua_get<group*>(L, lastarg);
-	uint32_t extraargs = lua_gettop(L) - lastarg;
-	auto playerid = lua_get<uint8_t>(L, 1);
-	if(playerid != 0 && playerid != 1)
-		return 0;
-	auto self = lua_get<uint8_t>(L, 3);
-	auto location1 = lua_get<uint16_t>(L, 4);
-	auto location2 = lua_get<uint16_t>(L, 5);
-	auto min = lua_get<uint16_t>(L, 6);
-	auto max = lua_get<uint16_t>(L, 7);
+	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
 	if(pduel->game_field->core.current_chain.size() == 0)
 		return 0;
+	uint32_t extraargs = lua_gettop(L) - lastarg;
 	auto pgroup = pduel->new_group();
-	pduel->game_field->filter_matching_card(findex, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
+	pduel->game_field->filter_matching_card(filter, self, location1, location2, pgroup, pexception, pexgroup, extraargs, nullptr, 0, true);
 	pduel->game_field->core.select_cards.assign(pgroup->container.begin(), pgroup->container.end());
 	pduel->game_field->emplace_process<Processors::SelectCard>(playerid, cancelable, min, max);
 	return yieldk({
