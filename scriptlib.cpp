@@ -59,9 +59,9 @@ int push_return_cards(lua_State* L, int/* status*/, lua_KContext ctx) {
 LuaRet is_deleted_object(lua_State* L) {
 	if(auto obj = lua_touserdata(L, 1)) {
 		auto* ret = *static_cast<lua_obj**>(obj);
-		lua_pushboolean(L, ret->lua_type == LuaParam::DELETED);
+		lua_pushbool(L, ret->lua_type == LuaParam::DELETED);
 	} else {
-		lua_pushboolean(L, false);
+		lua_pushbool(L, false);
 	}
 	return 1;
 }

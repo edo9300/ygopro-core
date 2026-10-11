@@ -103,12 +103,12 @@ LUA_STATIC_FUNCTION(PreEquip, card* equip_card, card* target) {
 	if((equip_card->current.location != LOCATION_SZONE)
 	   || (target->current.location != LOCATION_MZONE)
 	   || (target->current.position & POS_FACEDOWN))
-		lua_pushboolean(L, 0);
+		lua_pushbool(L, 0);
 	else {
 		equip_card->equip(target, FALSE);
 		equip_card->effect_target_cards.insert(target);
 		target->effect_target_owner.insert(equip_card);
-		lua_pushboolean(L, 1);
+		lua_pushbool(L, 1);
 	}
 	return 1;
 }

@@ -335,7 +335,7 @@ LUA_FUNCTION(IsExists, Function filter, uint16_t count, std::variant<card*, grou
 				break;
 		}
 	}
-	lua_pushboolean(L, fcount >= count);
+	lua_pushbool(L, fcount >= count);
 	return 1;
 }
 LUA_FUNCTION(CheckWithSumEqual, Function filter, uint32_t value_to_reach, int32_t min, int32_t max, VariadicArgs extraargs) {
@@ -358,8 +358,8 @@ LUA_FUNCTION(CheckWithSumEqual, Function filter, uint32_t value_to_reach, int32_
 		}
 	}
 	int32_t should_continue = TRUE;
-	lua_pushboolean(L, field::check_with_sum_limit_m(cv, value_to_reach, 0, min, max, mcount, &should_continue));
-	lua_pushboolean(L, should_continue);
+	lua_pushbool(L, field::check_with_sum_limit_m(cv, value_to_reach, 0, min, max, mcount, &should_continue));
+	lua_pushbool(L, should_continue);
 	return 2;
 }
 LUA_FUNCTION(SelectWithSumEqual, playerid_t playerid, Function filter, uint32_t value_to_reach, int32_t min, int32_t max, VariadicArgs extraargs) {
@@ -411,8 +411,8 @@ LUA_FUNCTION(CheckWithSumGreater, Function filter, uint32_t value_to_reach, Vari
 		}
 	}
 	int32_t should_continue = TRUE;
-	lua_pushboolean(L, field::check_with_sum_greater_limit_m(cv, value_to_reach, 0, 0xffff, mcount, &should_continue));
-	lua_pushboolean(L, should_continue);
+	lua_pushbool(L, field::check_with_sum_greater_limit_m(cv, value_to_reach, 0, 0xffff, mcount, &should_continue));
+	lua_pushbool(L, should_continue);
 	return 2;
 }
 LUA_FUNCTION(SelectWithSumGreater, playerid_t playerid, Function filter, uint32_t value_to_reach, VariadicArgs extraargs) {
@@ -641,19 +641,19 @@ LUA_FUNCTION(__len) {
 	return 1;
 }
 LUA_FUNCTION(__eq, group* other) {
-	lua_pushboolean(L, self->container.size() == other->container.size());
+	lua_pushbool(L, self->container.size() == other->container.size());
 	return 1;
 }
 LUA_FUNCTION(Equal, group* other) {
-	lua_pushboolean(L, self->container == other->container);
+	lua_pushbool(L, self->container == other->container);
 	return 1;
 }
 LUA_FUNCTION(__lt, group* other) {
-	lua_pushboolean(L, self->container.size() < other->container.size());
+	lua_pushbool(L, self->container.size() < other->container.size());
 	return 1;
 }
 LUA_FUNCTION(__le, group* other) {
-	lua_pushboolean(L, self->container.size() <= other->container.size());
+	lua_pushbool(L, self->container.size() <= other->container.size());
 	return 1;
 }
 LUA_FUNCTION(__gc) {
@@ -661,7 +661,7 @@ LUA_FUNCTION(__gc) {
 	return 1;
 }
 LUA_FUNCTION(IsContains, card* pcard) {
-	lua_pushboolean(L, self->has_card(pcard));
+	lua_pushbool(L, self->has_card(pcard));
 	return 1;
 }
 LUA_FUNCTION(SearchCard, Function filter, VariadicArgs extraargs) {
@@ -705,7 +705,7 @@ LUA_FUNCTION(Includes, group* pgroup2) {
 		res = FALSE;
 	else if(!pgroup2->container.empty())
 		res = std::includes(self->container.cbegin(), self->container.cend(), pgroup2->container.cbegin(), pgroup2->container.cend(), card_sort());
-	lua_pushboolean(L, res);
+	lua_pushbool(L, res);
 	return 1;
 }
 LUA_FUNCTION(GetBinClassCount, Function filter, VariadicArgs extraargs) {

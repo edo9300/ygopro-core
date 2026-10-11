@@ -309,7 +309,7 @@ void interpreter::push_param(lua_State* L, bool is_coroutine) {
 			lua_pushstring(L, static_cast<const char*>(param.ptr));
 			break;
 		case LuaParam::BOOLEAN:
-			lua_pushboolean(L, static_cast<bool>(param.integer));
+			lua_pushbool(L, param.integer);
 			break;
 		case LuaParam::CARD:
 		case LuaParam::EFFECT:

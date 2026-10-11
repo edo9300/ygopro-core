@@ -45,7 +45,7 @@ LUA_STATIC_FUNCTION(GetTurnPlayer) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsTurnPlayer, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->infos.turn_player == playerid);
+	lua_pushbool(L, pduel->game_field->infos.turn_player == playerid);
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetTurnCount) {
@@ -109,11 +109,11 @@ LUA_STATIC_FUNCTION(SetFlagEffectLabel, playerid_t playerid, uint32_t code, int3
 	effect_set eset;
 	pduel->game_field->filter_player_effect(playerid, code, &eset);
 	if(!eset.size())
-		lua_pushboolean(L, FALSE);
+		lua_pushbool(L, FALSE);
 	else {
 		eset[0]->label.clear();
 		eset[0]->label.push_back(lab);
-		lua_pushboolean(L, TRUE);
+		lua_pushbool(L, TRUE);
 	}
 	return 1;
 }
@@ -336,7 +336,7 @@ LUA_STATIC_FUNCTION(SpecialSummonStep, card* pcard, uint32_t sumtype, playerid_t
 	check_action_permission(L);
 	pduel->game_field->special_summon_step(pcard, sumtype, sumplayer, playerid, nocheck, nolimit, positions, zone.value_or(0xff));
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -459,11 +459,11 @@ LUA_STATIC_FUNCTION(GetOperatedGroup) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsCanAddCounter, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_PLACE_COUNTER));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_PLACE_COUNTER));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsCanAddCounter, playerid_t playerid, uint16_t countertype, uint32_t count, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
+	lua_pushbool(L, pduel->game_field->is_player_can_place_counter(playerid, pcard, countertype, count));
 	return 1;
 }
 LUA_STATIC_FUNCTION(RemoveCounter, playerid_t rplayer, uint8_t self, uint8_t oppo,
@@ -471,13 +471,13 @@ LUA_STATIC_FUNCTION(RemoveCounter, playerid_t rplayer, uint8_t self, uint8_t opp
 	check_action_permission(L);
 	pduel->game_field->remove_counter(reason, nullptr, rplayer, self, oppo, counter_type, count);
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
 LUA_STATIC_FUNCTION(IsCanRemoveCounter, playerid_t rplayer, uint8_t self, uint8_t oppo,
 					uint16_t counter_type, uint32_t count, uint32_t reason) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove_counter(rplayer, nullptr, self, oppo, counter_type, count, reason));
+	lua_pushbool(L, pduel->game_field->is_player_can_remove_counter(rplayer, nullptr, self, oppo, counter_type, count, reason));
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetCounter, playerid_t playerid, uint8_t self, uint8_t oppo, uint16_t counter_type) {
@@ -522,7 +522,7 @@ LUA_STATIC_FUNCTION(MoveToField, card* pcard, playerid_t move_player, playerid_t
 	pduel->game_field->adjust_instant();
 	pduel->game_field->move_to_field(pcard, move_player, playerid, destination, positions, enable, 0, zone.value_or(0xff));
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -536,7 +536,7 @@ LUA_STATIC_FUNCTION(ReturnToField, card* pcard, std::optional<uint8_t> position,
 	pduel->game_field->move_to_field(pcard, pcard->previous.controler, pcard->previous.controler, pcard->previous.location,
 									 position.value_or(pcard->previous.position), TRUE, 1, zone.value_or(0xff), FALSE, LOCATION_REASON::RETURN_TOFIELD);
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -598,7 +598,7 @@ LUA_STATIC_FUNCTION(MoveSequence, card* pcard, uint8_t seq, std::optional<uint16
 			field.process_instant_event();
 		}
 	}
-	lua_pushboolean(L, res);
+	lua_pushbool(L, res);
 	return 1;
 }
 LUA_STATIC_FUNCTION(SwapSequence, card* pcard1, card* pcard2) {
@@ -767,12 +767,12 @@ LUA_STATIC_FUNCTION(SortDeckbottom, playerid_t sort_player, playerid_t target_pl
 }
 LUA_STATIC_FUNCTION(CheckEvent, uint32_t event, std::optional<bool> get_info) {
 	if(!get_info.value_or(false)) {
-		lua_pushboolean(L, pduel->game_field->check_event(event));
+		lua_pushbool(L, pduel->game_field->check_event(event));
 		return 1;
 	} else {
 		tevent pe;
 		if(pduel->game_field->check_event(event, &pe)) {
-			lua_pushboolean(L, 1);
+			lua_pushbool(L, 1);
 			interpreter::pushobject(L, pe.event_cards);
 			lua_pushinteger(L, pe.event_player);
 			lua_pushinteger(L, pe.event_value);
@@ -781,7 +781,7 @@ LUA_STATIC_FUNCTION(CheckEvent, uint32_t event, std::optional<bool> get_info) {
 			lua_pushinteger(L, pe.reason_player);
 			return 7;
 		} else {
-			lua_pushboolean(L, 0);
+			lua_pushbool(L, 0);
 			return 1;
 		}
 	}
@@ -807,7 +807,7 @@ LUA_STATIC_FUNCTION(RaiseSingleEvent, card* pcard, uint32_t code, std::optional<
 	return yield();
 }
 LUA_STATIC_FUNCTION(CheckTiming, uint32_t timing) {
-	lua_pushboolean(L, (pduel->game_field->core.hint_timing[0] & timing) || (pduel->game_field->core.hint_timing[1] & timing));
+	lua_pushbool(L, (pduel->game_field->core.hint_timing[0] & timing) || (pduel->game_field->core.hint_timing[1] & timing));
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetEnvironment) {
@@ -840,7 +840,7 @@ LUA_STATIC_FUNCTION(IsEnvironment, uint32_t code, std::optional<uint8_t> playeri
 	if(actual_playerid != 0 && actual_playerid != 1 && actual_playerid != PLAYER_ALL)
 		lua_error(L, "Invalid playerid passed, allowed values are 0, 1, 3");
 	auto RetTrue = [L] {
-		lua_pushboolean(L, TRUE);
+		lua_pushbool(L, TRUE);
 		return 1;
 	};
 	auto IsEnabled = [](card* pcard) { return pcard && pcard->is_position(POS_FACEUP) && pcard->get_status(STATUS_EFFECT_ENABLED); };
@@ -894,7 +894,7 @@ LUA_STATIC_FUNCTION(IsEnvironment, uint32_t code, std::optional<uint8_t> playeri
 				return RetTrue();
 		}
 	}
-	lua_pushboolean(L, FALSE);
+	lua_pushbool(L, FALSE);
 	return 1;
 }
 LUA_STATIC_FUNCTION(Win, playerid_none_t playerid, uint32_t reason) {
@@ -963,7 +963,7 @@ LUA_STATIC_FUNCTION(Equip, playerid_t playerid, card* equip_card, card* target, 
 	check_action_permission(L);
 	pduel->game_field->equip(playerid, equip_card, target, flip_faceup.value_or(true), step.value_or(false));
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -1029,12 +1029,12 @@ LUA_STATIC_FUNCTION(SwapControl, std::variant<card*, group*> card_or_group, std:
 		swap(pgroup1->container, (*ppgroup2)->container);
 	}
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
 LUA_STATIC_FUNCTION(CheckLPCost, playerid_t playerid, uint32_t cost) {
-	lua_pushboolean(L, pduel->game_field->check_lp_cost(playerid, cost));
+	lua_pushbool(L, pduel->game_field->check_lp_cost(playerid, cost));
 	return 1;
 }
 LUA_STATIC_FUNCTION(PayLPCost, playerid_t playerid, uint32_t cost) {
@@ -1183,7 +1183,7 @@ LUA_STATIC_FUNCTION(ChangeAttacker, card* new_attacker, std::optional<bool> no_i
 LUA_STATIC_FUNCTION(ChangeAttackTarget, card* attack_target, std::optional<bool> no_increment_attack_announce) {
 	card* attacker = pduel->game_field->core.attacker;
 	if(!attacker || !attacker->is_capable_attack() || attacker->is_status(STATUS_ATTACK_CANCELED)) {
-		lua_pushboolean(L, 0);
+		lua_pushbool(L, 0);
 		return 1;
 	}
 	card_vector cv;
@@ -1215,9 +1215,9 @@ LUA_STATIC_FUNCTION(ChangeAttackTarget, card* attack_target, std::optional<bool>
 			pduel->game_field->core.attack_player = TRUE;
 			message->write(loc_info{});
 		}
-		lua_pushboolean(L, 1);
+		lua_pushbool(L, 1);
 	} else
-		lua_pushboolean(L, 0);
+		lua_pushbool(L, 0);
 	return 1;
 }
 LUA_STATIC_FUNCTION(AttackCostPaid, std::optional<uint8_t> paid) {
@@ -1273,11 +1273,11 @@ LUA_STATIC_FUNCTION(ChangeChainOperation, uint8_t chain_index, Function function
 	return 0;
 }
 LUA_STATIC_FUNCTION(NegateActivation, uint8_t chain_index) {
-	lua_pushboolean(L, pduel->game_field->negate_chain(chain_index));
+	lua_pushbool(L, pduel->game_field->negate_chain(chain_index));
 	return 1;
 }
 LUA_STATIC_FUNCTION(NegateEffect, uint8_t chain_index) {
-	lua_pushboolean(L, pduel->game_field->disable_chain(chain_index));
+	lua_pushbool(L, pduel->game_field->disable_chain(chain_index));
 	return 1;
 }
 LUA_STATIC_FUNCTION(NegateRelatedChain, card* pcard, uint32_t reset_flag) {
@@ -1344,12 +1344,12 @@ LUA_STATIC_FUNCTION(IncreaseSummonedCount, card* pcard) {
 }
 LUA_STATIC_FUNCTION(CheckSummonedCount) {
 	uint8_t playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, pduel->game_field->core.summon_count[playerid] < pduel->game_field->get_summon_count_limit(playerid));
+	lua_pushbool(L, pduel->game_field->core.summon_count[playerid] < pduel->game_field->get_summon_count_limit(playerid));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckSummonedCount, card* pcard) {
 	uint8_t playerid = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, pcard->is_affected_by_effect(EFFECT_EXTRA_SUMMON_COUNT)
+	lua_pushbool(L, pcard->is_affected_by_effect(EFFECT_EXTRA_SUMMON_COUNT)
 					|| (pduel->game_field->core.summon_count[playerid] < pduel->game_field->get_summon_count_limit(playerid)));
 	return 1;
 }
@@ -1511,7 +1511,7 @@ LUA_STATIC_FUNCTION(GetFieldCard, playerid_t playerid, uint16_t location, uint32
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckLocation, playerid_t playerid, uint16_t location, uint32_t sequence) {
-	lua_pushboolean(L, pduel->game_field->is_location_useable(playerid, location, sequence));
+	lua_pushbool(L, pduel->game_field->is_location_useable(playerid, location, sequence));
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetCurrentChain, std::optional<bool> real) {
@@ -1634,7 +1634,7 @@ LUA_STATIC_FUNCTION(GetChainInfo, uint8_t count, nonempty_lua_range<CHAININFO> c
 			lua_pushinteger(L, ch->triggering_summon_type);
 			break;
 		case CHAININFO::TRIGGERING_SUMMON_PROC_COMPLETE:
-			lua_pushboolean(L, ch->triggering_summon_proc_complete);
+			lua_pushbool(L, ch->triggering_summon_proc_complete);
 			break;
 		case CHAININFO::TRIGGERING_SETCODES: {
 			const auto& setcodes = ch->triggering_state.setcodes;
@@ -1681,16 +1681,16 @@ LUA_STATIC_FUNCTION(GetCurrentPhase) {
 }
 LUA_STATIC_FUNCTION(IsMainPhase) {
 	const auto phase = pduel->game_field->infos.phase;
-	lua_pushboolean(L, (phase == PHASE_MAIN1 || phase == PHASE_MAIN2));
+	lua_pushbool(L, (phase == PHASE_MAIN1 || phase == PHASE_MAIN2));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsBattlePhase) {
 	const auto phase = pduel->game_field->infos.phase;
-	lua_pushboolean(L, (phase >= PHASE_BATTLE_START) && (phase <= PHASE_BATTLE));
+	lua_pushbool(L, (phase >= PHASE_BATTLE_START) && (phase <= PHASE_BATTLE));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPhase, uint16_t phase) {
-	lua_pushboolean(L, pduel->game_field->infos.phase == phase);
+	lua_pushbool(L, pduel->game_field->infos.phase == phase);
 	return 1;
 }
 LUA_STATIC_FUNCTION(SkipPhase, playerid_t playerid, uint16_t phase, uint32_t reset, uint16_t count, std::optional<uint32_t> value) {
@@ -1730,7 +1730,7 @@ LUA_STATIC_FUNCTION(IsAttackCostPaid) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsDamageCalculated) {
-	lua_pushboolean(L, pduel->game_field->core.damage_calculated);
+	lua_pushbool(L, pduel->game_field->core.damage_calculated);
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetAttacker) {
@@ -1760,7 +1760,7 @@ LUA_STATIC_FUNCTION(GetBattleMonster, uint8_t playerid) {
 LUA_STATIC_FUNCTION(NegateAttack) {
 	pduel->game_field->emplace_process<Processors::AttackDisable>();
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -1853,7 +1853,7 @@ LUA_STATIC_FUNCTION(GetFirstMatchingCard, std::optional<Function> filter, uint8_
 LUA_STATIC_FUNCTION(IsExistingMatchingCard, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, uint32_t count, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
+	lua_pushbool(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
 															   nullptr, pexception, pexgroup, extraargs.size, nullptr, count));
 	return 1;
 }
@@ -1968,7 +1968,7 @@ static LuaRet check_release_group(lua_State* L, uint8_t use_hand) {
 	auto& field = duel::from(L)->game_field;
 	int32_t result = field->check_release_list(playerid, min, max, use_hand, filter, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo, REASON_EFFECT);
 	field->core.must_select_cards.clear();
-	lua_pushboolean(L, result);
+	lua_pushbool(L, result);
 	return 1;
 
 }
@@ -2036,7 +2036,7 @@ LUA_STATIC_FUNCTION(GetTributeCount, card* target, std::optional<group*> materia
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckTribute, card* target, uint16_t min, std::optional<uint16_t> max, std::optional<group*> material_group, std::optional<playerid_t> toplayer, std::optional<uint32_t> summon_zone) {
-	lua_pushboolean(L, pduel->game_field->check_tribute(target, min, max.value_or(min),
+	lua_pushbool(L, pduel->game_field->check_tribute(target, min, max.value_or(min),
 														material_group.value_or(nullptr),
 														toplayer.value_or(target->current.controler),
 														summon_zone.value_or(0x1f)));
@@ -2063,7 +2063,7 @@ LUA_STATIC_FUNCTION(GetTargetCount, std::optional<Function> filter, uint8_t loca
 					uint16_t location_self, uint16_t location_oppo, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
 	auto pgroup = pduel->new_group();
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
+	lua_pushbool(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
 															   pgroup, pexception, pexgroup, extraargs.size, nullptr, 0, true));
 	lua_pushinteger(L, pgroup->container.size());
 	return 1;
@@ -2071,7 +2071,7 @@ LUA_STATIC_FUNCTION(GetTargetCount, std::optional<Function> filter, uint8_t loca
 LUA_STATIC_FUNCTION(IsExistingTarget, std::optional<Function> filter, uint8_t location_check_player,
 					uint16_t location_self, uint16_t location_oppo, uint16_t count, std::variant<card*, group*, Nil> card_or_group, VariadicArgs extraargs) {
 	auto [pexception, pexgroup] = expand_to_card_or_group(card_or_group);
-	lua_pushboolean(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
+	lua_pushbool(L, pduel->game_field->filter_matching_card(filter.value_or(0), location_check_player, location_self, location_oppo,
 															   nullptr, pexception, pexgroup, extraargs.size, nullptr, count, true));
 	return 1;
 }
@@ -2172,7 +2172,7 @@ LUA_STATIC_FUNCTION(GetFusionMaterial, playerid_t playerid) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsSummonCancelable) {
-	lua_pushboolean(L, pduel->game_field->core.summon_cancelable);
+	lua_pushbool(L, pduel->game_field->core.summon_cancelable);
 	return 1;
 }
 LUA_STATIC_FUNCTION(SetSelectedCard, std::variant<card*, group*> forced_materials) {
@@ -2277,14 +2277,14 @@ LUA_STATIC_FUNCTION(GetOperationInfo, uint32_t chain_index, uint64_t category) {
 	auto oit = ch->opinfos.find(category);
 	if(oit != ch->opinfos.end()) {
 		const optarget& opt = oit->second;
-		lua_pushboolean(L, true);
+		lua_pushbool(L, true);
 		interpreter::pushobject(L, opt.op_cards);
 		lua_pushinteger(L, opt.op_count);
 		lua_pushinteger(L, opt.op_player);
 		lua_pushinteger(L, opt.op_param);
 		return 5;
 	} else {
-		lua_pushboolean(L, false);
+		lua_pushbool(L, false);
 		return 1;
 	}
 }
@@ -2311,7 +2311,7 @@ LUA_STATIC_FUNCTION(GetPossibleOperationInfo, uint32_t chain_index, uint64_t cat
 	auto oit = ch->possibleopinfos.find(category);
 	if(oit != ch->possibleopinfos.end()) {
 		optarget& opt = oit->second;
-		lua_pushboolean(L, 1);
+		lua_pushbool(L, 1);
 		if(opt.op_cards)
 			interpreter::pushobject(L, opt.op_cards);
 		else
@@ -2321,7 +2321,7 @@ LUA_STATIC_FUNCTION(GetPossibleOperationInfo, uint32_t chain_index, uint64_t cat
 		lua_pushinteger(L, opt.op_param);
 		return 5;
 	} else {
-		lua_pushboolean(L, 0);
+		lua_pushbool(L, 0);
 		return 1;
 	}
 }
@@ -2369,7 +2369,7 @@ LUA_STATIC_FUNCTION(GetOverlayCount, playerid_t reason_player, uint8_t self, uin
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckRemoveOverlayCard, playerid_t remove_player, uint8_t self, uint8_t oppo, uint16_t count, uint32_t reason, std::optional<group*> targets) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove_overlay_card(remove_player, targets.value_or(nullptr), self, oppo, count, reason));
+	lua_pushbool(L, pduel->game_field->is_player_can_remove_overlay_card(remove_player, targets.value_or(nullptr), self, oppo, count, reason));
 	return 1;
 }
 LUA_STATIC_FUNCTION(RemoveOverlayCard, playerid_t remove_player, uint8_t self, uint8_t oppo, uint16_t min, uint16_t max, uint32_t reason, std::optional<group*> targets) {
@@ -2406,7 +2406,7 @@ LUA_STATIC_FUNCTION(SelectEffectYesNo, playerid_t playerid, card* pcard, std::op
 	check_action_permission(L);
 	pduel->game_field->emplace_process<Processors::SelectEffectYesNo>(playerid, description.value_or(95), pcard);
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -2414,7 +2414,7 @@ LUA_STATIC_FUNCTION(SelectYesNo, playerid_t playerid, uint64_t description) {
 	check_action_permission(L);
 	pduel->game_field->emplace_process<Processors::SelectYesNo>(playerid, description);
 	return yieldk({
-		lua_pushboolean(L, pduel->game_field->returns.at<int32_t>(0));
+		lua_pushbool(L, pduel->game_field->returns.at<int32_t>(0));
 		return 1;
 	});
 }
@@ -2842,7 +2842,7 @@ LUA_STATIC_FUNCTION(SetDiceResult, nonempty_lua_range<uint8_t> new_dice_results)
 	return 0;
 }
 LUA_STATIC_FUNCTION(IsDuelType, uint64_t duel_type) {
-	lua_pushboolean(L, pduel->game_field->is_flag(duel_type));
+	lua_pushbool(L, pduel->game_field->is_flag(duel_type));
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetDuelType) {
@@ -2867,56 +2867,56 @@ LUA_STATIC_FUNCTION(GetPlayerEffect, playerid_t playerid, std::optional<uint32_t
 	return static_cast<int32_t>(eset.size());
 }
 LUA_STATIC_FUNCTION(IsPlayerCanDraw, playerid_t playerid, std::optional<uint32_t> count) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_draw(playerid)
+	lua_pushbool(L, pduel->game_field->is_player_can_draw(playerid)
 					&& (pduel->game_field->player[playerid].list_main.size() >= count.value_or(0)));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanDiscardDeck, playerid_t playerid, uint32_t count) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_discard_deck(playerid, count));
+	lua_pushbool(L, pduel->game_field->is_player_can_discard_deck(playerid, count));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanDiscardDeckAsCost, playerid_t playerid, uint32_t count) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_discard_deck_as_cost(playerid, count));
+	lua_pushbool(L, pduel->game_field->is_player_can_discard_deck_as_cost(playerid, count));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSummon, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_SUMMON));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_SUMMON));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSummon, playerid_t playerid, uint32_t sumtype, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_summon(sumtype, playerid, pcard, playerid));
+	lua_pushbool(L, pduel->game_field->is_player_can_summon(sumtype, playerid, pcard, playerid));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CanPlayerSetMonster, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_MSET));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_MSET));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CanPlayerSetMonster, playerid_t playerid, uint32_t sumtype, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_mset(sumtype, playerid, pcard, playerid));
+	lua_pushbool(L, pduel->game_field->is_player_can_mset(sumtype, playerid, pcard, playerid));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CanPlayerSetSpellTrap, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_SSET));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_SSET));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CanPlayerSetSpellTrap, playerid_t playerid, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_sset(playerid, pcard));
+	lua_pushbool(L, pduel->game_field->is_player_can_sset(playerid, pcard));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummon, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon(playerid));
+	lua_pushbool(L, pduel->game_field->is_player_can_spsummon(playerid));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummon, playerid_t playerid, card* pcard, uint32_t sumtype, uint8_t sumpos, playerid_t toplayer) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon(pduel->game_field->core.reason_effect, sumtype, sumpos, playerid, toplayer, pcard));
+	lua_pushbool(L, pduel->game_field->is_player_can_spsummon(pduel->game_field->core.reason_effect, sumtype, sumpos, playerid, toplayer, pcard));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanFlipSummon, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_FLIP_SUMMON));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_FLIP_SUMMON));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanFlipSummon, playerid_t playerid, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_flipsummon(playerid, pcard));
+	lua_pushbool(L, pduel->game_field->is_player_can_flipsummon(playerid, pcard));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster, playerid_t playerid, uint32_t code, lua_range<uint16_t> setcodes, std::optional<uint32_t> type,
@@ -2938,55 +2938,55 @@ LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonMonster, playerid_t playerid, uint32
 		dat.race = *race;
 	if(attribute)
 		dat.attribute = *attribute;
-	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_monster(playerid, toplayer.value_or(playerid), pos.value_or(POS_FACEUP), sumtype.value_or(0), &dat));
+	lua_pushbool(L, pduel->game_field->is_player_can_spsummon_monster(playerid, toplayer.value_or(playerid), pos.value_or(POS_FACEUP), sumtype.value_or(0), &dat));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSpecialSummonCount, playerid_t playerid, uint32_t count) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_spsummon_count(playerid, count));
+	lua_pushbool(L, pduel->game_field->is_player_can_spsummon_count(playerid, count));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanRelease, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_RELEASE));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_RELEASE));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanRelease, playerid_t playerid, card* pcard, std::optional<uint32_t> reason) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_release(playerid, pcard, reason.value_or(REASON_COST)));
+	lua_pushbool(L, pduel->game_field->is_player_can_release(playerid, pcard, reason.value_or(REASON_COST)));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanRemove, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_REMOVE));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_REMOVE));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanRemove, playerid_t playerid, card* pcard, std::optional<uint32_t> reason) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_remove(playerid, pcard, reason.value_or(REASON_EFFECT)));
+	lua_pushbool(L, pduel->game_field->is_player_can_remove(playerid, pcard, reason.value_or(REASON_EFFECT)));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSendtoHand, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_HAND));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_HAND));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSendtoHand, playerid_t playerid, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_send_to_hand(playerid, pcard));
+	lua_pushbool(L, pduel->game_field->is_player_can_send_to_hand(playerid, pcard));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSendtoGrave, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_GRAVE));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_GRAVE));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSendtoGrave, playerid_t playerid, card* pcard, std::optional<uint32_t> reason) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_send_to_grave(playerid, pcard, reason.value_or(REASON_EFFECT)));
+	lua_pushbool(L, pduel->game_field->is_player_can_send_to_grave(playerid, pcard, reason.value_or(REASON_EFFECT)));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSendtoDeck, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_DECK));
+	lua_pushbool(L, pduel->game_field->is_player_can_action(playerid, EFFECT_CANNOT_TO_DECK));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanSendtoDeck, playerid_t playerid, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->is_player_can_send_to_deck(playerid, pcard));
+	lua_pushbool(L, pduel->game_field->is_player_can_send_to_deck(playerid, pcard));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanAdditionalSummon, playerid_t playerid) {
-	lua_pushboolean(L, pduel->game_field->core.extra_summon[playerid] == 0);
+	lua_pushbool(L, pduel->game_field->core.extra_summon[playerid] == 0);
 	return 1;
 }
 inline bool is_player_can_procedure_summon_group(duel* pduel, playerid_t playerid, uint32_t summon_type) {
@@ -3022,42 +3022,42 @@ inline bool is_player_can_procedure_summon_group(duel* pduel, playerid_t playeri
 	return false;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanPendulumSummon, playerid_t playerid) {
-	lua_pushboolean(L, is_player_can_procedure_summon_group(pduel, playerid, SUMMON_TYPE_PENDULUM));
+	lua_pushbool(L, is_player_can_procedure_summon_group(pduel, playerid, SUMMON_TYPE_PENDULUM));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsPlayerCanProcedureSummonGroup, playerid_t playerid, uint32_t sumtype) {
-	lua_pushboolean(L, is_player_can_procedure_summon_group(pduel, playerid, sumtype));
+	lua_pushbool(L, is_player_can_procedure_summon_group(pduel, playerid, sumtype));
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsChainNegatable, [[maybe_unused]] uint8_t chaincount) {
-	lua_pushboolean(L, true);
+	lua_pushbool(L, true);
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsChainDisablable, uint8_t chaincount) {
 	if(pduel->game_field->core.chain_solving) {
-		lua_pushboolean(L, pduel->game_field->is_chain_disablable(chaincount));
+		lua_pushbool(L, pduel->game_field->is_chain_disablable(chaincount));
 		return 1;
 	}
-	lua_pushboolean(L, 1);
+	lua_pushbool(L, 1);
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsChainSolving) {
-	lua_pushboolean(L, pduel->game_field->core.chain_solving);
+	lua_pushbool(L, pduel->game_field->core.chain_solving);
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckChainTarget, uint8_t chaincount, card* pcard) {
-	lua_pushboolean(L, pduel->game_field->check_chain_target(chaincount, pcard));
+	lua_pushbool(L, pduel->game_field->check_chain_target(chaincount, pcard));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckChainUniqueness) {
 	if(pduel->game_field->core.current_chain.size() == 0) {
-		lua_pushboolean(L, 1);
+		lua_pushbool(L, 1);
 		return 1;
 	}
 	std::set<uint32_t> er;
 	for(const auto& ch : pduel->game_field->core.current_chain)
 		er.insert(ch.triggering_effect->get_handler()->get_code());
-	lua_pushboolean(L, er.size() == pduel->game_field->core.current_chain.size());
+	lua_pushbool(L, er.size() == pduel->game_field->core.current_chain.size());
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetActivityCount, playerid_t playerid, nonempty_lua_range<ActivityType> activities) {
@@ -3090,7 +3090,7 @@ LUA_STATIC_FUNCTION(GetActivityCount, playerid_t playerid, nonempty_lua_range<Ac
 	return static_cast<int>(activities.size());
 }
 LUA_STATIC_FUNCTION(CheckPhaseActivity) {
-	lua_pushboolean(L, pduel->game_field->core.phase_action);
+	lua_pushbool(L, pduel->game_field->core.phase_action);
 	return 1;
 }
 LUA_STATIC_FUNCTION(AddCustomActivityCounter, uint32_t counter_id, ActivityType activity_type, Function findex) {
@@ -3119,7 +3119,7 @@ LUA_STATIC_FUNCTION(GetBattledCount, playerid_t playerid) {
 	return 1;
 }
 LUA_STATIC_FUNCTION(IsAbleToEnterBP) {
-	lua_pushboolean(L, pduel->game_field->is_able_to_enter_bp());
+	lua_pushbool(L, pduel->game_field->is_able_to_enter_bp());
 	return 1;
 }
 LUA_STATIC_FUNCTION(GetRandomNumber, uint32_t max) {
@@ -3170,17 +3170,17 @@ LUA_STATIC_FUNCTION(LoadScript, std::string_view string, std::optional<bool> che
 			};
 			set_load_status(LOADING);
 			auto res = pduel->read_script(string.data());
-			lua_pushboolean(L, res);
+			lua_pushbool(L, res);
 			set_load_status(res ? LOAD_SUCCEDED : LOAD_FAILED);
 		} else {
 			auto load_status = lua_tointeger(L, -1);
 			if(load_status == LOADING)
 				lua_error(L, "Recursive script loading detected.");
-			lua_pushboolean(L, load_status == LOAD_SUCCEDED);
+			lua_pushbool(L, load_status == LOAD_SUCCEDED);
 		}
 		return 1;
 	}
-	lua_pushboolean(L, pduel->read_script(string.data()));
+	lua_pushbool(L, pduel->read_script(string.data()));
 	lua_getglobal(L, "edopro_exports");
 	lua_pushnil(L);
 	lua_setglobal(L, "edopro_exports");

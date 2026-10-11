@@ -342,28 +342,28 @@ LUA_FUNCTION(GetActiveType) {
 	return 1;
 }
 LUA_FUNCTION(IsActiveType, uint32_t type) {
-	lua_pushboolean(L, (self->get_active_type() & type) != 0);
+	lua_pushbool(L, (self->get_active_type() & type) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsHasProperty, uint32_t flag1, std::optional<uint32_t> flag2) {
 	auto tflag2 = flag2.value_or(0);
-	lua_pushboolean(L, ((!flag1 || (self->flag[0] & flag1)) && (!tflag2 || (self->flag[1] & tflag2))));
+	lua_pushbool(L, ((!flag1 || (self->flag[0] & flag1)) && (!tflag2 || (self->flag[1] & tflag2))));
 	return 1;
 }
 LUA_FUNCTION(IsHasCategory, uint64_t category) {
-	lua_pushboolean(L, (self->category & category) != 0);
+	lua_pushbool(L, (self->category & category) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsHasType, uint16_t type) {
-	lua_pushboolean(L, (self->type & type) != 0);
+	lua_pushbool(L, (self->type & type) != 0);
 	return 1;
 }
 LUA_FUNCTION(IsActivatable, playerid_t playerid, std::optional<bool> ignore_location, std::optional<bool> ignore_target) {
-	lua_pushboolean(L, self->is_activateable(playerid, pduel->game_field->nil_event, 0, 0, ignore_target.value_or(false), ignore_location.value_or(false)));
+	lua_pushbool(L, self->is_activateable(playerid, pduel->game_field->nil_event, 0, 0, ignore_target.value_or(false), ignore_location.value_or(false)));
 	return 1;
 }
 LUA_FUNCTION(IsActivated) {
-	lua_pushboolean(L, (self->type & 0x7f0) != 0);
+	lua_pushbool(L, (self->type & 0x7f0) != 0);
 	return 1;
 }
 LUA_FUNCTION(GetActivateLocation) {
@@ -375,7 +375,7 @@ LUA_FUNCTION(GetActivateSequence) {
 	return 1;
 }
 LUA_FUNCTION(CheckCountLimit, playerid_t playerid) {
-	lua_pushboolean(L, self->check_count_limit(playerid));
+	lua_pushbool(L, self->check_count_limit(playerid));
 	return 1;
 }
 LUA_FUNCTION(UseCountLimit, playerid_t playerid, std::optional<uint32_t> count, std::optional<bool> oath_only) {
