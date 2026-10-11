@@ -63,6 +63,31 @@ struct is_nonempty_lua_range<nonempty_lua_range<T>> : std::true_type {};
 template<typename T>
 [[maybe_unused]] inline constexpr bool is_nonempty_lua_range_v = is_nonempty_lua_range<T>::value;
 
+template<typename IntType, auto min_value_, auto max_value_>
+struct RangedInteger {
+	using value_type = IntType;
+	static constexpr IntType min_value = min_value_;
+	static constexpr IntType max_value = max_value_;
+	IntType value;
+	RangedInteger() = default;
+	RangedInteger(IntType v) : value(v) {}
+	operator IntType() {
+		return value;
+	}
+	operator IntType() const {
+		return value;
+	}
+};
+
+template <typename T>
+struct is_ranged_integer : std::false_type {};
+
+template <typename T, auto min, auto max>
+struct is_ranged_integer<RangedInteger<T, min, max>> : std::true_type {};
+
+template<typename T>
+[[maybe_unused]] inline constexpr bool is_ranged_integer_v = is_ranged_integer<T>::value;
+
 template<typename T>
 struct is_variant : std::false_type {};
 
