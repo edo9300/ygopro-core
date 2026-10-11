@@ -1589,12 +1589,12 @@ LUA_FUNCTION(IsCanBeMaterial, uint64_t sumtype, std::optional<card*> scard, std:
 	lua_pushbool(L, self->is_can_be_material(scard.value_or(nullptr), sumtype, playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
-LUA_FUNCTION(CheckFusionMaterial, std::optional<group*> pgroup, std::variant<card*, group*> forced_materials, std::optional<uint64_t> chkf) {
+LUA_FUNCTION(CheckFusionMaterial, std::optional<group*> pgroup, std::variant<card*, group*, Nil> forced_materials, std::optional<uint64_t> chkf) {
 	owned_lua<group> cg = nullptr;
 	if(auto ppcard = std::get_if<card*>(&forced_materials); ppcard)
 		cg = pduel->new_group(*ppcard);
-	else
-		cg = pduel->new_group(*std::get_if<group*>(&forced_materials));
+	else if(auto ppgroup = std::get_if<group*>(&forced_materials); ppgroup)
+		cg = pduel->new_group(*ppgroup);
 	lua_pushbool(L, self->fusion_check(pgroup.value_or(nullptr), cg, chkf.value_or(PLAYER_NONE)));
 	return 1;
 }

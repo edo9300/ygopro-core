@@ -1874,11 +1874,15 @@ LUA_STATIC_FUNCTION(SelectMatchingCard) {
 	auto max = get_lua<uint16_t>(L, 7);
 	bool cancelable = false;
 	uint8_t lastarg = 8;
-	if(auto cancelable_opt = get_lua<std::optional<bool>>(L, lastarg); cancelable_opt.has_value()) {
-		cancelable = *cancelable_opt;
+	std::pair<card*, group*> pexception_pair;
+	if(auto cancelable_opt = get_lua<std::variant<card*, group*, bool, Nil>>(L, lastarg); std::holds_alternative<bool>(cancelable_opt)) {
+		cancelable = *std::get_if<bool>(&cancelable_opt);
 		++lastarg;
+		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	} else {
+		pexception_pair = expand_to_card_or_group(cancelable_opt);
 	}
-	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	auto [pexception, pexgroup] = pexception_pair;
 	uint32_t extraargs = lua_gettop(L) - lastarg;
 	auto pgroup = pduel->new_group();
 	pduel->game_field->filter_matching_card(filter, self, location1, location2, pgroup, pexception, pexgroup, extraargs);
@@ -1947,8 +1951,9 @@ static LuaRet check_release_group(lua_State* L, uint8_t use_hand) {
 	uint8_t toplayer = playerid;
 	bool use_oppo = false;
 	uint32_t lastarg = 4;
-	if(auto use_hand_opt = get_lua<std::optional<bool>>(L, lastarg); use_hand_opt.has_value()) {
-		use_hand = *use_hand_opt;
+	std::pair<card*, group*> pexception_pair;
+	if(auto use_hand_or_pexception = get_lua<std::variant<card*, group*, bool, Nil>>(L, lastarg); std::holds_alternative<bool>(use_hand_or_pexception)) {
+		use_hand = *std::get_if<bool>(&use_hand_or_pexception);
 		++lastarg;
 		max = get_lua<std::optional<uint16_t>>(L, lastarg).value_or(min);
 		++lastarg;
@@ -1962,8 +1967,11 @@ static LuaRet check_release_group(lua_State* L, uint8_t use_hand) {
 		++lastarg;
 		use_oppo = get_lua<std::optional<bool>>(L, lastarg).value_or(false);
 		++lastarg;
+		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	} else {
+		pexception_pair = expand_to_card_or_group(use_hand_or_pexception);
 	}
-	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	auto [pexception, pexgroup] = pexception_pair;
 	uint32_t extraargs = lua_gettop(L) - lastarg;
 	auto& field = duel::from(L)->game_field;
 	int32_t result = field->check_release_list(playerid, min, max, use_hand, filter, extraargs, pexception, pexgroup, check_field, toplayer, zone, to_check, use_oppo, REASON_EFFECT);
@@ -1992,8 +2000,9 @@ static LuaRet select_release_group(lua_State* L, uint8_t use_hand) {
 	bool use_oppo = false;
 	bool cancelable = false;
 	uint8_t lastarg = 5;
-	if(auto use_hand_opt = get_lua<std::optional<bool>>(L, lastarg); use_hand_opt.has_value()) {
-		use_hand = *use_hand_opt;
+	std::pair<card*, group*> pexception_pair;
+	if(auto use_hand_or_pexception = get_lua<std::variant<card*, group*, bool, Nil>>(L, lastarg); std::holds_alternative<bool>(use_hand_or_pexception)) {
+		use_hand = *std::get_if<bool>(&use_hand_or_pexception);
 		++lastarg;
 		cancelable = get_lua<std::optional<bool>>(L, lastarg).value_or(0);
 		++lastarg;
@@ -2007,8 +2016,11 @@ static LuaRet select_release_group(lua_State* L, uint8_t use_hand) {
 		++lastarg;
 		use_oppo = get_lua<std::optional<bool>>(L, lastarg).value_or(false);
 		++lastarg;
+		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	} else {
+		pexception_pair = expand_to_card_or_group(use_hand_or_pexception);
 	}
-	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	auto [pexception, pexgroup] = pexception_pair;
 	uint32_t extraargs = lua_gettop(L) - lastarg;
 	auto& field = duel::from(L)->game_field;
 	field->core.release_cards.clear();
@@ -2092,11 +2104,15 @@ LUA_STATIC_FUNCTION(SelectTarget) {
 	auto max = get_lua<uint16_t>(L, 7);
 	bool cancelable = false;
 	uint8_t lastarg = 8;
-	if(auto cancelable_opt = get_lua<std::optional<bool>>(L, lastarg); cancelable_opt.has_value()) {
-		cancelable = *cancelable_opt;
+	std::pair<card*, group*> pexception_pair;
+	if(auto cancelable_opt = get_lua<std::variant<card*, group*, bool, Nil>>(L, lastarg); std::holds_alternative<bool>(cancelable_opt)) {
+		cancelable = *std::get_if<bool>(&cancelable_opt);
 		++lastarg;
+		pexception_pair = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	} else {
+		pexception_pair = expand_to_card_or_group(cancelable_opt);
 	}
-	auto [pexception, pexgroup] = expand_to_card_or_group(get_lua<std::variant<card*, group*, Nil>>(L, lastarg));
+	auto [pexception, pexgroup] = pexception_pair;
 	if(pduel->game_field->core.current_chain.size() == 0)
 		return 0;
 	uint32_t extraargs = lua_gettop(L) - lastarg;
