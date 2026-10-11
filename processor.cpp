@@ -51,7 +51,7 @@ bool field::process(Processors::ExecuteCost& arg) {
 	core.reason_effect = triggering_effect;
 	core.reason_player = triggering_player;
 	uint32_t count = static_cast<uint32_t>(pduel->lua->params.size());
-	lua_Integer yield_value = 0;
+	int64_t yield_value = 0;
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->cost, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
 	if (result != COROUTINE_YIELD) {
@@ -108,7 +108,7 @@ bool field::process(Processors::ExecuteOperation& arg) {
 	core.reason_effect = triggering_effect;
 	core.reason_player = triggering_player;
 	uint32_t count = static_cast<uint32_t>(pduel->lua->params.size());
-	lua_Integer yield_value = 0;
+	int64_t yield_value = 0;
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->operation, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
 	if (result != COROUTINE_YIELD) {
@@ -170,7 +170,7 @@ bool field::process(Processors::ExecuteTarget& arg) {
 	core.reason_effect = triggering_effect;
 	core.reason_player = triggering_player;
 	uint32_t count = static_cast<uint32_t>(pduel->lua->params.size());
-	lua_Integer yield_value = 0;
+	int64_t yield_value = 0;
 	int32_t result = pduel->lua->call_coroutine(triggering_effect->target, count, &yield_value, step);
 	returns.set<int32_t>(0, static_cast<int32_t>(yield_value));
 	if (result != COROUTINE_YIELD) {
@@ -3080,7 +3080,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, st
 						bool half_dam = false;
 						int32_t dam_value = -1;
 						for(const auto& peff : eset) {
-							lua_Integer val = -1;
+							int64_t val = -1;
 							if(!peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 								pduel->lua->add_param<LuaParam::INT>(p);
 								pduel->lua->add_param<LuaParam::CARD>(core.attacker);
@@ -3204,7 +3204,7 @@ void field::calculate_battle_damage(effect** pdamchange, card** preason_card, st
 			bool half_dam = false;
 			int32_t dam_value = -1;
 			for(const auto& peff : eset) {
-				lua_Integer val = -1;
+				int64_t val = -1;
 				if(!peff->is_flag(EFFECT_FLAG_PLAYER_TARGET)) {
 					pduel->lua->add_param<LuaParam::INT>(p);
 					pduel->lua->add_param<LuaParam::CARD>(reason_card);

@@ -998,7 +998,7 @@ LUA_FUNCTION(GetEffectCount, uint32_t effect_code) {
 	lua_pushinteger(L, eset.size());
 	return 1;
 }
-LUA_FUNCTION(RegisterFlagEffect, uint32_t code, uint32_t reset_flag, effect_flag flag, uint16_t reset_count, std::optional<lua_Integer> label, std::optional<uint64_t> description) {
+LUA_FUNCTION(RegisterFlagEffect, uint32_t code, uint32_t reset_flag, effect_flag flag, uint16_t reset_count, std::optional<int64_t> label, std::optional<uint64_t> description) {
 	code = (code & 0xfffffff) | 0x10000000;
 	if(reset_count == 0)
 		reset_count = 1;
@@ -1028,7 +1028,7 @@ LUA_FUNCTION(ResetFlagEffect, uint32_t code) {
 	self->reset(code, RESET_CODE);
 	return 0;
 }
-LUA_FUNCTION(SetFlagEffectLabel, uint32_t code, lua_Integer label) {
+LUA_FUNCTION(SetFlagEffectLabel, uint32_t code, int64_t label) {
 	code = (code & 0xfffffff) | 0x10000000;
 	auto eit = self->single_effect.find(code);
 	if(eit == self->single_effect.end())

@@ -7,7 +7,6 @@
 #ifndef EFFECT_H_
 #define EFFECT_H_
 
-#include <lua.h> //lua_Integer
 #include <vector>
 #include "common.h"
 #include "effect_constants.h"
@@ -57,7 +56,7 @@ public:
 	card* handler{ nullptr };
 	card* active_handler{};
 	uint64_t description{};
-	std::vector<lua_Integer> label;
+	std::vector<int64_t> label;
 
 	explicit effect(duel* pd) : lua_obj_helper(pd) {}
 
@@ -89,12 +88,12 @@ public:
 	bool has_function_value() const {
 		return is_flag(EFFECT_FLAG_FUNC_VALUE);
 	}
-	lua_Integer get_value(uint32_t extraargs = 0);
-	lua_Integer get_value(card* pcard, uint32_t extraargs = 0);
-	lua_Integer get_value(effect* peffect, uint32_t extraargs = 0);
-	void get_value(uint32_t extraargs, std::vector<lua_Integer>& result);
-	void get_value(card* pcard, uint32_t extraargs, std::vector<lua_Integer>& result);
-	void get_value(effect* peffect, uint32_t extraargs, std::vector<lua_Integer>& result);
+	int64_t get_value(uint32_t extraargs = 0);
+	int64_t get_value(card* pcard, uint32_t extraargs = 0);
+	int64_t get_value(effect* peffect, uint32_t extraargs = 0);
+	void get_value(uint32_t extraargs, std::vector<int64_t>& result);
+	void get_value(card* pcard, uint32_t extraargs, std::vector<int64_t>& result);
+	void get_value(effect* peffect, uint32_t extraargs, std::vector<int64_t>& result);
 	int32_t check_value_condition(uint32_t extraargs = 0);
 	void* get_label_object();
 	int32_t get_speed();

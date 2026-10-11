@@ -30,7 +30,13 @@ class group;
 class duel;
 
 static_assert(LUA_VERSION_NUM >= 503 && LUA_VERSION_NUM <= 505, "Lua 5.3, 5.4 or 5.5 is required, the core won't work with other lua versions");
-static_assert(LUA_MAXINTEGER >= INT64_MAX, "Lua has to support 64 bit integers");
+static_assert(LUA_MAXINTEGER == INT64_MAX, "lua_Integer must be interchangeable with int64_t");
+static_assert(LUA_MININTEGER == INT64_MIN, "lua_Integer must be interchangeable with int64_t");
+static_assert(LUA_MAXUNSIGNED == UINT64_MAX, "lua_Unsigned must be interchangeable with uint64_t");
+static_assert(std::numeric_limits<uint64_t>::max() == std::numeric_limits<lua_Unsigned>::max(), "lua_Unsigned must be interchangeable with uint64_t");
+static_assert(std::numeric_limits<uint64_t>::min() == std::numeric_limits<lua_Unsigned>::min(), "lua_Unsigned must be interchangeable with uint64_t");
+static_assert(std::numeric_limits<int64_t>::max() == std::numeric_limits<lua_Integer>::max(), "lua_Integer must be interchangeable with int64_t");
+static_assert(std::numeric_limits<int64_t>::min() == std::numeric_limits<lua_Integer>::min(), "lua_Integer must be interchangeable with int64_t");
 static_assert(LUA_EXTRASPACE >= sizeof(duel*), "LUA_EXTRASPACE needs to be big enough to hold a pointer to the duel object");
 
 namespace scriptlib {
@@ -112,7 +118,7 @@ namespace scriptlib {
 		int idx;
 	};
 
-	using Any = std::variant<card*, group*, effect*, Invalid*, Function, Table, bool, lua_Integer, Nil, Unknown>;
+	using Any = std::variant<card*, group*, effect*, Invalid*, Function, Table, bool, int64_t, Nil, Unknown>;
 
 	template<typename T>
 	inline constexpr bool IsBool = std::is_same_v<T, bool>;
@@ -281,12 +287,12 @@ namespace scriptlib {
 	}
 
 	template<typename RangedInt>
-	static inline RangedInt check_ranged_int(lua_State* L, int idx, lua_Integer value) {
+	static inline RangedInt check_ranged_int(lua_State* L, int idx, int64_t value) {
 		using base_int_type = typename RangedInt::value_type;
 		static constexpr auto min = RangedInt::min_value;
 		static constexpr auto max = RangedInt::max_value;
 		if constexpr(std::is_unsigned_v<base_int_type>) {
-			auto unsigned_val = static_cast<lua_Unsigned>(value);
+			auto unsigned_val = static_cast<uint64_t>(value);
 			if(unsigned_val > max || unsigned_val < min) {
 				lua_error_unsafe(L, R"(Integer parameter %d should be in the range [%I-%I] but its value is "%I".)", idx,
 						  static_cast<lua_Unsigned>(min), static_cast<lua_Unsigned>(max), unsigned_val);
@@ -346,7 +352,7 @@ namespace scriptlib {
 				if constexpr(lua_type == LuaParam::BOOLEAN) {
 					return return_value(static_cast<bool>(lua_toboolean(L, idx)));
 				} else if constexpr(lua_type == LuaParam::INT) {
-					auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
+					auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<int64_t>(std::round(lua_tonumber(L, idx)));
 					if constexpr(is_ranged_integer_v<actual_type>) {
 						return return_value(check_ranged_int<actual_type>(L, idx, val));
 					} else {
@@ -475,7 +481,7 @@ namespace scriptlib {
 						return elem;
 					}();
 					using integer_type = std::tuple_element_t<int_index, std::tuple<Args...>>;
-					auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<lua_Integer>(std::round(lua_tonumber(L, idx)));
+					auto val = lua_isinteger(L, idx) ? lua_tointeger(L, idx) : static_cast<int64_t>(std::round(lua_tonumber(L, idx)));
 					if constexpr(is_ranged_integer_v<integer_type>) {
 						return check_ranged_int<integer_type>(L, idx, val);
 					} else {

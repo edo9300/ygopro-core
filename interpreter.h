@@ -33,7 +33,7 @@ public:
 	using coroutine_map = std::unordered_map<int32_t, std::pair<lua_State*, int32_t>>;
 	union lua_param {
 		void* ptr;
-		lua_Integer integer;
+		int64_t integer;
 	};
 private:
 	void add_param(lua_param param, LuaParam type, bool front) {
@@ -94,11 +94,11 @@ public:
 	bool check_condition(int32_t f, uint32_t param_count);
 	bool check_matching(card* pcard, int32_t findex, int32_t extraargs);
 	bool check_matching_table(card* pcard, int32_t findex, int32_t table_index);
-	lua_Integer get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
-	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<lua_Integer>& result);
-	lua_Integer get_function_value(int32_t f, uint32_t param_count);
-	bool get_function_value(int32_t f, uint32_t param_count, std::vector<lua_Integer>& result);
-	int32_t call_coroutine(int32_t f, uint32_t param_count, lua_Integer* yield_value, uint16_t step);
+	int64_t get_operation_value(card* pcard, int32_t findex, int32_t extraargs);
+	bool get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<int64_t>& result);
+	int64_t get_function_value(int32_t f, uint32_t param_count);
+	bool get_function_value(int32_t f, uint32_t param_count, std::vector<int64_t>& result);
+	int32_t call_coroutine(int32_t f, uint32_t param_count, int64_t* yield_value, uint16_t step);
 	int32_t clone_lua_ref(int32_t lua_ref);
 	int32_t strong_from_weak_ref(int32_t weak_lua_ref);
 	void push_weak_ref(lua_State* L, int32_t weak_lua_ref);

@@ -480,25 +480,25 @@ bool interpreter::check_matching_table(card* pcard, int32_t findex, int32_t tabl
 	lua_pop(current_state, 1);
 	return result;
 }
-lua_Integer interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs) {
+int64_t interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs) {
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return 0;
 	luaL_checkstack(current_state, extraargs + 2, nullptr);
 	lua_pushvalue(current_state, findex);
 	pushobject(current_state, pcard);
 	push_range_of_values(current_state, -(extraargs + 2), extraargs);
-	lua_Integer result = 0;
+	int64_t result = 0;
 	if(call_lua(current_state, 1 + extraargs, 1) != LUA_OK) {
 		pduel->handle_message(lua_get_string_or_empty(current_state, -1), OCG_LOG_TYPE_ERROR);
 	} else {
 		auto val = get_lua<Any>(current_state, -1);
-		if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+		if(int64_t* int_val = std::get_if<int64_t>(&val); int_val)
 			result = *int_val;
 	}
 	lua_pop(current_state, 1);
 	return result;
 }
-bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<lua_Integer>& result) {
+bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extraargs, std::vector<int64_t>& result) {
 	if(!findex || lua_isnoneornil(current_state, findex))
 		return false;
 	luaL_checkstack(current_state, extraargs + 2, nullptr);
@@ -513,9 +513,9 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	} else {
 		int32_t stack_newtop = lua_gettop(current_state);
 		for(int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
-			lua_Integer return_value = 0;
+			int64_t return_value = 0;
 			auto val = get_lua<Any>(current_state, index);
-			if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+			if(int64_t* int_val = std::get_if<int64_t>(&val); int_val)
 				return_value = *int_val;
 			else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
 				return_value = *bool_val;
@@ -526,23 +526,23 @@ bool interpreter::get_operation_value(card* pcard, int32_t findex, int32_t extra
 	}
 	return ret;
 }
-lua_Integer interpreter::get_function_value(int32_t function, uint32_t param_count) {
+int64_t interpreter::get_function_value(int32_t function, uint32_t param_count) {
 	if(!function) {
 		params.clear();
 		return 0;
 	}
 	if(!call_function(function, param_count, 1))
 		return 0;
-	lua_Integer result = 0;
+	int64_t result = 0;
 	auto val = get_lua<Any>(current_state, -1);
-	if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+	if(int64_t* int_val = std::get_if<int64_t>(&val); int_val)
 		result = *int_val;
 	else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
 		result = *bool_val;
 	lua_pop(current_state, 1);
 	return result;
 }
-bool interpreter::get_function_value(int32_t function, uint32_t param_count, std::vector<lua_Integer>& result) {
+bool interpreter::get_function_value(int32_t function, uint32_t param_count, std::vector<int64_t>& result) {
 	if(!function) {
 		params.clear();
 		return false;
@@ -552,9 +552,9 @@ bool interpreter::get_function_value(int32_t function, uint32_t param_count, std
 		return false;
 	const int32_t stack_newtop = lua_gettop(current_state);
 	for(int32_t index = stack_top + 1; index <= stack_newtop; ++index) {
-		lua_Integer return_value = 0;
+		int64_t return_value = 0;
 		auto val = get_lua<Any>(current_state, -1);
-		if(lua_Integer* int_val = std::get_if<lua_Integer>(&val); int_val)
+		if(int64_t* int_val = std::get_if<int64_t>(&val); int_val)
 			return_value = *int_val;
 		else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
 			return_value = *bool_val;
@@ -578,7 +578,7 @@ auto resume_coroutine(lua_State* L, lua_State* from, int nargs) {
 	return std::make_pair(result, nresults);
 }
 }
-int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_Integer* yield_value, uint16_t step) {
+int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, int64_t* yield_value, uint16_t step) {
 	auto ret_error = [&](const char* message) {
 		interpreter::print_stacktrace(current_state);
 		pduel->handle_message(message, OCG_LOG_TYPE_ERROR);
@@ -627,12 +627,14 @@ int32_t interpreter::call_coroutine(int32_t function, uint32_t param_count, lua_
 		print_stacktrace(rthread);
 		pduel->handle_message(lua_get_string_or_empty(rthread, -1), OCG_LOG_TYPE_ERROR);
 	} else if(yield_value) {
-		if(nresults == 0)
-			*yield_value = 0;
-		else if(lua_isboolean(rthread, -1))
-			*yield_value = lua_toboolean(rthread, -1);
-		else
-			*yield_value = static_cast<lua_Integer>(lua_tointeger(rthread, -1));
+		*yield_value = 0;
+		if(nresults > 0) {
+			auto val = get_lua<Any>(rthread, -1);
+			if(int64_t* int_val = std::get_if<int64_t>(&val); int_val)
+				*yield_value = *int_val;
+			else if(bool* bool_val = std::get_if<bool>(&val); bool_val)
+				*yield_value = *bool_val;
+		}
 	}
 	auto ref = it->second.second;
 	coroutines.erase(it);

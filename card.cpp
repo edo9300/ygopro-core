@@ -1065,7 +1065,7 @@ uint32_t card::check_xyz_level(card* pcard, uint32_t lv) {
 	effect_set eset;
 	filter_effect(EFFECT_XYZ_LEVEL, &eset);
 	for(auto& eff : eset) {
-		std::vector<lua_Integer> res;
+		std::vector<int64_t> res;
 		pduel->lua->add_param<LuaParam::CARD>(this);
 		pduel->lua->add_param<LuaParam::CARD>(pcard);
 		eff->get_value(2, res);
@@ -2580,7 +2580,7 @@ int32_t card::filter_summon_procedure(uint8_t playerid, effect_set* peset, uint8
 		eset.clear();
 		filter_effect(EFFECT_EXTRA_SUMMON_COUNT, &eset);
 		for(const auto& peffect : eset) {
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			peffect->get_value(this, 0, retval);
 			uint8_t new_min = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f;
@@ -2619,7 +2619,7 @@ int32_t card::check_summon_procedure(effect* peffect, uint8_t playerid, uint8_t 
 		effect_set eset;
 		filter_effect(EFFECT_EXTRA_SUMMON_COUNT, &eset);
 		for(const auto& peff : eset) {
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			peff->get_value(this, 0, retval);
 			uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
@@ -2677,7 +2677,7 @@ int32_t card::filter_set_procedure(uint8_t playerid, effect_set* peset, uint8_t 
 		eset.clear();
 		filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
 		for(const auto& peff : eset) {
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			peff->get_value(this, 0, retval);
 			uint8_t new_min = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f;
@@ -2713,7 +2713,7 @@ int32_t card::check_set_procedure(effect* peffect, uint8_t playerid, uint8_t ign
 		effect_set eset;
 		filter_effect(EFFECT_EXTRA_SET_COUNT, &eset);
 		for(const auto& peff : eset) {
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			peff->get_value(this, 0, retval);
 			uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
@@ -2760,7 +2760,7 @@ void card::filter_spsummon_procedure(uint8_t playerid, effect_set* peset, uint32
 			effect* sumeffect = pduel->game_field->core.reason_effect;
 			if(!sumeffect)
 				sumeffect = peffect;
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			peffect->get_value(this, 0, retval);
 			uint32_t sumtype = retval.size() > 0 ? static_cast<uint32_t>(retval[0]) : 0;
 			uint32_t zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0xff;

@@ -1858,7 +1858,7 @@ bool field::process(Processors::SummonRule& arg) {
 		}
 		if(!ignore_count && !core.extra_summon[sumplayer]) {
 			for(const auto& peff : eset) {
-				std::vector<lua_Integer> retval;
+				std::vector<int64_t> retval;
 				peff->get_value(target, 0, retval);
 				uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 				uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
@@ -1907,7 +1907,7 @@ bool field::process(Processors::SummonRule& arg) {
 		arg.extra_summon_effect = pextra;
 		uint32_t releasable = 0xff00ffu;
 		if(pextra) {
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			pextra->get_value(target, 0, retval);
 			uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
@@ -1979,7 +1979,7 @@ bool field::process(Processors::SummonRule& arg) {
 			auto pextra = arg.extra_summon_effect;
 			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<lua_Integer> retval;
+				std::vector<int64_t> retval;
 				pextra->get_value(target, 0, retval);
 				if(retval.size() > 2) {
 					if(retval[2] < 0)
@@ -2112,7 +2112,7 @@ bool field::process(Processors::SummonRule& arg) {
 			auto pextra = arg.extra_summon_effect;
 			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<lua_Integer> retval;
+				std::vector<int64_t> retval;
 				pextra->get_value(target, 0, retval);
 				if(retval.size() > 2) {
 					if(retval[2] < 0)
@@ -2487,7 +2487,7 @@ bool field::process(Processors::MonsterSet& arg) {
 		}
 		if(!ignore_count && !core.extra_summon[setplayer]) {
 			for(const auto& peff : eset) {
-				std::vector<lua_Integer> retval;
+				std::vector<int64_t> retval;
 				peff->get_value(target, 0, retval);
 				uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 				uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
@@ -2536,7 +2536,7 @@ bool field::process(Processors::MonsterSet& arg) {
 		arg.extra_summon_effect = pextra;
 		uint32_t releasable = 0xff00ffu;
 		if(pextra) {
-			std::vector<lua_Integer> retval;
+			std::vector<int64_t> retval;
 			pextra->get_value(target, 0, retval);
 			uint8_t new_min_tribute = retval.size() > 0 ? static_cast<uint8_t>(retval[0]) : 0;
 			uint32_t new_zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0x1f001f;
@@ -2647,7 +2647,7 @@ bool field::process(Processors::MonsterSet& arg) {
 			auto pextra = arg.extra_summon_effect;
 			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<lua_Integer> retval;
+				std::vector<int64_t> retval;
 				pextra->get_value(target, 0, retval);
 				if(retval.size() > 2) {
 					if(retval[2] < 0)
@@ -2680,7 +2680,7 @@ bool field::process(Processors::MonsterSet& arg) {
 			auto pextra = arg.extra_summon_effect;
 			uint32_t releasable = 0xff00ffu;
 			if(pextra) {
-				std::vector<lua_Integer> retval;
+				std::vector<int64_t> retval;
 				pextra->get_value(target, 0, retval);
 				if(retval.size() > 2) {
 					if(retval[2] < 0)
@@ -3089,7 +3089,7 @@ bool field::process(Processors::SpSummonRule& arg) {
 		}
 		if(positions == 0)
 			positions = POS_FACEUP_ATTACK;
-		std::vector<lua_Integer> retval;
+		std::vector<int64_t> retval;
 		proc->get_value(target, 0, retval);
 		const auto sumtype = (retval.size() > 0 ? (static_cast<uint32_t>(retval[0]) & 0xf00ffff) : 0) | SUMMON_TYPE_SPECIAL;
 		uint32_t zone = retval.size() > 1 ? static_cast<uint32_t>(retval[1]) : 0xff;

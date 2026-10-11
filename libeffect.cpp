@@ -148,7 +148,7 @@ LUA_FUNCTION(SetProperty, uint32_t prop1, std::optional<uint32_t> prop2) {
 	self->flag[1] = prop2.value_or(0);
 	return 0;
 }
-LUA_FUNCTION(SetLabel, nonempty_lua_range<lua_Integer> labels) {
+LUA_FUNCTION(SetLabel, nonempty_lua_range<int64_t> labels) {
 	self->label = std::move(labels);
 	return 0;
 }
@@ -189,7 +189,7 @@ LUA_FUNCTION(SetCost, Function findex) {
 	self->cost = interpreter::get_function_handle(L, findex);
 	return 0;
 }
-LUA_FUNCTION(SetValue, std::variant<Function, bool, lua_Integer> function_value) {
+LUA_FUNCTION(SetValue, std::variant<Function, bool, int64_t> function_value) {
 	if(self->value && self->is_flag(EFFECT_FLAG_FUNC_VALUE))
 		ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, self->value);
 	if(auto* pfunction = std::get_if<Function>(&function_value); pfunction) {
@@ -200,7 +200,7 @@ LUA_FUNCTION(SetValue, std::variant<Function, bool, lua_Integer> function_value)
 		if(auto* pbool = std::get_if<bool>(&function_value); pbool) {
 			self->value = *pbool;
 		} else {
-			auto value = *std::get_if<lua_Integer>(&function_value);
+			auto value = *std::get_if<int64_t>(&function_value);
 			if(value > INT32_MAX || value < INT32_MIN) {
 				lua_pushinteger(L, value);
 				lua_pushcclosure(L, [](lua_State* L) -> int32_t {

@@ -617,65 +617,65 @@ uint8_t effect::get_client_mode() const {
 	else
 		return EFFECT_CLIENT_MODE_NORMAL;
 }
-lua_Integer effect::get_value(uint32_t extraargs) {
+int64_t effect::get_value(uint32_t extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param<LuaParam::EFFECT>(this, true);
-		lua_Integer res = pduel->lua->get_function_value(value, 1 + extraargs);
+		int64_t res = pduel->lua->get_function_value(value, 1 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return static_cast<lua_Integer>(value);
+		return static_cast<int64_t>(value);
 	}
 }
-lua_Integer effect::get_value(card* pcard, uint32_t extraargs) {
+int64_t effect::get_value(card* pcard, uint32_t extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param<LuaParam::CARD>(pcard, true);
 		pduel->lua->add_param<LuaParam::EFFECT>(this, true);
-		lua_Integer res = pduel->lua->get_function_value(value, 2 + extraargs);
+		int64_t res = pduel->lua->get_function_value(value, 2 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return static_cast<lua_Integer>(value);
+		return static_cast<int64_t>(value);
 	}
 }
-lua_Integer effect::get_value(effect* peffect, uint32_t extraargs) {
+int64_t effect::get_value(effect* peffect, uint32_t extraargs) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param<LuaParam::EFFECT>(peffect, true);
 		pduel->lua->add_param<LuaParam::EFFECT>(this, true);
-		lua_Integer res = pduel->lua->get_function_value(value, 2 + extraargs);
+		int64_t res = pduel->lua->get_function_value(value, 2 + extraargs);
 		return res;
 	} else {
 		pduel->lua->params.clear();
-		return static_cast<lua_Integer>(value);
+		return static_cast<int64_t>(value);
 	}
 }
-void effect::get_value(uint32_t extraargs, std::vector<lua_Integer>& result) {
+void effect::get_value(uint32_t extraargs, std::vector<int64_t>& result) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param<LuaParam::EFFECT>(this, true);
 		pduel->lua->get_function_value(value, 1 + extraargs, result);
 	} else {
 		pduel->lua->params.clear();
-		result.push_back(static_cast<lua_Integer>(value));
+		result.push_back(static_cast<int64_t>(value));
 	}
 }
-void effect::get_value(card* pcard, uint32_t extraargs, std::vector<lua_Integer>& result) {
+void effect::get_value(card* pcard, uint32_t extraargs, std::vector<int64_t>& result) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param<LuaParam::CARD>(pcard, true);
 		pduel->lua->add_param<LuaParam::EFFECT>(this, true);
 		pduel->lua->get_function_value(value, 2 + extraargs, result);
 	} else {
 		pduel->lua->params.clear();
-		result.push_back(static_cast<lua_Integer>(value));
+		result.push_back(static_cast<int64_t>(value));
 	}
 }
-void effect::get_value(effect* peffect, uint32_t extraargs, std::vector<lua_Integer>& result) {
+void effect::get_value(effect* peffect, uint32_t extraargs, std::vector<int64_t>& result) {
 	if(is_flag(EFFECT_FLAG_FUNC_VALUE)) {
 		pduel->lua->add_param<LuaParam::EFFECT>(peffect, true);
 		pduel->lua->add_param<LuaParam::EFFECT>(this, true);
 		pduel->lua->get_function_value(value, 2 + extraargs, result);
 	} else {
 		pduel->lua->params.clear();
-		result.push_back(static_cast<lua_Integer>(value));
+		result.push_back(static_cast<int64_t>(value));
 	}
 }
 int32_t effect::check_value_condition(uint32_t extraargs) {

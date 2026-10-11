@@ -45,7 +45,6 @@
 #include <type_traits> //std::conditional_t, std::is_same_v
 #endif
 #include <array>
-#include <lauxlib.h>
 #include <string_view>
 #include <tuple>
 #include <utility> //std::index_sequence, std::make_index_sequence, std::tuple_size_v
