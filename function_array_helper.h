@@ -387,7 +387,7 @@ static int call_lua_function(lua_State* L) {
 }
 
 template<std::meta::info Namespace>
-consteval auto get_lua_functions() {
+static consteval auto get_lua_functions() {
 	static constexpr auto [lua_symbols, real_functions] = [] {
 		std::vector<LuaFunctionSymbol> res;
 		// only consider non overloaded functions
