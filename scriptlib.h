@@ -42,9 +42,9 @@ namespace scriptlib {
 	void push_duel_lib(lua_State* L);
 	void push_debug_lib(lua_State* L);
 	bool is_in_noaction_state(lua_State* L);
-	int push_return_cards(lua_State* L, int32_t status, lua_KContext ctx);
+	int push_return_cards(lua_State* L, int status, lua_KContext ctx);
 	inline LuaRet push_return_cards([[maybe_unused]] lua_State* L, bool cancelable) {
-		return [cancelable](lua_State* L)->int32_t { return lua_yieldk(L, 0, static_cast<lua_KContext>(cancelable), push_return_cards); };
+		return [cancelable](lua_State* L) -> int { return lua_yieldk(L, 0, static_cast<lua_KContext>(cancelable), push_return_cards); };
 	}
 	LuaRet is_deleted_object(lua_State* L);
 	std::any* set_any_temp_storage(lua_State* L, std::any&& storage);
@@ -57,7 +57,7 @@ namespace scriptlib {
 		if constexpr(sizeof...(Args) == 0) {
 			return format;
 		} else {
-			return [=](lua_State* L) -> int32_t { lua_error_unsafe(L, format, args...); };
+			return [=](lua_State* L) -> int { lua_error_unsafe(L, format, args...); };
 		}
 	}
 #define lua_error(dummy,...) return parse_lua_error(__VA_ARGS__)
@@ -606,10 +606,12 @@ namespace scriptlib {
 		check_param<get_lua_param_type<T*>()>(L, -1);
 		return 1;
 	}
+
+	int yielder(lua_State* L);
 }
 
-#define yieldk(...) +[](lua_State* L)->int32_t { \
-	return lua_yieldk(L, 0, 0, [](lua_State* L, int32_t status, lua_KContext ctx) -> int { \
+#define yieldk(...) +[](lua_State* L) -> int { \
+	return lua_yieldk(L, 0, 0, [](lua_State* L, int status, lua_KContext ctx) -> int { \
 		(void)status; \
 		(void)ctx; \
 		auto pduel = duel::from(L); \
@@ -619,7 +621,7 @@ namespace scriptlib {
 	}); \
 }
 
-#define yield() +[](lua_State* L)->int32_t { return lua_yield(L, 0); }
+#define yield() yielder
 
 // double macro to make MSVC happy
 #define ensure_luaL_stack_int(L,...) [&](){ luaL_checkstack(L, 5, nullptr); return __VA_ARGS__; }()

@@ -40,7 +40,7 @@ LuaParam get_lua_type(lua_State* L, int32_t index) {
 bool is_in_noaction_state(lua_State* L) {
 	return duel::from(L)->lua->no_action;
 }
-int push_return_cards(lua_State* L, int32_t/* status*/, lua_KContext ctx) {
+int push_return_cards(lua_State* L, int/* status*/, lua_KContext ctx) {
 	const auto pduel = duel::from(L);
 	bool cancelable = (bool)ctx;
 	if(pduel->game_field->return_cards.canceled) {
@@ -70,5 +70,9 @@ std::any* set_any_temp_storage(lua_State* L, std::any&& storage) {
 }
 void clear_any_temp_storage(lua_State* L) {
 	duel::from(L)->lua->temp_lua_parsing_storage.clear();
+}
+
+int yielder(lua_State* L) {
+	return lua_yield(L, 0);
 }
 }

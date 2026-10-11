@@ -29,7 +29,7 @@
 #include <array>
 #include <lauxlib.h>
 #include <string_view>
-#include <type_traits> //std::conditional_t
+#include <type_traits> //std::conditional_t, std::is_same_v
 #include <tuple>
 #include <utility> //std::index_sequence, std::make_index_sequence
 #include "scriptlib.h"
@@ -344,11 +344,11 @@ static LUA_INLINE LuaRet MAKE_LUA_NAME(LUA_MODULE,name)(__VA_ARGS__)
 template<> \
 struct Detail::LuaFunction<COUNTER - Detail::COUNTER_OFFSET> { \
 	TAG_STRUCT_NO_ARGS(name, COUNTER) \
-	static int32_t func(lua_State* L) { \
+	static int func(lua_State* L) { \
 		LuaRet ret = __VA_ARGS__ (L); \
 		PERFORM_VISIT(ret); \
 	} \
-	static constexpr luaL_Reg elem{#name,func}; \
+	static constexpr luaL_Reg elem{lua_name,func}; \
 }
 
 #define LUA_FUNCTION_ALIAS(name) LUA_FUNCTION_ALIAS_INT(name, COUNTER_MACRO)
