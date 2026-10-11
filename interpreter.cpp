@@ -688,6 +688,10 @@ int32_t interpreter::get_function_handle(lua_State* L, int32_t index) {
 	return ref;
 }
 
+void interpreter::release_function_handle(lua_State* L, int32_t handle) {
+	ensure_luaL_stack(luaL_unref, L, LUA_REGISTRYINDEX, handle);
+}
+
 void interpreter::print_stacktrace(lua_State* L) {
 	const auto pduel = lua_get<duel*>(L);
 #if LUA_VERSION_NUM < 505

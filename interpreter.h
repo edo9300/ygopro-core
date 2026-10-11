@@ -111,6 +111,7 @@ public:
 	static void pushobject(lua_State* L, int32_t lua_ptr);
 	static int pushExpandedTable(lua_State* L, int32_t table_index);
 	static int32_t get_function_handle(lua_State* L, int32_t index);
+	static void release_function_handle(lua_State* L, int32_t handle);
 	static void print_stacktrace(lua_State* L);
 
 	template <size_t N, typename... TR>
