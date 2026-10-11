@@ -11,7 +11,7 @@
 
 namespace scriptlib {
 
-LuaParam get_lua_type(lua_State* L, int32_t index) {
+LuaParam get_lua_type(lua_State* L, int index) {
 	switch(auto type = lua_type(L, index); type) {
 	case LUA_TFUNCTION:
 		return LuaParam::FUNCTION;

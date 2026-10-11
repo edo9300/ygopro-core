@@ -62,8 +62,8 @@ namespace scriptlib {
 	}
 #define lua_error(dummy,...) return parse_lua_error(__VA_ARGS__)
 #define check_action_permission(L) do { if(is_in_noaction_state(L)) lua_error(L, "Action is not allowed here."); } while(0)
-#define check_param_count_unsafe(L, count) do { if(lua_gettop(L) < count) lua_error_unsafe(L, "%d Parameters are needed.", count); } while(0)
-#define check_param_count(L, count) do { if(lua_gettop(L) < count) lua_error(L, "%d Parameters are needed.", count); } while(0)
+#define check_param_count_unsafe(L, count) do { if(lua_gettop(L) < count) lua_error_unsafe(L, "%d Parameters are needed.", static_cast<int>(count)); } while(0)
+#define check_param_count(L, count) do { if(lua_gettop(L) < count) lua_error(L, "%d Parameters are needed.", static_cast<int>(count)); } while(0)
 
 	using playerid_t = RangedInteger<uint8_t, 0, 1>;
 
@@ -156,7 +156,7 @@ namespace scriptlib {
 	template<typename T>
 	inline constexpr bool IsOwnedObject<owned_lua<T>> = true;
 
-	LuaParam get_lua_type(lua_State* L, int32_t index);
+	LuaParam get_lua_type(lua_State* L, int index);
 
 	template<typename T>
 	inline constexpr auto get_lua_param_type() {
@@ -254,7 +254,7 @@ namespace scriptlib {
 	}
 
 	template<LuaParam param_type>
-	static inline void check_param(lua_State* L, int32_t index) {
+	static inline void check_param(lua_State* L, int index) {
 		auto type = get_lua_type(L, index);
 		bool valid;
 		if constexpr(param_type == LuaParam::BOOLEAN) {
@@ -601,7 +601,7 @@ namespace scriptlib {
 	template<typename T>
 	static LuaRet from_lua_ref(lua_State* L) {
 		static_assert(IsCard<T*> || IsGroup<T*> || IsEffect<T*>);
-		auto ref = get_lua<int32_t>(L, 1);
+		auto ref = get_lua<int>(L, 1);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 		check_param<get_lua_param_type<T*>()>(L, -1);
 		return 1;
