@@ -1735,7 +1735,7 @@ LUA_FUNCTION(SetUniqueOnField, uint8_t positions_self, uint8_t positions_oppo,
 	return 0;
 }
 LUA_FUNCTION(CheckUniqueOnField, playerid_t check_player, std::optional<uint8_t> check_location, std::optional<card*> card_to_ignore) {
-	lua_pushbool(L, pduel->game_field->check_unique_onfield(self, check_player, check_location.value_or(LOCATION_ONFIELD) & LOCATION_ONFIELD, card_to_ignore.value_or(nullptr)));
+	lua_pushbool(L, !pduel->game_field->check_unique_onfield(self, check_player, check_location.value_or(LOCATION_ONFIELD) & LOCATION_ONFIELD, card_to_ignore.value_or(nullptr)));
 	return 1;
 }
 LUA_FUNCTION(ResetNegateEffect, nonempty_lua_range<uint32_t> resets) {
