@@ -2182,15 +2182,10 @@ void field::erase_grant_effect(effect* peffect) {
 }
 int32_t field::adjust_grant_effect() {
 	auto CheckValidLabel = [this](int32_t lref) {
-		if(!lref)
-			return false;
-		const auto L = pduel->lua->current_state;
 		bool res = false;
-		lua_rawgeti(L, LUA_REGISTRYINDEX, lref);
-		if(auto obj = lua_touserdata(L, -1)) {
-			res = (*static_cast<lua_obj**>(obj))->lua_type == LuaParam::EFFECT;
+		if(auto obj = pduel->lua->get_ref_object(lref); obj) {
+			res = static_cast<lua_obj*>(obj)->lua_type == LuaParam::EFFECT;
 		}
-		lua_pop(L, 1);
 		return res;
 	};
 	int32_t adjusted = FALSE;
