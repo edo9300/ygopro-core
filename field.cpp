@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 #include <algorithm> //std::sort, std::swap, std::find, std::find_if, std::min, std::none_of
+#include <climits> //UINT_MAX
 #include <tuple> //std::tie
 #include <utility> //std::move
 #include <vector>

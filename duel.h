@@ -20,6 +20,10 @@
 #include "ocgapi_types.h"
 #include "RNG/Xoshiro256.hpp"
 
+namespace scriptlib {
+inline duel* get_duel_from_lua(lua_State* L);
+}
+
 class card;
 class effect;
 class field;
@@ -74,10 +78,9 @@ public:
 	
 	duel() = delete;
 	duel(const OCG_DuelOptions& options, bool& valid_lua_lib);
+	template<typename dummy = void>
 	static duel* from(lua_State* L) {
-		duel* pduel = nullptr;
-		std::memcpy(&pduel, lua_getextraspace(L), sizeof(duel*));
-		return pduel;
+		return scriptlib::get_duel_from_lua(L);
 	}
 	~duel();
 	void clear();

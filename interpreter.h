@@ -18,14 +18,12 @@
 #include "common.h"
 #include "lua_obj.h"
 #include "ocgapi_types.h"
-#include "scriptlib.h"
+#include "scriptlib_types.h"
 
 class card;
 class effect;
 class group;
 class duel;
-
-struct lua_State;
 
 class interpreter {
 	char msgbuf[128]{};

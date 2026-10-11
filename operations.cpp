@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 #include <algorithm> //std::sort, std::copy_if, std::set_difference, std::copy
+#include <climits> //UINT_MAX
 #include <iterator> //std::inserter
 #include <memory> //std::make_unique
 #include <set>
