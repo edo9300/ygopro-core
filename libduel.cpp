@@ -992,7 +992,7 @@ LUA_STATIC_FUNCTION(EquipComplete) {
 	return yield();
 }
 LUA_STATIC_FUNCTION(GetControl, std::variant<card*, group*> card_or_group, playerid_t playerid, std::optional<uint16_t> reset_phase,
-					std::optional<uint8_t> reset_count, std::optional<uint32_t> zone, std::optional<uint8_t> choose_player) {
+					std::optional<uint8_t> reset_count, std::optional<uint32_t> zone, std::optional<playerid_t> choose_player) {
 	check_action_permission(L);
 	auto get_control = [&, field = pduel->game_field](auto& obj) {
 		field->get_control(obj, field->core.reason_effect, choose_player.value_or(field->core.reason_player), playerid,
@@ -1353,7 +1353,7 @@ LUA_STATIC_FUNCTION(CheckSummonedCount, card* pcard) {
 					|| (pduel->game_field->core.summon_count[playerid] < pduel->game_field->get_summon_count_limit(playerid)));
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetLocationCount, playerid_t playerid, uint8_t location, std::optional<uint8_t> uplayer, std::optional<LOCATION_REASON> reason, std::optional<uint32_t> zone) {
+LUA_STATIC_FUNCTION(GetLocationCount, playerid_t playerid, uint8_t location, std::optional<playerid_none_t> uplayer, std::optional<LOCATION_REASON> reason, std::optional<uint32_t> zone) {
 	uint32_t list = 0;
 	lua_pushinteger(L, pduel->game_field->get_useable_count(nullptr, playerid, location,
 															uplayer.value_or(pduel->game_field->core.reason_player),
@@ -1362,7 +1362,7 @@ LUA_STATIC_FUNCTION(GetLocationCount, playerid_t playerid, uint8_t location, std
 	lua_pushinteger(L, list != 0);
 	return 2;
 }
-LUA_STATIC_FUNCTION(GetMZoneCount, playerid_t playerid, std::variant<Nil, card*, group*> card_or_group, std::optional<playerid_t> uplayer, std::optional<LOCATION_REASON> reason, std::optional<uint32_t> zone) {
+LUA_STATIC_FUNCTION(GetMZoneCount, playerid_t playerid, std::variant<Nil, card*, group*> card_or_group, std::optional<playerid_none_t> uplayer, std::optional<LOCATION_REASON> reason, std::optional<uint32_t> zone) {
 	bool swapped = false;
 	const uint32_t default_loc = 0x1111 * pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD);
 	uint32_t used_location[2] = { default_loc, default_loc };
@@ -1398,7 +1398,7 @@ LUA_STATIC_FUNCTION(GetMZoneCount, playerid_t playerid, std::variant<Nil, card*,
 	}
 	return 2;
 }
-LUA_STATIC_FUNCTION(GetLocationCountFromEx, playerid_t playerid, std::optional<playerid_t> uplayer, std::variant<Nil, card*, group*> card_or_group,
+LUA_STATIC_FUNCTION(GetLocationCountFromEx, playerid_t playerid, std::optional<playerid_none_t> uplayer, std::variant<Nil, card*, group*> card_or_group,
 					std::variant<Nil, card*, uint32_t> card_or_type, std::optional<uint32_t> zone) {
 	bool swapped = false;
 	const uint32_t default_loc = 0x1111 * pduel->game_field->is_flag(DUEL_3_COLUMNS_FIELD);
@@ -1452,7 +1452,7 @@ LUA_STATIC_FUNCTION(GetLocationCountFromEx, playerid_t playerid, std::optional<p
 	}
 	return 2;
 }
-LUA_STATIC_FUNCTION(GetUsableMZoneCount, playerid_t playerid, std::optional<uint8_t> uplayer) {
+LUA_STATIC_FUNCTION(GetUsableMZoneCount, playerid_t playerid, std::optional<playerid_none_t> uplayer) {
 	auto actual_uplayer = uplayer.value_or(pduel->game_field->core.reason_player);
 	uint32_t zone = 0xff;
 	uint32_t flag1, flag2;
@@ -2374,14 +2374,14 @@ LUA_STATIC_FUNCTION(Overlay, card* target, std::variant<card*, group*> materials
 	}
 	return yield();
 }
-LUA_STATIC_FUNCTION(GetOverlayGroup, playerid_t reason_player, uint8_t self, uint8_t oppo, std::optional<group*> targets) {
+LUA_STATIC_FUNCTION(GetOverlayGroup, playerid_t for_player, uint8_t self, uint8_t oppo, std::optional<group*> targets) {
 	auto pgroup = pduel->new_group();
-	pduel->game_field->get_overlay_group(reason_player, self, oppo, &pgroup->container, targets.value_or(nullptr));
+	pduel->game_field->get_overlay_group(for_player, self, oppo, &pgroup->container, targets.value_or(nullptr));
 	interpreter::pushobject(L, pgroup);
 	return 1;
 }
-LUA_STATIC_FUNCTION(GetOverlayCount, playerid_t reason_player, uint8_t self, uint8_t oppo, std::optional<group*> targets) {
-	lua_pushinteger(L, pduel->game_field->get_overlay_count(reason_player, self, oppo, targets.value_or(nullptr)));
+LUA_STATIC_FUNCTION(GetOverlayCount, playerid_t for_player, uint8_t self, uint8_t oppo, std::optional<group*> targets) {
+	lua_pushinteger(L, pduel->game_field->get_overlay_count(for_player, self, oppo, targets.value_or(nullptr)));
 	return 1;
 }
 LUA_STATIC_FUNCTION(CheckRemoveOverlayCard, playerid_t remove_player, uint8_t self, uint8_t oppo, uint16_t count, uint32_t reason, std::optional<group*> targets) {

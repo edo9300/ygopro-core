@@ -1221,7 +1221,7 @@ LUA_FUNCTION(IsMSetable, bool ignore_location_check, std::optional<effect*> peff
 											  peffect.value_or(nullptr), minimum_tributes.value_or(0), zone.value_or(0xff)));
 	return 1;
 }
-LUA_FUNCTION(IsSSetable, std::optional<bool> ignore_location_check, std::optional<playerid_t> toplayer) {
+LUA_FUNCTION(IsSSetable, std::optional<bool> ignore_location_check, std::optional<playerid_none_t> toplayer) {
 	lua_pushbool(L, self->is_setable_szone(toplayer.value_or(pduel->game_field->core.reason_player), ignore_location_check.value_or(false)));
 	return 1;
 }
@@ -1232,7 +1232,7 @@ LUA_FUNCTION(IsCanBeSpecialSummoned, effect* peffect, uint32_t sumtype, playerid
 														sumplayer, toplayer.value_or(sumplayer), nocheck, nolimit, zone.value_or(0xff)));
 	return 1;
 }
-LUA_FUNCTION(IsAbleToHand, std::optional<playerid_t> reason_player) {
+LUA_FUNCTION(IsAbleToHand, std::optional<playerid_none_t> reason_player) {
 	lua_pushbool(L, self->is_capable_send_to_hand(reason_player.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
@@ -1248,7 +1248,7 @@ LUA_FUNCTION(IsAbleToGrave, std::optional<uint32_t> reason) {
 	lua_pushbool(L, self->is_capable_send_to_grave(pduel->game_field->core.reason_player, reason.value_or(REASON_EFFECT)));
 	return 1;
 }
-LUA_FUNCTION(IsAbleToRemove, std::optional<playerid_t> reason_player, std::optional<uint8_t> position, std::optional<uint32_t> reason) {
+LUA_FUNCTION(IsAbleToRemove, std::optional<playerid_none_t> reason_player, std::optional<uint8_t> position, std::optional<uint32_t> reason) {
 	lua_pushbool(L, self->is_removeable(reason_player.value_or(pduel->game_field->core.reason_player),
 										   position.value_or(POS_FACEUP),
 										   reason.value_or(REASON_EFFECT)));
@@ -1279,17 +1279,17 @@ LUA_FUNCTION(IsAbleToRemoveAsCost, std::optional<uint8_t> position) {
 	lua_pushbool(L, self->is_removeable_as_cost(pduel->game_field->core.reason_player, position.value_or(POS_FACEUP)));
 	return 1;
 }
-LUA_FUNCTION(IsReleasable, std::optional<uint32_t> reason, std::optional<playerid_t> reason_player) {
+LUA_FUNCTION(IsReleasable, std::optional<uint32_t> reason, std::optional<playerid_none_t> reason_player) {
 	lua_pushbool(L, self->is_releasable_by_nonsummon(reason_player.value_or(pduel->game_field->core.reason_player), reason.value_or(REASON_COST)));
 	return 1;
 }
-LUA_FUNCTION(IsReleasableByEffect, std::optional<effect*> reason_effect, std::optional<playerid_t> reason_player) {
+LUA_FUNCTION(IsReleasableByEffect, std::optional<effect*> reason_effect, std::optional<playerid_none_t> reason_player) {
 	auto player = reason_player.value_or(pduel->game_field->core.reason_player);
 	lua_pushbool(L, self->is_releasable_by_nonsummon(player, REASON_EFFECT) &&
 					self->is_releasable_by_effect(player, reason_effect.value_or(pduel->game_field->core.reason_effect)));
 	return 1;
 }
-LUA_FUNCTION(IsDiscardable, std::optional<uint32_t> reason, std::optional<playerid_t> reason_player) {
+LUA_FUNCTION(IsDiscardable, std::optional<uint32_t> reason, std::optional<playerid_none_t> reason_player) {
 	effect* pe = pduel->game_field->core.reason_effect;
 	auto reason_ = reason.value_or(REASON_COST);
 	if((reason_ != REASON_COST || !self->is_affected_by_effect(EFFECT_CANNOT_USE_AS_COST))
@@ -1552,7 +1552,7 @@ LUA_FUNCTION(IsCanRemoveCounter, playerid_t playerid, uint16_t countertype, uint
 	lua_pushbool(L, pduel->game_field->is_player_can_remove_counter(playerid, self, 0, 0, countertype, count, reason));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeFusionMaterial, std::optional<card*> fcard, std::optional<uint64_t> summon_type, std::optional<playerid_t> playerid) {
+LUA_FUNCTION(IsCanBeFusionMaterial, std::optional<card*> fcard, std::optional<uint64_t> summon_type, std::optional<playerid_none_t> playerid) {
 	lua_pushbool(L, self->is_can_be_fusion_material(fcard.value_or(nullptr),
 													   summon_type.value_or(SUMMON_TYPE_FUSION),
 													   playerid.value_or(pduel->game_field->core.reason_player)));
@@ -1564,28 +1564,28 @@ LUA_FUNCTION(IsCanBeSynchroMaterial, std::optional<card*> scard) {
 														nullptr));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeSynchroMaterial, card* scard, std::optional<card*> tuner, std::optional<playerid_t> playerid) {
+LUA_FUNCTION(IsCanBeSynchroMaterial, card* scard, std::optional<card*> tuner, std::optional<playerid_none_t> playerid) {
 	lua_pushbool(L, self->is_can_be_synchro_material(scard,
 														playerid.value_or(pduel->game_field->core.reason_player),
 														tuner.value_or(nullptr)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeRitualMaterial, std::optional<card*> scard, std::optional<playerid_t> playerid) {
+LUA_FUNCTION(IsCanBeRitualMaterial, std::optional<card*> scard, std::optional<playerid_none_t> playerid) {
 	lua_pushbool(L, self->is_can_be_ritual_material(scard.value_or(nullptr),
 													   playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeXyzMaterial, std::optional<card*> scard, std::optional<playerid_t> playerid, std::optional<uint32_t> reason) {
+LUA_FUNCTION(IsCanBeXyzMaterial, std::optional<card*> scard, std::optional<playerid_none_t> playerid, std::optional<uint32_t> reason) {
 	lua_pushbool(L, self->is_can_be_xyz_material(scard.value_or(nullptr),
 													playerid.value_or(pduel->game_field->core.reason_player),
 													reason.value_or(REASON_XYZ | REASON_MATERIAL)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeLinkMaterial, std::optional<card*> scard, std::optional<uint8_t> playerid) {
+LUA_FUNCTION(IsCanBeLinkMaterial, std::optional<card*> scard, std::optional<playerid_none_t> playerid) {
 	lua_pushbool(L, self->is_can_be_link_material(scard.value_or(nullptr), playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
-LUA_FUNCTION(IsCanBeMaterial, uint64_t sumtype, std::optional<card*> scard, std::optional<uint8_t> playerid) {
+LUA_FUNCTION(IsCanBeMaterial, uint64_t sumtype, std::optional<card*> scard, std::optional<playerid_none_t> playerid) {
 	lua_pushbool(L, self->is_can_be_material(scard.value_or(nullptr), sumtype, playerid.value_or(pduel->game_field->core.reason_player)));
 	return 1;
 }
