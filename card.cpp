@@ -3192,7 +3192,7 @@ int32_t card::is_can_be_summoned(uint8_t playerid, uint8_t ignore_count, effect*
 			pduel->game_field->restore_lp_cost();
 			return FALSE;
 		}
-	} else if(current.location == LOCATION_HAND) {
+	} else {
 		if(is_affected_by_effect(EFFECT_CANNOT_SUMMON)) {
 			pduel->game_field->restore_lp_cost();
 			return FALSE;
@@ -3384,7 +3384,7 @@ int32_t card::is_setable_mzone(uint8_t playerid, uint8_t ignore_count, effect* p
 		if(reason_effect && reason_effect->get_handler() == this)
 			reason_effect->status |= EFFECT_STATUS_SUMMON_SELF;
 	}
-	if(current.location != LOCATION_HAND)
+	if(current.location == LOCATION_MZONE)
 		return FALSE;
 	if(is_status(STATUS_FORBIDDEN))
 		return FALSE;
