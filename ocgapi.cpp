@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019, Dylam De La Torre, (DyXel)
- * Copyright (c) 2019-2025, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
+ * Copyright (c) 2019-2026, Edoardo Lolletti (edo9300) <edoardo762@gmail.com>
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
@@ -39,6 +39,10 @@ int OCG_CreateDuel(OCG_Duel* out_ocg_duel, const OCG_DuelOptions* options_ptr) {
 	if(options.cardReaderDone == nullptr) {
 		options.cardReaderDone = [](void* /*payload*/, OCG_CardData* /*data*/) {};
 		options.payload4 = nullptr;
+	}
+	if(options.existCardsToDeclare == nullptr) {
+		*out_ocg_duel = nullptr;
+		return OCG_DUEL_CREATION_NULL_DECLARATION_FILTER;
 	}
 	if(options.seed[0] == 0 && options.seed[1] == 0 && options.seed[2] == 0 && options.seed[3] == 0)
 		return OCG_DUEL_CREATION_NULL_RNG_SEED;
