@@ -3003,7 +3003,7 @@ int32_t field::is_player_can_send_to_hand(uint8_t playerid, card* pcard, uint32_
 		pduel->lua->add_param<LuaParam::EFFECT>(peff);
 		pduel->lua->add_param<LuaParam::CARD>(pcard);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
-		pduel->lua->add_param<LuaParam::EFFECT>(core.reason_effect);
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
 		pduel->lua->add_param<LuaParam::INT>(reason);
 		if(pduel->lua->check_condition(peff->target, 5))
 			return FALSE;
@@ -3021,7 +3021,9 @@ int32_t field::is_player_can_send_to_deck(uint8_t playerid, card* pcard, uint32_
 		pduel->lua->add_param<LuaParam::EFFECT>(peff);
 		pduel->lua->add_param<LuaParam::CARD>(pcard);
 		pduel->lua->add_param<LuaParam::INT>(playerid);
-		if(pduel->lua->check_condition(peff->target, 3))
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		if(pduel->lua->check_condition(peff->target, 5))
 			return FALSE;
 	}
 	return TRUE;
