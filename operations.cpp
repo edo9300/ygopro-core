@@ -3973,9 +3973,9 @@ bool field::process(Processors::Destroy& arg) {
 			uint32_t dest = pcard->sendto_param.location;
 			if(!dest)
 				dest = LOCATION_GRAVE;
-			if((dest == LOCATION_HAND && !pcard->is_capable_send_to_hand(reason_player))
-			        || (dest == LOCATION_DECK && !pcard->is_capable_send_to_deck(reason_player))
-			        || (dest == LOCATION_REMOVED && !pcard->is_removeable(reason_player, pcard->sendto_param.position, reason)))
+			if((dest == LOCATION_HAND && !pcard->is_capable_send_to_hand(reason_player, reason, pcard->current.reason_effect))
+			        || (dest == LOCATION_DECK && !pcard->is_capable_send_to_deck(reason_player, reason, pcard->current.reason_effect))
+			        || (dest == LOCATION_REMOVED && !pcard->is_removeable(reason_player, pcard->sendto_param.position, reason, pcard->current.reason_effect)))
 				dest = LOCATION_GRAVE;
 			pcard->sendto_param.location = dest;
 		}
@@ -4258,11 +4258,11 @@ bool field::process(Processors::SendTo& arg) {
 			if(!(reason & REASON_RULE) &&
 				(pcard->get_status(STATUS_SUMMONING | STATUS_SPSUMMON_STEP)
 					|| (!(pcard->current.reason & (REASON_COST | REASON_SUMMON | REASON_MATERIAL)) && !pcard->is_affect_by_effect(pcard->current.reason_effect))
-					|| (dest == LOCATION_HAND && !pcard->is_capable_send_to_hand(core.reason_player))
-					|| (dest == LOCATION_DECK && !pcard->is_capable_send_to_deck(core.reason_player))
-					|| (dest == LOCATION_REMOVED && !pcard->is_removeable(core.reason_player, pcard->sendto_param.position, reason))
-					|| (dest == LOCATION_GRAVE && !pcard->is_capable_send_to_grave(core.reason_player, reason))
-					|| (dest == LOCATION_EXTRA && !pcard->is_capable_send_to_extra(core.reason_player)))) {
+					|| (dest == LOCATION_HAND && !pcard->is_capable_send_to_hand(core.reason_player, reason, pcard->current.reason_effect))
+					|| (dest == LOCATION_DECK && !pcard->is_capable_send_to_deck(core.reason_player, reason, pcard->current.reason_effect))
+					|| (dest == LOCATION_REMOVED && !pcard->is_removeable(core.reason_player, pcard->sendto_param.position, reason, pcard->current.reason_effect))
+					|| (dest == LOCATION_GRAVE && !pcard->is_capable_send_to_grave(core.reason_player, reason, pcard->current.reason_effect))
+					|| (dest == LOCATION_EXTRA && !pcard->is_capable_send_to_extra(core.reason_player, reason, pcard->current.reason_effect)))) {
 				pcard->current.reason = pcard->temp.reason;
 				pcard->current.reason_player = pcard->temp.reason_player;
 				pcard->current.reason_effect = pcard->temp.reason_effect;
