@@ -1467,53 +1467,75 @@ LUA_FUNCTION(IsCanBeSpecialSummoned) {
 }
 LUA_FUNCTION(IsAbleToHand) {
 	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
-	lua_pushboolean(L, self->is_capable_send_to_hand(p));
+	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 3);
+	auto reason_effect = lua_get<effect*>(L, 4);
+	lua_pushboolean(L, self->is_capable_send_to_hand(p, reason, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToDeck) {
-	lua_pushboolean(L, self->is_capable_send_to_deck(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 3);
+	auto reason_effect = lua_get<effect*>(L, 4);
+	lua_pushboolean(L, self->is_capable_send_to_deck(p, reason, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToExtra) {
-	lua_pushboolean(L, self->is_capable_send_to_extra(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 3);
+	auto reason_effect = lua_get<effect*>(L, 4);
+	lua_pushboolean(L, self->is_capable_send_to_extra(p, reason, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToGrave) {
 	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 2);
-	lua_pushboolean(L, self->is_capable_send_to_grave(pduel->game_field->core.reason_player, reason));
+	auto p = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 4);
+	lua_pushboolean(L, self->is_capable_send_to_grave(p, reason, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToRemove) {
 	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
 	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 3);
 	auto reason = lua_get<uint32_t, REASON_EFFECT>(L, 4);
-	lua_pushboolean(L, self->is_removeable(p, pos, reason));
+	auto reason_effect = lua_get<effect*>(L, 5);
+	lua_pushboolean(L, self->is_removeable(p, pos, reason, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToHandAsCost) {
-	lua_pushboolean(L, self->is_capable_cost_to_hand(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 3);
+	lua_pushboolean(L, self->is_capable_cost_to_hand(p, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToDeckAsCost) {
-	lua_pushboolean(L, self->is_capable_cost_to_deck(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 3);
+	lua_pushboolean(L, self->is_capable_cost_to_deck(p, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToExtraAsCost) {
-	lua_pushboolean(L, self->is_capable_cost_to_extra(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 3);
+	lua_pushboolean(L, self->is_capable_cost_to_extra(p, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToDeckOrExtraAsCost) {
-	auto p = pduel->game_field->core.reason_player;
-	lua_pushboolean(L, self->is_extra_deck_monster() ? self->is_capable_cost_to_extra(p) : self->is_capable_cost_to_deck(p));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 3);
+	lua_pushboolean(L, self->is_extra_deck_monster() ? self->is_capable_cost_to_extra(p, reason_effect) : self->is_capable_cost_to_deck(p, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToGraveAsCost) {
-	lua_pushboolean(L, self->is_capable_cost_to_grave(pduel->game_field->core.reason_player));
+	auto p = lua_get<uint8_t>(L, 2, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 3);
+	lua_pushboolean(L, self->is_capable_cost_to_grave(p, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsAbleToRemoveAsCost) {
 	auto pos = lua_get<uint8_t, POS_FACEUP>(L, 2);
-	lua_pushboolean(L, self->is_removeable_as_cost(pduel->game_field->core.reason_player, pos));
+	auto p = lua_get<uint8_t>(L, 3, pduel->game_field->core.reason_player);
+	auto reason_effect = lua_get<effect*>(L, 4);
+	lua_pushboolean(L, self->is_removeable_as_cost(p, pos, reason_effect));
 	return 1;
 }
 LUA_FUNCTION(IsReleasable) {
