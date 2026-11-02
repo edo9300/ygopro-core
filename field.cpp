@@ -2697,7 +2697,7 @@ int32_t field::is_player_can_discard_deck_as_cost(uint8_t playerid, uint32_t cou
 		uint32_t redirect = peff->get_value();
 		uint8_t p = peff->get_handler_player();
 		if(redirect & LOCATION_REMOVED) {
-			if(topcard->is_affected_by_effect(EFFECT_CANNOT_REMOVE))
+			if(topcard->is_removeable(p, POS_FACEUP, REASON_EFFECT, core.reason_effect))
 				continue;
 			if((cant_remove_s && (p == playerid)) || (cant_remove_o && (p != playerid)))
 				continue;

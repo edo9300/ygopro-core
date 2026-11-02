@@ -2165,11 +2165,11 @@ int32_t card::leave_field_redirect(uint32_t reason) {
 	for(const auto& peff : es) {
 		pduel->lua->add_param<LuaParam::INT>(reason);
 		redirect = peff->get_value(this, 1);
-		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		if((redirect & LOCATION_HAND) && is_capable_send_to_hand(peff->get_handler_player(), REASON_EFFECT, peff))
 			redirects |= redirect;
-		else if((redirect & LOCATION_DECK) && !is_affected_by_effect(EFFECT_CANNOT_TO_DECK) && pduel->game_field->is_player_can_send_to_deck(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		else if((redirect & LOCATION_DECK) && is_capable_send_to_deck(peff->get_handler_player(), REASON_EFFECT, peff))
 			redirects |= redirect;
-		else if((redirect & LOCATION_REMOVED) && !is_affected_by_effect(EFFECT_CANNOT_REMOVE) && pduel->game_field->is_player_can_remove(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		else if((redirect & LOCATION_REMOVED) && is_removeable(peff->get_handler_player(), POS_FACEUP, REASON_EFFECT, peff))
 			redirects |= redirect;
 	}
 	if(redirects & LOCATION_REMOVED)
@@ -2204,13 +2204,13 @@ int32_t card::destination_redirect(uint8_t destination, uint32_t reason) {
 	for(const auto& peff : es) {
 		pduel->lua->add_param<LuaParam::INT>(reason);
 		redirect = peff->get_value(this, 1);
-		if((redirect & LOCATION_HAND) && !is_affected_by_effect(EFFECT_CANNOT_TO_HAND) && pduel->game_field->is_player_can_send_to_hand(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		if((redirect & LOCATION_HAND) && is_capable_send_to_hand(peff->get_handler_player(), REASON_EFFECT, peff))
 			return redirect;
-		if((redirect & LOCATION_DECK) && !is_affected_by_effect(EFFECT_CANNOT_TO_DECK) && pduel->game_field->is_player_can_send_to_deck(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		if((redirect & LOCATION_DECK) && is_capable_send_to_deck(peff->get_handler_player(), REASON_EFFECT, peff))
 			return redirect;
-		if((redirect & LOCATION_REMOVED) && !is_affected_by_effect(EFFECT_CANNOT_REMOVE) && pduel->game_field->is_player_can_remove(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		if((redirect & LOCATION_REMOVED) && is_removeable(peff->get_handler_player(), POS_FACEUP, REASON_EFFECT, peff))
 			return redirect;
-		if((redirect & LOCATION_GRAVE) && !is_affected_by_effect(EFFECT_CANNOT_TO_GRAVE) && pduel->game_field->is_player_can_send_to_grave(peff->get_handler_player(), this, REASON_EFFECT, peff))
+		if((redirect & LOCATION_GRAVE) && is_capable_send_to_grave(peff->get_handler_player(), REASON_EFFECT, peff))
 			return redirect;
 	}
 	return 0;
@@ -3526,10 +3526,21 @@ int32_t card::is_destructable_by_effect(effect* peffect, uint8_t playerid) {
 int32_t card::is_removeable(uint8_t playerid, uint8_t pos, uint32_t reason, effect* reason_effect) {
 	if(!pduel->game_field->is_player_can_remove(playerid, this, reason, reason_effect))
 		return FALSE;
-	if(is_affected_by_effect(EFFECT_CANNOT_REMOVE))
-		return FALSE;
 	if((data.type & TYPE_TOKEN) && (pos & POS_FACEDOWN))
 		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_REMOVE, &eset);
+	for(const auto& peff : eset) {
+		if(!peff->value)
+			return FALSE;
+		pduel->lua->add_param<LuaParam::CARD>(this);
+		pduel->lua->add_param<LuaParam::INT>(pos);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
+		if(peff->check_value_condition(5))
+			return FALSE;
+	}
 	return TRUE;
 }
 int32_t card::is_removeable_as_cost(uint8_t playerid, uint8_t pos, effect* reason_effect) {
@@ -3605,8 +3616,18 @@ int32_t card::is_releasable_by_effect(uint8_t playerid, effect* peffect) {
 	return TRUE;
 }
 int32_t card::is_capable_send_to_grave(uint8_t playerid, uint32_t reason, effect* reason_effect) {
-	if(is_affected_by_effect(EFFECT_CANNOT_TO_GRAVE))
-		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_TO_GRAVE, &eset);
+	for(const auto& peff : eset) {
+		if(!peff->value)
+			return FALSE;
+		pduel->lua->add_param<LuaParam::CARD>(this);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
+		if(peff->check_value_condition(4))
+			return FALSE;
+	}
 	if(!pduel->game_field->is_player_can_send_to_grave(playerid, this, reason, reason_effect))
 		return FALSE;
 	return TRUE;
@@ -3616,8 +3637,18 @@ int32_t card::is_capable_send_to_hand(uint8_t playerid, uint32_t reason, effect*
 		return FALSE;
 	if((current.location == LOCATION_EXTRA) && is_extra_deck_monster())
 		return FALSE;
-	if(is_affected_by_effect(EFFECT_CANNOT_TO_HAND))
-		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_TO_HAND, &eset);
+	for(const auto& peff : eset) {
+		if(!peff->value)
+			return FALSE;
+		pduel->lua->add_param<LuaParam::CARD>(this);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
+		if(peff->check_value_condition(4))
+			return FALSE;
+	}
 	if(is_extra_deck_monster() && !is_capable_send_to_deck(playerid, reason, reason_effect))
 		return FALSE;
 	if(!pduel->game_field->is_player_can_send_to_hand(playerid, this, reason, reason_effect))
@@ -3629,8 +3660,18 @@ int32_t card::is_capable_send_to_deck(uint8_t playerid, uint32_t reason, effect*
 		return FALSE;
 	if((current.location == LOCATION_EXTRA) && is_extra_deck_monster())
 		return FALSE;
-	if(is_affected_by_effect(EFFECT_CANNOT_TO_DECK))
-		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_TO_DECK, &eset);
+	for(const auto& peff : eset) {
+		if(!peff->value)
+			return FALSE;
+		pduel->lua->add_param<LuaParam::CARD>(this);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
+		if(peff->check_value_condition(4))
+			return FALSE;
+	}
 	if(!pduel->game_field->is_player_can_send_to_deck(playerid, this, reason, reason_effect))
 		return FALSE;
 	return TRUE;
@@ -3638,8 +3679,18 @@ int32_t card::is_capable_send_to_deck(uint8_t playerid, uint32_t reason, effect*
 int32_t card::is_capable_send_to_extra(uint8_t playerid, uint32_t reason, effect* reason_effect) {
 	if(!is_extra_deck_monster() && !(data.type & TYPE_PENDULUM))
 		return FALSE;
-	if(is_affected_by_effect(EFFECT_CANNOT_TO_DECK))
-		return FALSE;
+	effect_set eset;
+	filter_effect(EFFECT_CANNOT_TO_DECK, &eset);
+	for(const auto& peff : eset) {
+		if(!peff->value)
+			return FALSE;
+		pduel->lua->add_param<LuaParam::CARD>(this);
+		pduel->lua->add_param<LuaParam::INT>(playerid);
+		pduel->lua->add_param<LuaParam::INT>(reason);
+		pduel->lua->add_param<LuaParam::EFFECT>(reason_effect);
+		if(peff->check_value_condition(4))
+			return FALSE;
+	}
 	if(!pduel->game_field->is_player_can_send_to_deck(playerid, this, reason, reason_effect))
 		return FALSE;
 	return TRUE;
