@@ -91,7 +91,7 @@ jobs:
             deploy-branch: travis-core-windows-mingw
           - arch: x64
             deploy-branch: travis-core-windows-mingw-x64
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DEPLOY_BRANCH: ${{ matrix.deploy-branch }}
       TRAVIS_OS_NAME: linux
