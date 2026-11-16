@@ -554,7 +554,7 @@ LUA_FUNCTION(GetBitwiseAnd) {
 	check_param_count(L, 2);
 	const auto findex = lua_get<function, true>(L, 2);
 	int32_t extraargs = lua_gettop(L) - 2;
-	uint64_t total = 0;
+	uint64_t total = std::numeric_limits<uint64_t>::max();
 	for(auto& pcard : self->container) {
 		total &= static_cast<uint64_t>(pduel->lua->get_operation_value(pcard, findex, extraargs));
 	}
